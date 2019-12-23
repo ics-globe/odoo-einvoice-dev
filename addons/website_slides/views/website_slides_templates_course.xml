@@ -549,7 +549,7 @@
         </a>
     </div>
     <!-- Featured lesson  -->
-    <div t-if="not search and not search_slide_type and slide_promoted" class="container py-1 mb-2">
+    <div t-if="False and not search and not search_slide_type and slide_promoted" class="container py-1 mb-2">
         <div class="card flex-column flex-lg-row">
             <t t-set="image_url" t-value="website.image_url(slide_promoted, 'image_1024')"/>
 
@@ -643,7 +643,7 @@
             <a t-if="can_access" class="card-title h5 mb-2o_wslides_desc_truncate_2" t-attf-href="/slides/slide/#{slug(slide)}#{query_string}" t-esc="slide.name"/>
             <span t-else="" class="card-title h5 mb-2 o_wslides_desc_truncate_2 text-muted" t-esc="slide.name"/>
             <div class="card-subtitle mb-2 text-muted" t-if="slide.is_preview or (not slide.is_published and user.has_group('website.group_website_publisher'))">
-                <t t-if="slide.is_preview">
+                <t t-if="False and slide.is_preview">
                     <span class="badge badge-info">Free preview</span>
                 </t>
                 <t t-if="not slide.is_published and channel.can_publish">

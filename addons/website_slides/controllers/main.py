@@ -21,7 +21,7 @@ _logger = logging.getLogger(__name__)
 class WebsiteSlides(WebsiteProfile):
     _slides_per_page = 12
     _slides_per_aside = 20
-    _slides_per_category = 4
+    _slides_per_category = 999
     _channel_order_by_criterion = {
         'vote': 'total_votes desc',
         'view': 'total_views desc',
@@ -371,7 +371,7 @@ class WebsiteSlides(WebsiteProfile):
 
         # sorting criterion
         if channel.channel_type == 'documentation':
-            actual_sorting = sorting if sorting and sorting in request.env['slide.slide']._order_by_strategy else channel.promote_strategy
+            actual_sorting = sorting if sorting and sorting in request.env['slide.slide']._order_by_strategy else 'sequence'  # channel.promote_strategy
         else:
             actual_sorting = 'sequence'
         order = request.env['slide.slide']._order_by_strategy[actual_sorting]
