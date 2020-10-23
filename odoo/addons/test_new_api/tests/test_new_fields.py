@@ -3270,6 +3270,30 @@ class TestComputeQueries(common.TransactionCase):
             record = model.create({'foo': 'Foo', 'bar': 'Bar'})
         self.assertEqual(record.bar, 'Bar')
 
+        # do not trigger recomputation when writing the same value
+        with self.assertQueries([]):
+            record.foo = 'Foo'
+        self.assertEqual(record.bar, 'Bar')
+
+        with self.assertQueries([]):
+            record.write({'foo': 'Foo'})
+        self.assertEqual(record.bar, 'Bar')
+
+        # write and trigger recomputation
+        with self.assertQueries([update(model, 'foo', 'bar')]):
+            record.write({'foo': 'One'})
+        self.assertEqual(record.bar, 'One')
+
+        # write and do not trigger recomputation
+        with self.assertQueries([update(model, 'foo', 'bar')]):
+            record.write({'foo': 'Two', 'bar': 'Bar'})
+        self.assertEqual(record.bar, 'Bar')
+
+        # write and do not trigger recomputation (field 'bar' must be protected)
+        with self.assertQueries([update(model, 'foo')]):
+            record.write({'foo': 'One', 'bar': 'Bar'})
+        self.assertEqual(record.bar, 'Bar')
+
     def test_compute_inverse(self):
         model = self.env['test_new_api.compute.inverse']
         model.create({})
@@ -3299,6 +3323,7 @@ class TestComputeQueries(common.TransactionCase):
             record = model.create({'foo': 'Foo', 'bar': 'Bar'})
         self.assertEqual(record.foo, 'Bar')
         self.assertEqual(record.bar, 'Bar')
+
 
 class test_shared_cache(TransactionCaseWithUserDemo):
     def test_shared_cache_computed_field(self):
@@ -3394,3 +3419,156 @@ class TestWrongRelatedError(common.TransactionCase):
         )
         with self.assertRaisesRegex(KeyError, errMsg):
             self.registry.setup_models(self.env.cr)
+
+
+class TestFieldFilterNotEqual(common.TransactionCase):
+    def test_filter_not_equal_char(self):
+        model = self.env['test_new_api.compute.readwrite']
+        field = model._fields['foo']
+        record = model.create({'foo': 'Foo', 'bar': 'Bar'})
+        record.flush()
+
+        self.assertFalse(field.filter_not_equal(record, 'Foo'))
+        self.assertTrue(field.filter_not_equal(record, 'Bar'))
+
+        self.env.clear()
+        self.assertTrue(field.filter_not_equal(record, 'Bar'))
+
+    def test_filter_not_equal_one2many(self):
+        model = self.env['test_new_api.model_active_field']
+        field = model._fields['children_ids']
+        record = model.create({})
+        line1 = model.create({'name': '1', 'parent_id': record.id})
+        line2 = model.create({'name': '2', 'parent_id': record.id})
+        line3 = model.create({'name': '3'})
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertFalse(field.filter_not_equal(line1, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertFalse(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))
+
+        # same tests on a new record with value in cache
+        record = record.new(origin=record)
+        line1 = line1.new(origin=line1)
+        line2 = line2.new(origin=line2)
+        line3 = line3.new(origin=line3)
+        (record + line1).children_ids
+        line1.name
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertFalse(field.filter_not_equal(line1, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertFalse(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))
+
+        # same tests on a new record without value in cache
+        self.env.cache.invalidate()
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertTrue(field.filter_not_equal(line1, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))
+
+    def test_filter_not_equal_many2many(self):
+        line1 = self.env['test_new_api.multi.tag'].create({'name': '1'})
+        line2 = self.env['test_new_api.multi.tag'].create({'name': '2'})
+        line3 = self.env['test_new_api.multi.tag'].create({'name': '3'})
+        model = self.env['test_new_api.multi.line']
+        field = model._fields['tags']
+        record = model.create({'tags': [Command.link(line1.id), Command.link(line2.id)]})
+        record0 = model.create({})
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.unlink(line3.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertFalse(field.filter_not_equal(record0, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertFalse(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))
+
+        # same tests on a new record with value in cache
+        record = record.new(origin=record)
+        record0 = record.new(origin=record)
+        line1 = line1.new(origin=line1)
+        line2 = line2.new(origin=line2)
+        line3 = line3.new(origin=line3)
+        (record + record0).tags
+        line1.name
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertFalse(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.unlink(line3.id)]))
+        self.assertFalse(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertFalse(field.filter_not_equal(record0, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertFalse(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))
+
+        # same tests on a new record without value in cache
+        self.env.cache.invalidate()
+
+        self.assertFalse(field.filter_not_equal(record, []))
+        self.assertTrue(field.filter_not_equal(record, [Command.create({})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '1'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.update(line1.id, {'name': '3'})]))
+        self.assertTrue(field.filter_not_equal(record, [Command.delete(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.unlink(line3.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line1.id)]))
+        self.assertTrue(field.filter_not_equal(record, [Command.link(line3.id)]))
+        self.assertTrue(field.filter_not_equal(record0, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.clear()]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line1.id, line2.id, line3.id])]))
+        self.assertTrue(field.filter_not_equal(record, [Command.set([line3.id])]))

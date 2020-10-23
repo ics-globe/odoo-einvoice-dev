@@ -167,24 +167,24 @@ class TestPerformance(SavepointCaseWithUserDemo):
         rec2 = self.env['test_performance.base'].create({'name': 'X'})
 
         # link N lines from rec1 to rec2: O(1) queries
-        with self.assertQueryCount(7):
+        with self.assertQueryCount(8):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[0]]})
         self.assertEqual(rec1.line_ids, lines[1:])
         self.assertEqual(rec2.line_ids, lines[0])
 
-        with self.assertQueryCount(7):
+        with self.assertQueryCount(8):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[1:]]})
         self.assertFalse(rec1.line_ids)
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(5):
+        with self.assertQueryCount(3):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[0]]})
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(5):
+        with self.assertQueryCount(3):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[1:]]})
         self.assertEqual(rec2.line_ids, lines)
@@ -195,7 +195,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             rec2.write({'line_ids': [Command.clear()]})
         self.assertFalse(rec2.line_ids)
 
-        with self.assertQueryCount(3):
+        with self.assertQueryCount(2):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.clear()]})
         self.assertFalse(rec2.line_ids)
@@ -204,19 +204,19 @@ class TestPerformance(SavepointCaseWithUserDemo):
         lines = rec1.line_ids
 
         # set N lines in rec2: O(1) queries
-        with self.assertQueryCount(8):
+        with self.assertQueryCount(9):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.set(lines[0].ids)]})
         self.assertEqual(rec1.line_ids, lines[1:])
         self.assertEqual(rec2.line_ids, lines[0])
 
-        with self.assertQueryCount(6):
+        with self.assertQueryCount(9):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.set(lines.ids)]})
         self.assertFalse(rec1.line_ids)
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(4):
+        with self.assertQueryCount(3):
             rec1.invalidate_cache()
             rec2.write({'line_ids': [Command.set(lines.ids)]})
         self.assertEqual(rec2.line_ids, lines)
