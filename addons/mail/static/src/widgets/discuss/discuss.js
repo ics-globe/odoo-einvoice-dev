@@ -9,9 +9,12 @@ const InvitePartnerDialog = require('mail/static/src/widgets/discuss_invite_part
 const AbstractAction = require('web.AbstractAction');
 const { action_registry, qweb } = require('web.core');
 
+const { ComponentWrapper, WidgetAdapterMixin } = require('web.OwlCompatibility');
+
+
 const { Component } = owl;
 
-const DiscussWidget = AbstractAction.extend({
+const DiscussWidget = AbstractAction.extend(WidgetAdapterMixin, {
     template: 'mail.widgets.Discuss',
     hasControlPanel: true,
     loadControlPanel: true,
@@ -53,8 +56,6 @@ const DiscussWidget = AbstractAction.extend({
         this.discuss = undefined;
         this.options = options;
 
-        this.component = undefined;
-
         this._lastPushStateActiveThread = null;
     },
     /**
@@ -71,14 +72,15 @@ const DiscussWidget = AbstractAction.extend({
         this.discuss = this.env.messaging.discuss;
         this.discuss.update({ initActiveId });
     },
+    async start() {
+        await this._super(...arguments);
+        this.component = new ComponentWrapper(this, components.Discuss, null);
+        return this.component.mount(this.el);
+    },
     /**
      * @override {web.AbstractAction}
      */
     destroy() {
-        if (this.component) {
-            this.component.destroy();
-            this.component = undefined;
-        }
         if (this.$buttons) {
             this.$buttons.off().remove();
         }
@@ -89,12 +91,8 @@ const DiscussWidget = AbstractAction.extend({
      */
     on_attach_callback() {
         this._super(...arguments);
-        if (this.component) {
-            // prevent twice call to on_attach_callback (FIXME)
-            return;
-        }
-        const DiscussComponent = components.Discuss;
-        this.component = new DiscussComponent();
+        WidgetAdapterMixin.on_attach_callback.apply(this, arguments);
+
         this._pushStateActionManagerEventListener = ev => {
             ev.stopPropagation();
             if (this._lastPushStateActiveThread === this.discuss.thread) {
@@ -124,17 +122,14 @@ const DiscussWidget = AbstractAction.extend({
             'o-update-control-panel',
             this._updateControlPanelEventListener
         );
-        return this.component.mount(this.el);
     },
     /**
      * @override {web.AbstractAction}
      */
     on_detach_callback() {
         this._super(...arguments);
-        if (this.component) {
-            this.component.destroy();
-        }
-        this.component = undefined;
+        WidgetAdapterMixin.on_attach_callback.apply(this, arguments);
+
         this.el.removeEventListener(
             'o-push-state-action-manager',
             this._pushStateActionManagerEventListener

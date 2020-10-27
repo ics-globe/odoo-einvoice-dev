@@ -138,9 +138,9 @@ function _useDiscuss(callbacks) {
             DiscussWidget.prototype._pushStateActionManager = () => {};
             discussWidget = new DiscussWidget(widget, state.discussData);
             await discussWidget.appendTo($(selector));
-            if (state.autoOpenDiscuss) {
-                await discussWidget.on_attach_callback();
-            }
+            // if (state.autoOpenDiscuss) {
+            //     await discussWidget.on_attach_callback();
+            // }
         }),
         return: prevReturn.concat(result => {
             Object.assign(result, { discussWidget });
@@ -167,7 +167,7 @@ function _useMessagingMenu(callbacks) {
         mount: prevMount.concat(async ({ selector, widget }) => {
             messagingMenuWidget = new MessagingMenuWidget(widget, {});
             await messagingMenuWidget.appendTo($(selector));
-            await messagingMenuWidget.on_attach_callback();
+            // await messagingMenuWidget.on_attach_callback();
         }),
         return: prevReturn.concat(result => {
             Object.assign(result, { messagingMenuWidget });
@@ -684,9 +684,9 @@ async function start(param0 = {}) {
         }
 
         if (mountCallbacks.length > 0) {
-            await afterNextRender(async () => {
+            // await afterNextRender(async () => {
                 await Promise.all(mountCallbacks.map(callback => callback({ selector, widget })));
-            });
+            // });
         }
         returnCallbacks.forEach(callback => callback(result));
     };

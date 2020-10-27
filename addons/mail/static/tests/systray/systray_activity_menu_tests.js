@@ -3,7 +3,6 @@ odoo.define('mail.systray.ActivityMenuTests', function (require) {
 
 const {
     afterEach,
-    afterNextRender,
     beforeEach,
     start,
 } = require('mail/static/src/utils/test_utils.js');
@@ -259,9 +258,7 @@ QUnit.test('activity menu widget: close on messaging menu click', async function
         "activity menu should be shown after click on itself"
     );
 
-    await afterNextRender(() =>
-        document.querySelector(`.o_MessagingMenu_toggler`).click()
-    );
+    await testUtils.dom.click(`.o_MessagingMenu_toggler`);
     assert.doesNotHaveClass(
         activityMenu.el.querySelector('.o_mail_systray_dropdown'),
         'show',
