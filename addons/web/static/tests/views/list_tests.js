@@ -10869,6 +10869,107 @@ QUnit.module('Views', {
         unpatchDate();
         testUtils.mock.unpatch(BasicModel);
     });
+
+    QUnit.test("update control panel while list view is mounting", async function (assert) {
+        const ControlPanel = require("web.ControlPanel");
+        const ListController = require("web.ListController");
+        let mountedCounterCall = 0;
+
+        ControlPanel.patch('test.ControlPanel', T => class ControlPanelPatchTest extends T {
+            mounted() {
+                assert.step(`mountedCounterCall-${++mountedCounterCall}`);
+                super.mounted(...arguments);
+            }
+        });
+
+        const MyListView = ListView.extend({
+            config: Object.assign({}, ListView.prototype.config, {
+                Controller: ListController.extend({
+                    async start() {
+                        await this._super(...arguments);
+                        this.renderer._updateSelection();
+                    },
+                }),
+            }),
+        });
+
+        assert.expect(2);
+
+        const list = await createView({
+            View: MyListView,
+            model: 'event',
+            data: this.data,
+            arch: '<tree><field name="name"/></tree>',
+        });
+
+        assert.verifySteps([
+            'mountedCounterCall-1',
+        ]);
+
+        list.destroy();
+        ControlPanel.unpatch('test.ControlPanel');
+
+    });
+
+    QUnit.test("update control panel while list view is mounting (extended version)", async function (assert) {
+        const ControlPanel = require("web.ControlPanel");
+        const ListController = require("web.ListController");
+        const viewRegistry = require('web.view_registry');
+        let mountedCounterCall = 0;
+
+        ControlPanel.patch('test.ControlPanel', T => class ControlPanelPatchTest extends T {
+            mounted() {
+                assert.step(`mountedCounterCall-${++mountedCounterCall}`);
+                super.mounted(...arguments);
+            }
+        });
+
+        const MyListView = ListView.extend({
+            config: Object.assign({}, ListView.prototype.config, {
+                Controller: ListController.extend({
+                    async start() {
+                        await this._super(...arguments);
+                        this.renderer._updateSelection();
+                    },
+                }),
+            }),
+        });
+
+        viewRegistry.add("MyListView", MyListView);
+
+        let data = { partner: { fields: {}, records: [] } };
+
+        let actions = [
+            {
+                id: 1,
+                name: "Partners Action",
+                res_model: "partner",
+                type: "ir.actions.act_window",
+                views: [[false, "list"]],
+            },
+        ];
+
+        let archs = {
+            "partner,false,list": `<tree js_class="MyListView"><field name="display_name"/></tree>`,
+            "partner,false,search": '<search><field name="display_name" string="Name"/></search>',
+        };
+
+        assert.expect(2);
+
+        const actionManager = await createActionManager({
+            actions: actions,
+            archs: archs,
+            data: data,
+        });
+
+        await actionManager.doAction(1);
+        await testUtils.nextTick();
+
+        assert.verifySteps(["mountedCounterCall-1"]);
+
+        actionManager.destroy();
+        ControlPanel.unpatch("test.ControlPanel");
+      });
 });
 
 });
