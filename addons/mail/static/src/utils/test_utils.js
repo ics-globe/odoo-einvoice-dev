@@ -213,7 +213,7 @@ const afterNextRender = (function () {
         }
     };
 
-    async function afterNextRender(func, timeoutDelay = 5000) {
+    async function afterNextRender(func, timeoutDelay = 10000) {
         // Define the potential errors outside of the promise to get a proper
         // trace if they happen.
         const startError = new Error("Timeout: the render didn't start.");
