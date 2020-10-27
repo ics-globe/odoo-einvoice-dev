@@ -512,6 +512,11 @@ odoo.define('web.OwlCompatibility', function () {
          * @override
          */
         async mount(target, options) {
+            if (!this.__observer) {
+                this.__observer = new MutationObserver((mutations, observer) => console.log("mutation", ...arguments))
+                this.__observer.observe(target, { childList: true })
+            }
+            console.log('mount', ...arguments, Object.entries(this.__owl__))
             if (options && options.position === 'self') {
                 throw new Error(
                     'Unsupported position: "self" is not allowed for wrapper components. ' +
