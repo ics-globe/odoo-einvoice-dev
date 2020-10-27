@@ -448,6 +448,9 @@ odoo.define('web.OwlCompatibility', function () {
             let prom;
             if (this.__owl__.isMounted) {
                 prom = this.render();
+            } else if (this.__owl__.vnode) {
+                this.__remount();
+                prom = this.render();
             } else {
                 // we may not be in the DOM, but actually want to be redrawn
                 // (e.g. we were detached from the DOM, and now we're going to
