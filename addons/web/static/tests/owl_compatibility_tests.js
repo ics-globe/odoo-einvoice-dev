@@ -1169,6 +1169,58 @@ odoo.define('web.OwlCompatibilityTests', function (require) {
             parent.destroy();
         });
 
+        // QUnit.test("update component when it mounts", async function (assert) {
+        //     assert.expect(3);
+        //     const { delay } = require('web.concurrency')
+
+        //     let mountedCounterCall = 0;
+
+        //     class MyComponent extends Component {
+        //         mounted() {
+        //             assert.step(`mountedCounterCall-${++mountedCounterCall}`);
+        //             console.log('mounted', mountedCounterCall)
+        //             super.mounted(...arguments);
+        //         }
+        //     }
+        //     MyComponent.template = xml`<div>Hi <t t-esc="props.name"/>!</div>`;
+
+        //     const MyWidget = WidgetAdapter.extend({
+        //         custom_events: {
+        //             deferred_update: '_onDeferredUpdate',
+        //         },
+        //         async start() {
+        //             const promises = [this._super(...arguments).then(delay(10))];
+        //             this.component = new ComponentWrapper(this, MyComponent, { name: 'foo' });
+        //             const superMount = this.component.__callMounted
+        //             this.component.__callMounted = async function () {
+        //                 await delay(0)
+        //                 return superMount.apply(this, arguments)
+        //             }
+        //             promises.push(this.component.mount(this.el))
+        //             this.component.update({ name: 'buz' });
+        //             this.component.__callMounted = superMount
+        //             // this.trigger_up('deferred_update')
+        //             // promises.push(delay(0))
+        //             await Promise.all(promises)
+        //         },
+        //         async _onDeferredUpdate(){
+        //             await this.component.update({ name: 'buz' });
+        //         }
+        //     });
+
+        //     const target = testUtils.prepareTarget();
+        //     const widget = new MyWidget();
+        //     await widget.appendTo(target);
+
+        //     assert.strictEqual(widget.el.innerHTML, "<div>Hi buz!</div>");
+
+        //     assert.verifySteps([
+        //         'mountedCounterCall-1',
+        //     ]);
+
+        //     widget.destroy();
+        // });
+
         QUnit.module('Several layers of legacy widgets and Owl components');
 
         QUnit.test("Owl over legacy over Owl", async function (assert) {
