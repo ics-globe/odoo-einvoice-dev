@@ -310,6 +310,7 @@ odoo.define('web.OwlCompatibility', function () {
          * as mounted.
          */
         on_attach_callback() {
+            console.trace('owl:compat:widget:on_attach_callback')
             for (const component of children.get(this) || []) {
                 component.on_attach_callback();
             }
@@ -374,6 +375,7 @@ odoo.define('web.OwlCompatibility', function () {
          * function isn't recursive) when the component is appended into the DOM.
          */
         on_attach_callback() {
+            console.trace('owl:compat:wrapper:on_attach_callback')
             function recursiveCallMounted(component) {
                 for (const key in component.__owl__.children) {
                     recursiveCallMounted(component.__owl__.children[key]);
@@ -436,6 +438,7 @@ odoo.define('web.OwlCompatibility', function () {
          * @return {Promise}
          */
         async update(props = {}) {
+            console.trace('owl:compat:wrapper:update', ...arguments)
             if (this.__owl__.isDestroyed) {
                 return new Promise(() => {});
             }
@@ -444,6 +447,9 @@ odoo.define('web.OwlCompatibility', function () {
 
             let prom;
             if (this.__owl__.isMounted) {
+                prom = this.render();
+            } else if (this.__owl__.vnode) {
+                this.__remount();
                 prom = this.render();
             } else {
                 // we may not be in the DOM, but actually want to be redrawn
@@ -506,6 +512,7 @@ odoo.define('web.OwlCompatibility', function () {
          * @override
          */
         async mount(target, options) {
+            console.trace('owl:compat:wrapper:mount', ...arguments)
             if (options && options.position === 'self') {
                 throw new Error(
                     'Unsupported position: "self" is not allowed for wrapper components. ' +

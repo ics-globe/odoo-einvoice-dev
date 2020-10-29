@@ -3952,7 +3952,9 @@
          *
          * @see willUnmount
          */
-        mounted() { }
+        mounted() {
+            console.trace('owl::mounted', this)
+        }
         /**
          * The willUpdateProps is an asynchronous hook, called just before new props
          * are set. This is useful if the component needs some asynchronous task
