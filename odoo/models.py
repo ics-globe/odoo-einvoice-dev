@@ -3892,36 +3892,37 @@ Fields:
             # (`test_01_website_reset_password_tour`)
             self.modified(vals)
 
-            if self._parent_store and self._parent_name in vals:
-                self.flush([self._parent_name])
+            if real_recs:
+                if self._parent_store and self._parent_name in vals:
+                    self.flush([self._parent_name])
 
-            # validate non-inversed fields first
-            inverse_fields = [f.name for fs in determine_inverses.values() for f in fs]
-            real_recs._validate_fields(vals, inverse_fields)
+                # validate non-inversed fields first
+                inverse_fields = [f.name for fs in determine_inverses.values() for f in fs]
+                real_recs._validate_fields(vals, inverse_fields)
 
-            for fields in determine_inverses.values():
-                # write again on non-stored fields that have been invalidated from cache
-                for field in fields:
-                    if not field.store and any(self.env.cache.get_missing_ids(real_recs, field)):
-                        field.write(real_recs, vals[field.name])
+                for fields in determine_inverses.values():
+                    # write again on non-stored fields that have been invalidated from cache
+                    for field in fields:
+                        if not field.store and any(self.env.cache.get_missing_ids(real_recs, field)):
+                            field.write(real_recs, vals[field.name])
 
-                # inverse records that are not being computed
-                try:
-                    fields[0].determine_inverse(real_recs)
-                except AccessError as e:
-                    if fields[0].inherited:
-                        description = self.env['ir.model']._get(self._name).name
-                        raise AccessError(
-                            _("%(previous_message)s\n\nImplicitly accessed through '%(document_kind)s' (%(document_model)s).") % {
-                                'previous_message': e.args[0],
-                                'document_kind': description,
-                                'document_model': self._name,
-                            }
-                        )
-                    raise
+                    # inverse records that are not being computed
+                    try:
+                        fields[0].determine_inverse(real_recs)
+                    except AccessError as e:
+                        if fields[0].inherited:
+                            description = self.env['ir.model']._get(self._name).name
+                            raise AccessError(
+                                _("%(previous_message)s\n\nImplicitly accessed through '%(document_kind)s' (%(document_model)s).") % {
+                                    'previous_message': e.args[0],
+                                    'document_kind': description,
+                                    'document_model': self._name,
+                                }
+                            )
+                        raise
 
-            # validate inversed fields
-            real_recs._validate_fields(inverse_fields)
+                # validate inversed fields
+                real_recs._validate_fields(inverse_fields)
 
         if check_company and self._check_company_auto:
             self._check_company()
