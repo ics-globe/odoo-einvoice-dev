@@ -771,6 +771,7 @@ class AccountChartTemplate(models.Model):
         account_reconcile_models = self.env['account.reconcile.model.template'].search([
             ('chart_template_id', '=', self.id)
         ])
+        # account.reconcile.model.line: company_id
         for account_reconcile_model in account_reconcile_models:
             vals = self._prepare_reconcile_model_vals(company, account_reconcile_model, acc_template_ref, tax_template_ref)
             self.create_record_with_xmlid(company, account_reconcile_model, 'account.reconcile.model', vals)

@@ -92,6 +92,8 @@ class TestCalendar(SavepointCaseWithUserDemo):
         test_note, test_note2 = '<p>Test-Description</p>', '<p>NotTest</p>'
 
         # create using default_* keys
+        # NOTE: fills in mail.activity: res_model (??? but not res_id ???)
+        #       default_get in mail.activity
         test_event = self.env['calendar.event'].with_user(test_user).with_context(
             default_res_model=test_record._name,
             default_res_id=test_record.id,

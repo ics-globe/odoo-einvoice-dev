@@ -334,6 +334,8 @@ class TestComposerWTpl(TestMailCommon, TestRecipients):
     def test_composer_template_save(self):
         self.env['mail.compose.message'].with_context({
             'default_composition_mode': 'comment',
+            # NOTE: fills in mail.template: model despite that being a related, which
+            #       is filled from model_id
             'default_model': 'mail.test.simple',
             'default_res_id': self.test_record.id,
         }).create({

@@ -26,6 +26,7 @@ class TestStockValuationLayerRevaluation(TestStockValuationCommon):
 
     def test_stock_valuation_layer_revaluation_avco(self):
         self.product1.categ_id.property_cost_method = 'average'
+        # account.move.line: company_id
         context = {
             'default_product_id': self.product1.id,
             'default_company_id': self.env.company.id,
