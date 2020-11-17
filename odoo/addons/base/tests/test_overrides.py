@@ -12,13 +12,19 @@ class TestOverrides(SavepointCase):
 
     def test_creates(self):
         for model in self.env:
+            model_env = self.env[model]
             with self.assertQueryCount(0):
-                self.env[model].browse().create([])
+                self.assertEqual(
+                    model_env.create([]), model_env.browse(),
+                    "Invalid create return value for model %s" % model_env._name)
 
     def test_writes(self):
         for model in self.env:
+            model_env = self.env[model]
             with self.assertQueryCount(0):
-                self.env[model].browse().write({})
+                self.assertEqual(
+                    model_env.browse().write({}), True,
+                    "Invalid write return value for model %s" % model_env._name)
 
     def test_default_get(self):
         for model in self.env:
@@ -27,12 +33,17 @@ class TestOverrides(SavepointCase):
                 continue
             with self.assertQueryCount(1):
                 # allow one query for the call to get_model_defaults.
-                model_env.browse().default_get([])
+                self.assertEqual(
+                    model_env.browse().default_get([]), {},
+                    "Invalid default_get return value for model %s" % model_env._name)
 
     def test_unlink(self):
         for model in self.env:
+            model_env = self.env[model]
             with self.assertQueryCount(0):
-                self.env[model].browse().unlink()
+                self.assertEqual(
+                    model_env.browse().unlink(), True,
+                    "Invalid create return value for model %s" % model_env._name)
 
     def test_active_logic(self):
         for model in self.env:
@@ -42,5 +53,9 @@ class TestOverrides(SavepointCase):
                     model_env.toggle_active()
                     model_env.action_archive()
                     model_env.action_unarchive()
-                    model_env.write(dict(active=False))
-                    model_env.write(dict(active=True))
+                    self.assertEqual(
+                        model_env.write(dict(active=False)), True,
+                        "Invalid write return value for model %s" % model_env._name)
+                    self.assertEqual(
+                        model_env.write(dict(active=True)), True,
+                        "Invalid write return value for model %s" % model_env._name)
