@@ -59,7 +59,7 @@ class Project(models.Model):
         """ Create an analytic account if project allow timesheet and don't provide one
             Note: create it before calling super() to avoid raising the ValidationError from _check_allow_timesheet
         """
-        defaults = self.default_get(['allow_timesheets', 'analytic_account_id'])
+        defaults = self.default_get(['allow_timesheets', 'analytic_account_id']) if vals_list else {}
         for values in vals_list:
             allow_timesheets = values.get('allow_timesheets', defaults.get('allow_timesheets'))
             analytic_account_id = values.get('analytic_account_id', defaults.get('analytic_account_id'))

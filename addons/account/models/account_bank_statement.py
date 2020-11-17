@@ -247,7 +247,7 @@ class AccountBankStatement(models.Model):
 
     def write(self, values):
         res = super(AccountBankStatement, self).write(values)
-        if values.get('date') or values.get('journal'):
+        if self and values.get('date') or values.get('journal'):
             # If we are changing the date or journal of a bank statement, we have to change its previous_statement_id. This is done
             # automatically using the compute function, but we also have to change the previous_statement_id of records that were
             # previously pointing toward us and records that were pointing towards our new previous_statement_id. This is done here
@@ -975,7 +975,7 @@ class AccountBankStatementLine(models.Model):
         ''' Update the account.move regarding the modified account.bank.statement.line.
         :param changed_fields: A list containing all modified fields on account.bank.statement.line.
         '''
-        if self._context.get('skip_account_move_synchronization'):
+        if not self or self._context.get('skip_account_move_synchronization'):
             return
 
         if not any(field_name in changed_fields for field_name in (

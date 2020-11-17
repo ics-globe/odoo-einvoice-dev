@@ -103,7 +103,7 @@ class CrmTeam(models.Model):
             self.env.ref('sales_team.salesteam_website_sales'),
             self.env.ref('sales_team.pos_sales_team'),
             self.env.ref('sales_team.ebay_sales_team')
-        ]
+        ] if self else []
         for team in self:
             if team in default_teams:
                 raise UserError(_('Cannot delete default team "%s"', team.name))

@@ -27,6 +27,9 @@ class PhoneBlackList(models.Model):
     @api.model_create_multi
     def create(self, values):
         # First of all, extract values to ensure emails are really unique (and don't modify values in place)
+        if not values:
+            return self.browse()
+
         to_create = []
         done = set()
         for value in values:

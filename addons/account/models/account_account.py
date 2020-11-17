@@ -570,8 +570,8 @@ class AccountGroup(models.Model):
     def write(self, vals):
         res = super(AccountGroup, self).write(vals)
         if 'code_prefix_start' in vals or 'code_prefix_end' in vals:
-            self._adapt_accounts_for_account_groups()
-            self._adapt_parent_account_group()
+            self and self._adapt_accounts_for_account_groups()
+            self and self._adapt_parent_account_group()
         return res
 
     def unlink(self):

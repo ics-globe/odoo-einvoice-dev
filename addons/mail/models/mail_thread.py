@@ -299,7 +299,7 @@ class MailThread(models.AbstractModel):
 
         # post track template if a tracked field changed
         threads._discard_tracking()
-        if not self._context.get('mail_notrack'):
+        if threads and not self._context.get('mail_notrack'):
             fnames = self._get_tracked_fields()
             for thread in threads:
                 create_values = create_values_list[thread.id]
@@ -315,7 +315,7 @@ class MailThread(models.AbstractModel):
         if self._context.get('tracking_disable'):
             return super(MailThread, self).write(values)
 
-        if not self._context.get('mail_notrack'):
+        if self and not self._context.get('mail_notrack'):
             self._prepare_tracking(self._fields)
 
         # Perform write
@@ -523,7 +523,7 @@ class MailThread(models.AbstractModel):
 
     def _discard_tracking(self):
         """ Prevent any tracking of fields on ``self``. """
-        if not self._get_tracked_fields():
+        if not self or not self._get_tracked_fields():
             return
         self.env.cr.precommit.add(self._finalize_tracking)
         initial_values = self.env.cr.precommit.data.setdefault(f'mail.tracking.{self._name}', {})
@@ -559,6 +559,7 @@ class MailThread(models.AbstractModel):
             if getattr(field, 'tracking', None) or getattr(field, 'track_visibility', None)
         }
 
+        # VFE FIXME fields_get loads translations for nothing.
         return fields and set(self.fields_get(fields))
 
     def _message_track_post_template(self, changes):

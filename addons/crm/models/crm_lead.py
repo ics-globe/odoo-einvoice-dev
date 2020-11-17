@@ -529,12 +529,10 @@ class Lead(models.Model):
         elif 'probability' in vals:
             vals['date_closed'] = False
 
-        if any(field in ['active', 'stage_id'] for field in vals):
+        if self and any(field in ['active', 'stage_id'] for field in vals):
             self._handle_won_lost(vals)
 
-        write_result = super(Lead, self).write(vals)
-
-        return write_result
+        return super(Lead, self).write(vals)
 
     @api.model
     def search(self, args, offset=0, limit=None, order=None, count=False):

@@ -116,7 +116,7 @@ class EventRegistration(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         registrations = super(EventRegistration, self).create(vals_list)
-        if registrations._check_auto_confirmation():
+        if registrations and registrations._check_auto_confirmation():
             registrations.sudo().action_confirm()
 
         return registrations

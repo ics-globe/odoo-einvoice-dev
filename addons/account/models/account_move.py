@@ -1838,7 +1838,7 @@ class AccountMove(models.Model):
                 move.line_ids._check_tax_lock_date()
 
             # You can't post subtract a move to a locked period.
-            if 'state' in vals and move.state == 'posted' and vals['state'] != 'posted':
+            elif 'state' in vals and move.state == 'posted' and vals['state'] != 'posted':
                 move._check_fiscalyear_lock_date()
                 move.line_ids._check_tax_lock_date()
 
@@ -3823,6 +3823,8 @@ class AccountMoveLine(models.Model):
         return lines
 
     def write(self, vals):
+        if not self:
+            return super().write(vals)
         # OVERRIDE
         ACCOUNTING_FIELDS = ('debit', 'credit', 'amount_currency')
         BUSINESS_FIELDS = ('price_unit', 'quantity', 'discount', 'tax_ids')

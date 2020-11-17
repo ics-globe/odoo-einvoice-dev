@@ -403,7 +403,7 @@ class ir_cron(models.Model):
         with a precision down to 1 minute.
 
         :param datetime.timedelta delay:
-            Execute the cron later, after the delay expires. 
+            Execute the cron later, after the delay expires.
 
         :param datetime.datetime at:
             Execute the cron later, at a precise moment in time.

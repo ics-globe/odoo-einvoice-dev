@@ -65,10 +65,10 @@ class Alarm(models.Model):
 
     def write(self, values):
         result = super(Alarm, self).write(values)
-        self._update_cron()
+        self and self._update_cron()
         return result
 
     def unlink(self):
         result = super(Alarm, self).unlink()
-        self._update_cron()
+        self and self._update_cron()
         return result

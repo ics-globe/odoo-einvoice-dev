@@ -209,12 +209,12 @@ class Forum(models.Model):
             # archiving/unarchiving a forum does it on its posts, too
             self.env['forum.post'].with_context(active_test=False).search([('forum_id', 'in', self.ids)]).write({'active': vals['active']})
 
-        if 'active' in vals or 'website_id' in vals:
+        if self and ('active' in vals or 'website_id' in vals):
             self._update_website_count()
         return res
 
     def unlink(self):
-        self._update_website_count()
+        self and self._update_website_count()
         return super(Forum, self).unlink()
 
     @api.model

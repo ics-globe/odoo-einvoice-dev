@@ -31,7 +31,7 @@ class EventRegistration(models.Model):
         # handle triggers based on creation, then those based on confirm and done
         # as registrations can be automatically confirmed, or even created directly
         # with a state given in values
-        if not self.env.context.get('event_lead_rule_skip'):
+        if registrations and not self.env.context.get('event_lead_rule_skip'):
             self.env['event.lead.rule'].search([('lead_creation_trigger', '=', 'create')]).sudo()._run_on_registrations(registrations)
             open_registrations = registrations.filtered(lambda reg: reg.state == 'open')
             if open_registrations:

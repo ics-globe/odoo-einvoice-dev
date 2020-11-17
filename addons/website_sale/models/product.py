@@ -59,15 +59,15 @@ class ProductPricelist(models.Model):
 
     def write(self, data):
         res = super(ProductPricelist, self).write(data)
-        if data.keys() & {'code', 'active', 'website_id', 'selectable', 'company_id'}:
+        if self and data.keys() & {'code', 'active', 'website_id', 'selectable', 'company_id'}:
             self._check_website_pricelist()
-        self.clear_cache()
+        self and self.clear_cache()
         return res
 
     def unlink(self):
         res = super(ProductPricelist, self).unlink()
-        self._check_website_pricelist()
-        self.clear_cache()
+        self and self._check_website_pricelist()
+        self and self.clear_cache()
         return res
 
     def _get_partner_pricelist_multi_search_domain_hook(self, company_id):

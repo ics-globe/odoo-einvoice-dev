@@ -92,9 +92,9 @@ class CRMRevealRule(models.Model):
         fields_set = {
             'country_ids', 'regex_url', 'active'
         }
-        if set(vals.keys()) & fields_set:
+        if self and set(vals.keys()) & fields_set:
             self.clear_caches() # Clear the cache in order to recompute _get_active_rules
-        self._assert_geoip()
+        self and self._assert_geoip()
         return super(CRMRevealRule, self).write(vals)
 
     def unlink(self):

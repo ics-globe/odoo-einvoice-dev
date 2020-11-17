@@ -10,6 +10,9 @@ class ResUsers(models.Model):
     def create(self, vals_list):
         """ Automatically subscribe employee users to default digest if activated """
         users = super(ResUsers, self).create(vals_list)
+        if not users:
+            return users
+
         default_digest_emails = self.env['ir.config_parameter'].sudo().get_param('digest.default_digest_emails')
         default_digest_id = self.env['ir.config_parameter'].sudo().get_param('digest.default_digest_id')
         if default_digest_emails and default_digest_id:

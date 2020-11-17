@@ -52,7 +52,7 @@ class SaleOrderTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super(SaleOrderTemplate, self).create(vals_list)
-        records._update_product_translations()
+        records and records._update_product_translations()
         return records
 
     def write(self, vals):
@@ -60,7 +60,7 @@ class SaleOrderTemplate(models.Model):
             companies = self.env['res.company'].sudo().search([('sale_order_template_id', 'in', self.ids)])
             companies.sale_order_template_id = None
         result = super(SaleOrderTemplate, self).write(vals)
-        self._update_product_translations()
+        self and self._update_product_translations()
         return result
 
     def _update_product_translations(self):

@@ -264,8 +264,8 @@ class HrEmployeePrivate(models.Model):
 
     def unlink(self):
         resources = self.mapped('resource_id')
-        super(HrEmployeePrivate, self).unlink()
-        return resources.unlink()
+        res = super(HrEmployeePrivate, self).unlink()
+        return res and resources.unlink()
 
     def toggle_active(self):
         res = super(HrEmployeePrivate, self).toggle_active()

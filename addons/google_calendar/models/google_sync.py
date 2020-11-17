@@ -68,6 +68,8 @@ class GoogleSync(models.AbstractModel):
     active = fields.Boolean(default=True)
 
     def write(self, vals):
+        if not self:
+            return True
         google_service = GoogleCalendarService(self.env['google.service'])
         if 'google_id' in vals:
             self._from_google_ids.clear_cache(self)

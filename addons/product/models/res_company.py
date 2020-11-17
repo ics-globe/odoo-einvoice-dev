@@ -36,7 +36,7 @@ class ResCompany(models.Model):
         # given currency.
         ProductPricelist = self.env['product.pricelist']
         currency_id = values.get('currency_id')
-        main_pricelist = self.env.ref('product.list0', False)
+        main_pricelist = self.env.ref('product.list0', False) if self and currency_id else None
         if currency_id and main_pricelist:
             nb_companies = self.search_count([])
             for company in self:

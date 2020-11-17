@@ -177,7 +177,7 @@ class AdyenAccount(models.Model):
 
     def write(self, vals):
         res = super(AdyenAccount, self).write(vals)
-        if not self.env.context.get('update_from_adyen'):
+        if self and not self.env.context.get('update_from_adyen'):
             self._adyen_rpc('update_account_holder', self._format_data())
         return res
 
@@ -463,7 +463,7 @@ class AdyenShareholder(models.Model):
     def write(self, vals):
         res = super(AdyenShareholder, self).write(vals)
         if not self.env.context.get('update_from_adyen'):
-            self.adyen_account_id._adyen_rpc('update_account_holder', self._format_data())
+            self and self.adyen_account_id._adyen_rpc('update_account_holder', self._format_data())
         return res
 
     def unlink(self):
@@ -578,7 +578,7 @@ class AdyenBankAccount(models.Model):
     def write(self, vals):
         res = super(AdyenBankAccount, self).write(vals)
         if not self.env.context.get('update_from_adyen'):
-            self.adyen_account_id._adyen_rpc('update_account_holder', self._format_data())
+            self and self.adyen_account_id._adyen_rpc('update_account_holder', self._format_data())
         if 'bank_statement' in vals:
             self._upload_bank_statement(vals['bank_statement'], vals['bank_statement_filename'])
         return res

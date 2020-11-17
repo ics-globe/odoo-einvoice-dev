@@ -789,6 +789,9 @@ class HolidaysRequest(models.Model):
         return holidays
 
     def write(self, values):
+        if not self:
+            return True
+
         is_officer = self.env.user.has_group('hr_holidays.group_hr_holidays_user') or self.env.is_superuser()
 
         if not is_officer:

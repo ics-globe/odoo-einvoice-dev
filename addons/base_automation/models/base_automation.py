@@ -122,23 +122,23 @@ class BaseAutomation(models.Model):
         for vals in vals_list:
             vals['usage'] = 'base_automation'
         base_automations = super(BaseAutomation, self).create(vals_list)
-        self._update_cron()
-        self._update_registry()
+        base_automations and self._update_cron()
+        base_automations and self._update_registry()
         return base_automations
 
     def write(self, vals):
         res = super(BaseAutomation, self).write(vals)
-        if set(vals).intersection(self.CRITICAL_FIELDS):
+        if self and set(vals).intersection(self.CRITICAL_FIELDS):
             self._update_cron()
             self._update_registry()
-        elif set(vals).intersection(self.RANGE_FIELDS):
+        elif self and set(vals).intersection(self.RANGE_FIELDS):
             self._update_cron()
         return res
 
     def unlink(self):
         res = super(BaseAutomation, self).unlink()
-        self._update_cron()
-        self._update_registry()
+        self and self._update_cron()
+        self and self._update_registry()
         return res
 
     def _update_cron(self):

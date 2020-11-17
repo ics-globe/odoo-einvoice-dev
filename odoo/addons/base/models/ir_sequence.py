@@ -160,7 +160,7 @@ class IrSequence(models.Model):
         return seq
 
     def unlink(self):
-        _drop_sequences(self._cr, ["ir_sequence_%03d" % x.id for x in self])
+        self and _drop_sequences(self._cr, ["ir_sequence_%03d" % x.id for x in self])
         return super(IrSequence, self).unlink()
 
     def write(self, values):
@@ -366,7 +366,7 @@ class IrSequenceDateRange(models.Model):
         return seq
 
     def unlink(self):
-        _drop_sequences(self._cr, ["ir_sequence_%03d_%03d" % (x.sequence_id.id, x.id) for x in self])
+        self and _drop_sequences(self._cr, ["ir_sequence_%03d_%03d" % (x.sequence_id.id, x.id) for x in self])
         return super(IrSequenceDateRange, self).unlink()
 
     def write(self, values):

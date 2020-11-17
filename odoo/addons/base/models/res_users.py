@@ -1147,9 +1147,9 @@ class GroupsView(models.Model):
 
     def unlink(self):
         res = super(GroupsView, self).unlink()
-        self._update_user_groups_view()
+        self and self._update_user_groups_view()
         # actions.get_bindings() depends on action records
-        self.env['ir.actions.actions'].clear_caches()
+        self and self.env['ir.actions.actions'].clear_caches()
         return res
 
     def _get_hidden_extra_categories(self):
@@ -1306,13 +1306,13 @@ class ModuleCategory(models.Model):
 
     def write(self, values):
         res = super().write(values)
-        if "name" in values:
+        if self and "name" in values:
             self.env["res.groups"]._update_user_groups_view()
         return res
 
     def unlink(self):
         res = super().unlink()
-        self.env["res.groups"]._update_user_groups_view()
+        self and self.env["res.groups"]._update_user_groups_view()
         return res
 
 
@@ -1325,6 +1325,9 @@ class UsersView(models.Model):
         for values in vals_list:
             new_vals_list.append(self._remove_reified_groups(values))
         users = super(UsersView, self).create(new_vals_list)
+        if not users:
+            return users
+
         group_multi_company_id = self.env['ir.model.data'].xmlid_to_res_id(
             'base.group_multi_company', raise_if_not_found=False)
         if group_multi_company_id:

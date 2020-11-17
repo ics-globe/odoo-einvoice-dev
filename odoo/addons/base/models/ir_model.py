@@ -302,6 +302,9 @@ class IrModel(models.Model):
         return res
 
     def write(self, vals):
+        if not self:
+            return True
+
         if '__last_update' in self._context:
             self = self.with_context({k: v for k, v in self._context.items() if k != '__last_update'})
         if 'model' in vals and any(rec.model != vals['model'] for rec in self):
@@ -885,6 +888,9 @@ class IrModelFields(models.Model):
         return res
 
     def write(self, vals):
+        if not self:
+            return True
+
         # if set, *one* column can be renamed here
         column_rename = None
 
@@ -1309,13 +1315,17 @@ class IrModelSelection(models.Model):
                                   'preferably through a custom addon!'))
         recs = super().create(vals_list)
 
-        # setup models; this re-initializes model in registry
-        self.flush()
-        self.pool.setup_models(self._cr)
+        if recs:
+            # setup models; this re-initializes model in registry
+            self.flush()
+            self.pool.setup_models(self._cr)
 
         return recs
 
     def write(self, vals):
+        if not self:
+            return True
+
         if (
             not self.env.user._is_admin() and
             any(record.field_id.state != 'manual' for record in self)
@@ -1444,7 +1454,7 @@ class IrModelConstraint(models.Model):
         for data in self.sorted(key='id', reverse=True):
             name = tools.ustr(data.name)
             if data.model.model in self.env:
-                table = self.env[data.model.model]._table    
+                table = self.env[data.model.model]._table
             else:
                 table = data.model.model.replace('.', '_')
             typ = data.type
@@ -1788,15 +1798,16 @@ class IrModelAccess(models.Model):
     #
     @api.model_create_multi
     def create(self, vals_list):
-        self.call_cache_clearing_methods()
+        if vals_list:
+            self.call_cache_clearing_methods()
         return super(IrModelAccess, self).create(vals_list)
 
     def write(self, values):
-        self.call_cache_clearing_methods()
+        self and self.call_cache_clearing_methods()
         return super(IrModelAccess, self).write(values)
 
     def unlink(self):
-        self.call_cache_clearing_methods()
+        self and self.call_cache_clearing_methods()
         return super(IrModelAccess, self).unlink()
 
 
@@ -1897,7 +1908,7 @@ class IrModelData(models.Model):
 
     @api.model
     def xmlid_to_object(self, xmlid, raise_if_not_found=False):
-        """ Return a Model object, or ``None`` if ``raise_if_not_found`` is 
+        """ Return a Model object, or ``None`` if ``raise_if_not_found`` is
         set
         """
         t = self.xmlid_to_res_model_res_id(xmlid, raise_if_not_found)
@@ -1943,7 +1954,7 @@ class IrModelData(models.Model):
 
     def unlink(self):
         """ Regular unlink method, but make sure to clear the caches. """
-        self.clear_caches()
+        self and self.clear_caches()
         return super(IrModelData, self).unlink()
 
     def _lookup_xmlids(self, xml_ids, model):

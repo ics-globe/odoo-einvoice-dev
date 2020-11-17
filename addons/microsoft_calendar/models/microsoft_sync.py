@@ -70,6 +70,8 @@ class MicrosoftSync(models.AbstractModel):
     active = fields.Boolean(default=True)
 
     def write(self, vals):
+        if not self:
+            return True
         microsoft_service = MicrosoftCalendarService(self.env['microsoft.service'])
         if 'microsoft_id' in vals:
             self._from_microsoft_ids.clear_cache(self)

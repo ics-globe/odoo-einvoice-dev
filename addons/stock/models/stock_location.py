@@ -108,7 +108,7 @@ class Location(models.Model):
         if 'usage' in values and values['usage'] == 'view':
             if self.mapped('quant_ids'):
                 raise UserError(_("This location's usage cannot be changed to view as it contains products."))
-        if 'usage' in values or 'scrap_location' in values:
+        if self and ('usage' in values or 'scrap_location' in values):
             modified_locations = self.filtered(
                 lambda l: any(l[f] != values[f] if f in values else False
                               for f in {'usage', 'scrap_location'}))
@@ -122,7 +122,7 @@ class Location(models.Model):
                     " location as there are products reserved in this location."
                     " Please unreserve the products first."
                 ))
-        if 'active' in values:
+        if self and 'active' in values:
             if values['active'] == False:
                 for location in self:
                     warehouses = self.env['stock.warehouse'].search([('active', '=', True), '|', ('lot_stock_id', '=', location.id), ('view_location_id', '=', location.id)])

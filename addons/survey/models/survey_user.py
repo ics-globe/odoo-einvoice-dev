@@ -536,8 +536,10 @@ class SurveyUserInputLine(models.Model):
         return super(SurveyUserInputLine, self).create(vals_list)
 
     def write(self, vals):
-        score_vals = self._get_answer_score_values(vals, compute_speed_score=False)
-        if not vals.get('answer_score'):
+        # VFE FIXME this model can't be modified partly through write?
+        # _get_answer_score_values will crash if no question_id is provided in write vals.
+        score_vals = self and self._get_answer_score_values(vals, compute_speed_score=False)
+        if self and not vals.get('answer_score'):
             vals.update(score_vals)
         return super(SurveyUserInputLine, self).write(vals)
 

@@ -170,6 +170,9 @@ class User(models.Model):
         and check access rights if employees are not allowed to update
         their own data (otherwise sudo is applied for self data).
         """
+        if not self:
+            return True
+
         hr_fields = {
             field
             for field_name, field in self._fields.items()

@@ -282,8 +282,11 @@ class Lang(models.Model):
                 raise UserError(_("Cannot deactivate a language that is currently used by users."))
             if self.env['res.partner'].search_count([('lang', 'in', lang_codes)]):
                 raise UserError(_("Cannot deactivate a language that is currently used by contacts."))
-            # delete linked ir.default specifying default partner's language
-            self.env['ir.default'].discard_values('res.partner', 'lang', lang_codes)
+            langs_to_archive = self.filtered('active')
+            if langs_to_archive:
+                archived_codes = langs_to_archive.mapped('code')
+                # delete linked ir.default specifying default partner's language
+                self.env['ir.default'].discard_values('res.partner', 'lang', archived_codes)
 
         res = super(Lang, self).write(vals)
         self.flush()

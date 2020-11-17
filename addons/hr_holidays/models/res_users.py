@@ -65,7 +65,7 @@ class User(models.Model):
         # This method compares the current leave managers
         # and remove the access rights to those who don't
         # need them anymore
-        approver_group = self.env.ref('hr_holidays.group_hr_holidays_responsible', raise_if_not_found=False)
+        approver_group = self.env.ref('hr_holidays.group_hr_holidays_responsible', raise_if_not_found=False) if self else None
         if not self or not approver_group:
             return
         res = self.env['hr.employee'].read_group(

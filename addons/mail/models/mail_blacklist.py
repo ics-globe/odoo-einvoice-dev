@@ -23,6 +23,9 @@ class MailBlackList(models.Model):
     @api.model_create_multi
     def create(self, values):
         # First of all, extract values to ensure emails are really unique (and don't modify values in place)
+        if not values:
+            return self.browse()
+
         new_values = []
         all_emails = []
         for value in values:

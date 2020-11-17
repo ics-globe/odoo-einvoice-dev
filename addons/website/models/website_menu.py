@@ -99,6 +99,9 @@ class Menu(models.Model):
         return res
 
     def unlink(self):
+        if not self:
+            return True
+
         self.clear_caches()
         default_menu = self.env.ref('website.main_menu', raise_if_not_found=False)
         menus_to_remove = self

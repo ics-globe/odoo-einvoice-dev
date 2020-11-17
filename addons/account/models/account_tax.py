@@ -101,9 +101,14 @@ class AccountTax(models.Model):
     @api.model
     def default_get(self, fields_list):
         # company_id is added so that we are sure to fetch a default value from it to use in repartition lines, below
-        rslt = super(AccountTax, self).default_get(fields_list + ['company_id'])
+        if 'company_id' not in fields_list and (
+            set(['refund_repartition_line_ids', 'invoice_repartition_line_ids'])
+            & set(fields_list)
+        ):
+            fields_list += ['company_id']
+        rslt = super(AccountTax, self).default_get(fields_list)
 
-        company_id = rslt.get('company_id')
+        company_id = rslt.get('company_id', False)
         company = self.env['res.company'].browse(company_id)
 
         if 'refund_repartition_line_ids' in fields_list:
