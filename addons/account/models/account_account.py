@@ -581,7 +581,7 @@ class AccountGroup(models.Model):
 
             children_ids = self.env['account.group'].search([('parent_id', '=', record.id)])
             children_ids.write({'parent_id': record.parent_id.id})
-        super(AccountGroup, self).unlink()
+        return super(AccountGroup, self).unlink()
 
     def _adapt_accounts_for_account_groups(self, account_ids=None):
         """Ensure consistency between accounts and account groups.

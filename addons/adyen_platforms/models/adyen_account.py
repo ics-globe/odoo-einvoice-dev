@@ -63,7 +63,7 @@ class AdyenIDMixin(models.AbstractModel):
             if vals.get('id_back') and adyen_account.id_type in ['ID_CARD', 'DRIVING_LICENSE']:
                 document_type = adyen_account.id_type + '_BACK'
                 adyen_account._upload_photo_id(document_type, adyen_account.id_back, adyen_account.id_back_filename)
-            return res
+        return res
 
     @api.model
     def _check_file_requirements(self, content, filename):

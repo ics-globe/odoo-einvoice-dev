@@ -332,7 +332,8 @@ class IrSequenceDateRange(models.Model):
     @api.model
     def default_get(self, fields):
         result = super(IrSequenceDateRange, self).default_get(fields)
-        result['number_next_actual'] = 1
+        if 'number_next_actual' in fields:
+            result['number_next_actual'] = 1
         return result
 
     date_from = fields.Date(string='From', required=True)

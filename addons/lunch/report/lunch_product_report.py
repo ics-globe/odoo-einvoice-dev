@@ -75,6 +75,7 @@ class LunchProductReport(models.Model):
         return expression.OR([[('supplier_id.available_location_ids', 'in', value)], [('supplier_id.available_location_ids', '=', False)]])
 
     def write(self, values):
+        # VFE FIXME a write override on a SQL model ?
         if 'is_favorite' in values:
             if values['is_favorite']:
                 commands = [(4, product_id) for product_id in self.mapped('product_id').ids]
@@ -83,6 +84,7 @@ class LunchProductReport(models.Model):
             self.env.user.write({
                 'favorite_lunch_product_ids': commands,
             })
+        return True #super().write(values) probably won't work well considering the current hacky model...
 
     def init(self):
         tools.drop_view_if_exists(self._cr, self._table)

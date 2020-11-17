@@ -48,7 +48,7 @@ class SurveyQuestion(models.Model):
     @api.model
     def default_get(self, fields):
         defaults = super(SurveyQuestion, self).default_get(fields)
-        if (not fields or 'question_type' in fields):
+        if 'question_type' in fields:
             defaults['question_type'] = False if defaults.get('is_page') == True else 'text_box'
         return defaults
 
