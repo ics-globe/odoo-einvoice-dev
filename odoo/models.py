@@ -144,7 +144,7 @@ def trigger_tree_merge(node1, node2):
             node1.setdefault(key, {})
             trigger_tree_merge(node1[key], node2[key])
 
-
+class Str(str): ...
 class MetaModel(api.Meta):
     """ The metaclass of all model classes.
         Its main purpose is to register the models per module.
@@ -1710,7 +1710,10 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         :raise AccessError: * if user tries to bypass access rules for read on the requested object.
         """
         res = self._search(args, offset=offset, limit=limit, order=order, count=count)
-        return res if count else self.browse(res)
+        return res if count else self.browse(res).with_context({
+            k: v + 1 if k == 'active_test' and v else v
+            for k, v in self.env.context.items()
+        })
 
     #
     # display_name, name_get, name_create, name_search
@@ -1802,7 +1805,10 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         :return: list of pairs ``(id, text_repr)`` for all matching records.
         """
         ids = self._name_search(name, args, operator, limit=limit)
-        return self.browse(ids).sudo().name_get()
+        return self.browse(ids).sudo().with_context({
+            k: v + 1 if k == 'active_test' and v else v
+            for k, v in self.env.context.items()
+        }).name_get()
 
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
@@ -4217,6 +4223,9 @@ Fields:
         # if the object has an active field ('active', 'x_active'), filter out all
         # inactive records unless they were explicitely asked for
         if self._active_name and active_test and self._context.get('active_test', True):
+            active = self.env.context.get('active_test', 0)
+            if active > 1:
+                _logger.warning(f'Recycled active_test! {active}')
             # the item[0] trick below works for domain items and '&'/'|'/'!'
             # operators too
             if not any(item[0] == self._active_name for item in domain):
