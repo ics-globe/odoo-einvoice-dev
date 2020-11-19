@@ -24,6 +24,8 @@
 import collections
 import contextlib
 import datetime
+import traceback
+
 import dateutil
 import fnmatch
 import functools
@@ -144,7 +146,42 @@ def trigger_tree_merge(node1, node2):
             node1.setdefault(key, {})
             trigger_tree_merge(node1[key], node2[key])
 
-class Str(str): ...
+class M:
+    def __new__(cls, *arg, **kwargs):
+        inst = super().__new__(cls, *arg)
+        inst._args = kwargs
+        return inst
+class Bool(M):
+    def __new__(cls, b, **kwargs):
+        inst = super().__new__(cls, **kwargs)
+        inst._b = b
+        return inst
+    def __bool__(self): return self._b
+    def __repr__(self): return repr(self._b)
+class List(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        self._args = kwargs
+
+WRAPPERS = {
+    t: type(t.__name__.capitalize(), (M, t), {})
+    for t in [int, str, float]
+}
+WRAPPERS[bool] = Bool
+WRAPPERS[list] = List
+for v in list(WRAPPERS.values()):
+    WRAPPERS[v] = v
+def wrap(Wrapper, *args, **kwargs):
+    try:
+        return Wrapper(*args, **kwargs)
+    except Exception:
+        _logger.error(
+            "%s(%s, %s)",
+            Wrapper, ', '.join(map(repr, args)),
+            ', '.join(f'{k}={v!r}' for k, v in kwargs.items())
+        )
+        raise
+
 class MetaModel(api.Meta):
     """ The metaclass of all model classes.
         Its main purpose is to register the models per module.
@@ -1291,7 +1328,12 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             # 1. look up context
             key = 'default_' + name
             if key in self._context:
-                defaults[name] = self._context[key]
+                val = self._context[key]
+                if isinstance(val, tuple(WRAPPERS.values())):
+                    _logger.warning(f'Recycled default key: {key} => {val}\n'
+                                    f'FROM{val._args["tb"]}\n'
+                                    f'TO{"".join(traceback.format_stack())}')
+                defaults[name] = val
                 continue
 
             # 2. look up ir.default
@@ -3847,7 +3889,10 @@ Fields:
                     data['stored'][parent_name] = parent.id
 
         # create records with stored fields
-        records = self._create(data_list)
+        records = self._create(data_list).with_context({
+            k: wrap(WRAPPERS[type(v)], v, tb=''.join(traceback.format_stack())) if k.startswith('default_') and type(v) in WRAPPERS else v
+            for k, v in self.env.context.items()
+        })
 
         # protect fields being written against recomputation
         protected = [(data['protected'], data['record']) for data in data_list]
@@ -4940,7 +4985,7 @@ Fields:
         """
         if not ids:
             ids = ()
-        elif ids.__class__ in IdType:
+        elif isinstance(ids, IdType):
             ids = (ids,)
         else:
             ids = tuple(ids)
