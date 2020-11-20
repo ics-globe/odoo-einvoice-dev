@@ -467,11 +467,13 @@ class ResConfigSettings(models.TransientModel, ResConfigModuleInstallationMixin)
                 if not hasattr(field, 'implied_group'):
                     raise Exception("Field %s without attribute 'implied_group'" % field)
                 field_group_xmlids = getattr(field, 'group', 'base.group_user').split(',')
+                # VFE FIXME lot of ref calls not needed 1 times /2 (default_get js Form/python create)
                 field_groups = Groups.concat(*(ref(it) for it in field_group_xmlids))
                 groups.append((name, field_groups, ref(field.implied_group)))
             elif name.startswith('module_'):
                 if field.type not in ('boolean', 'selection'):
                     raise Exception("Field %s must have type 'boolean' or 'selection'" % field)
+                # VFE FIXME a search called in a loop in default_get on a critical model ????????
                 module = IrModule.sudo().search([('name', '=', name[7:])], limit=1)
                 modules.append((name, module))
             elif hasattr(field, 'config_parameter'):
@@ -491,11 +493,16 @@ class ResConfigSettings(models.TransientModel, ResConfigModuleInstallationMixin)
 
     @api.model
     def default_get(self, fields):
+        res = super(ResConfigSettings, self).default_get(fields)
+        if not fields:
+            # VFE TODO update _get_classified_fields to
+            # consider the requested fields, and avoid the IrModule search
+            # if no requested fields startswith module_
+            return res
+
         IrDefault = self.env['ir.default']
         IrConfigParameter = self.env['ir.config_parameter'].sudo()
         classified = self._get_classified_fields()
-
-        res = super(ResConfigSettings, self).default_get(fields)
 
         # defaults: take the corresponding default value they set
         for name, model, field in classified['default']:

@@ -26,19 +26,20 @@ class AccountInvoiceSend(models.TransientModel):
     @api.model
     def default_get(self, fields):
         res = super(AccountInvoiceSend, self).default_get(fields)
-        res_ids = self._context.get('active_ids')
+        if 'invoice_ids' in fields:
+            res_ids = self._context.get('active_ids')
 
-        invoices = self.env['account.move'].browse(res_ids).filtered(lambda move: move.is_invoice(include_receipts=True))
-        if not invoices:
-            raise UserError(_("You can only send invoices."))
+            invoices = self.env['account.move'].browse(res_ids).filtered(lambda move: move.is_invoice(include_receipts=True))
+            if not invoices:
+                raise UserError(_("You can only send invoices."))
 
-        composer = self.env['mail.compose.message'].create({
-            'composition_mode': 'comment' if len(res_ids) == 1 else 'mass_mail',
-        })
-        res.update({
-            'invoice_ids': res_ids,
-            'composer_id': composer.id,
-        })
+            composer = self.env['mail.compose.message'].create({
+                'composition_mode': 'comment' if len(res_ids) == 1 else 'mass_mail',
+            })
+            res.update({
+                'invoice_ids': res_ids,
+                'composer_id': composer.id,
+            })
         return res
 
     @api.onchange('invoice_ids')

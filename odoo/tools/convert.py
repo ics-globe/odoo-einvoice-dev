@@ -564,6 +564,8 @@ form: module.record_id""" % (xml_id,)
                     val = self.model_id_get(f_ref)
                     f_val = val[0] + ',' + str(val[1])
                 else:
+                    # VFE HERE: add support for non required refs ?
+                    # fallback on continue or sthg else if ref is not found ?
                     f_val = self.id_get(f_ref)
             else:
                 f_val = _eval_xml(self, field, env)

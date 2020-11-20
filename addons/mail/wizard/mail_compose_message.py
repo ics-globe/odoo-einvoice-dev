@@ -161,7 +161,7 @@ class MailComposer(models.TransientModel):
             result['record_name'] = doc_name_get and doc_name_get[0][1] or ''
             subject = tools.ustr(result['record_name'])
 
-        re_prefix = _('Re:')
+        re_prefix = _('Re:') if subject else ''
         if subject and not (subject.startswith('Re:') or subject.startswith(re_prefix)):
             subject = "%s %s" % (re_prefix, subject)
         result['subject'] = subject

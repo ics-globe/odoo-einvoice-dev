@@ -384,6 +384,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         """ Override this method to do specific things when a form view is
         opened. This method is invoked by :meth:`~default_get`.
         """
+        # VFE TODO deprecate and/or remove this hook, not used anymore,
+        # everything is done in default_get overrides
+        # and there is no distinction between form view opening and create calls...
         pass
 
     def _valid_field_parameter(self, field, name):

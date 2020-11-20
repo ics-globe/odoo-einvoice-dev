@@ -566,8 +566,11 @@ class Environment(Mapping):
         su = (user is None and self.su) if su is None else su
         return Environment(cr, uid, context, su)
 
-    def ref(self, xml_id, raise_if_not_found=True):
+    def ref(self, xml_id, raise_if_not_found=True, fallback=None):
         """Return the record corresponding to the given ``xml_id``."""
+        if fallback is not None:
+            record = self['ir.model.data'].xmlid_to_object(xml_id, raise_if_not_found=False)
+            return record if record is not None else fallback()
         return self['ir.model.data'].xmlid_to_object(xml_id, raise_if_not_found=raise_if_not_found)
 
     def is_superuser(self):
