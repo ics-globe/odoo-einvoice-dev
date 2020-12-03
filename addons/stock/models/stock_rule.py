@@ -10,7 +10,7 @@ from odoo import SUPERUSER_ID, _, api, fields, models, registry
 from odoo.exceptions import UserError
 from odoo.osv import expression
 from odoo.tools import float_compare, float_is_zero, html_escape
-from odoo.tools.misc import split_every
+from odoo.tools.misc import split_every, clean_context
 
 _logger = logging.getLogger(__name__)
 
@@ -240,9 +240,14 @@ class StockRule(models.Model):
             moves_values_by_company[procurement.company_id.id].append(move_values)
 
         for company_id, moves_values in moves_values_by_company.items():
-            # create the move as SUPERUSER because the current user may not have the rights to do it (mto product launched by a sale for example)
-            moves = self.env['stock.move'].with_user(SUPERUSER_ID).sudo().with_company(company_id).create(moves_values)
-            # Since action_confirm launch following procurement_group we should activate it.
+            # has a default_partner_id, seems redundant with exact same value as explicit partner_id
+            # it's the default_partner_id from the New Quotation action (action_sale_quotations_new),
+            # which preps various fields of the quotation based on the lead data
+            moves = self.env['stock.move']\
+                .with_context(clean_context(self.env.context))\
+                .with_user(SUPERUSER_ID)\
+                .with_company(company_id)\
+                .create(moves_values)
             moves._action_confirm()
         return True
 
