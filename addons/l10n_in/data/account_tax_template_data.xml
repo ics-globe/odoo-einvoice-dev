@@ -151,7 +151,7 @@
         <field name="type_tax_use">none</field>
         <field name="amount_type">fixed</field>
         <field name="amount">1.591</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -201,7 +201,7 @@
         <field name="python_compute">result=base_amount * 0.21
 tax=quantity * 4.17
 if tax > result:result=tax</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1090,7 +1090,7 @@ if tax > result:result=tax</field>
         <field name="type_tax_use">none</field>
         <field name="amount_type">fixed</field>
         <field name="amount">1.591</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1140,7 +1140,7 @@ if tax > result:result=tax</field>
         <field name="python_compute">result=base_amount * 0.21
 tax=quantity * 4.17
 if tax > result:result=tax</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2037,7 +2037,7 @@ if tax > result:result=tax</field>
         <field name="type_tax_use">none</field>
         <field name="amount_type">fixed</field>
         <field name="amount">1.591</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="l10n_in_reverse_charge" eval="True"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
@@ -2098,7 +2098,7 @@ if tax > result:result=tax</field>
         <field name="python_compute">result=base_amount * 0.21
 tax=quantity * 4.17
 if tax > result:result=tax</field>
-        <field name="tax_group_id" ref="cess_group"/>
+        <field name="tax_group_id" ref="cess_non_advol_group"/>
         <field name="l10n_in_reverse_charge" eval="True"/>
         <field name="chart_template_id" ref="indian_chart_template_standard"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),

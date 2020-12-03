@@ -11,6 +11,7 @@
         'purchase',
     ],
     'data': [
+        'views/account_invoice_views.xml',
         'views/report_purchase_order.xml',
         'views/purchase_order_views.xml',
     ],

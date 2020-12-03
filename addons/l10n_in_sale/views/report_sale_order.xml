@@ -2,8 +2,15 @@
 <odoo>
 
     <template id="gst_report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
-        <xpath expr="//span[@t-field='line.name']" position="after">
-            <t t-if="line.product_id.l10n_in_hsn_code"><h6><strong class="ml16">HSN/SAC Code:</strong> <span t-field="line.product_id.l10n_in_hsn_code"/></h6></t>
+        <xpath expr="//th[@name='th_description']" position="after">
+            <t t-if="doc.l10n_in_company_country_code == 'IN'">
+                <th name="th_hsncode" class="text-left">HSN/SAC Code</th>
+            </t>
+        </xpath>
+        <xpath expr="//td[@name='td_name']" position="after">
+            <t t-if="doc.l10n_in_company_country_code == 'IN'">
+                <td name="td_hsncode"><span t-field="line.product_id.l10n_in_hsn_code"/></td>
+            </t>
         </xpath>
     </template>
 

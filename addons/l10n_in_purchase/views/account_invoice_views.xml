@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_invoice_form_inherit_l10n_in" model="ir.ui.view">
+        <field name="name">purchase.account.move.form.inherit.l10n.in</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="purchase.view_move_form_inherit_purchase"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_in_state_id']" position="attributes">
+                <field name="invisible">1</field>
+            </xpath>
+        </field>
+    </record>
+</odoo>

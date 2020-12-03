@@ -11,8 +11,15 @@
             <field name='loss_account_id' position="attributes">
                 <attribute name="attrs">{'invisible': ['|', '&amp;', ('country_code', '!=', 'IN'), ('type', '!=', 'cash'), '&amp;', ('country_code', '=', 'IN'), ('type', 'not in', ['bank', 'cash', 'sale', 'purchase'])]}</attribute>
             </field>
+
+            <!--
+                we are going to manage the multiple GSTN using the multi company only.
+                So, we have to remove this fields later from the view and model.
+            -->
             <field name="company_id" position="after">
-                <field name="l10n_in_gstin_partner_id" context="{'show_vat':True}" options='{"no_create": True,"always_reload": True}'/>
+                <field name="l10n_in_gstin_partner_id" context="{'show_vat':True}" 
+                    options='{"no_create": True,"always_reload": True}'
+                    groups="base.group_no_one"/>
             </field>
         </field>
     </record>

@@ -1,13 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="l10n_in_report_invoice_document_inherit" inherit_id="account.report_invoice_document">
+        
+        <xpath expr="//table[@name='invoice_line_table']" position="before">
+          <t t-if="o.company_id.country_id.code == 'IN'">
+            <t t-set="taxes" t-value="o.tax_amount_by_lines"/>
+            
+            <t t-set="cols" t-value="list()"/>
+            <t t-foreach="taxes" t-as="tax">
+                <t t-set="cols" t-value="cols + list(taxes[tax].keys())"/>
+            </t>
+            <t t-set="taxcols" t-value="list(set(cols))"/>
+          </t>
+        </xpath>
+        
+        <xpath expr="//table[@name='invoice_line_table']/thead/tr/th[@name='th_taxes']" position="after">
+          <t t-if="o.company_id.country_id.code == 'IN'">
+            <th t-if="'SGST' in taxcols" class="text-right">SGST</th>
+            <th t-if="'CGST' in taxcols" class="text-right">CGST</th>
+            <th t-if="'IGST' in taxcols" class="text-right">IGST</th>
+            <th t-if="'CESS' in taxcols" class="text-right">CESS</th>
+          </t>
+        </xpath>
+        
+        <xpath expr="//t[@name='account_invoice_line_accountable']/td[@class='text-right o_price_total']" position="before">
+          <t t-if="o.company_id.country_id.code == 'IN'">
+            <td t-if="'SGST' in taxcols" class="text-right">
+              <span class="text-nowrap" t-esc="taxes.get(line.id, {}).get('SGST', 0.0)" 
+                t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+            </td>
+            <td t-if="'CGST' in taxcols" class="text-right">
+              <span class="text-nowrap" t-esc="taxes.get(line.id, {}).get('CGST', 0.0)" 
+                t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+            </td>
+            <td t-if="'IGST' in taxcols" class="text-right">
+              <span class="text-nowrap" t-esc="taxes.get(line.id, {}).get('IGST', 0.0)" 
+                t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+            </td>
+            <td t-if="'CESS' in taxcols" class="text-right">
+              <span class="text-nowrap" t-esc="taxes.get(line.id, {}).get('CESS', 0.0)" 
+                t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+            </td>
+          </t>
+        </xpath>
 
         <xpath expr="//span[@t-field='o.partner_id.vat']" position="attributes">
             <attribute name="t-if">o.company_id.country_id.code != 'IN'</attribute>
         </xpath>
+
         <xpath expr="//span[@t-field='o.partner_id.vat']" position="after">
             <span t-field="o.l10n_in_gstin" t-if="o.company_id.country_id.code == 'IN'"/>
         </xpath>
+
         <xpath expr="//t[@t-set='address']" position="inside">
             <t t-if="o.company_id.country_id.code == 'IN' and o.l10n_in_state_id" class="mt16">
                 <t t-if="o.move_type in ('in_invoice', 'in_refund')">
@@ -18,6 +62,7 @@
                 </t>
             </t>
         </xpath>
+
         <xpath expr="//p[@t-if='o.narration']" position="before">
             <t t-if="o.company_id.country_id.code == 'IN'">
                 <p id="total_in_words" class="mb16">

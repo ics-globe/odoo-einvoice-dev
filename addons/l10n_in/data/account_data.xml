@@ -13,7 +13,10 @@
             <field name="name">IGST</field>
         </record>
         <record id="cess_group" model="account.tax.group">
-            <field name="name">Cess</field>
+            <field name="name">CESS</field>
+        </record>
+        <record id="cess_non_advol_group" model="account.tax.group">
+            <field name="name">CESS-Non-Advol</field>
         </record>
         <record id="gst_group" model="account.tax.group">
             <field name="name">GST</field>
