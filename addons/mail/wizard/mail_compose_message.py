@@ -3,12 +3,13 @@
 
 import ast
 import base64
+import logging
 import re
 
 from odoo import _, api, fields, models, tools, Command
 from odoo.exceptions import UserError
 
-
+_logger = logging.getLogger(__name__)
 # main mako-like expression pattern
 EXPRESSION_PATTERN = re.compile('(\$\{.+?\})')
 
@@ -53,6 +54,7 @@ class MailComposer(models.TransientModel):
         """
         result = super(MailComposer, self).default_get(fields)
 
+        fields = set(fields)
         # author
         missing_author = 'author_id' in fields and 'author_id' not in result
         missing_email_from = 'email_from' in fields and 'email_from' not in result
@@ -63,22 +65,20 @@ class MailComposer(models.TransientModel):
             if missing_author:
                 result['author_id'] = author_id
 
-        if 'model' in fields and 'model' not in result:
-            result['model'] = self._context.get('active_model')
-        if 'res_id' in fields and 'res_id' not in result:
-            result['res_id'] = self._context.get('active_id')
+        result.setdefault('model', self._context.get('active_model'))
+        result.setdefault('res_id', self._context.get('active_id'))
         if 'no_auto_thread' in fields and 'no_auto_thread' not in result and result.get('model'):
             # doesn't support threading
             if result['model'] not in self.env or not hasattr(self.env[result['model']], 'message_post'):
                 result['no_auto_thread'] = True
 
         if 'active_domain' in self._context:  # not context.get() because we want to keep global [] domains
-            result['active_domain'] = '%s' % self._context.get('active_domain')
-        if result.get('composition_mode') == 'comment' and (set(fields) & set(['model', 'res_id', 'partner_ids', 'record_name', 'subject'])):
+            result['active_domain'] = str(self._context.get('active_domain'))
+        if result.get('composition_mode') == 'comment' and (fields & {'model', 'res_id', 'partner_ids', 'record_name', 'subject'}):
             result.update(self.get_record_data(result))
 
-        filtered_result = dict((fname, result[fname]) for fname in result if fname in fields)
-        return filtered_result
+        # only keep requested fields
+        return {fname: default for fname, default in result.items() if fname in fields}
 
     # content
     subject = fields.Char('Subject')
@@ -408,22 +408,25 @@ class MailComposer(models.TransientModel):
     def save_as_template(self):
         """ hit save as template button: current form value will be a new
             template attached to the current document. """
-        for record in self:
-            model = self.env['ir.model']._get(record.model or 'mail.message')
-            model_name = model.name or ''
-            template_name = "%s: %s" % (model_name, tools.ustr(record.subject))
-            values = {
-                'name': template_name,
-                'subject': record.subject or False,
-                'body_html': record.body or False,
-                'model_id': model.id or False,
-                'attachment_ids': [Command.set([att.id for att in record.attachment_ids])],
-            }
-            template = self.env['mail.template'].create(values)
-            # generate the saved template
-            record.write({'template_id': template.id})
-            record.onchange_template_id_wrapper()
-            return _reopen(self, record.id, record.model, context=self._context)
+        record = self
+        if len(record) != 1:
+            _logger.warning('Trying to save multiple messages to templates, '
+                            'only one message at a time can be converted to '
+                            'a template.')
+            record = record[:1]
+        model = self.env['ir.model']._get(record.model or 'mail.message')
+        values = {
+            'name': "%s: %s" % (model.name or '', self.subject),
+            'subject': record.subject or False,
+            'body_html': record.body or False,
+            'model_id': model.id,
+            'attachment_ids': [Command.set([att.id for att in record.attachment_ids])],
+        }
+        template = self.env['mail.template'].create(values)
+        # generate the saved template
+        record.write({'template_id': template.id})
+        record.onchange_template_id_wrapper()
+        return _reopen(self, record.id, record.model, context=record._context)
 
     # ------------------------------------------------------------
     # RENDERING
