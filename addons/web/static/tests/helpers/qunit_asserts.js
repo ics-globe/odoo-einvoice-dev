@@ -241,4 +241,29 @@ odoo.define('web.qunit_asserts', function (require) {
 
     QUnit.assert.isVisible = isVisible;
     QUnit.assert.isNotVisible = isNotVisible;
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+
+    const config = require('web.config');
+
+    /**
+     *
+     */
+    function testSmallOnly() {
+        QUnit[config.device.isMobile ? 'test' : 'skip'](...arguments);
+    }
+
+    /**
+     *
+     */
+    function testDesktopOnly() {
+        QUnit[config.device.isMobile ? 'skip' : 'test'](...arguments);
+    }
+
+    QUnit.testSmallOnly = testSmallOnly;
+    QUnit.testMobileOnly = testSmallOnly; // DEPRECATED
+    QUnit.testDesktopOnly = testDesktopOnly;
+
 });

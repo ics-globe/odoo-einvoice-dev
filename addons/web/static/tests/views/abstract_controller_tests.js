@@ -164,5 +164,17 @@ QUnit.module("Views", {
             "unmounted",
         ]);
     });
+
+    QUnit.testMobileOnly('Only on mobile', function (assert) {
+        assert.expect(1);
+        const config = require('web.config');
+        assert.ok(config.device.isMobile, "should be run on mobile");
+    });
+
+    QUnit.testDesktopOnly('Only on desktop', function (assert) {
+        assert.expect(1);
+        const config = require('web.config');
+        assert.ok(!config.device.isMobile, "should be run on desktop");
+    });
 });
 });
