@@ -26,3 +26,7 @@ access_product_attribute_custom_value_manager,product.attribute.custom value man
 access_product_product_attribute_manager,product.template.attribute value manager,model_product_template_attribute_value,base.group_system,1,1,1,1
 access_product_template_attribute_exclusion_manager,product.template.attribute exclusion manager,model_product_template_attribute_exclusion,base.group_system,1,1,1,1
 access_product_template_attribute_line_manager,product.template.attribute line manager,model_product_template_attribute_line,base.group_system,1,1,1,1
+access_product_wizard_merge_manager,product.wizard.merge manager,model_product_wizard_merge,base.group_system,1,1,1,1
+access_product_wizard_merge_line_manager,product.wizard.merge line manager,model_product_wizard_merge_line,base.group_system,1,1,1,1
+access_product_wizard_merge_attribute_manager,product.wizard.merge attribute manager,model_product_wizard_merge_attribute,base.group_system,1,1,1,1
+access_product_wizard_merge_attribute_value_manager,product.wizard.merge attribute value manager,model_product_wizard_merge_attribute_value,base.group_system,1,1,1,1

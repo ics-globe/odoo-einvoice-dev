@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="product.product_wizard_merge_form" model="ir.ui.view">
+        <field name='name'>product.wizard.merge view form</field>
+        <field name='model'>product.wizard.merge</field>
+        <field name='arch' type='xml'>
+            <form string='Merge Product Wizard' class="o_product_wizard_merge">
+                <sheet>
+                    <group>
+                        <field name="dst_product_tmpl_id" />
+                        <field name="src_product_tmpl_ids" widget="many2many_tags" />
+                    </group>
+                    <group col="3">
+                        <label colspan="2" for="nb_variants"/>
+                        <field nolabel="1" name="nb_variants"/>
+                        <label colspan="2" for="possible_nb_variants"/>
+                        <field nolabel="1" name="possible_nb_variants"/>
+                        <label colspan="2" for="after_merge_nb_variants"/>
+                        <field nolabel="1" name="after_merge_nb_variants"/>
+                    </group>
+                    <notebook groups="product.group_product_variant">
+                        <page string="Attributes after merge">
+                            <group col="1">
+                                <field name="pwma_ids" nolabel="1" context="{'active_test': False}">
+                                    <tree editable="bottom" delete="0" create="0" decoration-success="ptal_id">
+                                        <field name="id" optional="hide"/>
+                                        <field name="product_tmpl_id" readonly="1" optional="hide"/>
+                                        <field name="attribute_id" attrs="{'readonly': [('ptal_id', '!=', False)]}"/>
+                                        <field name="pwmav_ids" widget="many2many_tags"
+                                            options="{'color_field': 'color', 'no_create': True, 'no_create_edit': True}"
+                                            domain="[('wizard_id', '=', parent.id), ('pwma_id.attribute_id', '=', attribute_id)]"/>
+                                        <field name="previous_pwmav_ids" invisible="1"/>
+                                        <field name="ptal_id" invisible="1" readonly="1"/>
+                                    </tree>
+                                </field>
+                                <div>
+                                    You can move the values to reduce the number of combinations.
+                                    If the value already exists in the row, it will be merged with the one present.
+                                    All attributes without any values are removed.
+                                    The product variants are automaticaly updated in the other panel.
+                                </div>
+                            </group>
+                            <group name="add" col="4">
+                                <field name="add_attribute_id"/>
+                                <field name="add_value_id"
+                                    attrs="{'invisible': [('add_attribute_id', '=', False)], 'required': [('add_attribute_id', '!=', False)]}"
+                                    domain="[('attribute_id', '=', add_attribute_id)]"
+                                    context="{'default_attribute_id': add_attribute_id}"/>
+                            </group>
+                            <!-- This field is used to force the onchange and write result for all pwmav merged_ptav_ids fields -->
+                            <field name="pwmav_ids" invisible="1" readonly="0">
+                                <tree><field name="merged_ptav_ids"/></tree>
+                            </field>
+                        </page>
+                        <page string="Product variants">
+                            <group col="1">
+                                <field name="pwml_ids" nolabel="1">
+                                    <tree editable="bottom" delete="0" create="0" decoration-info="will_merge_pwml" decoration-danger="has_error">
+                                        <field name="selected" />
+                                        <field name="name" optional="show"/>
+                                        <field name="product_id" optional="hide"/>
+                                        <field name="pwmav_ids" widget="many2many_tags"
+                                            options="{'no_create_edit': True, 'no_create': True, 'color_field': 'color'}"
+                                            domain="[('id', 'in', available_pwmav_ids)]"/>
+                                        <field name="available_pwmav_ids" invisible="1"/>
+                                        <field name="will_merge_pwml_ids" invisible="1"/>
+                                        <field name="will_merge_pwml_2_ids" widget="many2many_tags" optional="show"/>
+                                        <field name="will_merge_pwml"  optional="hide"/>
+                                        <field name="has_error" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group col="3" attrs="{'invisible': [('available_selected_pwmav_ids', '=', [])]}">
+                                <field name="available_selected_pwmav_ids" invisible="1"/>
+                                <label colspan="2" for="add_pwmav_id"/>
+                                <field nolabel="1" name="add_pwmav_id"
+                                    attrs="{'required': [('available_selected_pwmav_ids', '!=', [])]}"
+                                    domain="[('id', 'in', available_selected_pwmav_ids)]"/>
+                            </group>
+                            <div>
+                                The <b class="text-danger">colored products</b> have not enough or too much characteristics/values.
+                                The <b class="text-info">products</b> with the same characteristics will merge together.
+                            </div>
+                        </page>
+                    </notebook>
+                    <div class="text-muted">
+                        <b>Warning:</b> merging product or attributes can loose some variant customizations (ex: the sale price, extra price, attribute type, picture if on product and not on variant...).
+                        Nb: Every attributes variants creation mode equal to <i>Instantly</i> will generate the missing variants.
+                    </div>
+                </sheet>
+                <footer>
+                    <field name="will_merge_products" invisible="1"/>
+                    <field name="has_error" invisible="1"/>
+                    <button type="object" name="action_merge" class="oe_highlight" string="Merge product templates" attrs="{'invisible': ['|', ('has_error', '=', True), ('will_merge_products', '=', True)]}"/>
+                    <button type="object" name="action_merge" class="oe_highlight" string="Merge product templates &amp; products" attrs="{'invisible': ['|', ('has_error', '=', True), ('will_merge_products', '=', False)]}"/>
+                    <button class="btn-danger" string="Can not merge: Some attribute values are missing" attrs="{'invisible': [('has_error', '=', False)]}"/>
+                    <button type="object" special="cancel" string="Close" class="btn btn-secondary oe_inline"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="product.action_product_wizard_merge" model="ir.actions.server">
+        <field name="name">Merge products</field>
+        <field name="sequence" eval="1"/>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env['product.wizard.merge']._action_open_wizard_merge(records)</field>
+    </record>
+
+    <record id="product.action_product_template_wizard_merge" model="ir.actions.server">
+        <field name="name">Merge products</field>
+        <field name="sequence" eval="1"/>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = env['product.wizard.merge']._action_open_wizard_merge(records)</field>
+    </record>
+</odoo>

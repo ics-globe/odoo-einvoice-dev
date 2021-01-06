@@ -11,5 +11,10 @@
             <script type="text/javascript" src="/product/static/tests/product_pricelist_report_test.js"></script>
         </xpath>
     </template>
+    <template id="assets_tests" name="Product Assets Tests" inherit_id="web.assets_tests">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/product/static/tests/tours/tour_product_wizard_merge.js"></script>
+        </xpath>
+    </template>
 
 </odoo>
