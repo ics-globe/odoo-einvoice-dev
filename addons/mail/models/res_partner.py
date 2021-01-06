@@ -122,3 +122,10 @@ class Partner(models.Model):
         else:
             return {}
 
+    # --------------------------------------------------
+    # Private method from model.py to merge records
+    # --------------------------------------------------
+
+    def _after_merge_records(self, merged_records):
+        self.message_post(body='%s %s' % (_("Merged with the following partners:"), ", ".join('%s <%s> (ID %s)' % (p.name, p.email or 'n/a', p.id) for p in merged_records)))
+        super(Partner, self)._after_merge_records(merged_records)

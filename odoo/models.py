@@ -60,6 +60,9 @@ from .tools.misc import CountingStream, clean_context, DEFAULT_SERVER_DATETIME_F
 from .tools.safe_eval import safe_eval
 from .tools.translate import _
 from .tools import date_utils
+from .tools import unique
+from .tools import mute_logger
+from .tools.lru import LRU
 
 _logger = logging.getLogger(__name__)
 _schema = logging.getLogger(__name__ + '.schema')
@@ -6280,6 +6283,242 @@ Fields:
             result['warning'] = dict(title=title, message=message, type='dialog')
 
         return result
+
+    # ----------------------------------------
+    # Merge records tools
+    # ----------------------------------------
+
+    #  List of tuple (field model, field id) used, and to be
+    #     change when we merge a record.
+    #     (when don't use a x2m field, like ir.attachment or ir.model.data)
+    _merge_special_fields = []
+
+    def _merge_records_get_foreign_keys_relation(self):
+        """ return a list of many2one relation with the given table.
+            :param table : the name of the sql table to return relations
+            :returns a list of tuple 'table name', 'column name'.
+        """
+
+        query = """
+            SELECT cl1.relname as table, att1.attname as column
+            FROM pg_constraint as con, pg_class as cl1, pg_class as cl2, pg_attribute as att1, pg_attribute as att2
+            WHERE con.conrelid = cl1.oid
+                AND con.confrelid = cl2.oid
+                AND array_lower(con.conkey, 1) = 1
+                AND con.conkey[1] = att1.attnum
+                AND att1.attrelid = cl1.oid
+                AND cl2.relname = %s
+                AND att2.attname = 'id'
+                AND array_lower(con.confkey, 1) = 1
+                AND con.confkey[1] = att2.attnum
+                AND att2.attrelid = cl2.oid
+                AND con.contype = 'f'
+        """
+        self.env.cr.execute(query, (self._table,))
+        return self.env.cr.fetchall()
+
+    def _merge_records_update_foreign_keys(self, src_records, ignore_table=None):
+        """ Update all foreign key from the src_records to self. All many2one fields will be updated.
+
+            :param src_records : merge source recordset (does not include destination one)
+        """
+        _logger.debug('_merge_records_update_foreign_keys "%s" (%s) for src_records: %r', self._name, self.id, src_records.ids)
+
+        # find the many2one relation to a table_name
+        relations = self._merge_records_get_foreign_keys_relation()
+
+        self.flush()
+
+        for table, column in relations:
+            if ignore_table and ignore_table in table:  # for 'base_partner_merge' ignore two tables
+                continue
+
+            # get list of columns of current table (exept the current fk column)
+            query = "SELECT column_name FROM information_schema.columns WHERE table_name LIKE '%s'" % (table)
+            self.env.cr.execute(query, ())
+            columns = []
+            for data in self.env.cr.fetchall():
+                if data[0] != column:
+                    columns.append(data[0])
+
+            # do the update for the current table/column in SQL
+            query_dic = {
+                'table': table,
+                'column': column,
+                'value': columns[0],
+            }
+            if len(columns) <= 1:
+                # unique key treated
+                query = """
+                    UPDATE "%(table)s" as ___tu
+                    SET "%(column)s" = %%s
+                    WHERE
+                        "%(column)s" = %%s AND
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM "%(table)s" as ___tw
+                            WHERE
+                                "%(column)s" = %%s AND
+                                ___tu.%(value)s = ___tw.%(value)s
+                        )""" % query_dic
+                for record in src_records:
+                    self.env.cr.execute(query, (self.id, record.id, self.id))
+            else:
+                try:
+                    with mute_logger('odoo.sql_db'), self.env.cr.savepoint():
+                        query = 'UPDATE "%(table)s" SET "%(column)s" = %%s WHERE "%(column)s" IN %%s' % query_dic
+                        self.env.cr.execute(query, (self.id, tuple(src_records.ids),))
+
+                        # handle the recursivity with parent relation
+                        if column == self._parent_name and table == self._table:
+                            query = """
+                                WITH RECURSIVE cycle(id, parent_id) AS (
+                                        SELECT id, parent_id FROM %(table_name)s
+                                    UNION
+                                        SELECT  cycle.id, %(table_name)s.%(parent_name)s
+                                        FROM    %(table_name)s, cycle
+                                        WHERE   %(table_name)s.id = cycle.%(parent_name)s AND
+                                                cycle.id != cycle.%(parent_name)s
+                                )
+                                SELECT id FROM cycle WHERE id = parent_id AND id = %(id)s
+                            """
+                            self.env.cr.execute(query, {
+                                'parent_name': self._parent_name,
+                                'table_name': self._table,
+                                'id': self.id,
+                            })
+                except psycopg2.Error:
+                    _logger.info(('merge updating fails for "%(table)s" WHERE "%(column)s" IN %%r' % query_dic) % src_records.ids)
+
+                    # updating fails, most likely due to a violated unique constraint
+                    # keeping record with nonexistent record is useless, better delete it
+                    query = 'DELETE FROM "%(table)s" WHERE "%(column)s" IN %%s' % query_dic
+                    self.env.cr.execute(query, (tuple(src_records.ids),))
+
+        self.invalidate_cache()
+
+    def _merge_records_update_reference_fields(self, src_records):
+        """ Update all reference fields from the src_records to self.
+
+            :param src_records : merge source recordset (does not include destination one)
+        """
+        _logger.debug('_merge_records_update_reference_fields "%s" (%s) for src_records: %r', self._name, self.id, src_records.ids)
+
+        def update_records(model, src, field_model='model', field_id='res_id'):
+            Model = self.env[model] if model in self.env else None
+            if Model is None:
+                return
+            records = Model.sudo().search([(field_model, '=', self._name), (field_id, '=', src.id)])
+            try:
+                with mute_logger('odoo.sql_db'), self.env.cr.savepoint(), self.env.clear_upon_failure():
+                    records.sudo().write({field_id: self.id})
+                    records.flush()
+            except psycopg2.Error:
+                # updating fails, most likely due to a violated unique constraint
+                # keeping record with nonexistent record_id is useless, better delete it
+                _logger.debug('update_reference_fields "%s" (%s) can not merge record, make unlink: %r', self._name, self.id, src_records.ids)
+                records.sudo().unlink()
+
+        update_records = functools.partial(update_records)
+
+        special_models = []
+        for model_name, Model in self.env.items():
+            if Model._merge_special_fields:
+                for field_model, field_id in Model._merge_special_fields:
+                    special_models.append((model_name, field_model, field_id))
+
+        for record in src_records:
+            for model_name, field_model, field_id in special_models:
+                update_records(model_name, src=record, field_model=field_model, field_id=field_id)
+
+        records = self.env['ir.model.fields'].search([('ttype', '=', 'reference')])
+        for record in records.sudo():
+            try:
+                Model = self.env[record.model]
+                field = Model._fields[record.name]
+            except KeyError:
+                # unknown model or field => skip
+                continue
+
+            if field.compute is not None:
+                continue
+
+            for partner in src_records:
+                records_ref = Model.sudo().search([(record.name, '=', '%s,%d' % (self._name, partner.id))])
+                values = {
+                    record.name: '%s,%d' % (self._name, self.id),
+                }
+                records_ref.sudo().write(values)
+
+        self.flush()
+
+    def _merge_records_update_values(self, src_records):
+        """ Update values of self with the ones from the src_records.
+
+            :param src_records : recordset of source res.partner
+        """
+        _logger.debug('_merge_records_update_values "%s" (%s) for src_records: %r', self._name, self.id, src_records.ids)
+        summable_fields = self._get_merge_records_summable_fields()
+
+        model_fields = self.fields_get().keys()
+
+        def write_serializer(item):
+            if isinstance(item, BaseModel):
+                return item.id
+            else:
+                return item
+        # get all fields that are not computed or x2many
+        values = dict()
+        for column in model_fields:
+            field = self._fields[column]
+            if field.type not in ('many2many', 'one2many') and field.compute is None:
+                for item in itertools.chain(src_records, [self]):
+                    if item[column]:
+                        if column in summable_fields and values.get(column):
+                            values[column] += write_serializer(item[column])
+                        else:
+                            values[column] = write_serializer(item[column])
+        # remove fields that can not be updated (id and parent_id)
+        values.pop('id', None)
+        parent_id = values.pop(self._parent_name, None) # treated by update_foreign_keys
+        self.write(values)
+        # try to update the parent_id
+        if parent_id and parent_id != self.id:
+            try:
+                self.write({self._parent_name: parent_id})
+            except ValidationError:
+                _logger.info('Skip recursive hierarchies for _parent_name "%s" of %s (%s)', parent_id, self._name, self.id)
+
+    @api.model
+    def _get_merge_records_summable_fields(self):
+        """ Returns the list of fields that should be summed when merging records
+        """
+        return []
+
+    def _after_merge_records(self, merged_records):
+        _logger.info('(uid = %s) merged the %s %r with %s', self._uid, self._name, merged_records.ids, self.id)
+
+        # delete source records, since they are merged
+        merged_records.unlink()
+
+    def merge_records(self, records_to_merge, ignore_table=None):
+        """ Update all foreign key from the records_to_merge to self record.
+                All many2one fields will be updated.
+            Update all reference fields from the records_to_merge to self.
+
+            :param records_to_merge : merge source recordset (does not include
+                destination one)
+            :param ignore_table : (string) matching SQL table name are ignored
+        """
+        self.ensure_one()
+
+        records_to_merge -= self
+        self._merge_records_update_foreign_keys(records_to_merge, ignore_table=None)
+        self._merge_records_update_reference_fields(records_to_merge)
+        self._merge_records_update_values(records_to_merge)
+        self.invalidate_cache()
+        self._after_merge_records(records_to_merge)
+
 
 collections.Set.register(BaseModel)
 # not exactly true as BaseModel doesn't have __reversed__, index or count

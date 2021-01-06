@@ -25,6 +25,7 @@ class Message(models.Model):
     _description = 'Message'
     _order = 'id desc'
     _rec_name = 'record_name'
+    _merge_special_fields = [('model', 'res_id')]
 
     _message_read_limit = 30
 
