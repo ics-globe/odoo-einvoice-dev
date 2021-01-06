@@ -1814,6 +1814,7 @@ class IrModelData(models.Model):
     _name = 'ir.model.data'
     _description = 'Model Data'
     _order = 'module, model, name'
+    _merge_special_fields = [('model', 'res_id')]
 
     name = fields.Char(string='External Identifier', required=True,
                        help="External Key/Identifier that can be used for "

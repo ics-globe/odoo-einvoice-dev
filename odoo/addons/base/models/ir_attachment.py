@@ -35,6 +35,7 @@ class IrAttachment(models.Model):
     _name = 'ir.attachment'
     _description = 'Attachment'
     _order = 'id desc'
+    _merge_special_fields = [('res_model', 'res_id')]
 
     def _compute_res_name(self):
         for attachment in self:
