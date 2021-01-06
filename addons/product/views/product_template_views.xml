@@ -23,6 +23,11 @@
             </tree>
         </field>
     </record>
+    <template id="assets_tests" name="Product Assets Tests" inherit_id="web.assets_tests">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/product/static/tests/tours/tour_product_wizard_merge.js"></script>
+        </xpath>
+    </template>
 
     <record id="product_template_only_form_view" model="ir.ui.view">
         <field name="name">product.template.product.form</field>

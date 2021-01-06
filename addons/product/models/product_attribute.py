@@ -216,7 +216,10 @@ class ProductTemplateAttributeLine(models.Model):
             else:
                 create_values.append(value)
         res = activated_lines + super(ProductTemplateAttributeLine, self).create(create_values)
-        res._update_product_template_attribute_values()
+        # If coming from `merge` no need to update the values and the variants
+        # before all lines are merged.
+        if self.env.context.get('update_product_template_attribute_values', True):
+            res._update_product_template_attribute_values()
         return res
 
     def write(self, values):

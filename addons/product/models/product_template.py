@@ -1141,3 +1141,11 @@ class ProductTemplate(models.Model):
             'label': _('Import Template for Products'),
             'template': '/product/static/xls/product_template.xls'
         }]
+
+    # --------------------------------------------------
+    # Private method from model.py to merge records
+    # --------------------------------------------------
+
+    def _after_merge_records(self, merged_records):
+        self.message_post(body='%s %s' % (_("Merged with the following product template:"), ", ".join('%s (ID %s)' % (p.name, p.id) for p in merged_records)))
+        super(ProductTemplate, self)._after_merge_records(merged_records)

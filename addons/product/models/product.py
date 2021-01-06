@@ -695,6 +695,14 @@ class ProductProduct(models.Model):
         (tmpl_to_deactivate + tmpl_to_activate).toggle_active()
         return result
 
+    # --------------------------------------------------
+    # Private method from model.py to merge records
+    # --------------------------------------------------
+
+    def _after_merge_records(self, merged_records):
+        self.message_post(body='%s %s' % (_("Merged with the following product:"), ", ".join('%s (ID %s)' % (p.name, p.id) for p in merged_records)))
+        super(ProductProduct, self)._after_merge_records(merged_records)
+
 
 class ProductPackaging(models.Model):
     _name = "product.packaging"
