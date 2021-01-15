@@ -51,6 +51,9 @@ class TestTestCursor(common.TransactionCase):
         record.flush(['ref'])
 
     def check(self, record, value):
+        # make sure to fetch the field from the database
+        record.flush()
+        record.invalidate_cache()
         self.assertEqual(record.read(['ref'])[0]['ref'], value)
 
     def test_single_cursor(self):

@@ -903,6 +903,14 @@ class Cache(object):
         field_cache = self._set_field_cache(records, field)
         field_cache.update(zip(records._ids, values))
 
+    def update_keep(self, records, field, values):
+        """ Set the values of ``field`` for several ``records``, but without
+        overwriting the cache.
+        """
+        field_cache = self._set_field_cache(records, field)
+        for id_, val in zip(records._ids, values):
+            field_cache.setdefault(id_, val)
+
     def remove(self, record, field):
         """ Remove the value of ``field`` for ``record``. """
         try:

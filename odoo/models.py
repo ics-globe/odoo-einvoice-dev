@@ -3282,12 +3282,9 @@ Fields:
                 if f.prefetch
                 # discard fields with groups that the user may not access
                 if not (f.groups and not self.user_has_groups(f.groups))
-                # discard fields that must be recomputed
-                if not (f.compute and self.env.records_to_compute(f))
             ]
             if field.name not in fnames:
                 fnames.append(field.name)
-                self = self - self.env.records_to_compute(field)
         else:
             fnames = [field.name]
         self._read(fnames)
@@ -3301,10 +3298,6 @@ Fields:
         if not self:
             return
         self.check_access_rights('read')
-
-        # if a read() follows a write(), we must flush updates, as read() will
-        # fetch from database and overwrites the cache (`test_update_with_id`)
-        self.flush(field_names, self)
 
         # determine columns fields and those with their own read() method
         column_fields = []
@@ -3325,6 +3318,12 @@ Fields:
 
         if column_fields:
             cr, context = self.env.cr, self.env.context
+
+            # If a read() follows a write(), we must flush the updates that have
+            # an impact on checking security rules, as they are injected into
+            # the query.  However, we don't need to flush the fields to fetch,
+            # as explained below when putting values in cache.
+            self._flush_search([], order='id')
 
             # make a query object for selecting ids, and apply security rules to it
             query = Query(cr, self._table, self._table_query)
@@ -3362,6 +3361,9 @@ Fields:
             ids = next(column_values)
             fetched = self.browse(ids)
 
+            # If we assume that the value of a pending update is in cache, we
+            # can avoid flushing pending updates if the fetched values do not
+            # overwrite values in cache.
             for field in column_fields:
                 values = next(column_values)
                 # post-process translations
@@ -3369,8 +3371,8 @@ Fields:
                     if any(values):
                         translate = field.get_trans_func(fetched)
                         values = [translate(id_, value) for id_, value in zip(ids, values)]
-                # store values in cache
-                self.env.cache.update(fetched, field, values)
+                # store values in cache, but without overwriting
+                self.env.cache.update_keep(fetched, field, values)
 
             # process non-column fields
             for field in other_fields:
@@ -4548,6 +4550,8 @@ Fields:
         :return: the qualified field name (or expression) to use for ``field``
         """
         if self.env.lang:
+            # for the COALESCE to work properly, the column must be flushed
+            self.flush([field])
             alias = query.left_join(
                 table_alias, 'id', 'ir_translation', 'res_id', field,
                 extra='"{rhs}"."type" = \'model\' AND "{rhs}"."name" = %s AND "{rhs}"."lang" = %s AND "{rhs}"."value" != %s',
@@ -5977,10 +5981,21 @@ Fields:
         """
         if fnames is None:
             if ids is None:
+                if self.env.all.towrite:
+                    _logger.warning("Cache invalidation with pending updates", stack_info=True)
                 return self.env.cache.invalidate()
             fields = list(self._fields.values())
         else:
+            fnames = list(fnames)
             fields = [self._fields[n] for n in fnames]
+
+        # check for pending updates
+        id_vals = self.env.all.towrite.get(self._name)
+        if id_vals:
+            has_update = bool if fnames is None else lambda vals: not vals.keys().isdisjoint(fnames)
+            has_ids = (lambda id_: True) if ids is None else set(ids).__contains__
+            if any(has_ids(id_) and has_update(vals) for id_, vals in id_vals.items()):
+                _logger.warning("Cache invalidation with pending updates", stack_info=True)
 
         # invalidate fields and inverse fields, too
         spec = [(f, ids) for f in fields] + \
@@ -6526,6 +6541,7 @@ Fields:
         snapshot1 = Snapshot(record, nametree)
 
         # determine values that have changed by comparing snapshots
+        self.flush()
         self.invalidate_cache()
         result['value'] = snapshot1.diff(snapshot0, force=first_call)
 

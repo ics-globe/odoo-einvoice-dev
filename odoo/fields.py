@@ -1677,8 +1677,9 @@ class _String(Field):
 
         update_column = True
         update_trans = False
-        single_lang = len(records.env['res.lang'].get_installed()) <= 1
         if self.translate:
+            installed = records.env['res.lang'].get_installed()
+            single_lang = installed[0][0] if len(installed) <= 1 else None
             lang = records.env.lang or None  # used in _update_translations below
             if single_lang:
                 # a single language is installed
@@ -1706,6 +1707,9 @@ class _String(Field):
                 # invalidate the field in the other languages
                 cache.invalidate([(self, records.ids)])
                 cache.update(records, self, itertools.repeat(cache_value))
+                if single_lang or lang == 'en_US':
+                    others = records.with_context(lang=None if lang else single_lang)
+                    cache.update(others, self, itertools.repeat(cache_value))
 
         if update_trans:
             if callable(self.translate):
@@ -2244,9 +2248,7 @@ class Binary(Field):
             att.res_id: att.datas
             for att in records.env['ir.attachment'].sudo().search(domain)
         }
-        cache = records.env.cache
-        for record in records:
-            cache.set(record, self, data.get(record.id, False))
+        records.env.cache.update_keep(records, self, map(data.get, records._ids))
 
     def create(self, record_values):
         assert self.attachment
@@ -3484,9 +3486,8 @@ class One2many(_RelationalMulti):
             group[get_id(line[inverse])].append(line.id)
 
         # store result in cache
-        cache = records.env.cache
-        for record in records:
-            cache.set(record, self, tuple(group[record.id]))
+        values = [tuple(group[id_]) for id_ in records._ids]
+        records.env.cache.update_keep(records, self, values)
 
     def write_real(self, records_commands_list, create=False):
         """ Update real records. """
@@ -3858,9 +3859,8 @@ class Many2many(_RelationalMulti):
             group[row[0]].append(row[1])
 
         # store result in cache
-        cache = records.env.cache
-        for record in records:
-            cache.set(record, self, tuple(group[record.id]))
+        values = [tuple(group[id_]) for id_ in records._ids]
+        records.env.cache.update_keep(records, self, values)
 
     def write_real(self, records_commands_list, create=False):
         # records_commands_list = [(records, commands), ...]
