@@ -1371,7 +1371,7 @@ class IrModelSelection(models.Model):
 
         # Reload registry for normal unlink only. For module uninstall, the
         # reload is done independently in odoo.modules.loading.
-        if not self._context.get(MODULE_UNINSTALL_FLAG):
+        if self and not self._context.get(MODULE_UNINSTALL_FLAG):
             # setup models; this re-initializes model in registry
             self.flush()
             self.pool.setup_models(self._cr)

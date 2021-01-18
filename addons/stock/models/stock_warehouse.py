@@ -132,6 +132,9 @@ class Warehouse(models.Model):
         return warehouse
 
     def write(self, vals):
+        if not self:
+            return True
+
         if 'company_id' in vals:
             for warehouse in self:
                 if warehouse.company_id.id != vals['company_id']:

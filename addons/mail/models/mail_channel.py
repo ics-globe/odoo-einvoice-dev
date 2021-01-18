@@ -228,7 +228,7 @@ class Channel(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        defaults = self.default_get(['image_128'])
+        defaults = vals_list and self.default_get(['image_128'])
         current_partner = self.env.user.partner_id.id
 
         visibilities = []
