@@ -54,6 +54,8 @@ class TestCRUDVisibilityFollowers(TestAccessRights):
         self.project_pigs.privacy_visibility = 'portal'
         self.project_pigs.message_subscribe(partner_ids=[self.env.user.partner_id.id])
         self.project_pigs.privacy_visibility = 'followers'
+        self.project_pigs.flush()
+        self.project_pigs.invalidate_cache()
         with self.assertRaises(AccessError, msg="%s should not be able to read the project" % self.env.user.name):
             self.project_pigs.with_user(self.env.user).name
 
@@ -74,6 +76,8 @@ class TestCRUDVisibilityFollowers(TestAccessRights):
         self.project_pigs.privacy_visibility = 'portal'
         self.project_pigs.message_subscribe(partner_ids=[self.env.user.partner_id.id])
         self.project_pigs.privacy_visibility = 'followers'
+        self.task.flush()
+        self.task.invalidate_cache()
         with self.assertRaises(AccessError, msg="%s should not be able to read the task" % self.env.user.name):
             self.task.with_user(self.env.user).name
 
@@ -147,6 +151,7 @@ class TestCRUDVisibilityEmployees(TestAccessRights):
             self.task.with_user(self.env.user).name
 
         self.project_pigs.message_subscribe(partner_ids=[self.env.user.partner_id.id])
+        self.task.flush()
         with self.assertRaises(AccessError, msg="%s should not be able to read the task" % self.env.user.name):
             self.task.with_user(self.env.user).name
 

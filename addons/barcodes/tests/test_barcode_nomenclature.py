@@ -225,7 +225,8 @@ class TestBarcodeNomenclature(common.TransactionCase):
         })
 
         # Invalids the cache to reset the nomenclature barcode rules' order.
-        self.env['barcode.nomenclature'].invalidate_cache()
+        first_created_rule.flush()
+        first_created_rule.invalidate_cache()
 
         # Only fits the second barcode rule.
         res = self.nomenclature.parse_barcode('2012345610255')
@@ -245,7 +246,8 @@ class TestBarcodeNomenclature(common.TransactionCase):
 
         # Invalids the cache to reset the nomenclature barcode rules' order.
         first_created_rule.sequence = 1
-        self.env['barcode.nomenclature'].invalidate_cache()
+        first_created_rule.flush()
+        first_created_rule.invalidate_cache()
 
         # Should take the first one now (lower sequence).
         res = self.nomenclature.parse_barcode('2212345610259')

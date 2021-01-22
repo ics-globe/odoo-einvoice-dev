@@ -236,7 +236,7 @@ class TestFields(TransactionCaseWithUserDemo):
     @mute_logger('odoo.fields')
     def test_10_computed_stored_x_name(self):
         # create a custom model with two fields
-        self.env["ir.model"].create({
+        ir_model = self.env["ir.model"].create({
             "name": "x_test_10_compute_store_x_name",
             "model": "x_test_10_compute_store_x_name",
             "field_id": [
@@ -244,6 +244,8 @@ class TestFields(TransactionCaseWithUserDemo):
                 (0, 0, {'name': 'x_stuff_id', 'ttype': 'many2one', 'relation': 'ir.model'}),
             ],
         })
+        ir_model.flush()
+        ir_model.invalidate_cache()
         # set 'x_stuff_id' refer to a model not loaded yet
         self.cr.execute("""
             UPDATE ir_model_fields
@@ -317,6 +319,7 @@ class TestFields(TransactionCaseWithUserDemo):
         # switch message from discussion, and check again
 
         # See YTI FIXME
+        discussion1.flush()
         discussion1.invalidate_cache()
 
         discussion2 = discussion1.copy({'name': 'Another discussion'})
@@ -506,6 +509,7 @@ class TestFields(TransactionCaseWithUserDemo):
     def test_12_cascade(self):
         """ test computed field depending on computed field """
         message = self.env.ref('test_new_api.message_0_0')
+        message.flush()
         message.invalidate_cache()
         double_size = message.double_size
         self.assertEqual(double_size, message.size)
@@ -1154,7 +1158,8 @@ class TestFields(TransactionCaseWithUserDemo):
         self.assertEqual(demo_message.discussion.env, demo_env)
 
         # See YTI FIXME
-        message.discussion.invalidate_cache()
+        message.flush()
+        message.invalidate_cache()
 
         # assign record's parent to a record in demo_env
         message.discussion = message.discussion.copy({'name': 'Copy'})
@@ -1271,6 +1276,7 @@ class TestFields(TransactionCaseWithUserDemo):
         self.assertEqual(bar.value1, 1)
         self.assertEqual(bar.value2, 2)
 
+        foo.flush()
         foo.invalidate_cache()
         bar.write({'value1': 3, 'value2': 4})
         self.assertEqual(foo.value1, 3)
@@ -1389,6 +1395,7 @@ class TestFields(TransactionCaseWithUserDemo):
 
         # regression: duplicated records caused values to be browse(browse(id))
         recs = record.create({}) + record + record
+        recs.flush()
         recs.invalidate_cache()
         for rec in recs.with_user(user0):
             self.assertIsInstance(rec.tag_id.id, int)
@@ -1405,6 +1412,7 @@ class TestFields(TransactionCaseWithUserDemo):
         self.assertEqual(record.with_user(user2).foo, 'default')
 
         record.with_user(user0).with_company(company1).foo = 'beta'
+        record.flush()
         record.invalidate_cache()
         self.assertEqual(record.with_user(user0).foo, 'main')
         self.assertEqual(record.with_user(user1).foo, 'beta')
@@ -2050,6 +2058,7 @@ class TestFields(TransactionCaseWithUserDemo):
     def test_70_x2many_write(self):
         discussion = self.env.ref('test_new_api.discussion_0')
         # See YTI FIXME
+        discussion.flush()
         discussion.invalidate_cache()
 
         Message = self.env['test_new_api.message']
@@ -2083,8 +2092,8 @@ class TestFields(TransactionCaseWithUserDemo):
         self.assertEqual(demo_discussion.messages, discussion.messages)
 
         # See YTI FIXME
+        discussion.flush()
         discussion.invalidate_cache()
-        demo_discussion.invalidate_cache()
 
         # add a message as user demo
         messages = demo_discussion.messages
@@ -2105,7 +2114,7 @@ class TestFields(TransactionCaseWithUserDemo):
         line = self.env['test_new_api.move_line'].create({'move_id': move1.id})
         line.flush()
 
-        self.env.cache.invalidate()
+        line.invalidate_cache()
         line.with_context(prefetch_fields=False).move_id
 
         # Setting 'move_id' updates the one2many field that is based on it,
