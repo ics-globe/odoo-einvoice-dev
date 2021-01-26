@@ -368,6 +368,7 @@ class StockMoveLine(models.Model):
 
                 # Unreserve the old charateristics of the move line.
                 if not ml.move_id._should_bypass_reservation(ml.location_id):
+<<<<<<< HEAD
                     try:
                         Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
                     except UserError:
@@ -376,6 +377,9 @@ class StockMoveLine(models.Model):
                             Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=False, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
                         else:
                             raise
+=======
+                    Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.product_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
+>>>>>>> 640f1ff3518... temp
 
                 # Reserve the maximum available of the new charateristics of the move line.
                 if not ml.move_id._should_bypass_reservation(updates.get('location_id', ml.location_id)):
@@ -385,6 +389,7 @@ class StockMoveLine(models.Model):
                                                              package_id=updates.get('package_id', ml.package_id), owner_id=updates.get('owner_id', ml.owner_id), strict=True)
                         reserved_qty = sum([x[1] for x in q])
                     except UserError:
+<<<<<<< HEAD
                         if updates.get('lot_id'):
                             # If we were not able to reserve on tracked quants, we can use untracked ones.
                             try:
@@ -395,6 +400,11 @@ class StockMoveLine(models.Model):
                                 pass
                     if reserved_qty != new_reserved_uom_qty:
                         new_reserved_uom_qty = ml.product_id.uom_id._compute_quantity(reserved_qty, ml.product_uom_id, rounding_method='HALF-UP')
+=======
+                        pass
+                    if reserved_qty != new_product_uom_qty:
+                        new_product_uom_qty = ml.product_id.uom_id._compute_quantity(reserved_qty, ml.product_uom_id, rounding_method='HALF-UP')
+>>>>>>> 640f1ff3518... temp
                         moves_to_recompute_state |= ml.move_id
                         ml.with_context(bypass_reservation_update=True).reserved_uom_qty = new_reserved_uom_qty
 
@@ -479,6 +489,7 @@ class StockMoveLine(models.Model):
         precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for ml in self:
             # Unlinking a move line should unreserve.
+<<<<<<< HEAD
             if not float_is_zero(ml.reserved_qty, precision_digits=precision) and not ml.move_id._should_bypass_reservation(ml.location_id):
                 try:
                     self.env['stock.quant']._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
@@ -487,6 +498,10 @@ class StockMoveLine(models.Model):
                         self.env['stock.quant']._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=False, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
                     elif not self.env.context.get(MODULE_UNINSTALL_FLAG, False):
                         raise   # pylint: disable=raise-unlink-override
+=======
+            if ml.product_id.type == 'product' and not ml.move_id._should_bypass_reservation(ml.location_id) and not float_is_zero(ml.product_qty, precision_digits=precision):
+                self.env['stock.quant']._update_reserved_quantity(ml.product_id, ml.location_id, -ml.product_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
+>>>>>>> 640f1ff3518... temp
         moves = self.mapped('move_id')
         res = super(StockMoveLine, self).unlink()
         if moves:
@@ -586,11 +601,16 @@ class StockMoveLine(models.Model):
                     extra_qty = qty_done_product_uom - ml.reserved_qty
                     ml._free_reservation(ml.product_id, ml.location_id, extra_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, ml_ids_to_ignore=ml_ids_to_ignore)
                 # unreserve what's been reserved
+<<<<<<< HEAD
                 if not ml.move_id._should_bypass_reservation(ml.location_id) and ml.product_id.type == 'product' and ml.reserved_qty:
                     try:
                         Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
                     except UserError:
                         Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.reserved_qty, lot_id=False, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
+=======
+                if not ml.move_id._should_bypass_reservation(ml.location_id) and ml.product_id.type == 'product' and ml.product_qty:
+                    Quant._update_reserved_quantity(ml.product_id, ml.location_id, -ml.product_qty, lot_id=ml.lot_id, package_id=ml.package_id, owner_id=ml.owner_id, strict=True)
+>>>>>>> 640f1ff3518... temp
 
                 # move what's been actually done
                 quantity = ml.product_uom_id._compute_quantity(ml.qty_done, ml.move_id.product_id.uom_id, rounding_method='HALF-UP')
