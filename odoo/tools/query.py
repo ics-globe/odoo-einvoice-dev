@@ -5,7 +5,7 @@ import re
 import warnings
 from zlib import crc32
 
-from odoo.tools import lazy_property
+from .func import lazy_property
 
 IDENT_RE = re.compile(r'^[a-z_][a-z0-9_$]*$', re.I)
 
