@@ -199,6 +199,52 @@ def subtract(value, *args, **kwargs):
     """
     return value - relativedelta(*args, **kwargs)
 
+
+date_granularities = ['year', 'month', 'day']
+datetime_granularities = [
+    'year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond'
+]
+
+def ceil(value, granularity):
+    """
+    Return the ``value`` rounded up to a ``granularity``.
+
+    :param value: initial date or datetime.
+    :param granularity: year, month, day, hour, minute or second
+    :return: the resulting date/datetime.
+    """
+    if isinstance(value, datetime):
+        granularities = datetime_granularities
+    elif isinstance(value, date):
+        granularities = date_granularities
+    else:
+        raise TypeError(f"{value!r} is not a date or a datetime")
+
+    try:
+        nextindex = granularities.index(granularity, 0, -1) + 1
+    except ValueError:
+        raise ValueError(f"Unknown time granularity {granularity!r}, "
+                         f"supported values are: {granularities[:-1]!r}")
+    nextgranularities = granularities[nextindex:]
+
+    carry_current = {
+        # minutes: 1, relative (s) parameter in relativedelta
+        f'{gran}s': 1
+        for gran in [granularity]
+        if any(
+            getattr(value, gran) != getattr(datetime.min, gran)
+            for gran in nextgranularities
+        )
+    }
+
+    floor_rest = {
+        # seconde: 0, absolute (no s) parameter in relativedelta
+        gran: getattr(datetime.min, gran)
+        for gran in nextgranularities
+    }
+
+    return add(value, **carry_current, **floor_rest)
+
 def json_default(obj):
     """
     Properly serializes date and datetime objects.

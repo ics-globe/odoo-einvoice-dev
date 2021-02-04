@@ -4,6 +4,7 @@
 from unittest.mock import patch
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from freezegun import freeze_time
 
 from odoo import fields
 from odoo.tests.common import TransactionCase, new_test_user
@@ -141,9 +142,11 @@ class TestEventNotifications(TransactionCase, MailCase):
             notif = self.env['calendar.alarm_manager'].with_user(self.user).get_next_notif()
             self.assertEqual(notif, bus_message)
 
+    @freeze_time()
     def test_email_alarm(self):
         cron_id = self.env.ref('calendar.ir_cron_scheduler_alarm').id
         triggers_before = self.env['ir.cron.trigger'].search([('cron_id', '=', cron_id)])
+        now = fields.Datetime.now()
 
         alarm = self.env['calendar.alarm'].create({
             'name': 'Alarm',
@@ -151,7 +154,6 @@ class TestEventNotifications(TransactionCase, MailCase):
             'interval': 'minutes',
             'duration': 20,
         })
-        now = fields.Datetime.now()
         self.event.write({
             'start': now + relativedelta(minutes=15),
             'stop': now + relativedelta(minutes=18),
@@ -159,17 +161,14 @@ class TestEventNotifications(TransactionCase, MailCase):
             'alarm_ids': [fields.Command.link(alarm.id)],
         })
 
+        # The cron should run as soon as possible as now + 15m - 20m is in the past
         triggers_after = self.env['ir.cron.trigger'].search([('cron_id', '=', cron_id)])
         new_triggers = triggers_after - triggers_before
         new_triggers.ensure_one()
-        self.assertEqual(
-            new_triggers.call_at,
-            now.replace(second=0) - relativedelta(minutes=5),
-        )
+        self.assertLessEqual(new_triggers.call_at, now)
 
-        with patch.object(fields.Datetime, 'now', lambda: now):
-            with self.assertSinglePostNotifications([{'partner': self.partner, 'type': 'inbox'}], {
-                'message_type': 'user_notification',
-                'subtype': 'mail.mt_note',
-            }):
-                self.env['calendar.alarm_manager'].with_context(lastcall=now - relativedelta(minutes=15))._send_reminder()
+        with self.assertSinglePostNotifications([{'partner': self.partner, 'type': 'inbox'}], {
+            'message_type': 'user_notification',
+            'subtype': 'mail.mt_note',
+        }):
+            self.env['calendar.alarm_manager'].with_context(lastcall=now - relativedelta(minutes=15))._send_reminder()

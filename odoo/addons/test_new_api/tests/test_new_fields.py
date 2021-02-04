@@ -16,7 +16,7 @@ from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import common
 from odoo.tools import mute_logger, float_repr
-from odoo.tools.date_utils import add, subtract, start_of, end_of
+from odoo.tools.date_utils import add, subtract, ceil, start_of, end_of
 from odoo.tools.image import image_data_uri
 
 
@@ -985,6 +985,15 @@ class TestFields(TransactionCaseWithUserDemo):
         # subtraction
         self.assertEqual(subtract(_date, months=1), date(2077, 9, 23))
         self.assertEqual(subtract(_datetime, hours=2), datetime(2077, 10, 23, 7, 42, 0))
+
+        # ceil
+        self.assertEqual(ceil(_date, 'month'), date(2077, 11, 1))
+        self.assertEqual(ceil(_datetime, 'hour'), datetime(2077, 10, 23, 10))
+        self.assertEqual(ceil(_datetime, 'second'), datetime(2077, 10, 23, 9, 42))
+        with self.assertRaises(ValueError):
+            ceil(_date, 'day')
+        with self.assertRaises(ValueError):
+            ceil(_datetime, 'microsecond')
 
         # start_of
         # year

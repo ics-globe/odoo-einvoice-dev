@@ -1756,6 +1756,7 @@ class Date(Field):
     end_of = staticmethod(date_utils.end_of)
     add = staticmethod(date_utils.add)
     subtract = staticmethod(date_utils.subtract)
+    ceil = staticmethod(date_utils.ceil)
 
     @staticmethod
     def today(*args):
@@ -1855,6 +1856,7 @@ class Datetime(Field):
     end_of = staticmethod(date_utils.end_of)
     add = staticmethod(date_utils.add)
     subtract = staticmethod(date_utils.subtract)
+    ceil = staticmethod(date_utils.ceil)
 
     @staticmethod
     def now(*args):
