@@ -69,6 +69,7 @@ var ActionManager = Widget.extend({
         if (currentController) {
             currentController.widget.on_attach_callback();
         }
+        $('.o_main_loading').hide();
     },
     /**
      * Called each time the action manager is detached from the DOM.
@@ -79,6 +80,7 @@ var ActionManager = Widget.extend({
         if (currentController) {
             currentController.widget.on_detach_callback();
         }
+        $('.o_main_loading').show();
     },
 
     //--------------------------------------------------------------------------
