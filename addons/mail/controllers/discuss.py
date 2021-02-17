@@ -575,3 +575,33 @@ class DiscussController(http.Controller):
         if guest_to_rename_sudo != guest and not request.env.user._is_admin():
             raise NotFound()
         guest_to_rename_sudo._update_name(name)
+
+    # --------------------------------------------------------------------------
+    # Link preview API
+    # --------------------------------------------------------------------------
+
+    @http.route('/mail/link_preview', methods=['POST'], type='json', auth='public')
+    def link_preview(self, url, channel_id):
+        channel_partner = request.env['mail.channel.partner']
+        if request.env.user._is_public():
+            channel_partner = request.env['mail.channel.partner']._get_as_sudo_from_request_or_raise(request=request, channel_id=int(channel_id))
+        return request.env['ir.attachment']._create_link_preview(url, channel_partner)
+
+    @http.route('/mail/update_link_preview', methods=['POST'], type='json', auth='public')
+    def update_link_preview(self, attachment_id):
+        affected_mimetype = ['application/o-linkpreview-with-thumbnail', 'image/o-linkpreview-image']
+        attachment = request.env['ir.attachment'].sudo().search([
+            ('id', '=', int(attachment_id)),
+            ('mimetype', 'in', affected_mimetype),
+            ('store_fname', '=', False),
+            ('db_datas', '=', False),
+        ])[0]
+        if attachment:
+            if not request.env.user.share:
+                sudo = False
+            else:
+                request.env['mail.channel.partner']._get_as_sudo_from_request_or_raise(request=request, channel_id=int(attachment.res_id))
+                sudo = True
+
+            return attachment._update_link_preview(sudo)
+        return False

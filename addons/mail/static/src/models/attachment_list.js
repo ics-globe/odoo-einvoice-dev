@@ -24,6 +24,13 @@ registerModel({
             const prevIndex = index === 0 ? this.attachments.length - 1 : index - 1;
             this.update({ selectedAttachment: replace(this.attachments[prevIndex]) });
         },
+        _computeAttachmentCards() {
+            return insertAndReplace(this.cardAttachments.map(attachment => {
+                return {
+                    attachment: replace(attachment),
+                };
+            }));
+        },
         _computeAttachmentImages() {
             return insertAndReplace(this.imageAttachments.map(attachment => {
                 return {
@@ -31,8 +38,8 @@ registerModel({
                 };
             }));
         },
-        _computeAttachmentCards() {
-            return insertAndReplace(this.nonImageAttachments.map(attachment => {
+        _computeAttachmentPreviewViews() {
+            return insertAndReplace(this.linkPreviewAttachments.map(attachment => {
                 return {
                     attachment: replace(attachment),
                 };
@@ -60,10 +67,16 @@ registerModel({
             return replace(this.attachments.filter(attachment => attachment.isImage));
         },
         /**
+         * @returns {FieldCommand}
+         */
+        _computeLinkPreviewAttachments() {
+            return replace(this.attachments.filter(attachment => attachment.isLinkPreview));
+        },
+        /**
          * @returns {Attachment[]}
          */
-        _computeNonImageAttachments() {
-            return replace(this.attachments.filter(attachment => !attachment.isImage));
+        _computeCardAttachments() {
+            return replace(this.attachments.filter(attachment => !attachment.isImage && !attachment.isLinkPreview));
         },
         /**
          * @returns {Attachment[]}
@@ -100,6 +113,17 @@ registerModel({
             inverse: 'attachmentListOwnerAsAttachmentView',
             isCausal: true,
         }),
+        attachmentLinkPreviewViews: many('AttachmentLinkPreviewView', {
+            compute: '_computeAttachmentPreviewViews',
+            inverse: 'attachmentList',
+            isCausal: true,
+        }),
+        /**
+         * States the attachment that are displayed in an card layout.
+         */
+        cardAttachments: many('Attachment', {
+            compute: '_computeCardAttachments',
+        }),
         /**
          * States the attachments to be displayed by this attachment list.
          */
@@ -120,18 +144,15 @@ registerModel({
         imageAttachments: many('Attachment', {
             compute: '_computeImageAttachments',
         }),
+        linkPreviewAttachments: many('Attachment', {
+            compute: '_computeLinkPreviewAttachments',
+        }),
         /**
          * Link with a message view to handle attachments.
          */
         messageViewOwner: one('MessageView', {
             inverse: 'attachmentList',
             readonly: true,
-        }),
-        /**
-         * States the attachment that are not an image.
-         */
-        nonImageAttachments: many('Attachment', {
-            compute: '_computeNonImageAttachments',
         }),
         selectedAttachment: one('Attachment'),
         /**

@@ -3,6 +3,7 @@
 import { registerModel } from '@mail/model/model_core';
 import { attr, one } from '@mail/model/model_field';
 import { clear, insertAndReplace, replace } from '@mail/model/model_field_command';
+import { isEventHandled, markEventHandled } from '@mail/utils/utils';
 
 registerModel({
     name: 'AttachmentImage',
@@ -10,9 +11,15 @@ registerModel({
     recordMethods: {
         /**
          * Opens the attachment viewer when clicking on viewable attachment.
+         *
+         * @param {MouseEvent} ev
          */
-        onClickImage() {
-            if (!this.attachment || !this.attachment.isViewable) {
+        onClickImage(ev) {
+            if (
+                !this.attachment ||
+                !this.attachment.isViewable ||
+                isEventHandled(ev, 'attachmentImageView.onClickUnlink')
+            ) {
                 return;
             }
             this.attachmentList.update({
@@ -26,7 +33,7 @@ registerModel({
          * @param {MouseEvent} ev
          */
         onClickUnlink(ev) {
-            ev.stopPropagation(); // prevents from opening viewer
+            markEventHandled(ev, 'attachmentImageView.onClickUnlink');
             if (!this.attachment) {
                 return;
             }
@@ -56,16 +63,16 @@ registerModel({
         },
         /**
          * @private
-         * @returns {string}
+         * @returns {string|FieldCommand}
          */
         _computeImageUrl() {
             if (!this.attachment) {
-                return;
+                return clear();
             }
             if (!this.attachment.accessToken && this.attachment.originThread && this.attachment.originThread.model === 'mail.channel') {
-                return `/mail/channel/${this.attachment.originThread.id}/image/${this.attachment.id}/${this.width}x${this.height}`;
+                return `/mail/channel/${this.attachment.originThread.id}/image/${this.attachment.id}/${this.width}x${this.height}?checksum=${this.attachment.checksum}`;
             }
-            const accessToken = this.attachment.accessToken ? `?access_token=${this.attachment.accessToken}` : '';
+            const accessToken = this.attachment.accessToken ? `?access_token=${this.attachment.accessToken}&checksum=${this.attachment.checksum}` : `?checksum=${this.attachment.checksum}`;
             return `/web/image/${this.attachment.id}/${this.width}x${this.height}${accessToken}`;
         },
         /**

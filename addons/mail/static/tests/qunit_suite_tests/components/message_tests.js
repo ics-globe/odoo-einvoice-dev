@@ -661,7 +661,7 @@ QUnit.test('allow attachment delete on authored message', async function (assert
     await click('.o_AttachmentDeleteConfirm_confirmButton');
     assert.containsNone(
         document.body,
-        '.o_AttachmentCard',
+        '.o_AttachmentImage',
         "should no longer have an attachment",
     );
 });

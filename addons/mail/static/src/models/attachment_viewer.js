@@ -187,6 +187,9 @@ registerModel({
             if (!this.attachment) {
                 return;
             }
+            if (this.attachment.mimetype === 'image/o-linkpreview-image') {
+                return this.attachment.url;
+            }
             if (!this.attachment.accessToken && this.attachment.originThread && this.attachment.originThread.model === 'mail.channel') {
                 return `/mail/channel/${this.attachment.originThread.id}/image/${this.attachment.id}`;
             }

@@ -135,6 +135,9 @@ MockServer.include({
             const { min_id, max_id, limit } = args;
             return this._mockRouteMailMessageStarredMessages(min_id, max_id, limit);
         }
+        if (route === '/mail/link_preview') {
+            return this._mockRouteMailLinkPreview(args.url);
+        }
         if (route === '/mail/read_subscription_data') {
             const follower_id = args.follower_id;
             return this._mockRouteMailReadSubscriptionData(follower_id);
@@ -624,6 +627,7 @@ MockServer.include({
         return attachments.map(attachment => {
             const res = {
                 'checksum': attachment.checksum,
+                'description': attachment.description,
                 'filename': attachment.name,
                 'id': attachment.id,
                 'mimetype': attachment.mimetype,
@@ -1491,6 +1495,7 @@ MockServer.include({
             const formattedAttachments = attachments.map(attachment => {
                 return Object.assign({
                     'checksum': attachment.checksum,
+                    'description': attachment.description,
                     'id': attachment.id,
                     'filename': attachment.name,
                     'name': attachment.name,
@@ -2521,4 +2526,37 @@ MockServer.include({
     mockWrite() {
         return this._mockWrite(...arguments);
     },
+    /**
+     * Simulates `/mail/link_preview` route.
+     *
+     * @private
+     * @param {string} url
+     * @returns {Object}
+     */
+    _mockRouteMailLinkPreview(url) {
+        const attachmentId = this._mockCreate('ir.attachment', {
+            name: url,
+            description: "test description",
+            mimetype: "application/o-linkpreview",
+            res_id: 0,
+            res_model: "mail.compose.message",
+            url: url,
+        });
+        const attachment = this._getRecords('ir.attachment', [['id', '=', attachmentId]])[0];
+        const formattedAttachment = {
+            'checksum': attachment.checksum,
+            'id': attachment.id,
+            'filename': attachment.name,
+            'name': attachment.name,
+            'mimetype': attachment.mimetype,
+            'originThread': [[
+                'insert',
+                {
+                    'id': attachment.res_id,
+                    'model': attachment.res_model,
+                }
+            ]]
+        };
+        return formattedAttachment;
+    }
 });

@@ -508,6 +508,9 @@ registerModel({
             }
             await this.fileUploader.uploadFiles(ev.clipboardData.files);
         },
+        onPaste(ev) {
+            this.composer.refreshLinkPreview(ev.clipboardData.getData('text'));
+        },
         /**
          * Open the full composer modal.
          */

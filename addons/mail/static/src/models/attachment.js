@@ -3,6 +3,7 @@
 import { registerModel } from '@mail/model/model_core';
 import { attr, many, one } from '@mail/model/model_field';
 import { clear, insert } from '@mail/model/model_field_command';
+import { OnChange } from '@mail/model/model_onchange';
 
 registerModel({
     name: 'Attachment',
@@ -18,6 +19,9 @@ registerModel({
             if ('checksum' in data) {
                 data2.checksum = data.checksum;
             }
+            if ('description' in data) {
+                data2.description = data.description;
+            }
             if ('filename' in data) {
                 data2.filename = data.filename;
             }
@@ -27,11 +31,20 @@ registerModel({
             if ('is_main' in data) {
                 data2.is_main = data.is_main;
             }
+            if ('isEmpty' in data) {
+                data2.isEmpty = data.isEmpty;
+            }
             if ('mimetype' in data) {
                 data2.mimetype = data.mimetype;
             }
             if ('name' in data) {
                 data2.name = data.name;
+            }
+            if ('originThread' in data) {
+                data2.originThread = data.originThread;
+            }
+            if ('url' in data) {
+                data2.url = data.url;
             }
             // relation
             if ('res_id' in data && 'res_model' in data) {
@@ -39,9 +52,6 @@ registerModel({
                     id: data.res_id,
                     model: data.res_model,
                 });
-            }
-            if ('originThread' in data) {
-                data2.originThread = data.originThread;
             }
             return data2;
         },
@@ -186,6 +196,17 @@ registerModel({
          * @private
          * @returns {boolean}
          */
+        _computeIsLinkPreview() {
+            const mimetype = [
+                'application/o-linkpreview-with-thumbnail',
+                'application/o-linkpreview',
+            ];
+            return mimetype.includes(this.mimetype);
+        },
+        /**
+         * @private
+         * @returns {boolean}
+         */
         _computeIsPdf() {
             return this.mimetype === 'application/pdf';
         },
@@ -202,6 +223,7 @@ registerModel({
                 'image/svg+xml',
                 'image/tiff',
                 'image/x-icon',
+                'image/o-linkpreview-image',
             ];
             return imageMimetypes.includes(this.mimetype);
         },
@@ -280,6 +302,17 @@ registerModel({
             }
             return;
         },
+        async _onChangeIsEmpty() {
+            if (this.isEmpty) {
+                const response = await this.env.services.rpc({
+                    route: '/mail/update_link_preview',
+                    params: {
+                        attachment_id: this.id,
+                    }
+                });
+                this.messaging.models['Attachment'].insert(response);
+            }
+        },
     },
     fields: {
         accessToken: attr(),
@@ -302,6 +335,7 @@ registerModel({
         defaultSource: attr({
             compute: '_computeDefaultSource',
         }),
+        description: attr(),
         /**
          * States the OWL ref of the "dialog" window.
          */
@@ -326,11 +360,20 @@ registerModel({
         isDeletable: attr({
             compute: '_computeIsDeletable',
         }),
+        isEmpty: attr({
+            default: false,
+        }),
         /**
          * States id the attachment is an image.
          */
         isImage: attr({
             compute: '_computeIsImage',
+        }),
+        /**
+         * Determines if the attachement has link preview informations.
+         */
+        isLinkPreview: attr({
+            compute: '_computeIsLinkPreview',
         }),
         is_main: attr(),
         /**
@@ -405,4 +448,10 @@ registerModel({
         }),
         url: attr(),
     },
+    onChanges: [
+        new OnChange({
+            dependencies: ['isEmpty'],
+            methodName: '_onChangeIsEmpty',
+        }),
+    ],
 });

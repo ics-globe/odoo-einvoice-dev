@@ -7,7 +7,7 @@
                 <t t-if="composerView.composerSuggestionListView">
                     <ComposerSuggestionList record="composerView.composerSuggestionListView"/>
                 </t>
-                <textarea class="o_ComposerTextInput_textarea o_ComposerTextInput_textareaStyle form-control px-3 border-0 shadow-none overflow-auto" t-att-class="{ 'o-composer-is-compact rounded-0 rounded-lg-left': composerView.isCompact, 'rounded-lg': !composerView.isCompact }" t-esc="composerView.composer.textInputContent" t-att-placeholder="composerView.composer.placeholder" t-on-click="composerView.onClickTextarea" t-on-focusin="composerView.onFocusinTextarea" t-on-focusout="composerView.onFocusoutTextarea" t-on-keydown="composerView.onKeydownTextarea" t-on-keyup="composerView.onKeyupTextarea" t-on-input="composerView.onInputTextarea" t-ref="textarea"/>
+                <textarea class="o_ComposerTextInput_textarea o_ComposerTextInput_textareaStyle form-control px-3 border-0 shadow-none overflow-auto" t-att-class="{ 'o-composer-is-compact rounded-0 rounded-lg-left': composerView.isCompact, 'rounded-lg': !composerView.isCompact }" t-esc="composerView.composer.textInputContent" t-att-placeholder="composerView.composer.placeholder" t-on-click="composerView.onClickTextarea" t-on-focusin="composerView.onFocusinTextarea" t-on-focusout="composerView.onFocusoutTextarea" t-on-keydown="composerView.onKeydownTextarea" t-on-keyup="composerView.onKeyupTextarea" t-on-input="composerView.onInputTextarea" t-on-paste="composerView.onPaste" t-ref="textarea"/>
                 <!--
                      This is an invisible textarea used to compute the composer
                      height based on the text content. We need it to downsize

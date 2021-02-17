@@ -1642,5 +1642,36 @@ QUnit.test('send button on mail.channel should have "Send" as label', async func
     );
 });
 
+QUnit.test('Composer should request a link preview when a URL is pasted', async function (assert) {
+    assert.expect(2);
+
+    const pyEnv = await startServer();
+    const mailChannelId1 = pyEnv['mail.channel'].create();
+    const { openDiscuss } = await start({
+        discuss: {
+            params: {
+                default_active_id: mailChannelId1,
+            },
+        },
+        async mockRPC(route, args) {
+            if (route === '/mail/link_preview') {
+                assert.step('link_preview');
+            }
+            return this._super(...arguments);
+        },
+    });
+    await openDiscuss();
+    await afterNextRender(() => {
+        document.querySelector(`.o_ComposerTextInput_textarea`).focus();
+        const ev = new ClipboardEvent('paste', { clipboardData: new DataTransfer() });
+        ev.clipboardData.setData('text', 'my text https://tenor.com/view/gato-gif-18532922');
+        document.querySelector(`.o_ComposerTextInput_textarea`).dispatchEvent(ev);
+    });
+    assert.verifySteps(
+        ['link_preview'],
+        "Composer should request a link preview"
+    );
+});
+
 });
 });
