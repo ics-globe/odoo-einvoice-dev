@@ -989,6 +989,7 @@ class ChromeBrowser:
 
     def _find_websocket(self):
         version = self._json_command('version')
+        self._webkit_version = version.get('WebKit-Version')
         self._logger.info('Browser version: %s', version['Browser'])
         infos = self._json_command('', get_key=0)  # Infos about the first tab
         self.ws_url = infos['webSocketDebuggerUrl']
@@ -1601,16 +1602,18 @@ class HttpCase(TransactionCase):
 
         return session
 
-    def browser_js(self, url_path, code, ready='', login=None, timeout=60, **kw):
+    def browser_js(self, url_path, code, ready='', login=None, timeout=60, watch=False, **kw):
         """ Test js code running in the browser
         - optionnally log as 'login'
         - load page given by url_path
         - wait for ready object to be available
         - eval(code) inside the page
+        - open another chrome window to watch code execution if watch is True
 
         To signal success test do: console.log('test successful')
         To signal test failure raise an exception or call console.error
         """
+
         if not self.env.registry.loaded:
             self._logger.warning('HttpCase test should be in post_install only')
 
@@ -1619,7 +1622,12 @@ class HttpCase(TransactionCase):
             timeout = timeout * 1.5
 
         self.start_browser()
-
+        if watch and self.browser._webkit_version:
+            version_hash = self.browser._webkit_version.split('@')[-1].strip((')'))
+            chrome_dev_tool_url = 'https://chrome-devtools-frontend.appspot.com/serve_file/@%s/inspector.html' % version_hash
+            debug_url = '%s?%s&remoteFrontend=true' %(chrome_dev_tool_url, self.browser.ws_url.replace('://', '='))
+            subprocess.Popen([self.browser.executable, debug_url])
+            time.sleep(3)
         try:
             self.authenticate(login, login)
             # Flush and clear the current transaction.  This is useful in case
