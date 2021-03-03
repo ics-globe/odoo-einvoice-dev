@@ -42,6 +42,7 @@ function factory(dependencies) {
         _computeAvatarUrl() {
             switch (this.channelType) {
                 case 'channel':
+                case 'group':
                     return `/web/image/mail.channel/${this.channelId}/image_128`;
                 case 'chat':
                     return this.channel.correspondent.avatarUrl;
@@ -77,9 +78,11 @@ function factory(dependencies) {
          * @returns {boolean}
          */
         _computeHasLeaveCommand() {
-            return this.channelType === 'channel' &&
+            return (
+                (this.channelType === 'channel' || this.channelType === 'group') &&
                 !this.channel.message_needaction_counter &&
-                !this.channel.group_based_subscription;
+                !this.channel.group_based_subscription
+            );
         }
 
         /**
@@ -141,6 +144,7 @@ function factory(dependencies) {
             switch (this.channelType) {
                 case 'channel':
                 case 'chat':
+                case 'group':
                     return true;
             }
         }
