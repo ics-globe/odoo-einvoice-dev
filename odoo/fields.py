@@ -3199,7 +3199,7 @@ class One2many(_RelationalMulti):
                 if to_inverse:
                     for record, inverse_ids in to_inverse.items():
                         lines = comodel.browse(inverse_ids)
-                        lines = lines.filtered(lambda line: int(line[inverse]) != record.id)
+                        lines = lines.filtered(lambda line: int(line[inverse]) != record.id).sorted()
                         lines[inverse] = record
 
             for recs, commands in records_commands_list:
@@ -3229,7 +3229,6 @@ class One2many(_RelationalMulti):
                             [(inverse, 'in', recs.ids), ('id', 'not in', lines.ids)]
                         unlink(comodel.search(domain))
                         lines[inverse] = recs[-1]
-
             flush()
 
         else:
