@@ -659,6 +659,10 @@ class SavepointCase(SingleTransactionCase):
         self.addCleanup(self.registry.clear_caches)
         self.addCleanup(self.env.clear)
 
+        # do the cleanups before starting the first stransaction so that everything is clean
+        # for the first test too.
+        self.doCleanups()
+
         self._savepoint_id = next(savepoint_seq)
         self.cr.execute('SAVEPOINT test_%d' % self._savepoint_id)
         self.addCleanup(self.cr.execute, 'ROLLBACK TO SAVEPOINT test_%d' % self._savepoint_id)
