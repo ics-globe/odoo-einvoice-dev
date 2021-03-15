@@ -137,7 +137,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -163,7 +163,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -199,28 +199,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
@@ -364,7 +361,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -390,7 +387,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -426,28 +423,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
@@ -591,7 +585,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -617,7 +611,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -653,28 +647,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
@@ -817,7 +808,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -843,7 +834,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -879,28 +870,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
@@ -1043,7 +1031,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -1069,7 +1057,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -1105,28 +1093,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
@@ -1269,7 +1254,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -1295,7 +1280,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -1331,32 +1316,29 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
-                        </div>
+        <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
+            <div class="container">
+                <div class="row s_nb_column_fixed">
+                    <div class="col-lg-8">
+                        <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
-                        </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
-                        </div>
+                    <div class="col-lg-4">
+                        <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                     </div>
                 </div>
-            </section>
+                <div class="row s_nb_column_fixed">
+                    <div class="col-lg-3">
+                        <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
+                    </div>
+                    <div class="col-lg-3">
+                        <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
+                    </div>
+                    <div class="col-lg-6">
+                        <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
+                    </div>
+                </div>
+            </div>
+        </section>
         </field>
     </record>
 
@@ -1495,7 +1477,7 @@
                 </div>
             </section>
             <!-- What's great -->
-            <section class="pt40">
+            <section class="pt64 pb24">
                 <div class="container">
                     <h2>What's great in the job?</h2>
                     <br/>
@@ -1521,7 +1503,7 @@
                 </div>
             </section>
             <!-- What we offer -->
-            <section class="s_features pt40 pb40 bg-200" data-name="Features" data-snippet="s_features">
+            <section class="s_features pt64 pb40 bg-200" data-name="Features" data-snippet="s_features">
                 <div class="container">
                     <h2>What We Offer</h2>
                     <br/>
@@ -1557,28 +1539,25 @@
                 </div>
             </section>
             <!-- Photos -->
-            <section class="pt24 pb16">
+            <section class="s_image_gallery pt24 pb24 o_fake_not_editable o_colored_level o_grid o_spc-medium" data-vcss="001" data-columns="3" style="overflow: hidden;" data-snippet="s_images_wall" data-name="Images Wall">
                 <div class="container">
-                    <div class="row">
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_3.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-8">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_9.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_2.jpg"/>
-                        </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_4.jpg"/>
+                        <div class="col-lg-4">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_10.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_6.jpg"/>
+                    <div class="row s_nb_column_fixed">
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_11.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-6 col-lg-3 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_5.jpg"/>
+                        <div class="col-lg-3">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_12.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
-                        <div class="col-md-12 col-lg-6 mt16 mb16">
-                            <img alt="" class="img img-fluid" src="/website_hr_recruitment/static/src/img/job_image_1.jpg"/>
+                        <div class="col-lg-6">
+                            <img src="/website_hr_recruitment/static/src/img/job_image_13.jpg" class="img img-fluid d-block h-100 w-100 shadow" style="object-fit: cover;"/>
                         </div>
                     </div>
                 </div>
