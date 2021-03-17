@@ -471,9 +471,7 @@ class ThreadedServer(CommonServer):
             _logger.debug("cron%d started!" % i)
 
     def http_thread(self):
-        def app(e, s):
-            return self.app(e, s)
-        self.httpd = ThreadedWSGIServerReloadable(self.interface, self.port, app)
+        self.httpd = ThreadedWSGIServerReloadable(self.interface, self.port, self.app)
         self.httpd.serve_forever()
 
     def http_spawn(self):
