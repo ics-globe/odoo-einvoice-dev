@@ -1,6 +1,7 @@
 odoo.define('mail.DocumentViewer', function (require) {
 "use strict";
 
+var config = require('web.config');
 var core = require('web.core');
 var Widget = require('web.Widget');
 
@@ -96,6 +97,42 @@ var DocumentViewer = Widget.extend({
         this.$el.modal('hide');
         this.$el.remove();
         this._super.apply(this, arguments);
+    },
+
+    //--------------------------------------------------------------------------
+    // Public
+    //---------------------------------------------------------------------------
+
+    /**
+     * @override
+     */
+    setElement() {
+        const resp = this._super(...arguments);
+        if (this.activeAttachment.mimetype === 'application/pdf') {
+            const cssStyle = document.createElement("style");
+            cssStyle.rel = "stylesheet";
+            // Always hide "Download" and "Open" buttons
+            cssStyle.innerHTML = `button#secondaryDownload.secondaryToolbarButton, button#download.toolbarButton,
+button#secondaryOpenFile.secondaryToolbarButton, button#openFile.toolbarButton {
+    display: none !important;
+}`;
+            if (config.device.isMobileDevice) {
+                // Hide "Print" button on mobile devices only
+                cssStyle.innerText = `${cssStyle.innerText}
+button#secondaryPrint.secondaryToolbarButton, button#print.toolbarButton{
+    display: none !important;
+}`;
+            }
+            const iframe = this.el.querySelector('iframe');
+            if (iframe) {
+                iframe.addEventListener('load', event => {
+                    if (event.path.length > 0 && event.path[0].tagName === 'IFRAME') {
+                        event.path[0].contentDocument.head.appendChild(cssStyle);
+                    }
+                });
+            }
+        }
+        return resp;
     },
 
     //--------------------------------------------------------------------------
