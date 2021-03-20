@@ -15525,6 +15525,10 @@ PDFPrintService.prototype = {
   }
 };
 var print = window.print;
+// Odoo: this change is needed as we need to polyfill the "print" in the mobile app.
+if (window.OdooDevicePolyfill) {
+  print = window.OdooDevicePolyfill.print;
+}
 
 window.print = function print() {
   if (activeService) {
