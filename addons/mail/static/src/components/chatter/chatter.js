@@ -82,6 +82,7 @@ class Chatter extends Component {
      * @private
      */
     _update() {
+        console.warn('update chatter');
         if (!this.chatter) {
             return;
         }
@@ -89,7 +90,7 @@ class Chatter extends Component {
             this._notifyRendered();
         }
         if (this.chatter.isDoFocus) {
-            this.chatter.update({ isDoFocus: false });
+            setTimeout(() => this.chatter.update({ isDoFocus: false }));
             const composer = this._composerRef.comp;
             if (composer) {
                 composer.focus();

@@ -218,6 +218,7 @@ class Composer extends Component {
      * @private
      */
     _update() {
+        console.warn('update composer');
         if (this.props.isDoFocus) {
             this.focus();
         }

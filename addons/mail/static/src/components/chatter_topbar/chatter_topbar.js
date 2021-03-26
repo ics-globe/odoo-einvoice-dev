@@ -7,6 +7,7 @@ const components = {
 };
 const useShouldUpdateBasedOnProps = require('mail/static/src/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props.js');
 const useStore = require('mail/static/src/component_hooks/use_store/use_store.js');
+const useUpdate = require('mail/static/src/component_hooks/use_update/use_update.js');
 
 const { Component } = owl;
 
@@ -17,7 +18,7 @@ class ChatterTopbar extends Component {
      */
     constructor(...args) {
         super(...args);
-        useShouldUpdateBasedOnProps();
+        // useShouldUpdateBasedOnProps();
         useStore(props => {
             const chatter = this.env.models['mail.chatter'].get(props.chatterLocalId);
             const thread = chatter ? chatter.thread : undefined;
@@ -29,6 +30,7 @@ class ChatterTopbar extends Component {
                 threadAttachmentsAmount: threadAttachments.length,
             };
         });
+        useUpdate({ func: () => console.warn('update topbar', this.chatter.isComposerVisible) });
     }
 
     //--------------------------------------------------------------------------

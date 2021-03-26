@@ -215,7 +215,7 @@ class ComposerTextInput extends Component {
      * @private
      */
     _onFocusinTextarea() {
-        this.composer.focus();
+        setTimeout(() => this.composer.focus());
         this.trigger('o-focusin-composer');
     }
 

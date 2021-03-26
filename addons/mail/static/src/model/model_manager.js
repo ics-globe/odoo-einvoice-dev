@@ -730,6 +730,7 @@ class ModelManager {
 
         // Trigger at most one useStore call per update cycle
         if (this._hasAnyChangeDuringCycle) {
+            console.warn('>>>> _hasAnyChangeDuringCycle');
             this.env.store.state.messagingRevNumber++;
             this._hasAnyChangeDuringCycle = false;
         }

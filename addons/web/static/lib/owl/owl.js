@@ -3359,6 +3359,7 @@
         }
         scheduleTasks() {
             this.requestAnimationFrame(() => {
+                console.warn('--- in new requestAnimationFrame');
                 this.flush();
                 if (this.isRunning) {
                     this.scheduleTasks();
@@ -4305,6 +4306,7 @@
          */
         __patch(target, vnode) {
             this.__owl__.vnode = patch(target, vnode);
+            console.warn('__patch', target, vnode);
         }
         /**
          * The __prepare method is only called by the t-component directive, when a
