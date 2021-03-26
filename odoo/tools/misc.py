@@ -1603,3 +1603,9 @@ def hmac(env, scope, message, hash_function=hashlib.sha256):
         message.encode(),
         hash_function,
     ).hexdigest()
+
+def idem_1(arg):
+    return arg
+
+def idem_n(*args):
+    return args
