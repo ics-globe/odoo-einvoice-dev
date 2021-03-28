@@ -43,7 +43,7 @@
     <record id="event_booth_view_tree" model="ir.ui.view">
         <field name="name">event.booth.view.tree.inherit.sale</field>
         <field name="model">event.booth</field>
-        <field name="inherit_id" ref="event_booth.event_booth_view_tree"/>
+        <field name="inherit_id" ref="event_booth.event_booth_view_tree_from_event"/>
         <field name="arch" type="xml">
             <field name="booth_category_id" position="after">
                 <field name="currency_id" invisible="1"/>

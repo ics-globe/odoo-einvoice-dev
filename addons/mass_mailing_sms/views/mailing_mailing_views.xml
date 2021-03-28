@@ -185,7 +185,8 @@
         <field name="model">mailing.mailing</field>
         <field name="mode">primary</field>
         <field name="priority">30</field>
-        <field name="inherit_id" ref="mass_mailing_sms.mailing_mailing_view_form_sms"/>
+        <!-- TODO: primary view inheritance issue -->
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='mailing_type']" position="attributes">
                 <attribute name="invisible">0</attribute>

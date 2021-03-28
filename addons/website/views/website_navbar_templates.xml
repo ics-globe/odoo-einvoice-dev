@@ -19,6 +19,8 @@
         <xpath expr="//t[@t-set='html_data']" position="after">
             <t t-set="body_classname" t-value="(body_classname if body_classname else '') + (' o_connected_user' if env['ir.ui.view'].user_has_groups('base.group_user') else '')"/>
         </xpath>
+    </template>
+    <template id="user_navbar_frontend" inherit_id="web.frontend_layout" name="User Navbar">
         <xpath expr="//div[@id='wrapwrap']" position="before">
             <div t-if="'with_loader' in request.params" class="o_theme_install_loader_container position-fixed fixed-top fixed-left
             h-100 w-100 d-flex flex-column align-items-center text-white font-weight-bold text-center">

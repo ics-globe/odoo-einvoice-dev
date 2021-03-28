@@ -3,7 +3,7 @@
         <record id="view_partners_form_website" model="ir.ui.view">
             <field name="name">view.res.partner.form.website.tags</field>
             <field name="model">res.partner</field>
-            <field name="inherit_id" ref="website_partner.view_partners_form_website" />
+            <field name="inherit_id" ref="website.view_partner_form_inherit_website" />
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//field[@name='website_id']" position="after">

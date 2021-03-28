@@ -12,6 +12,7 @@ class StockMoveLine(models.Model):
     workorder_id = fields.Many2one('mrp.workorder', 'Work Order', check_company=True)
     production_id = fields.Many2one('mrp.production', 'Production Order', check_company=True)
     description_bom_line = fields.Char(related='move_id.description_bom_line')
+    picking_has_kits = fields.Boolean(related='picking_id.has_kits')
 
     @api.depends('production_id')
     def _compute_picking_type_id(self):

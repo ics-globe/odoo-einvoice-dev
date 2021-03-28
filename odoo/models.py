@@ -1642,52 +1642,15 @@ class BaseModel(metaclass=MetaModel):
     @api.model
     def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         View = self.env['ir.ui.view'].sudo()
-        result = {
-            'model': self._name,
-            'field_parent': False,
-        }
-
-        # try to find a view_id if none provided
-        if not view_id:
-            # <view_type>_view_ref in context can be used to override the default view
-            view_ref_key = view_type + '_view_ref'
-            view_ref = self._context.get(view_ref_key)
-            if view_ref:
-                if '.' in view_ref:
-                    module, view_ref = view_ref.split('.', 1)
-                    query = "SELECT res_id FROM ir_model_data WHERE model='ir.ui.view' AND module=%s AND name=%s"
-                    self._cr.execute(query, (module, view_ref))
-                    view_ref_res = self._cr.fetchone()
-                    if view_ref_res:
-                        view_id = view_ref_res[0]
-                else:
-                    _logger.warning('%r requires a fully-qualified external id (got: %r for model %s). '
-                        'Please use the complete `module.view_id` form instead.', view_ref_key, view_ref,
-                        self._name)
-
-            if not view_id:
-                # otherwise try to find the lowest priority matching ir.ui.view
-                view_id = View.default_view(self._name, view_type)
-
         if view_id:
-            # read the view with inherited views applied
-            view = View.browse(view_id)
-            result['arch'] = view.get_combined_arch()
-            result['name'] = view.name
-            result['type'] = view.type
-            result['view_id'] = view.id
-            result['field_parent'] = view.field_parent
-            result['base_model'] = view.model
+            node = View.browse(view_id)._get_arch()
         else:
-            # fallback on default views methods if no ir.ui.view could be found
             try:
-                arch_etree = getattr(self, '_get_default_%s_view' % view_type)()
-                result['arch'] = etree.tostring(arch_etree, encoding='unicode')
-                result['type'] = view_type
-                result['name'] = 'default'
+                node = getattr(self, '_get_default_%s_view' % view_type)()
             except AttributeError:
                 raise UserError(_("No default view of type '%s' could be found !", view_type))
-        return result
+        View._postprocess_access_rights(self, node)
+        return node
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
@@ -1707,19 +1670,49 @@ class BaseModel(metaclass=MetaModel):
         :raise Invalid ArchitectureError: if there is view type other than form, tree, calendar, search etc defined on the structure
         """
         self.check_access_rights('read')
-        view = self.env['ir.ui.view'].sudo().browse(view_id)
+        view_obj = self.env['ir.ui.view'].sudo()
+
+        # find a view_id
+        if not view_id:
+            # <view_type>_view_ref in context can be used to override the default view
+            view_ref_key = view_type + '_view_ref'
+            view_ref = self._context.get(view_ref_key)
+            if view_ref:
+                if '.' in view_ref:
+                    module, view_ref = view_ref.split('.', 1)
+                    query = "SELECT res_id FROM ir_model_data WHERE model='ir.ui.view' AND module=%s AND name=%s"
+                    self._cr.execute(query, (module, view_ref))
+                    view_ref_res = self._cr.fetchone()
+                    if view_ref_res:
+                        view_id = view_ref_res[0]
+                else:
+                    _logger.warning('%r requires a fully-qualified external id (got: %r for model %s). '
+                        'Please use the complete `module.view_id` form instead.', view_ref_key, view_ref,
+                        self._name)
+
+            if not view_id:
+                # otherwise try to find the lowest priority matching ir.ui.view
+                view_id = view_obj.default_view(self._name, view_type)
+
+        node = self._fields_view_get(view_id, view_type)
+        fields = self.env['ir.ui.view']._view_process(self, node)
+        view = view_obj.browse(view_id)
 
         # Get the view arch and all other attributes describing the composition of the view
-        result = self._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+        result = {
+            'arch': etree.tostring(node, encoding='unicode'),
+            'fields': fields,
+            'name': view and view.name or 'default',
+            'type': view_type,
+            'view_id': view_id or False,
+            'field_parent': view and view.field_parent or False,
+            'base_model': view and view.model or self._name,
+            'model': self._name
+        }
 
         # Override context for postprocessing
         if view_id and result.get('base_model', self._name) != self._name:
             view = view.with_context(base_model_name=result['base_model'])
-
-        # Apply post processing, groups and modifiers etc...
-        xarch, xfields = view.postprocess_and_fields(etree.fromstring(result['arch']), model=self._name)
-        result['arch'] = xarch
-        result['fields'] = xfields
 
         # Add related action information if asked
         if toolbar:
@@ -3100,21 +3093,21 @@ class BaseModel(metaclass=MetaModel):
         readonly = not (has_access('write') or has_access('create'))
 
         res = {}
+        if attributes is None:
+            attrs = None
+        else:
+            attrs = [(x, '_description_' + x) for x in attributes]
         for fname, field in self._fields.items():
             if allfields and fname not in allfields:
                 continue
             if field.groups and not self.env.su and not self.user_has_groups(field.groups):
                 continue
 
-            description = field.get_description(self.env)
+            description = field.get_description(self.env, attrs)
             description['name'] = fname
             if readonly:
                 description['readonly'] = True
                 description['states'] = {}
-            if attributes:
-                description = {key: val
-                               for key, val in description.items()
-                               if key in attributes}
             res[fname] = description
 
         return res

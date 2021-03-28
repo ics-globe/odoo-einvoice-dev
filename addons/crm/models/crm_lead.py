@@ -845,7 +845,7 @@ class Lead(models.Model):
                 view_id = next(view_id[0] for view_id in action['views'] if view_id[1] == view_type)
         res = super(Lead, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
         if view_type == 'form':
-            res['arch'] = self._fields_view_get_address(res['arch'])
+            res = self._fields_view_get_address(res)
         return res
 
     @api.model

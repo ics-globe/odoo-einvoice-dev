@@ -20,7 +20,8 @@
 
     <record id="hr_leave_allocation_overtime_view_form" model="ir.ui.view">
         <field name="model">hr.leave.allocation</field>
-        <field name="inherit_id" ref="hr_attendance_holidays_hr_leave_allocation_view_form_inherit" />
+        <!-- TODO: primary view inheritance issue -->
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_form" />
         <field name="mode">primary</field>
         <field name="priority">60</field>
         <field name="arch" type="xml">
@@ -45,7 +46,8 @@
 
     <record id="hr_leave_allocation_overtime_manager_view_form" model="ir.ui.view">
         <field name="model">hr.leave.allocation</field>
-        <field name="inherit_id" ref="hr_leave_allocation_overtime_view_form" />
+        <!-- TODO: primary view inheritance issue -->
+        <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_form" />
         <field name="mode">primary</field>
         <field name="priority">70</field>
         <field name="arch" type="xml">

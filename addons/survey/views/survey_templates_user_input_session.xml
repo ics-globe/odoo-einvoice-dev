@@ -9,7 +9,7 @@
         <xpath expr="//div[@id='wrapwrap']" position="attributes">
             <attribute name="t-att-style" add="('height: 100%; overflow: auto; background: url(' + '/web/image/survey.survey/%s/background_image' % survey.id + ') no-repeat fixed center; box-shadow: inset 0 0 0 10000px rgba(255,255,255,.7); background-size: cover;') if survey and survey.background_image else 'height: 100%; overflow: auto;'"/>
         </xpath>
-        <xpath expr="//head/t[@t-call-assets][last()]" position="after">
+        <xpath expr="//t[@t-call-assets][last()]" position="after">
             <t t-call-assets="survey.survey_assets" lazy_load="True"/>
             <t t-call-assets="survey.survey_user_input_session_assets" lazy_load="True"/>
         </xpath>

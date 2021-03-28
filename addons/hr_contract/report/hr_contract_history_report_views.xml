@@ -93,6 +93,12 @@
                                     <field name="date_end"/>
                                     <field name="resource_calendar_id"/>
                                     <field name="currency_id" invisible="1"/>
+                                    <!--
+                                        TODO: check why it didn't fail in regular master without this first
+                                        This comes from the domain "['|', ('company_id', '=', False), ('company_id', '=', company_id)]"
+                                        on the field resource_calendar_id on hr.contract
+                                     -->
+                                    <field name="company_id" invisible="1"/>
                                     <field name="wage" string="Monthly Wage"/>
                                     <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'close'" decoration-success="state == 'open'"/>
                                 </tree>

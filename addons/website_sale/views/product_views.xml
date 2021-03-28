@@ -37,7 +37,8 @@
     </record>
 
     <!-- only website module template view should use the website_sequence -->
-    <record model="ir.ui.view" id="product_template_view_tree_website_sale">
+    <!-- TODO: primary view inheritance issue -->
+    <!-- <record model="ir.ui.view" id="product_template_view_tree_website_sale">
         <field name="name">product.template.view.tree.website_sale</field>
         <field name="mode">primary</field>
         <field name="model">product.template</field>
@@ -54,7 +55,7 @@
                 <field name="is_published" string="Is Published" optional="hide"/>
             </field>
         </field>
-    </record>
+    </record> -->
 
     <record model="ir.ui.view" id="product_template_view_kanban_website_sale">
         <field name="name">product.template.view.kanban.website_sale</field>
@@ -87,7 +88,8 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="product_template_only_website_form_view">
+    <!-- TODO: primary view inheritance issue -->
+    <!-- <record model="ir.ui.view" id="product_template_only_website_form_view">
         <field name="name">product.template.product.only.website.form</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
@@ -122,7 +124,7 @@
                 </div>
             </xpath>
         </field>
-    </record>
+    </record> -->
 
     <record model="ir.ui.view" id="product_template_form_view">
         <field name="name">product.template.product.website.form</field>

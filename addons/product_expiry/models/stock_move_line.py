@@ -13,6 +13,7 @@ class StockMoveLine(models.Model):
         string='Expiration Date', compute='_compute_expiration_date', store=True,
         help='This is the date on which the goods with this Serial Number may'
         ' become dangerous and must not be consumed.')
+    use_expiration_date = fields.Boolean(related='move_id.use_expiration_date')
 
     @api.depends('product_id', 'picking_type_use_create_lots')
     def _compute_expiration_date(self):

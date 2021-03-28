@@ -290,19 +290,16 @@ class Currency(models.Model):
             JOIN res_company c ON (r.company_id is null or r.company_id = c.id)
         """
 
-    @api.model
     def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        result = super(Currency, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+        node = super(Currency, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
         if view_type in ('tree', 'form'):
             currency_name = (self.env['res.company'].browse(self._context.get('company_id')) or self.env.company).currency_id.name
-            doc = etree.XML(result['arch'])
             for field in [['company_rate', _('Unit per %s', currency_name)],
                           ['inverse_company_rate', _('%s per Unit', currency_name)]]:
-                node = doc.xpath("//tree//field[@name='%s']" % field[0])
-                if node:
-                    node[0].set('string', field[1])
-            result['arch'] = etree.tostring(doc, encoding='unicode')
-        return result
+                f = node.xpath("//tree//field[@name='%s']" % field[0])
+                if f:
+                    f[0].set('string', field[1])
+        return node
 
 
 class CurrencyRate(models.Model):

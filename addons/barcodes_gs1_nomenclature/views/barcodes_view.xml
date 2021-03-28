@@ -47,12 +47,12 @@
             <field name="inherit_id" ref="barcodes.view_barcode_rule_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='encoding']" position="attributes">
-                    <attribute name="attrs">{'invisible': ['|', ('parent.is_gs1_nomenclature', '=', True), ('type', '=', 'alias')]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('is_gs1_nomenclature', '=', True), ('type', '=', 'alias')]}</attribute>
                 </xpath>
                 <xpath expr="//field[@name='alias']" position="after">
-                    <field name="gs1_content_type" attrs="{'invisible': [('parent.is_gs1_nomenclature', '!=', True)]}"/>
-                    <field name="gs1_decimal_usage" attrs="{'invisible': ['|', ('parent.is_gs1_nomenclature', '!=', True), ('gs1_content_type', '!=', 'measure')]}"/>
-                    <field name="associated_uom_id" attrs="{'invisible': ['|', ('parent.is_gs1_nomenclature', '!=', True), ('gs1_content_type', '!=', 'measure')]}"/>
+                    <field name="gs1_content_type" attrs="{'invisible': [('is_gs1_nomenclature', '!=', True)]}"/>
+                    <field name="gs1_decimal_usage" attrs="{'invisible': ['|', ('is_gs1_nomenclature', '!=', True), ('gs1_content_type', '!=', 'measure')]}"/>
+                    <field name="associated_uom_id" attrs="{'invisible': ['|', ('is_gs1_nomenclature', '!=', True), ('gs1_content_type', '!=', 'measure')]}"/>
                     <field name="is_gs1_nomenclature" invisible="1"/>
                 </xpath>
             </field>

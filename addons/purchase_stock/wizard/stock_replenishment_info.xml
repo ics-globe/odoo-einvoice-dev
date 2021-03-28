@@ -1,35 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <odoo>
-    <record id="product_supplierinfo_replenishment_tree_view" model="ir.ui.view">
-        <field name="name">product.supplierinfo.replenishment.tree.view</field>
-        <field name="model">product.supplierinfo</field>
-        <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
-        <field name="mode">primary</field>
-        <field name="priority">100</field>
-        <field name="arch" type="xml">
-            <field name="delay" position="after">
-                <field name="show_set_supplier_button" invisible="1"/>
-                <field name="last_purchase_date"/>
-                <button name="action_set_supplier" type="object" string="Set as Supplier" class="btn btn-link"
-                        context="{'orderpoint_id': parent.orderpoint_id, 'stock_replenishment_info_id': parent.id}"
-                        attrs="{'invisible': [('show_set_supplier_button', '=', False)]}"/>
-            </field>
-            <xpath expr="//tree" position="attributes">
-                <attribute name="decoration-bf">parent.supplierinfo_id == id</attribute>
-            </xpath>
-            <field name="min_qty" position="attributes">
-                <attribute name="decoration-danger">min_qty &gt; parent.qty_to_order</attribute>
-            </field>
-            <field name="company_id" position="attributes">
-                <attribute name="optional">hide</attribute>
-            </field>
-            <field name="delay" position="attributes">
-                <attribute name="optional">show</attribute>
-            </field>
-        </field>
-    </record>
-
     <record id="view_stock_replenishment_info_stock_purchase_inherit" model="ir.ui.view">
         <field name="name">stock.replenishment.information.purchase.stock.inherit</field>
         <field name="model">stock.replenishment.info</field>
@@ -37,7 +8,32 @@
         <field name="arch" type="xml">
             <xpath expr="//footer" position="before">
                 <field name="supplierinfo_id" invisible="1"/>
-                <field name="supplierinfo_ids" readonly="1" context="{'tree_view_ref': 'purchase_stock.product_supplierinfo_replenishment_tree_view'}"/>
+                <field name="supplierinfo_ids" readonly="1" context="{'tree_view_ref': 'purchase_stock.product_supplierinfo_replenishment_tree_view'}">
+                    <tree string="Vendor Information" multi_edit="1" decoration-bf="parent.supplierinfo_id == id">
+                        <field name="sequence" widget="handle"/>
+                        <field name="partner_id" readonly="1"/>
+                        <field name="product_id" readonly="1" optional="hide"
+                            invisible="context.get('product_template_invisible_variant', False)"
+                            groups="product.group_product_variant"/>
+                        <field name="product_tmpl_id" string="Product" readonly="1"
+                            invisible="context.get('visible_product_tmpl_id', True)"/>
+                        <field name="product_name" optional="hide"/>
+                        <field name="product_code" optional="hide"/>
+                        <field name="currency_id" groups="base.group_multi_currency"/>
+                        <field name="date_start" optional="hide"/>
+                        <field name="date_end" optional="hide"/>
+                        <field name="company_id" readonly="1" groups="base.group_multi_company" optional="hide"/>
+                        <field name="min_qty" decoration-danger="min_qty &gt; parent.qty_to_order"/>
+                        <field name="product_uom" groups="uom.group_uom"/>
+                        <field name="price" string="Price"/>
+                        <field name="delay" optional="show"/>
+                        <field name="show_set_supplier_button" invisible="1"/>
+                        <field name="last_purchase_date"/>
+                        <button name="action_set_supplier" type="object" string="Set as Supplier" class="btn btn-link"
+                                context="{'orderpoint_id': parent.orderpoint_id, 'stock_replenishment_info_id': parent.id}"
+                                attrs="{'invisible': [('show_set_supplier_button', '=', False)]}"/>
+                    </tree>
+                </field>
             </xpath>
         </field>
     </record>

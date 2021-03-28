@@ -5,6 +5,7 @@ import copy
 import itertools
 import logging
 
+from odoo.exceptions import ValidationError
 from odoo.tools.translate import _
 from odoo.tools import SKIPPED_ELEMENT_TYPES, html_escape
 
@@ -109,7 +110,7 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
         it from the source and returns it.
         """
         if len(spec):
-            raise ValueError(
+            raise ValidationError(
                 _("Invalid specification for moved nodes: %r", etree.tostring(spec, encoding='unicode'))
             )
         pre_locate(spec)
@@ -118,7 +119,7 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
             remove_element(to_extract)
             return to_extract
         else:
-            raise ValueError(
+            raise ValidationError(
                 _("Element %r cannot be located in parent view", etree.tostring(spec, encoding='unicode'))
             )
 
@@ -187,7 +188,9 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
                 else:
                     raise ValueError(_("Invalid mode attribute:") + " '%s'" % mode)
             elif pos == 'attributes':
-                for child in spec.getiterator('attribute'):
+                for child in spec:
+                    if child.tag != 'attribute':
+                        continue
                     attribute = child.get('name')
                     value = child.text or ''
                     if child.get('add') or child.get('remove'):
@@ -233,7 +236,7 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
                         child = extract(child)
                     node.addprevious(child)
             else:
-                raise ValueError(
+                raise ValidationError(
                     _("Invalid position attribute: '%s'") %
                     pos
                 )
@@ -245,8 +248,8 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
                 if attr != 'position'
             ])
             tag = "<%s%s>" % (spec.tag, attrs)
-            raise ValueError(
-                _("Element '%s' cannot be located in parent view", tag)
+            raise ValidationError(
+                _("Element '%s' cannot be located in parent view:\n%s", tag, etree.tostring(source).decode('utf-8'))
             )
 
     return source

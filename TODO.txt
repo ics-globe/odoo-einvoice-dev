@@ -1,0 +1,10 @@
+0. Check why this query has "id" and "select" in master but not in my branch:
+   self.env['account.bank.statement'].fields_view_get(False, 'form')['fields']['line_ids'].keys()
+1. Faire passer les tests qui pètent à l'install de tous les modules
+3. voir les TODO que j'ai laissé dans le diff
+4. Code cleanup and documentation
+5. Implement Studio
+6. il faut virer la cache de read_template au profit de get_arch pour que fields_view_get en profite et
+   pour fortement diminuer la clé de cache. (mais pour cela, faut virer le distribute branding quand le
+   website n'est pas en mode edit).
+   Enfin, je crois, j'ai pas creusé plus que cela, mais y'a clairement un truc qui va pas là.

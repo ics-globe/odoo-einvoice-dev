@@ -96,7 +96,8 @@
             <field name="inherit_id" ref="hr_expense.view_expenses_tree"/>
             <field name="mode">primary</field>
             <field name="arch" type="xml">
-                <xpath expr="//tree" position="attributes">
+                <!-- TODO: Primary view inheritance issue -->
+                <xpath expr="//xpath" position="attributes">
                     <!-- Display the tree dashboard view with the header -->
                     <attribute name="js_class">hr_expense_tree_dashboard_header</attribute>
                     <attribute name="class">hr_expense</attribute>

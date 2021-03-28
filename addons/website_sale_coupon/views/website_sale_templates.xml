@@ -6,7 +6,7 @@
         <attribute name="t-if">not line.is_reward_line</attribute>
     </xpath>
 </template>
-<template id="layout" inherit_id="website.layout">
+<template id="layout" inherit_id="web.layout">
     <body position="inside">
         <t t-set="coupon_error" t-value="request.params.get('coupon_error')"/>
         <t t-set="pending_coupon_code" t-value="request.session.get('pending_coupon_code')"/>

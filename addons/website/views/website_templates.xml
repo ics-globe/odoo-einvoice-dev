@@ -34,7 +34,7 @@
     </li>
 </template>
 
-<template id="layout" name="Main layout" inherit_id="portal.frontend_layout">
+<template id="layout" name="Main layout" inherit_id="web.layout">
     <xpath expr="//html" position="before">
         <t t-set="html_data" t-value="{
             'lang': lang and lang.replace('_', '-'),
@@ -112,24 +112,23 @@
         <link t-if="request and website" rel="canonical" t-att-href="website._get_canonical_url(canonical_params=canonical_params)"/>
 
         <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin=""/>
-    </xpath>
+    </xpath>    
+</template>
 
-    <xpath expr="//head/t[@t-js='false'][last()]" position="after">
+<template id="frontend_layout" name="Main layout" inherit_id="web.frontend_layout">
+    <xpath expr="//t[@t-js='false'][last()]" position="after">
         <t t-call-assets="website.assets_editor" t-js="false" groups="website.group_website_publisher"/>
     </xpath>
-    <xpath expr="//head/t[@t-css='false'][last()]" position="after">
+    <xpath expr="//t[@t-css='false'][last()]" position="after">
         <t t-call-assets="website.assets_editor" t-css="false" groups="website.group_website_publisher" lazy_load="True"/>
     </xpath>
-
     <xpath expr="//header" position="attributes">
         <attribute name="data-name">Header</attribute>
     </xpath>
-
     <xpath expr="//header" position="before">
         <t t-set="cta_btn_text" t-value="False"/>
         <t t-set="cta_btn_href">/contactus</t>
     </xpath>
-
     <xpath expr="//footer" position="attributes">
         <attribute name="data-name">Footer</attribute>
         <!-- Background now controlled by css configuration, using color combinations -->
@@ -144,7 +143,6 @@
         <attribute name="class" add="o_not_editable" separator=" "/>
         <attribute name="t-if">not editable</attribute>
     </xpath>
-
     <xpath expr="//div[@id='wrapwrap']" position="after">
         <t t-if="website and website.google_analytics_key and not editable">
             <script id="tracking_code" async="1" t-attf-src="https://www.googletagmanager.com/gtag/js?id={{ website.google_analytics_key }}"></script>
@@ -156,7 +154,6 @@
             </script>
         </t>
     </xpath>
-
     <!-- Page options -->
     <xpath expr="//div[@id='wrapwrap']" position="before">
         <t groups="website.group_website_publisher">
@@ -179,7 +176,7 @@
     </xpath>
 </template>
 
-<template id="custom_code_layout" name="Custom Code Layout" inherit_id="website.layout" priority="55">
+<template id="custom_code_layout" name="Custom Code Layout" inherit_id="web.layout" priority="55">
     <xpath expr="//head" position="inside">
         <t t-out="website.custom_code_head"/>
     </xpath>
@@ -232,8 +229,8 @@
 <!-- Header templates -->
 
 <!-- "Default" template -->
-<template id="template_header_default" inherit_id="website.layout" name="Template Header Default" active="True">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_default" inherit_id="portal.frontend_layout" name="Template Header Default" active="True">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="shadow-sm"/>
             <div id="top_menu_container" class="container justify-content-start justify-content-lg-between">
@@ -296,8 +293,8 @@
 </template>
 
 <!-- "Hamburger" template -->
-<template id="template_header_hamburger" inherit_id="website.layout" name="Template Header Hamburger" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_hamburger" inherit_id="portal.frontend_layout" name="Template Header Hamburger" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_expand_class" t-value="''"/>
             <div id="top_menu_container" class="container">
@@ -437,8 +434,8 @@
 </template>
 
 <!-- "Vertical" template -->
-<template id="template_header_vertical" inherit_id="website.layout" name="Template Header Vertical" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_vertical" inherit_id="portal.frontend_layout" name="Template Header Vertical" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="flex-lg-column shadow-sm py-0"/>
             <div id="top_menu_container" class="container align-items-center flex-lg-column flex-wrap">
@@ -563,11 +560,16 @@
     </xpath>
 </template>
 
-<template id="template_header_sidebar" inherit_id="website.layout" name="Template Header Sidebar" active="False">
+
+<!-- TODO: check this can be enabled / how / the look of it since it has been split in two views -->
+<template id="template_header_sidebar_class" inherit_id="web.frontend_layout" name="Template Header Sidebar Class" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_header_sidebar" separator=" "/>
     </xpath>
-    <xpath expr="//header//nav" position="replace">
+</template>
+
+<template id="template_header_sidebar" inherit_id="portal.frontend_layout" name="Template Header Sidebar" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="shadow pb-3"/>
             <div id="top_menu_container" class="container h-100">
@@ -674,8 +676,8 @@
     </xpath>
 </template>
 
-<template id="template_header_slogan" inherit_id="website.layout" name="Template Header Slogan" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_slogan" inherit_id="portal.frontend_layout" name="Template Header Slogan" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="shadow-sm"/>
             <div id="top_menu_container" class="container flex-row flex-wrap">
@@ -772,8 +774,8 @@
     </xpath>
 </template>
 
-<template id="template_header_contact" inherit_id="website.layout" name="Template Header Contact" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_contact" inherit_id="portal.frontend_layout" name="Template Header Contact" active="False">
+    <xpath expr="//nav" position="replace">
         <div class="oe_structure oe_structure_solo" id="oe_structure_header_contact_1"/>
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="shadow-sm"/>
@@ -866,8 +868,8 @@
     </xpath>
 </template>
 
-<template id="template_header_boxed" inherit_id="website.layout" name="Template Header Boxed" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_boxed" inherit_id="portal.frontend_layout" name="Template Header Boxed" active="False">
+    <xpath expr="//nav" position="replace">
         <div class="o_header_boxed_background o_colored_level o_cc pt8 pb8">
             <div class="container d-flex align-items-center pb-4 flex-wrap">
                 <!-- Social Icons -->
@@ -948,8 +950,8 @@
     </xpath>
 </template>
 
-<template id="template_header_centered_logo" inherit_id="website.layout" name="Template Header Centered Logo" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_centered_logo" inherit_id="portal.frontend_layout" name="Template Header Centered Logo" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <div id="top_menu_container" class="container">
                 <!-- Brand -->
@@ -999,8 +1001,8 @@
     </xpath>
 </template>
 
-<template id="template_header_image" inherit_id="website.layout" name="Template Header Image" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_image" inherit_id="portal.frontend_layout" name="Template Header Image" active="False">
+    <xpath expr="//nav" position="replace">
         <div class="oe_structure oe_structure_solo" id="oe_structure_header_image_1"/>
         <t t-call="website.navbar">
             <t t-set="_navbar_classes" t-valuef="shadow-sm"/>
@@ -1064,8 +1066,8 @@
     </xpath>
 </template>
 
-<template id="template_header_hamburger_full" inherit_id="website.layout" name="Template Header Hambuger Full" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_hamburger_full" inherit_id="portal.frontend_layout" name="Template Header Hambuger Full" active="False">
+    <xpath expr="//nav" position="replace">
         <t t-call="website.navbar">
             <t t-set="_navbar_expand_class" t-value="''"/>
             <div id="top_menu_container" class="container">
@@ -1149,8 +1151,8 @@
     </xpath>
 </template>
 
-<template id="template_header_magazine" inherit_id="website.layout" name="Template Header Magazine" active="False">
-    <xpath expr="//header//nav" position="replace">
+<template id="template_header_magazine" inherit_id="portal.frontend_layout" name="Template Header Magazine" active="False">
+    <xpath expr="//nav" position="replace">
         <!-- Topbar -->
         <div class="oe_structure oe_structure_solo" id="oe_structure_header_magazine_1"/>
         <t t-call="website.navbar">
@@ -1326,31 +1328,31 @@
     </xpath>
 </template>
 
-<template id="header_visibility_standard" inherit_id="website.layout" name="Header Visibility Standard">
+<template id="header_visibility_standard" inherit_id="web.frontend_layout" name="Header Visibility Standard">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_header_standard" separator=" "/>
     </xpath>
 </template>
 
-<template id="header_visibility_fixed" inherit_id="website.layout" name="Header Effect Fixed" active="False">
+<template id="header_visibility_fixed" inherit_id="web.frontend_layout" name="Header Effect Fixed" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_header_fixed" separator=" "/>
     </xpath>
 </template>
 
-<template id="header_visibility_disappears" inherit_id="website.layout" name="Header Effect Disappears" active="False">
+<template id="header_visibility_disappears" inherit_id="web.frontend_layout" name="Header Effect Disappears" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_header_disappears" separator=" "/>
     </xpath>
 </template>
 
-<template id="header_visibility_fade_out" inherit_id="website.layout" name="Header Effect Fade Out" active="False">
+<template id="header_visibility_fade_out" inherit_id="web.frontend_layout" name="Header Effect Fade Out" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_header_fade_out" separator=" "/>
     </xpath>
 </template>
 
-<template id="no_autohide_menu" inherit_id="website.layout" active="False">
+<template id="no_autohide_menu" inherit_id="web.frontend_layout" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="#{'o_no_autohide_menu'}" separator=" "/>
     </xpath>
@@ -1362,7 +1364,7 @@
     </xpath>
 </template>
 
-<template id="header_hoverable_dropdown" inherit_id="website.layout" name="Header Hoverable Dropdown" active="False">
+<template id="header_hoverable_dropdown" inherit_id="web.frontend_layout" name="Header Hoverable Dropdown" active="False">
     <xpath expr="//header" position="attributes">
         <attribute name="t-attf-class" add="o_hoverable_dropdown" separator=" "/>
     </xpath>
@@ -1378,7 +1380,7 @@
 </template>
 
 <!-- Footer templates -->
-<template id="footer_custom" inherit_id="website.layout" name="Default" active="True">
+<template id="footer_custom" inherit_id="web.frontend_layout" name="Default" active="True">
     <xpath expr="//div[@id='footer']" position="replace">
         <div id="footer" class="oe_structure oe_structure_solo" t-ignore="true" t-if="not no_footer">
             <section class="s_text_block pt40 pb16" data-snippet="s_text_block" data-name="Text">
@@ -1803,7 +1805,7 @@
     </xpath>
 </template>
 
-<template id="footer_copyright_company_name" inherit_id="website.layout">
+<template id="footer_copyright_company_name" inherit_id="web.frontend_layout">
     <xpath expr="//footer//span[hasclass('o_footer_copyright_name')]" position="replace">
         <span class="o_footer_copyright_name mr-2">Copyright &amp;copy; Company name</span>
     </xpath>
@@ -1825,7 +1827,7 @@
 </template>
 
 <!-- Cookie Bar -->
-<template id="cookies_bar" inherit_id="website.layout" name="Cookies Bar">
+<template id="cookies_bar" inherit_id="web.frontend_layout" name="Cookies Bar">
     <xpath expr="//footer" position="after">
         <div id="website_cookies_bar" t-if="website.cookies_bar" class="s_popup o_snippet_invisible o_no_save" data-name="Cookies Bar" data-vcss="001" data-invisible="1">
             <div class="modal s_popup_bottom s_popup_no_backdrop o_cookies_discrete"
@@ -1908,7 +1910,7 @@
 
 <!-- Alternative extension of the language_selector to make it look like an -->
 <!-- inline list instead of a dropdown -->
-<template id="language_selector_inline" inherit_id="website.language_selector" primary="True">
+<template id="language_selector_inline" inherit_id="portal.language_selector" primary="True">
     <xpath expr="//*[contains(@t-attf-class, 'js_language_selector')]" position="attributes">
         <attribute name="t-attf-class" remove="dropup" separator=" "/>
     </xpath>
@@ -1924,13 +1926,14 @@
             <span class="list-inline-item">|</span>
         </t>
     </xpath>
-    <xpath expr="//t[@t-call='website.language_selector_add_language']" position="replace">
+    <!-- TODO: primary view inheritance issue -->
+    <!-- <xpath expr="//t[@t-call='website.language_selector_add_language']" position="replace">
         <span class="o_add_language list-inline-item"
             groups="website.group_website_publisher">|</span>
         <t t-call="website.language_selector_add_language">
             <t t-set="dropdown" t-value="False"/>
         </t>
-    </xpath>
+    </xpath> -->
 </template>
 
 <template id="placeholder_header_language_selector" name="Placeholder Header Language Selector"/>

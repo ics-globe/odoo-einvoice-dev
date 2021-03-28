@@ -232,7 +232,8 @@
         </field>
     </record>
 
-     <record id="hr_leave_allocation_view_form_manager_dashboard" model="ir.ui.view">
+    <!-- TODO: primary mode issue -->
+    <!-- <record id="hr_leave_allocation_view_form_manager_dashboard" model="ir.ui.view">
         <field name="name">hr.leave.allocation.view.form.manager.dashboard</field>
         <field name="model">hr.leave.allocation</field>
         <field name="inherit_id" ref="hr_holidays.hr_leave_allocation_view_form_manager"/>
@@ -246,7 +247,7 @@
                 <attribute name="invisible">1</attribute>
             </div>
         </field>
-    </record>
+    </record> -->
 
     <record id="hr_leave_allocation_view_tree" model="ir.ui.view">
         <field name="name">hr.leave.allocation.view.tree</field>

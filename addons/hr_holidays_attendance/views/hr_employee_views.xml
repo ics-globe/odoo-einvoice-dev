@@ -17,6 +17,14 @@
                     ]}
                 </attribute>
             </xpath>
+        </field>
+    </record>
+
+    <record id="hr_user_presence_view_form" model="ir.ui.view">
+        <field name="name">hr.user.preferences.presence.view.form.attendance.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="hr.res_users_view_form_profile"/>
+        <field name="arch" type="xml">
             <!-- Merge invisible attr of both module -->
             <xpath expr="//button[@id='hr_presence_button']" position="attributes">
                 <attribute name="attrs">
@@ -64,6 +72,14 @@
                     ]}
                 </attribute>
             </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_presence_view_form" model="ir.ui.view">
+        <field name="name">hr.employee.holidays.presence.attendance.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
             <!-- Merge invisible attr of both module -->
             <xpath expr="//button[@id='hr_presence_button']" position="attributes">
                 <attribute name="attrs">

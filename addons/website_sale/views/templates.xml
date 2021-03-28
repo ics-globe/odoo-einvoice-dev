@@ -538,7 +538,7 @@
     </template>
 
     <!-- /shop/product page -->
-    <template id="product_edit_options" inherit_id="website.user_navbar" name="Edit Product Options">
+    <template id="product_edit_options" inherit_id="website.user_navbar_frontend" name="Edit Product Options">
         <xpath expr="//div[@id='edit-page-menu']" position="after">
             <t t-if="main_object._name == 'product.template'" t-set="action" t-value="'website_sale.product_template_action_website'" />
         </xpath>
@@ -1863,7 +1863,7 @@
     </template>
 
     <!-- User Navbar -->
-    <template id="user_navbar_inherit_website_sale" inherit_id="website.user_navbar">
+    <template id="user_navbar_inherit_website_sale" inherit_id="website.user_navbar_frontend">
         <xpath expr="//div[@id='o_new_content_menu_choices']//div[@name='module_website_sale']" position="attributes">
             <attribute name="name"/>
             <attribute name="t-att-data-module-id"/>
@@ -1980,7 +1980,7 @@
         </xpath>
     </template>
 
-    <template id="add_to_cart_redirect" inherit_id="website.layout" name="Cart Redirection" priority="1">
+    <template id="add_to_cart_redirect" inherit_id="web.layout" name="Cart Redirection" priority="1">
         <xpath expr="//html" position="before">
             <t t-set="html_data" t-value="dict(html_data, **{'data-add2cart-redirect': website.cart_add_on_page and '1' or '0'})"/>
         </xpath>

@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </xpath>
-            <xpath expr="//div[hasclass('settings')]" position="inside">
+            <xpath expr="//div[hasclass('app_settings_block')]" position="after">
                 <div class="app_settings_block" data-string="eLearning" string="eLearning" data-key="website_slides">
                     <h2>eLearning</h2>
                     <div class="row mt16 o_settings_container" id="website_slides_selection_settings">

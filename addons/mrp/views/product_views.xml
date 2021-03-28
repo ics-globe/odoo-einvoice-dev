@@ -13,6 +13,13 @@
                         <field name="produce_delay" class="oe_inline"/> days
                     </div>
                 </xpath>
+            </field>
+        </record>
+        <record id="view_mrp_product_template_form_is_kits_inherited" model="ir.ui.view">
+            <field name="name">product.form.mrp.is_kits.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
                 <xpath expr="//field[@name='product_variant_count']" position="after">
                     <field name="is_kits" invisible="1"/>
                 </xpath>
@@ -37,7 +44,8 @@
             <field name="name">mrp.product.product.search</field>
             <field name="model">product.product</field>
             <field name="mode">primary</field>
-            <field name="inherit_id" ref="product.product_search_form_view"/>
+            <!-- TODO: primary view inheritance issue -->
+            <field name="inherit_id" ref="product.product_template_search_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//filter[@name='consumable']" position="after">
                     <separator/>

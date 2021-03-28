@@ -375,6 +375,10 @@
                 <xpath expr="//div[hasclass('oe_title')]" position="inside">
                     <field name="product_template_variant_value_ids" widget="many2many_tags" readonly="1" groups="product.group_product_variant"/>
                 </xpath>
+                <!-- Hooks -->
+                <div name="button_box" position="inside"></div>
+                <header position="inside"></header>
+                <group name="description" position="after"></group>
             </field>
         </record>
 

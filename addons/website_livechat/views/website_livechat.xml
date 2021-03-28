@@ -5,7 +5,7 @@
             Integrate Livechat in Common Frontend for Website
             Template registering all the assets required to execute the Livechat from a page containing Odoo
         -->
-        <template id="loader" inherit_id="website.layout" name="Livechat : include loader on Website">
+        <template id="loader" inherit_id="web.frontend_layout" name="Livechat : include loader on Website">
             <xpath expr="//div[@id='wrapwrap']" position="after">
                 <t t-if="website and website.channel_id and not no_livechat">
                     <script>
@@ -177,7 +177,7 @@
         </template>
 
         <!-- User Navbar -->
-        <template id="user_navbar_inherit_website_livechat" inherit_id="website.user_navbar">
+        <template id="user_navbar_inherit_website_livechat" inherit_id="website.user_navbar_frontend">
             <xpath expr="//div[@id='o_new_content_menu_choices']//div[@name='module_website_livechat']" position="replace">
             </xpath>
         </template>

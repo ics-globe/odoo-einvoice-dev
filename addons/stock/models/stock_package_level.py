@@ -13,14 +13,16 @@ class StockPackageLevel(models.Model):
 
     package_id = fields.Many2one(
         'stock.quant.package', 'Package', required=True, check_company=True,
-        domain="[('location_id', 'child_of', parent.location_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+        domain="[('location_id', 'child_of', picking_location_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     picking_id = fields.Many2one('stock.picking', 'Picking', check_company=True)
+    picking_location_id = fields.Many2one(related='picking_id.location_id')
+    picking_location_dest_id = fields.Many2one(related='picking_id.location_dest_id')
     move_ids = fields.One2many('stock.move', 'package_level_id')
     move_line_ids = fields.One2many('stock.move.line', 'package_level_id')
     location_id = fields.Many2one('stock.location', 'From', compute='_compute_location_id', check_company=True)
     location_dest_id = fields.Many2one(
         'stock.location', 'To', check_company=True,
-        domain="[('id', 'child_of', parent.location_dest_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+        domain="[('id', 'child_of', picking_location_dest_id), '|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     is_done = fields.Boolean('Done', compute='_compute_is_done', inverse='_set_is_done')
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -33,6 +35,7 @@ class StockPackageLevel(models.Model):
     is_fresh_package = fields.Boolean(compute='_compute_fresh_pack')
 
     picking_type_code = fields.Selection(related='picking_id.picking_type_code')
+    picking_state = fields.Selection(related='picking_id.state')
     show_lots_m2o = fields.Boolean(compute='_compute_show_lot')
     show_lots_text = fields.Boolean(compute='_compute_show_lot')
     company_id = fields.Many2one('res.company', 'Company', required=True, index=True)
