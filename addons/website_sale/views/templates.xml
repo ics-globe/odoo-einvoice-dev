@@ -21,7 +21,7 @@
 
     <template id="template_header_default" inherit_id="website.template_header_default">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item mx-lg-3'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -31,7 +31,7 @@
 
     <template id="template_header_hamburger" inherit_id="website.template_header_hamburger">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_text" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -41,7 +41,7 @@
 
     <template id="template_header_vertical" inherit_id="website.template_header_vertical">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item ml-lg-3'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -51,7 +51,7 @@
 
     <template id="template_header_sidebar" inherit_id="website.template_header_sidebar">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_text" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item'"/>
@@ -62,7 +62,7 @@
 
     <template id="template_header_slogan" inherit_id="website.template_header_slogan">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -72,7 +72,7 @@
 
     <template id="template_header_contact" inherit_id="website.template_header_contact">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_text" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item ml-lg-3'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -82,7 +82,7 @@
 
     <template id="template_header_boxed" inherit_id="website.template_header_boxed">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_text" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -92,7 +92,7 @@
 
     <template id="template_header_centered_logo" inherit_id="website.template_header_centered_logo">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -102,7 +102,7 @@
 
     <template id="template_header_image" inherit_id="website.template_header_image">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item ml-lg-3'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -112,7 +112,7 @@
 
     <template id="template_header_hamburger_full" inherit_id="website.template_header_hamburger_full">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_icon" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item ml-lg-3'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -122,7 +122,7 @@
 
     <template id="template_header_magazine" inherit_id="website.template_header_magazine">
         <xpath expr="//t[@t-foreach='website.menu_id.child_id']" position="after">
-            <t t-call="website_sale.header_cart_link">
+            <t t-nocache="" t-call="website_sale.header_cart_link">
                 <t t-set="_text" t-value="True"/>
                 <t t-set="_item_class" t-value="'nav-item ml-md-auto'"/>
                 <t t-set="_link_class" t-value="'nav-link'"/>
@@ -156,13 +156,16 @@
     </template>
 
     <template id="products_item" name="Products item">
-        <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" />
-
         <form action="/shop/cart/update" method="post" class="oe_product_cart h-100 d-flex"
             t-att-data-publish="product.website_published and 'on' or 'off'"
             itemscope="itemscope" itemtype="http://schema.org/Product">
+
+            <t t-set="product_href" t-value="keep(product.website_url, page=(pager['page']['num'] if pager['page']['num']&gt;1 else None))" />
+            <t t-set="combination_info" t-value="product._get_combination_info(only_template=True, add_qty=add_qty or 1, pricelist=pricelist)"/>
+
+            <!-- <a class="o_product_link css_editable_mode_hidden" t-att-href="product_href"/> -->
             <div class="oe_product_image position-relative h-100 flex-grow-0 overflow-hidden">
-                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" t-nocache=""/>
                 <a t-att-href="product_href" class="oe_product_image_link d-block h-100 position-relative" itemprop="url" contenteditable="false">
                     <t t-set="image_holder" t-value="product._get_image_holder()"/>
                     <span t-field="image_holder.image_1920"
@@ -185,6 +188,7 @@
                     </h6>
                 </div>
                 <div class="o_wsale_product_sub d-flex justify-content-between align-items-end pb-1">
+                    <t t-set="template_price_vals" t-value="get_product_prices(product)"/>
                     <div class="o_wsale_product_btn"/>
                     <div class="product_price" itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer">
                         <t t-if="'base_price' in template_price_vals">
@@ -278,29 +282,27 @@
                                     <t t-set="_classes" t-valuef="w-100 w-md-auto mr-auto mb-2"/>
                                     <t t-set="search" t-value="original_search or search"/>
                                 </t>
-                                <t t-call="website_sale.pricelist_list">
+                                <t t-call="website_sale.pricelist_list" t-cache="pricelist,">
                                     <t t-set="_classes" t-valuef="ml-3 mb-2"/>
                                 </t>
                             </div>
-                            <div t-if="original_search and bins" class="alert alert-warning mt8">
+                            <div t-if="original_search and products" class="alert alert-warning mt8">
                                 No results found for '<span t-esc="original_search"/>'. Showing results for '<span t-esc="search"/>'.
                             </div>
                             <t t-if="category">
                                 <t t-set='editor_msg'>Drag building blocks here to customize the header for "<t t-esc='category.name'/>" category.</t>
                                 <div class="mb16" id="category_header" t-att-data-editor-message="editor_msg" t-field="category.website_description"/>
                             </t>
-                            <div t-if="bins" class="o_wsale_products_grid_table_wrapper">
+                            <div t-cache="pricelist,products" t-if="products" class="o_wsale_products_grid_table_wrapper">
                                 <table class="table table-borderless m-0" t-att-data-ppg="ppg" t-att-data-ppr="ppr" t-att-data-default-sort="website.shop_default_sort" t-att-data-name="grid_block_name">
                                     <colgroup t-ignore="true">
                                         <!-- Force the number of columns (useful when only one row of (x < ppr) products) -->
                                         <col t-foreach="ppr" t-as="p"/>
                                     </colgroup>
                                     <tbody>
-                                        <t t-set="products_prices" t-value="products._get_sales_prices(pricelist)"/>
                                         <tr t-foreach="bins" t-as="tr_product">
                                             <t t-foreach="tr_product" t-as="td_product">
                                                 <t t-if="td_product">
-                                                    <t t-set="product" t-value="td_product['product']" />
                                                     <!-- We use t-attf-class here to allow easier customization -->
                                                     <td t-att-colspan="td_product['x'] != 1 and td_product['x']"
                                                         t-att-rowspan="td_product['y'] != 1 and td_product['y']"
@@ -308,9 +310,7 @@
                                                         t-att-data-ribbon-id="td_product['ribbon'].id"
                                                         t-att-data-name="product_block_name">
                                                         <div t-attf-class="o_wsale_product_grid_wrapper position-relative h-100 o_wsale_product_grid_wrapper_#{td_product['x']}_#{td_product['y']}">
-                                                            <t t-call="website_sale.products_item">
-                                                                <t t-set="template_price_vals" t-value="products_prices[product.id]"/>
-                                                            </t>
+                                                            <t t-call="website_sale.products_item" t-set-product="td_product['product']" t-set-pricelist="pricelist"/>
                                                         </div>
                                                     </td>
                                                 </t>
@@ -597,7 +597,7 @@
     </template>
 
     <template id="product" name="Product" track="1">
-
+    <t t-cache="pricelist,product">
         <t t-set="combination" t-value="product._get_first_possible_combination()"/>
         <t t-set="combination_info" t-value="product._get_combination_info(combination, add_qty=add_qty or 1, pricelist=pricelist)"/>
         <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
@@ -718,6 +718,7 @@
                 <div class="oe_structure oe_empty oe_structure_not_nearest mt16" id="oe_structure_website_sale_product_2" data-editor-message="DROP BUILDING BLOCKS HERE TO MAKE THEM AVAILABLE ACROSS ALL PRODUCTS"/>
             </div>
         </t>
+    </t>
     </template>
 
     <template id="product_custom_text" inherit_id="website_sale.product" active="True" customize_show="True" name="Terms and Conditions" priority="21">
@@ -1990,6 +1991,7 @@
             <attribute name="t-att-data-module-id"/>
             <attribute name="t-att-data-module-shortdesc"/>
             <attribute name="t-if">env.user.has_group('sales_team.group_sale_manager')</attribute>
+            <attribute name="t-cache"/>
         </xpath>
     </template>
 

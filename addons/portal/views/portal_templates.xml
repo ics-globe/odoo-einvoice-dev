@@ -6,25 +6,27 @@
             <attribute name="t-attf-class" add="#{'o_portal' if is_portal else ''}" separator=" "/>
         </xpath>
         <xpath expr="//div[@id='wrapwrap']/header/img" position="replace">
-            <nav class="navbar navbar-expand navbar-light bg-light">
-                <div class="container">
-                    <a href="/" class="navbar-brand logo">
-                        <img t-att-src="'/logo.png?company=%s' % res_company.id" t-att-alt="'Logo of %s' % res_company.name" t-att-title="res_company.name"/>
-                    </a>
-                    <ul id="top_menu" class="nav navbar-nav ml-auto">
-                        <t t-call="portal.placeholder_user_sign_in">
-                            <t t-set="_item_class" t-value="'nav-item'"/>
-                            <t t-set="_link_class" t-value="'nav-link'"/>
-                        </t>
-                        <t t-call="portal.user_dropdown">
-                            <t t-set="_user_name" t-value="true"/>
-                            <t t-set="_item_class" t-value="'nav-item dropdown'"/>
-                            <t t-set="_link_class" t-value="'nav-link'"/>
-                            <t t-set="_dropdown_menu_class" t-value="'dropdown-menu-right'"/>
-                        </t>
-                    </ul>
-                </div>
-            </nav>
+            <t t-cache="res_company,">
+                <nav class="navbar navbar-expand navbar-light bg-light">
+                    <div class="container">
+                        <a href="/" class="navbar-brand logo">
+                            <img t-att-src="'/logo.png?company=%s' % res_company.id" t-att-alt="'Logo of %s' % res_company.name" t-att-title="res_company.name"/>
+                        </a>
+                        <ul id="top_menu" class="nav navbar-nav ml-auto">
+                            <t t-nocache="" t-call="portal.placeholder_user_sign_in">
+                                <t t-set="_item_class" t-value="'nav-item'"/>
+                                <t t-set="_link_class" t-value="'nav-link'"/>
+                            </t>
+                            <t t-nocache="" t-call="portal.user_dropdown">
+                                <t t-set="_user_name" t-value="true"/>
+                                <t t-set="_item_class" t-value="'nav-item dropdown'"/>
+                                <t t-set="_link_class" t-value="'nav-link'"/>
+                                <t t-set="_dropdown_menu_class" t-value="'dropdown-menu-right'"/>
+                            </t>
+                        </ul>
+                    </div>
+                </nav>
+            </t>
         </xpath>
         <xpath expr="//div[@id='wrapwrap']/main/t[@t-out='0']" position="before">
             <div t-if="o_portal_fullwidth_alert" class="alert alert-info alert-dismissible rounded-0 fade show d-print-none css_editable_mode_hidden">
