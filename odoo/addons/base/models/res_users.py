@@ -679,7 +679,7 @@ class Users(models.Model):
     @api.model
     def _get_invalidation_fields(self):
         return {
-            'groups_id', 'active', 'lang', 'tz', 'company_id',
+            'groups_id', 'active', 'lang', 'tz', 'company_id', 'company_ids',
             *USER_PRIVATE_FIELDS,
             *self._get_session_token_fields()
         }
