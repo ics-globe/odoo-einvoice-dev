@@ -44,7 +44,7 @@ class MailIdentity(models.Model):
     def _compute_phone(self):
         for identity in self:
             if identity.partner_id.mobile or identity.partner_id.phone or not identity.phone:
-                identity.phone = identity.partner_id.mobile or identity.parnter_id.phone
+                identity.phone = identity.partner_id.mobile or identity.partner_id.phone
 
     def _find_or_create_from_email(self, email):
         """ Find or create an identity based on a string holding an email.
