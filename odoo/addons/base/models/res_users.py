@@ -24,6 +24,7 @@ from lxml.builder import E
 
 from odoo import api, fields, models, tools, SUPERUSER_ID, _, Command
 from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
+from odoo.addons.base.models.res_partner import _lang_get, _tz_get
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
 from odoo.modules.module import get_module_resource
@@ -258,7 +259,6 @@ class Users(models.Model):
     """
     _name = "res.users"
     _description = 'Users'
-    _inherits = {'res.partner': 'partner_id'}
     _order = 'name, login'
 
     # User can write on a few of his own fields (but not his groups for example)
@@ -281,8 +281,25 @@ class Users(models.Model):
         image = base64.b64encode(open(image_path, 'rb').read())
         return image_process(image, colorize=True)
 
-    partner_id = fields.Many2one('res.partner', required=True, ondelete='restrict', auto_join=True,
-        string='Related Partner', help='Partner-related data of the user')
+    # contact information
+    name = fields.Char('Name', compute='_compute_name', readonly=False, store=True)
+    email = fields.Char('Email', compute='_compute_email', readonly=False, store=True)
+    phone = fields.Char('Phone')
+    mobile = fields.Char('Mobile')
+    image_1920 = fields.Image('Image', compute='_compute_image', readonly=False, store=True)
+    lang = fields.Selection(_lang_get, string='Language',
+                            help="All the emails and documents sent to this contact will be translated in this language.")
+    tz = fields.Selection(_tz_get, string='Timezone', default=lambda self: self._context.get('tz'),
+                          help="When printing documents and exporting/importing data, time values are computed according to this timezone.\n"
+                               "If the timezone is not set, UTC (Coordinated Universal Time) is used.\n"
+                               "Anywhere else, time values are computed according to the time offset of your web client.")
+    tz_offset = fields.Char(compute='_compute_tz_offset', string='Timezone offset', invisible=True)
+    partner_id = fields.Many2one(
+        'res.partner', string='Related Partner', required=False, ondelete='set null', auto_join=False,
+        help='Partner-related data of the user')
+    active_partner = fields.Boolean(related='partner_id.active', readonly=True, string="Partner is Active")
+    # system access
+    active = fields.Boolean(default=True)
     login = fields.Char(required=True, help="Used to log into the system")
     password = fields.Char(
         compute='_compute_password', inverse='_set_password',
@@ -294,8 +311,6 @@ class Users(models.Model):
              "changing the user's password, otherwise leave empty. After "\
              "a change of password, the user has to login again.")
     signature = fields.Html(string="Email Signature", default="")
-    active = fields.Boolean(default=True)
-    active_partner = fields.Boolean(related='partner_id.active', readonly=True, string="Partner is Active")
     action_id = fields.Many2one('ir.actions.actions', string='Home Action',
         help="If specified, this action will be opened at log on for this user, in addition to the standard menu.")
     groups_id = fields.Many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid', string='Groups', default=_default_groups)
@@ -313,23 +328,34 @@ class Users(models.Model):
         help='The default company for this user.', context={'user_preference': True})
     company_ids = fields.Many2many('res.company', 'res_company_users_rel', 'user_id', 'cid',
         string='Companies', default=lambda self: self.env.company.ids)
-
-    # overridden inherited fields to bypass access rights, in case you have
-    # access to the user but not its corresponding partner
-    name = fields.Char(related='partner_id.name', inherited=True, readonly=False)
-    email = fields.Char(related='partner_id.email', inherited=True, readonly=False)
-
     accesses_count = fields.Integer('# Access Rights', help='Number of access rights that apply to the current user',
                                     compute='_compute_accesses_count', compute_sudo=True)
     rules_count = fields.Integer('# Record Rules', help='Number of record rules that apply to the current user',
                                  compute='_compute_accesses_count', compute_sudo=True)
     groups_count = fields.Integer('# Groups', help='Number of groups that apply to the current user',
                                   compute='_compute_accesses_count', compute_sudo=True)
-    image_1920 = fields.Image(related='partner_id.image_1920', inherited=True, readonly=False, default=_get_default_image)
 
     _sql_constraints = [
         ('login_key', 'UNIQUE (login)',  'You can not have two users with the same login !')
     ]
+
+    @api.depends('partner_id')
+    def _compute_name(self):
+        for user in self:
+            if user.partner_id and not user.name:
+                user.name = user.partner_id.name
+
+    @api.depends('partner_id')
+    def _compute_email(self):
+        for user in self:
+            if user.partner_id and not user.email:
+                user.email = user.partner_id.email
+
+    @api.depends('partner_id')
+    def _compute_image(self):
+        for user in self:
+            if user.partner_id and not user.image_1920:
+                user.image_1920 = user.partner_id.image_1920
 
     def _set_password(self):
         ctx = self._crypt_context()
@@ -393,9 +419,24 @@ class Users(models.Model):
         if self.login and tools.single_email_re.match(self.login):
             self.email = self.login
 
+<<<<<<< HEAD
     @api.onchange('parent_id')
     def onchange_parent_id(self):
         return self.partner_id.onchange_parent_id()
+=======
+    def _read(self, fields):
+        super(Users, self)._read(fields)
+        canwrite = self.check_access_rights('write', raise_exception=False)
+        if not canwrite and set(USER_PRIVATE_FIELDS).intersection(fields):
+            for record in self:
+                for f in USER_PRIVATE_FIELDS:
+                    try:
+                        record._cache[f]
+                        record._cache[f] = '********'
+                    except Exception:
+                        # skip SpecialValue (e.g. for missing record or access right)
+                        pass
+>>>>>>> 507ad1808ca... [WIP] base: partner is now optional on user
 
     @api.constrains('company_id', 'company_ids')
     def _check_company(self):
