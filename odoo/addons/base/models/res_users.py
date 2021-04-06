@@ -419,25 +419,6 @@ class Users(models.Model):
         if self.login and tools.single_email_re.match(self.login):
             self.email = self.login
 
-<<<<<<< HEAD
-    @api.onchange('parent_id')
-    def onchange_parent_id(self):
-        return self.partner_id.onchange_parent_id()
-=======
-    def _read(self, fields):
-        super(Users, self)._read(fields)
-        canwrite = self.check_access_rights('write', raise_exception=False)
-        if not canwrite and set(USER_PRIVATE_FIELDS).intersection(fields):
-            for record in self:
-                for f in USER_PRIVATE_FIELDS:
-                    try:
-                        record._cache[f]
-                        record._cache[f] = '********'
-                    except Exception:
-                        # skip SpecialValue (e.g. for missing record or access right)
-                        pass
->>>>>>> 507ad1808ca... [WIP] base: partner is now optional on user
-
     @api.constrains('company_id', 'company_ids')
     def _check_company(self):
         for user in self:
