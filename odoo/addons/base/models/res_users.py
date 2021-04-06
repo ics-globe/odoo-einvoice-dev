@@ -331,23 +331,6 @@ class Users(models.Model):
         ('login_key', 'UNIQUE (login)',  'You can not have two users with the same login !')
     ]
 
-    def init(self):
-        cr = self.env.cr
-
-        # allow setting plaintext passwords via SQL and have them
-        # automatically encrypted at startup: look for passwords which don't
-        # match the "extended" MCF and pass those through passlib.
-        # Alternative: iterate on *all* passwords and use CryptContext.identify
-        cr.execute("""
-        SELECT id, password FROM res_users
-        WHERE password IS NOT NULL
-          AND password !~ '^\$[^$]+\$[^$]+\$.'
-        """)
-        if self.env.cr.rowcount:
-            Users = self.sudo()
-            for uid, pw in cr.fetchall():
-                Users.browse(uid).password = pw
-
     def _set_password(self):
         ctx = self._crypt_context()
         hash_password = ctx.hash if hasattr(ctx, 'hash') else ctx.encrypt
@@ -362,35 +345,6 @@ class Users(models.Model):
             (pw, uid)
         )
         self.invalidate_cache(['password'], [uid])
-
-    def _check_credentials(self, password, env):
-        """ Validates the current user's password.
-
-        Override this method to plug additional authentication methods.
-
-        Overrides should:
-
-        * call `super` to delegate to parents for credentials-checking
-        * catch AccessDenied and perform their own checking
-        * (re)raise AccessDenied if the credentials are still invalid
-          according to their own validation method
-
-        When trying to check for credentials validity, call _check_credentials
-        instead.
-        """
-        """ Override this method to plug additional authentication methods"""
-        assert password
-        self.env.cr.execute(
-            "SELECT COALESCE(password, '') FROM res_users WHERE id=%s",
-            [self.env.user.id]
-        )
-        [hashed] = self.env.cr.fetchone()
-        valid, replacement = self._crypt_context()\
-            .verify_and_update(password, hashed)
-        if replacement is not None:
-            self._set_encrypted_password(self.env.user.id, replacement)
-        if not valid:
-            raise AccessDenied()
 
     def _compute_password(self):
         for user in self:
@@ -442,19 +396,6 @@ class Users(models.Model):
     @api.onchange('parent_id')
     def onchange_parent_id(self):
         return self.partner_id.onchange_parent_id()
-
-    def _read(self, fields):
-        super(Users, self)._read(fields)
-        canwrite = self.check_access_rights('write', raise_exception=False)
-        if not canwrite and set(USER_PRIVATE_FIELDS).intersection(fields):
-            for record in self:
-                for f in USER_PRIVATE_FIELDS:
-                    try:
-                        record._cache[f]
-                        record._cache[f] = '********'
-                    except Exception:
-                        # skip SpecialValue (e.g. for missing record or access right)
-                        pass
 
     @api.constrains('company_id', 'company_ids')
     def _check_company(self):
@@ -511,6 +452,23 @@ class Users(models.Model):
         else:
             return False
 
+    def init(self):
+        cr = self.env.cr
+
+        # allow setting plaintext passwords via SQL and have them
+        # automatically encrypted at startup: look for passwords which don't
+        # match the "extended" MCF and pass those through passlib.
+        # Alternative: iterate on *all* passwords and use CryptContext.identify
+        cr.execute("""
+        SELECT id, password FROM res_users
+        WHERE password IS NOT NULL
+          AND password !~ '^\$[^$]+\$[^$]+\$.'
+        """)
+        if self.env.cr.rowcount:
+            Users = self.sudo()
+            for uid, pw in cr.fetchall():
+                Users.browse(uid).password = pw
+
     def toggle_active(self):
         for user in self:
             if not user.active and not user.partner_id.active:
@@ -527,6 +485,19 @@ class Users(models.Model):
                 self = self.sudo()
 
         return super(Users, self).read(fields=fields, load=load)
+
+    def _read(self, fields):
+        super(Users, self)._read(fields)
+        canwrite = self.check_access_rights('write', raise_exception=False)
+        if not canwrite and set(USER_PRIVATE_FIELDS).intersection(fields):
+            for record in self:
+                for f in USER_PRIVATE_FIELDS:
+                    try:
+                        record._cache[f]
+                        record._cache[f] = '********'
+                    except Exception:
+                        # skip SpecialValue (e.g. for missing record or access right)
+                        pass
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
@@ -638,6 +609,35 @@ class Users(models.Model):
         if 'login' not in default:
             default['login'] = _("%s (copy)", self.login)
         return super(Users, self).copy(default)
+
+    def _check_credentials(self, password, env):
+        """ Validates the current user's password.
+
+        Override this method to plug additional authentication methods.
+
+        Overrides should:
+
+        * call `super` to delegate to parents for credentials-checking
+        * catch AccessDenied and perform their own checking
+        * (re)raise AccessDenied if the credentials are still invalid
+          according to their own validation method
+
+        When trying to check for credentials validity, call _check_credentials
+        instead.
+        """
+        """ Override this method to plug additional authentication methods"""
+        assert password
+        self.env.cr.execute(
+            "SELECT COALESCE(password, '') FROM res_users WHERE id=%s",
+            [self.env.user.id]
+        )
+        [hashed] = self.env.cr.fetchone()
+        valid, replacement = self._crypt_context()\
+            .verify_and_update(password, hashed)
+        if replacement is not None:
+            self._set_encrypted_password(self.env.user.id, replacement)
+        if not valid:
+            raise AccessDenied()
 
     @api.model
     @tools.ormcache('self._uid')
