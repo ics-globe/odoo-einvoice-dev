@@ -1,6 +1,195 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+res_identity
+    name = "sqdfsqdf"
+    token = fields.Char(string='Token')
+    website_visitor_id = required=False # Guest du website
+    partner_id = required=False # tu fais du business
+    user_id = required=False # Qui peut se logguer
+    active = fields.Boolean(string='Active')
+    email = fields.Char( string='Email', compute='_compute_email', readonly=False, store=True)
+
+res_partner -> mode to addons 'partner'
+    seb_style_inherits res_indentity
+
+res_users
+    seb_style_inherits res_indentity
+
+website_vistor
+    seb_style_inherits res_indentity
+
+chat
+    channel
+        name
+    messsage
+        author_avatar = fields.Binary("Author's avatar", related='author_id.image_128', readonly=False)
+        indentity_id -> = fields.Many2one( 'res.partner', 'Author', index=True, ondelete='set null', help="Author of the message. If not set, email_from may hold an email address that did not match any partner.")
+        date = fields.Datetime('Date', default=fields.Datetime.now)
+        message_type = fields.Selection([ ('email', 'Email'), ('comment', 'Comment'), ('notification', 'System notification'), ('user_notification', 'User Specific Notification')], 'Type', required=True, default='email', help="Message type: email for email message, notification for system " "message, comment for other messages such as user replies",)
+        body = fields.Html('Contents', default='', sanitize_style=True)
+        attachment_ids = fields.Many2many( 'ir.attachment', 'message_attachment_rel', 'message_id', 'attachment_id', string='Attachments', help='Attachments are linked to a document through model / res_id and to the message ' 'through this field.')
+        partner_ids = fields.Many2many('res.partner', string='Recipients', context={'active_test': False})
+
+mail
+    message
+        attachment_ids = fields.Many2many( 'ir.attachment', 'message_attachment_rel', 'message_id', 'attachment_id', string='Attachments', help='Attachments are linked to a document through model / res_id and to the message ' 'through this field.')
+        author_avatar = fields.Binary("Author's avatar", related='author_id.image_128', readonly=False)
+        identity_id = fields.Many2one( 'res.partner', 'Author', index=True, ondelete='set null', help="Author of the message. If not set, email_from may hold an email address that did not match any partner.")
+        author_email_for_template
+        author_name_for_template
+        body = fields.Html('Contents', default='', sanitize_style=True)
+        canned_response_ids = fields.One2many('mail.shortcode', 'message_ids', string="Canned Responses", store=False)
+        date = fields.Datetime('Date', default=fields.Datetime.now)
+        message_type = fields.Selection([ ('email', 'Email'), ('comment', 'Comment'), ('notification', 'System notification'), ('user_notification', 'User Specific Notification')], 'Type', required=True, default='email', help="Message type: email for email message, notification for system " "message, comment for other messages such as user replies",)
+        needaction = fields.Boolean( 'Need Action', compute='_get_needaction', search='_search_needaction', help='Need Action')
+        partner_ids = fields.Many2many('res.partner', string='Recipients', context={'active_test': False})
+    O   is_internal = fields.Boolean('Employee Only', help='Hide to public / portal users, independently from subtype configuration.')
+    O   mail_activity_type_id = fields.Many2one( 'mail.activity.type', 'Mail Activity Type', index=True, ondelete='set null')
+    O   model = fields.Char('Related Document Model', index=True)
+    O   notification_ids = fields.One2many( 'mail.notification', 'mail_message_id', 'Notifications', auto_join=True, copy=False, depends=['notified_partner_ids'])
+    O   notified_partner_ids = fields.Many2many( 'res.partner', 'mail_notification', string='Partners with Need Action', context={'active_test': False}, depends=['notification_ids'])
+    O   record_name = fields.Char('Message Record Name', help="Name get of the related document.")
+    O   res_id = fields.Many2oneReference('Related Document ID', index=True, model_field='model')
+    O   subtype_id = fields.Many2one('mail.message.subtype', 'Subtype', ondelete='set null', index=True)
+    O   tracking_value_ids = fields.One2many( 'mail.tracking.value', 'mail_message_id', string='Tracking values', groups="base.group_no_one", help='Tracked values are stored in a separate model. This field allow to reconstruct ' 'the tracking and to generate statistics on the model.')
+    M   add_sign = fields.Boolean(default=True)
+    M   child_ids = fields.One2many('mail.message', 'parent_id', 'Child Messages')
+    M   email_from = fields.Char('From', help="Email address of the sender. This field is set when no matching partner is found and replaces the author_id field in the chatter.")
+    M   email_layout_xmlid = fields.Char('Layout', copy=False)  # xml id of layout
+    M   has_error = fields.Boolean( 'Has error', compute='_compute_has_error', search='_search_has_error', help='Has error')
+    M   mail_ids = fields.One2many('mail.mail', 'mail_message_id', string='Mails', groups="base.group_system")
+    M   mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
+    M   message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
+    M   no_auto_thread = fields.Boolean( 'No threading for answers', help='Answers do not go in the original document discussion thread. This has an impact on the generated message-id.')
+    M   parent_id = fields.Many2one( 'mail.message', 'Parent Message', index=True, ondelete='set null', help="Initial thread message.")
+    M   reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
+    M   subject = fields.Char('Subject')
+
+mailing
+    list
+        name
+    message
+        mesqage_id (onlye when validate)
+    ML  description = fields.Char( 'Short description', compute="_compute_description", help='Message description: either the subject, or the beginning of the body')
+    ML  moderation_status = fields.Selection([ ('pending_moderation', 'Pending Moderation'), ('accepted', 'Accepted'), ('rejected', 'Rejected')], string="Moderation Status", index=True)
+    ML  moderator_id = fields.Many2one('res.users', string="Moderated By", index=True)
+    ML  need_moderation = fields.Boolean('Need moderation', compute='_compute_need_moderation', search='_search_need_moderation')
+    Rm  starred = fields.Boolean( 'Starred', compute='_get_starred', search='_search_starred', compute_sudo=False, help='Current user has a starred notification linked to this message')
+    Rm  starred_partner_ids = fields.Many2many( 'res.partner', 'mail_message_res_partner_starred_rel', string='Favorited By')
+
+
+
+
+
+res_partner
+    name = fields.Char(index=True)
+    display_name = fields.Char(compute='_compute_display_name', store=True, index=True)
+    date = fields.Date(index=True)
+    title = fields.Many2one('res.partner.title')
+    parent_id = fields.Many2one('res.partner', string='Related Company', index=True)
+    parent_name = fields.Char(related='parent_id.name', readonly=True, string='Parent name')
+    child_ids = fields.One2many('res.partner', 'parent_id', string='Contact', domain=[('active', '=', True)])  # force "active_test" domain to bypass _search() override
+    ref = fields.Char(string='Reference', index=True)
+    lang = fields.Selection(_lang_get, string='Language', default=lambda self: self.env.lang, help="All the emails and documents sent to this contact will be translated in this language.")
+    active_lang_count = fields.Integer(compute='_compute_active_lang_count')
+    tz = fields.Selection(_tz_get, string='Timezone', default=lambda self: self._context.get('tz'), help="When printing documents and exporting/importing data, time values are computed according to this timezone.\n" "If the timezone is not set, UTC (Coordinated Universal Time) is used.\n" "Anywhere else, time values are computed according to the time offset of your web client.")
+    tz_offset = fields.Char(compute='_compute_tz_offset', string='Timezone offset', invisible=True)
+    user_id = fields.Many2one('res.users', string='Salesperson', help='The internal user in charge of this contact.', domain=lambda self: [('groups_id', 'in', self.env.ref('base.group_user').id)])
+    vat = fields.Char(string='Tax ID', index=True, help="The Tax Identification Number. Complete it if the contact is subjected to government taxes. Used in some legal statements.")
+    same_vat_partner_id = fields.Many2one('res.partner', string='Partner with same Tax ID', compute='_compute_same_vat_partner_id', store=False)
+    bank_ids = fields.One2many('res.partner.bank', 'partner_id', string='Banks')
+    website = fields.Char('Website Link')
+    comment = fields.Text(string='Notes')
+    category_id = fields.Many2many('res.partner.category', column1='partner_id', column2='category_id', string='Tags', default=_default_category)
+    credit_limit = fields.Float(string='Credit Limit')
+    active = fields.Boolean(default=True)
+    employee = fields.Boolean(help="Check this box if this contact is an Employee.")
+    function = fields.Char(string='Job Position')
+    type = fields.Selection( [('contact', 'Contact'), ('invoice', 'Invoice Address'), ('delivery', 'Delivery Address'), ('other', 'Other Address'), ("private", "Private Address"), ], string='Address Type', default='contact', help="Invoice & Delivery addresses are used in sales orders. Private addresses are only visible by authorized users.")
+    street = fields.Char()
+    street2 = fields.Char()
+    zip = fields.Char(change_default=True)
+    city = fields.Char()
+    state_id = fields.Many2one("res.country.state", string='State', ondelete='restrict', domain="[('country_id', '=?', country_id)]")
+    country_id = fields.Many2one('res.country', string='Country', ondelete='restrict')
+    partner_latitude = fields.Float(string='Geo Latitude', digits=(16, 5))
+    partner_longitude = fields.Float(string='Geo Longitude', digits=(16, 5))
+    email = fields.Char()
+    email_formatted = fields.Char( 'Formatted Email', compute='_compute_email_formatted', help='Format email address "Name <email@domain>"')
+    phone = fields.Char()
+    mobile = fields.Char()
+    is_company = fields.Boolean(string='Is a Company', default=False, help="Check if the contact is a company, otherwise it is a person")
+    industry_id = fields.Many2one('res.partner.industry', 'Industry')
+    # company_type is only an interface field, do not use it in business logic
+    company_type = fields.Selection(string='Company Type', selection=[('person', 'Individual'), ('company', 'Company')], compute='_compute_company_type', inverse='_write_company_type')
+    company_id = fields.Many2one('res.company', 'Company', index=True)
+    color = fields.Integer(string='Color Index', default=0)
+    user_ids = fields.One2many('res.users', 'partner_id', string='Users', auto_join=True)
+    partner_share = fields.Boolean( 'Share Partner', compute='_compute_partner_share', store=True, help="Either customer (not a user), either shared user. Indicated the current partner is a customer without " "access or with a limited access created for sharing data.")
+    contact_address = fields.Char(compute='_compute_contact_address', string='Complete Address')
+    # technical field used for managing commercial fields
+    commercial_partner_id = fields.Many2one('res.partner', compute='_compute_commercial_partner', string='Commercial Entity', store=True, index=True)
+    commercial_company_name = fields.Char('Company Name Entity', compute='_compute_commercial_company_name', store=True)
+    company_name = fields.Char('Company Name')
+    city_id
+    street_name
+    street_number
+    street_number2
+    date_localization
+    message_main_attachment_id
+    email_normalized
+    message_bounce
+    signup_token
+    signup_type
+    signup_expiration
+    calendar_last_notif_ack
+    plan_to_change_car
+    plan_to_change_bike
+    team_id
+    partner_gid
+    additional_info
+    phone_sanitized
+    debit_limit
+    last_time_entries_checked
+    invoice_warn
+    invoice_warn_msg
+    supplier_rank
+    customer_rank
+    picking_warn
+    picking_warn_msg
+    website_id
+    is_published
+    associate_member
+    free_member
+    membership_amount
+    membership_state
+    membership_start
+    membership_stop
+    membership_cancel
+    purchase_warn
+    purchase_warn_msg
+    website_meta_title
+    website_meta_description
+    website_meta_keywords
+    website_meta_og_img
+    seo_name
+    website_description
+    website_short_description
+    sale_warn
+    sale_warn_msg
+    partner_weight
+    grade_id
+    grade_sequence
+    activation
+    date_partnership
+    date_review
+    date_review_next
+    assigned_partner_id
+    implemented_count
+
+
+
 import logging
 import re
 from collections import defaultdict
@@ -83,104 +272,130 @@ class Message(models.Model):
         return res
 
     # content
-    subject = fields.Char('Subject')
     date = fields.Datetime('Date', default=fields.Datetime.now)
     body = fields.Html('Contents', default='', sanitize_style=True)
-    description = fields.Char(
-        'Short description', compute="_compute_description",
-        help='Message description: either the subject, or the beginning of the body')
-    attachment_ids = fields.Many2many(
-        'ir.attachment', 'message_attachment_rel',
-        'message_id', 'attachment_id',
-        string='Attachments',
-        help='Attachments are linked to a document through model / res_id and to the message '
-             'through this field.')
-    parent_id = fields.Many2one(
-        'mail.message', 'Parent Message', index=True, ondelete='set null',
-        help="Initial thread message.")
-    child_ids = fields.One2many('mail.message', 'parent_id', 'Child Messages')
+ML  description = fields.Char( 'Short description', compute="_compute_description", help='Message description: either the subject, or the beginning of the body')
+    attachment_ids = fields.Many2many( 'ir.attachment', 'message_attachment_rel', 'message_id', 'attachment_id', string='Attachments', help='Attachments are linked to a document through model / res_id and to the message ' 'through this field.')
+M   parent_id = fields.Many2one( 'mail.message', 'Parent Message', index=True, ondelete='set null', help="Initial thread message.")
+M   child_ids = fields.One2many('mail.message', 'parent_id', 'Child Messages')
     # related document
-    model = fields.Char('Related Document Model', index=True)
-    res_id = fields.Many2oneReference('Related Document ID', index=True, model_field='model')
-    record_name = fields.Char('Message Record Name', help="Name get of the related document.")
+O   model = fields.Char('Related Document Model', index=True)
+O   res_id = fields.Many2oneReference('Related Document ID', index=True, model_field='model')
+O   record_name = fields.Char('Message Record Name', help="Name get of the related document.")
     # characteristics
-    message_type = fields.Selection([
-        ('email', 'Email'),
-        ('comment', 'Comment'),
-        ('notification', 'System notification'),
-        ('user_notification', 'User Specific Notification')],
-        'Type', required=True, default='email',
-        help="Message type: email for email message, notification for system "
-             "message, comment for other messages such as user replies",
-        )
-    subtype_id = fields.Many2one('mail.message.subtype', 'Subtype', ondelete='set null', index=True)
-    mail_activity_type_id = fields.Many2one(
-        'mail.activity.type', 'Mail Activity Type',
-        index=True, ondelete='set null')
-    is_internal = fields.Boolean('Employee Only', help='Hide to public / portal users, independently from subtype configuration.')
+    message_type = fields.Selection([ ('email', 'Email'), ('comment', 'Comment'), ('notification', 'System notification'), ('user_notification', 'User Specific Notification')], 'Type', required=True, default='email', help="Message type: email for email message, notification for system " "message, comment for other messages such as user replies",)
+O   subtype_id = fields.Many2one('mail.message.subtype', 'Subtype', ondelete='set null', index=True)
+O   mail_activity_type_id = fields.Many2one( 'mail.activity.type', 'Mail Activity Type', index=True, ondelete='set null')
+O   is_internal = fields.Boolean('Employee Only', help='Hide to public / portal users, independently from subtype configuration.')
     # origin
-    email_from = fields.Char('From', help="Email address of the sender. This field is set when no matching partner is found and replaces the author_id field in the chatter.")
-    author_id = fields.Many2one(
-        'res.partner', 'Author', index=True, ondelete='set null',
-        help="Author of the message. If not set, email_from may hold an email address that did not match any partner.")
+M   email_from = fields.Char('From', help="Email address of the sender. This field is set when no matching partner is found and replaces the author_id field in the chatter.")
+M   subject = fields.Char('Subject')
+    author_id = fields.Many2one( 'res.partner', 'Author', index=True, ondelete='set null', help="Author of the message. If not set, email_from may hold an email address that did not match any partner.")
     author_avatar = fields.Binary("Author's avatar", related='author_id.image_128', readonly=False)
     # recipients: include inactive partners (they may have been archived after
     # the message was sent, but they should remain visible in the relation)
     partner_ids = fields.Many2many('res.partner', string='Recipients', context={'active_test': False})
     # list of partner having a notification. Caution: list may change over time because of notif gc cron.
     # mainly usefull for testing
-    notified_partner_ids = fields.Many2many(
-        'res.partner', 'mail_notification', string='Partners with Need Action',
-        context={'active_test': False}, depends=['notification_ids'])
-    needaction = fields.Boolean(
-        'Need Action', compute='_get_needaction', search='_search_needaction',
-        help='Need Action')
-    has_error = fields.Boolean(
-        'Has error', compute='_compute_has_error', search='_search_has_error',
-        help='Has error')
     # notifications
-    notification_ids = fields.One2many(
-        'mail.notification', 'mail_message_id', 'Notifications',
-        auto_join=True, copy=False, depends=['notified_partner_ids'])
+O   notification_ids = fields.One2many( 'mail.notification', 'mail_message_id', 'Notifications', auto_join=True, copy=False, depends=['notified_partner_ids'])
+O   notified_partner_ids = fields.Many2many( 'res.partner', 'mail_notification', string='Partners with Need Action', context={'active_test': False}, depends=['notification_ids'])
+    needaction = fields.Boolean( 'Need Action', compute='_get_needaction', search='_search_needaction', help='Need Action')
+M   has_error = fields.Boolean( 'Has error', compute='_compute_has_error', search='_search_has_error', help='Has error')
     # user interface
-    starred_partner_ids = fields.Many2many(
-        'res.partner', 'mail_message_res_partner_starred_rel', string='Favorited By')
-    starred = fields.Boolean(
-        'Starred', compute='_get_starred', search='_search_starred', compute_sudo=False,
-        help='Current user has a starred notification linked to this message')
+Rm  starred_partner_ids = fields.Many2many( 'res.partner', 'mail_message_res_partner_starred_rel', string='Favorited By')
+Rm  starred = fields.Boolean( 'Starred', compute='_get_starred', search='_search_starred', compute_sudo=False, help='Current user has a starred notification linked to this message')
     # tracking
-    tracking_value_ids = fields.One2many(
-        'mail.tracking.value', 'mail_message_id',
-        string='Tracking values',
-        groups="base.group_no_one",
-        help='Tracked values are stored in a separate model. This field allow to reconstruct '
-             'the tracking and to generate statistics on the model.')
+O   tracking_value_ids = fields.One2many( 'mail.tracking.value', 'mail_message_id', string='Tracking values', groups="base.group_no_one", help='Tracked values are stored in a separate model. This field allow to reconstruct ' 'the tracking and to generate statistics on the model.')
     # mail gateway
-    no_auto_thread = fields.Boolean(
-        'No threading for answers',
-        help='Answers do not go in the original document discussion thread. This has an impact on the generated message-id.')
-    message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
-    reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
-    mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
+M   no_auto_thread = fields.Boolean( 'No threading for answers', help='Answers do not go in the original document discussion thread. This has an impact on the generated message-id.')
+M   message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
+M   reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
+M   mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
     # moderation
-    moderation_status = fields.Selection([
-        ('pending_moderation', 'Pending Moderation'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected')], string="Moderation Status", index=True)
-    moderator_id = fields.Many2one('res.users', string="Moderated By", index=True)
-    need_moderation = fields.Boolean('Need moderation', compute='_compute_need_moderation', search='_search_need_moderation')
+ML  moderation_status = fields.Selection([ ('pending_moderation', 'Pending Moderation'), ('accepted', 'Accepted'), ('rejected', 'Rejected')], string="Moderation Status", index=True)
+ML  moderator_id = fields.Many2one('res.users', string="Moderated By", index=True)
+ML  need_moderation = fields.Boolean('Need moderation', compute='_compute_need_moderation', search='_search_need_moderation')
     # keep notification layout informations to be able to generate mail again
-    email_layout_xmlid = fields.Char('Layout', copy=False)  # xml id of layout
-    add_sign = fields.Boolean(default=True)
-    # `test_adv_activity`, `test_adv_activity_full`, `test_message_assignation_inbox`,...
-    # By setting an inverse for mail.mail_message_id, the number of SQL queries done by `modified` is reduced.
-    # 'mail.mail' inherits from `mail.message`: `_inherits = {'mail.message': 'mail_message_id'}`
-    # Therefore, when changing a field on `mail.message`, this triggers the modification of the same field on `mail.mail`
-    # By setting up the inverse one2many, we avoid to have to do a search to find the mails linked to the `mail.message`
-    # as the cache value for this inverse one2many is up-to-date.
-    # Besides for new messages, and messages never sending emails, there was no mail, and it was searching for nothing.
-    mail_ids = fields.One2many('mail.mail', 'mail_message_id', string='Mails', groups="base.group_system")
+M   email_layout_xmlid = fields.Char('Layout', copy=False)  # xml id of layout
+M   add_sign = fields.Boolean(default=True)
+M   mail_ids = fields.One2many('mail.mail', 'mail_message_id', string='Mails', groups="base.group_system")
     canned_response_ids = fields.One2many('mail.shortcode', 'message_ids', string="Canned Responses", store=False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------
+    attachment_ids = fields.Many2many( 'ir.attachment', 'message_attachment_rel', 'message_id', 'attachment_id', string='Attachments', help='Attachments are linked to a document through model / res_id and to the message ' 'through this field.')
+    author_avatar = fields.Binary("Author's avatar", related='author_id.image_128', readonly=False)
+    author_id = fields.Many2one( 'res.partner', 'Author', index=True, ondelete='set null', help="Author of the message. If not set, email_from may hold an email address that did not match any partner.")
+    body = fields.Html('Contents', default='', sanitize_style=True)
+    canned_response_ids = fields.One2many('mail.shortcode', 'message_ids', string="Canned Responses", store=False)
+    date = fields.Datetime('Date', default=fields.Datetime.now)
+    message_type = fields.Selection([ ('email', 'Email'), ('comment', 'Comment'), ('notification', 'System notification'), ('user_notification', 'User Specific Notification')], 'Type', required=True, default='email', help="Message type: email for email message, notification for system " "message, comment for other messages such as user replies",)
+    needaction = fields.Boolean( 'Need Action', compute='_get_needaction', search='_search_needaction', help='Need Action')
+    partner_ids = fields.Many2many('res.partner', string='Recipients', context={'active_test': False})
+
+O   is_internal = fields.Boolean('Employee Only', help='Hide to public / portal users, independently from subtype configuration.')
+O   mail_activity_type_id = fields.Many2one( 'mail.activity.type', 'Mail Activity Type', index=True, ondelete='set null')
+O   model = fields.Char('Related Document Model', index=True)
+O   notification_ids = fields.One2many( 'mail.notification', 'mail_message_id', 'Notifications', auto_join=True, copy=False, depends=['notified_partner_ids'])
+O   notified_partner_ids = fields.Many2many( 'res.partner', 'mail_notification', string='Partners with Need Action', context={'active_test': False}, depends=['notification_ids'])
+O   record_name = fields.Char('Message Record Name', help="Name get of the related document.")
+O   res_id = fields.Many2oneReference('Related Document ID', index=True, model_field='model')
+O   subtype_id = fields.Many2one('mail.message.subtype', 'Subtype', ondelete='set null', index=True)
+O   tracking_value_ids = fields.One2many( 'mail.tracking.value', 'mail_message_id', string='Tracking values', groups="base.group_no_one", help='Tracked values are stored in a separate model. This field allow to reconstruct ' 'the tracking and to generate statistics on the model.')
+
+M   add_sign = fields.Boolean(default=True)
+M   child_ids = fields.One2many('mail.message', 'parent_id', 'Child Messages')
+M   email_from = fields.Char('From', help="Email address of the sender. This field is set when no matching partner is found and replaces the author_id field in the chatter.")
+M   email_layout_xmlid = fields.Char('Layout', copy=False)  # xml id of layout
+M   has_error = fields.Boolean( 'Has error', compute='_compute_has_error', search='_search_has_error', help='Has error')
+M   mail_ids = fields.One2many('mail.mail', 'mail_message_id', string='Mails', groups="base.group_system")
+M   mail_server_id = fields.Many2one('ir.mail_server', 'Outgoing mail server')
+M   message_id = fields.Char('Message-Id', help='Message unique identifier', index=True, readonly=1, copy=False)
+M   no_auto_thread = fields.Boolean( 'No threading for answers', help='Answers do not go in the original document discussion thread. This has an impact on the generated message-id.')
+M   parent_id = fields.Many2one( 'mail.message', 'Parent Message', index=True, ondelete='set null', help="Initial thread message.")
+M   reply_to = fields.Char('Reply-To', help='Reply email address. Setting the reply_to bypasses the automatic thread creation.')
+M   subject = fields.Char('Subject')
+
+ML  description = fields.Char( 'Short description', compute="_compute_description", help='Message description: either the subject, or the beginning of the body')
+ML  moderation_status = fields.Selection([ ('pending_moderation', 'Pending Moderation'), ('accepted', 'Accepted'), ('rejected', 'Rejected')], string="Moderation Status", index=True)
+ML  moderator_id = fields.Many2one('res.users', string="Moderated By", index=True)
+ML  need_moderation = fields.Boolean('Need moderation', compute='_compute_need_moderation', search='_search_need_moderation')
+Rm  starred = fields.Boolean( 'Starred', compute='_get_starred', search='_search_starred', compute_sudo=False, help='Current user has a starred notification linked to this message')
+Rm  starred_partner_ids = fields.Many2many( 'res.partner', 'mail_message_res_partner_starred_rel', string='Favorited By')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _compute_description(self):
         for message in self:
