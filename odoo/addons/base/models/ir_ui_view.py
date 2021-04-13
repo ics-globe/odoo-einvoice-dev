@@ -556,67 +556,65 @@ actual arch.
                """
 
     def get_inheriting_views_arch(self, ids):
-        """Retrieves the sets of views that should currently be used in the
-           system in the right order. During the module upgrade phase it
-           may happen that a view is present in the database but the fields it relies on are not
-           fully loaded yet. This method only considers views that belong to modules whose code
-           is already loaded. Custom views defined directly in the database are loaded only
-           after the module initialization phase is completely finished.
-
-           :param str model: model identifier of the inheriting views.
-           :return: list of ir.ui.view
-        """
-        # retrieve all the views transitively inheriting from view_id
+        # ids: a list of primary views ids
         self.flush(['active'])
+        user_groups = set(self.env.user.groups_id.ids)
 
         domain = self._get_inheriting_views_arch_domain()
         e = expression(domain, self.env['ir.ui.view'])
         from_clause, where_clause, where_params = e.query.get_sql()
-
         query = """
-WITH RECURSIVE ir_ui_view_inherits AS (
-    SELECT id, inherit_id, priority, model
-    FROM ir_ui_view
-    WHERE id in %s AND mode='primary' AND {where_clause}
-UNION
-    SELECT iuv.id, iuv.inherit_id, iuv.priority, iuv.model
-    FROM ir_ui_view iuv
-    INNER JOIN ir_ui_view_inherits iuvi ON iuvi.id = iuv.inherit_id
-    WHERE iuv.model=iuvi.model AND mode='extension' AND {sub_where_clause}
-)
-SELECT
-    v.id, v.inherit_id,
-    ARRAY(SELECT r.group_id FROM ir_ui_view_group_rel r WHERE r.view_id=v.id)
-FROM ir_ui_view_inherits v
-ORDER BY v.priority, v.id
-""".format(where_clause=where_clause, sub_where_clause=where_clause.replace('ir_ui_view', 'iuv'))
+            WITH RECURSIVE ir_ui_view_inherits AS (
+                SELECT id, inherit_id, priority, model
+                FROM ir_ui_view
+                WHERE id in %s AND mode='primary' AND {where_clause}
+            UNION
+                SELECT iuv.id, iuv.inherit_id, iuv.priority, iuv.model
+                FROM ir_ui_view iuv
+                INNER JOIN ir_ui_view_inherits iuvi ON iuvi.id = iuv.inherit_id
+                WHERE iuv.model=iuvi.model AND mode='extension' AND {sub_where_clause}
+            )
+            SELECT
+                v.id, v.inherit_id,
+                ARRAY(SELECT r.group_id FROM ir_ui_view_group_rel r WHERE r.view_id=v.id)
+            FROM ir_ui_view_inherits v
+            ORDER BY v.priority, v.id
+        """.format(
+            where_clause=where_clause,
+            sub_where_clause=where_clause.replace('ir_ui_view', 'iuv'),
+        )
         self.env.cr.execute(query, [tuple(ids)] + where_params + where_params)
-        results = self.env.cr.fetchall()
-        user_groups = set(self.env.user.groups_id.ids)
-        results = list(filter(lambda x: not x[2] or (set(x[2]) & user_groups), results))
+        rows = self.env.cr.fetchall()
 
-        views = {}
-        view_ids = {r[0]: [] for r in results}
-        for r in results:
-            if r[1]:
-                view_ids[r[1]].append(r[0])
+        # Parent to children hiearchy mapping, each parent view in the
+        # hierarchy have a (potentially empty) list of child views.
+        # {parent_view_id: [child_view_id, ...]}
+        hierarchy = {view_id: [] for view_id, *_ in rows}
+
+        # each child register itself in its parent list.
+        for view_id, inherit_id, group_ids in rows:
+            if not inherit_id:
+                continue
+            # discard group specific views the user doesn't have access to
+            if group_ids and user_groups.isdisjoint(group_ids):
+                continue
+            hierarchy[inherit_id].append(view_id)
 
         if self.pool._init and not self._context.get('load_all_views'):
             # check that all found ids have a corresponding xml_id in a loaded module
             check_view_ids = self._context.get('check_view_ids') or []
-            ids_to_check = [vid for vid in view_ids if vid not in check_view_ids]
+            ids_to_check = [vid for vid in hierarchy if vid not in check_view_ids]
             if ids_to_check:
                 loaded_modules = tuple(self.pool._init_modules) + (self._context.get('install_module'),)
                 query = self._get_filter_xmlid_query()
                 self.env.cr.execute(query, {'res_ids': tuple(ids_to_check), 'modules': loaded_modules})
                 valid_view_ids = [r[0] for r in self.env.cr.fetchall()] + check_view_ids
-                for key in list(view_ids.keys()):
-                    if key not in valid_view_ids:
-                        if key not in ids:
-                            print('delete', key)
-                            del view_ids[key]
+                hierarchy = {
+                    key: val for key, val in hierarchy.items()
+                    if key in ids or key in valid_view_ids
+                }
 
-        return view_ids
+        return hierarchy
 
     def _check_view_access(self):
         """ Verify that a view is accessible by the current user based on the
