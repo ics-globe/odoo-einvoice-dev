@@ -13,7 +13,7 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import common
 from odoo.tools import mute_logger, view_validation
 from odoo.addons.base.models.ir_ui_view import (
-    transfer_field_to_modifiers, transfer_node_to_modifiers, simplify_modifiers,
+    transfer_field_to_modifiers, transfer_node_to_modifiers,
 )
 
 _logger = logging.getLogger(__name__)
@@ -1337,11 +1337,9 @@ class TestViews(ViewCase):
             if isinstance(what, str):
                 node = etree.fromstring(what)
                 transfer_node_to_modifiers(node, modifiers)
-                simplify_modifiers(modifiers)
                 assert modifiers == expected, "%s != %s" % (modifiers, expected)
             elif isinstance(what, dict):
                 transfer_field_to_modifiers(what, modifiers)
-                simplify_modifiers(modifiers)
                 assert modifiers == expected, "%s != %s" % (modifiers, expected)
 
         _test_modifiers('<field name="a"/>', {})
