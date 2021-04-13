@@ -385,15 +385,15 @@ actual arch.
                 continue
 
             # Build a view with direct dependencies only, excluding translations
-            views = {view.id: []}
+            hierarchy = {view.id: []}
             root = view
             while root.inherit_id:
-                views[root.inherit_id.id] = [root.id]
+                hierarchy[root.inherit_id.id] = [root.id]
                 root = root.inherit_id
 
             # TODO: improve to get untransalted arch only for perf issues
-            self.browse(views.keys()).mapped('arch_db')
-            root = root._get_node(views, {view.id: node})
+            self.browse(hierarchy.keys()).mapped('arch_db')
+            root = root._combine(hierarchy, {view.id: node})
 
             # the inherited node are now embeded in the view, we can validate those nodes only
             for node_check in tocheck:
@@ -719,7 +719,36 @@ actual arch.
             self._handle_view_error(str(e), specs_tree)
         return source
 
-    def _get_node(self, views, nodes={}):
+    def _combine(self, hierarchy, nodes={}):
+        """ Merge the view with its children using its hierarchy tree """
+
+        # Pay attention to the call stack of this function. We achieve
+        # an in-order depth-first hierarchy tree traversal. Each node
+        # gets merged in its parent node. The parent node keeps
+        # accumulating changes until all children have been evaluated.
+        #
+        # https://en.wikipedia.org/wiki/Tree_traversal#Depth-first_search_of_binary_tree
+        #
+        # Exemple:     hierarchy = {
+        #       1        1: [2, 3]
+        #      / \       2: [4, 5],
+        #     2   3      3: [],
+        #    / \         4: [6],
+        #   4   5        5: [7],
+        #  /   /         6: [],
+        # 6   7          7: []}
+        #
+        # Evaluation order (the ``self`` variable):
+        #   6, 4, 2, 7, 5, 1, 3
+        #
+        # Merge order (the ``node`` variable):
+        #   6 -> 4
+        #   4(+6) -> 2
+        #   7 -> 5
+        #   5(+7) -> 2(+4+6)
+        #   2(+4+5+6+7) -> 1
+        #   3 -> 1(+2+4+5+6+7)
+
         node = nodes.get(self.id, etree.fromstring(self.arch))
         if self._context.get('inherit_branding'):
             node.attrib.update({
@@ -728,32 +757,31 @@ actual arch.
                 'data-oe-field': 'arch',
             })
 
-        for view in self.browse(views[self.id]):
-            node2 = view._get_node(views, nodes)
-            node = apply_inheritance_specs(node, node2, inherit_branding=self._context.get('inherit_branding'))
+        for child_view in self.browse(hierarchy[self.id]):
+            child_node = child_view._combine(hierarchy, nodes)
+            node = self.apply_inheritance_specs(node, child_node)
         return node
 
     def _get_arch(self):
         """
         Utility function to get a view combined with its inherited views, returns an etree node.
         """
-        ids = []
-        node = self
+        primary_ids = []
+        view = self
         root = self
-        while node:
-            if node.mode == 'primary':
-                ids.append(node.id)
-                root = node
-            node = node.inherit_id
+        while view:
+            if view.mode == 'primary':
+                primary_ids.append(view.id)
+                root = view
+            view = view.inherit_id
 
-        # prefetch for performance
-        views = root.get_inheriting_views_arch(ids)
+        hierarchy = root.get_inheriting_views_arch(primary_ids)
 
         # useful to prefetch
-        self.browse(views.keys()).mapped('arch_db')
-        node = self.browse(root.id)._get_node(views)
+        self.browse(hierarchy.keys()).mapped('arch_db')
+        combined_view = self.browse(root.id)._combine(hierarchy)
 
-        return node
+        return combined_view
 
     def get_arch(self):
         """
