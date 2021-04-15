@@ -31,7 +31,7 @@
             'partner_autocomplete/static/src/js/web_company_autocomplete.js',
         ],
         'web.tests_assets': [
-            'partner_autocomplete/static/lib/**/*',
+            # 'partner_autocomplete/static/lib/**/*',
         ],
         'web.qunit_suite_tests': [
             'partner_autocomplete/static/tests/**/*',
