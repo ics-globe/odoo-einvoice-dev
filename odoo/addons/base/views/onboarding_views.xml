@@ -151,10 +151,10 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='social_media']" position="replace" />
             <form position="inside">
-                <footer position="replace">
+                <!--<footer position="replace">-->
                     <button name="action_save_onboarding_company_step" class="btn btn-primary" type="object" string="Apply" />
                     <button special="cancel" string="Cancel" />
-                </footer>
+                <!--</footer>-->
             </form>
         </field>
     </record>
