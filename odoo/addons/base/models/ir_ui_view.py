@@ -374,39 +374,57 @@ actual arch.
 
     @api.constrains('arch_db')
     def _check_xml(self):
+        """
+        Validate the new arch by checking it correctly extends its parent
+        view and that the introduced tags are correct.
+        """
+
         for view in self:
-            # verify the view is valid xml and that the inheritance resolves
-            node = etree.fromstring(view.arch)
-            tocheck = node
+            arch_node = etree.fromstring(view.arch)
             if view.inherit_id:
-                view._check_xml_inheritance(node)
-                tocheck = [y for x in node for y in x if x.attrib.get('position') != 'attributes']
+                view._check_xml_inheritance(arch_node)
             if view.type == 'qweb':
                 continue
 
-            # Build a view with direct dependencies only, excluding translations
+            # Mark new arches to be checked
+            if view.inherit_id:
+                for node in arch_node.xpath('//*[@position]/*'):
+                    node.attrib['tocheck'] = '1'
+            else:
+                arch_node.attrib['tocheck'] = '1'
+
+            # Build the view hierarchy using only its direct ancestors
             hierarchy = {view.id: []}
+
             root = view
             while root.inherit_id:
                 hierarchy[root.inherit_id.id] = [root.id]
                 root = root.inherit_id
 
-            # TODO: improve to get untransalted arch only for perf issues
+            # Combine the new view arch with its ancestors
             self.browse(hierarchy.keys()).mapped('arch_db')
-            root = root._combine(hierarchy, {view.id: node})
+            combined_arch_node = root._combine(hierarchy, {view.id: arch_node})
 
-            # the inherited node are now embeded in the view, we can validate those nodes only
-            for node_check in tocheck:
-                # find the model of the node, by tracing field ancestors
+            # Ensure all elements have been combined
+            uncombined_nodes = combined_arch_node.xpath('//*[@position]')
+            if uncombined_nodes:
+                self._handle_view_error(
+                    "Could not combine the element in their parent view",
+                    uncombined_nodes[0])
+
+            # In the combined view, validate the marked arches
+            for tocheck_node in combined_arch_node.xpath('//*[@tocheck]'):
+                del tocheck_node.attrib['tocheck']
                 model = self.env[self.model]
                 parents = []
-                for field in node_check.iterancestors():
+                for field in tocheck_node.iterancestors():
                     if field.tag in ('field','groupby'):
                         parents.append(field.attrib.get('name'))
                 while len(parents):
                     field = parents.pop(0)
                     model = self.env[model._fields.get(field).comodel_name]
-                self._check_node(node_check, model)
+                # recursively check node and its children
+                self._check_node(tocheck_node, model)
 
         return True
 
