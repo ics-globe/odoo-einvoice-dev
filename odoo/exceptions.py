@@ -120,6 +120,28 @@ class ValidationError(UserError):
     """
 
 
+class ViewError(ValueError):
+    """Invalid view.
+
+    .. admonition:: Example
+
+        When you try to extend a view that has been removed; when you
+        try to anchor on an element that have been removed; when a field
+        tag lacks a name attribute; etc.
+    """
+    def __init__(self, view, failed_node, message):
+        super().__init__(message)
+        self.context = {
+            'view': view,
+            'name': getattr(view, 'name', None),
+            'xmlid': view.env.context.get('install_xmlid') or view.xml_id,
+            'view.model': view.model,
+            'view.parent': view.inherit_id,
+            'file': view.env.context.get('install_filename'),
+            'line': failed_node.sourceline if failed_node is not None else 1,
+        }
+
+
 # Deprecated exceptions, only kept for backward compatibility, may be
 # removed in the future *without* any further notice than the Deprecation
 # Warning.
