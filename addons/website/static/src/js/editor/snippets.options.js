@@ -404,7 +404,12 @@ options.Class.include({
     custom_events: _.extend({}, options.Class.prototype.custom_events || {}, {
         'google_fonts_custo_request': '_onGoogleFontsCustoRequest',
     }),
-    specialCheckAndReloadMethodsNames: ['customizeWebsiteViews', 'customizeWebsiteVariable', 'customizeWebsiteColor'],
+    specialCheckAndReloadMethodsNames: [
+        'customizeWebsiteViews',
+        'customizeWebsiteVariable',
+        'customizeWebsiteColor',
+        'customizeWebsiteColorOrGradient',
+    ],
 
     //--------------------------------------------------------------------------
     // Options
@@ -434,6 +439,12 @@ options.Class.include({
     async customizeWebsiteAssets(previewMode, widgetValue, params) {
         await this._customizeWebsite(previewMode, widgetValue, params, 'assets');
     },
+    /**
+     * @see this.selectClass for parameters
+     */
+    async customizeWebsiteColorOrGradient(previewMode, widgetValue, params) {
+        await this._customizeWebsite(previewMode, widgetValue, params, 'colorOrGradient');
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -460,7 +471,15 @@ options.Class.include({
             }
             const isDebugAssets = config.isDebug('assets');
             let paramsReload = isDebugAssets;
-            if (!isDebugAssets) {
+            if (isDebugAssets) {
+                const specialReload = widget.el.dataset.specialReload;
+                if (specialReload === 'on_disable_only') {
+                    // Value is already toggled.
+                    if (widget.getValue()) {
+                        paramsReload = false;
+                    }
+                }
+            } else {
                 for (const methodName of specialMethodsNames) {
                     if (widget.getMethodsParams(methodName).reload) {
                         paramsReload = true;
@@ -491,6 +510,16 @@ options.Class.include({
             case 'customizeWebsiteAssets': {
                 return this._getEnabledCustomizeValues(params.possibleValues, false);
             }
+            case 'customizeWebsiteColorOrGradient': {
+                let gradientValue = weUtils.getCSSVariableValue(params.colorGradient);
+                if (gradientValue) {
+                    if (gradientValue.startsWith("'") && gradientValue.endsWith("'")) {
+                        gradientValue = gradientValue.substring(1, gradientValue.length - 1);
+                    }
+                    return gradientValue;
+                }
+                return weUtils.getCSSVariableValue(params.color);
+            }
         }
         return this._super(...arguments);
     },
@@ -515,6 +544,11 @@ options.Class.include({
                 break;
             case 'assets':
                 await this._customizeWebsiteData(widgetValue, params, false);
+                break;
+            case 'colorOrGradient':
+                await this._customizeWebsiteColorOrGradient(widgetValue, params);
+                break;
+            case 'reloadOnly':
                 break;
             default:
                 if (params.customCustomization) {
@@ -549,6 +583,18 @@ options.Class.include({
     /**
      * @private
      */
+    async _customizeWebsiteColorOrGradient(color, params) {
+        if (weUtils.isColorGradient(color)) {
+            await this._customizeWebsiteVariable(color, {variable: params.colorGradient});
+            await this._customizeWebsiteColors({[params.color]: ''}, params);
+        } else {
+            await this._customizeWebsiteColors({[params.color]: color}, params);
+            await this._customizeWebsiteVariable(null, {variable: params.colorGradient});
+        }
+    },
+    /**
+     * @private
+     */
      async _customizeWebsiteColors(colors, params) {
         colors = colors || {};
 
@@ -576,6 +622,13 @@ options.Class.include({
         return this._makeSCSSCusto('/website/static/src/scss/options/user_values.scss', {
             [params.variable]: value,
         }, params.nullValue);
+    },
+    /**
+     * @private
+     */
+    async _customizeWebsiteVariables(variableValuePair, nullValue) {
+        return this._makeSCSSCusto('/website/static/src/scss/options/user_values.scss',
+            variableValuePair, nullValue);
     },
     /**
      * @private
@@ -949,7 +1002,14 @@ options.registry.BackgroundVideo = options.Class.extend({
     },
 });
 
-options.registry.OptionsTab = options.Class.extend({
+options.registry.OptionsTab = options.Class.extend(options.BackgroundPositionMixin, {
+    xmlDependencies: ['/web_editor/static/src/xml/editor.xml'],
+    specialCheckAndReloadMethodsNames: options.Class.prototype.specialCheckAndReloadMethodsNames
+        .concat([
+            'customizeBodyBg',
+            'toggleBodyBgImage',
+        ]),
+
     GRAY_PARAMS: {EXTRA_SATURATION: "gray-extra-saturation", HUE: "gray-hue"},
 
     /**
@@ -959,6 +1019,7 @@ options.registry.OptionsTab = options.Class.extend({
         this._super(...arguments);
         this.grayParams = {};
         this.grays = {};
+        this.$t = $('#wrapwrap');
     },
 
     //--------------------------------------------------------------------------
@@ -1077,25 +1138,32 @@ options.registry.OptionsTab = options.Class.extend({
         });
     },
     /**
-     * @see this.selectClass for parameters
-     */
-    async customizeBodyBgType(previewMode, widgetValue, params) {
-        if (widgetValue === 'NONE') {
-            this.bodyImageType = 'image';
-            return this.customizeBodyBg(previewMode, '', params);
-        }
-        // TODO improve: hack to click on external image picker
-        this.bodyImageType = widgetValue;
-        const widget = this._requestUserValueWidgets(params.imagepicker)[0];
-        widget.enable();
-    },
-    /**
      * @override
      */
     async customizeBodyBg(previewMode, widgetValue, params) {
-        // TODO improve: customize two variables at the same time...
-        await this.customizeWebsiteVariable(previewMode, this.bodyImageType, {variable: 'body-image-type'});
-        await this.customizeWebsiteVariable(previewMode, widgetValue ? `'${widgetValue}'` : '', {variable: 'body-image'});
+        if (previewMode) {
+            return;
+        }
+        // Customize several variables at the same time.
+        await this._customizeWebsiteVariables({
+            'body-image-type': 'image',
+            'body-image-repeat-size': null,
+            'body-image-position': null,
+            'body-image': widgetValue ? `'${widgetValue}'` : '',
+        }, params.nullValue);
+        await this._customizeWebsite(previewMode, widgetValue, params, 'reloadOnly');
+    },
+    /**
+     * Toggles background image on or off.
+     *
+     * @see this.selectClass for parameters
+     */
+    async toggleBodyBgImage(previewMode, widgetValue, params) {
+        if (widgetValue) {
+            this._requestUserValueWidgets('body_bg_image_opt')[0].enable();
+        } else {
+            await this.customizeBodyBg(previewMode, '', {});
+        }
     },
     /**
      * @see this.selectClass for parameters
@@ -1256,12 +1324,9 @@ options.registry.OptionsTab = options.Class.extend({
      * @override
      */
     async _computeWidgetState(methodName, params) {
-        if (methodName === 'customizeBodyBgType') {
-            const bgImage = $('#wrapwrap').css('background-image');
-            if (bgImage === 'none') {
-                return "NONE";
-            }
-            return weUtils.getCSSVariableValue('body-image-type');
+        if (methodName === 'toggleBodyBgImage') {
+            const bgImageParts = weUtils.backgroundImageCssToParts(this.$t.css('background-image'));
+            return !!bgImageParts.url;
         }
         if (methodName === 'customizeGray') {
             // See updateUI override
@@ -1273,9 +1338,6 @@ options.registry.OptionsTab = options.Class.extend({
      * @override
      */
     async _computeWidgetVisibility(widgetName, params) {
-        if (widgetName === 'body_bg_image_opt') {
-            return false;
-        }
         if (params.param === this.GRAY_PARAMS.HUE) {
             return this.grayHueIsDefined;
         }
@@ -1316,6 +1378,22 @@ options.registry.OptionsTab = options.Class.extend({
         uiFragment.querySelectorAll('we-colorpicker').forEach(el => {
             el.dataset.lazyPalette = 'true';
         });
+    },
+    /**
+     * @override
+     */
+    async _applyPosition(position) {
+        await options.BackgroundPositionMixin._applyPosition.apply(this, arguments);
+        await this.customizeWebsiteVariable(false, position, {variable: 'body-image-position'});
+    },
+    /**
+     * @override
+     */
+    _getOverlaySize() {
+        return {
+            width: this.$t.innerWidth(),
+            height: this.$t.innerHeight(),
+        };
     },
 });
 

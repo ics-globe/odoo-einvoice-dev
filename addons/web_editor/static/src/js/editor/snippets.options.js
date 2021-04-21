@@ -6508,17 +6508,16 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
 });
 
 /**
- * Handles the edition of snippets' background image position.
+ * Mixin handling background image positioning.
  */
-registry.BackgroundPosition = SnippetOptionWidget.extend({
-    xmlDependencies: ['/web_editor/static/src/xml/editor.xml'],
-
+const BackgroundPositionMixin = {
     /**
      * @override
      */
     start: function () {
         this._super.apply(this, arguments);
 
+        this.$t = this.$t || this.$target; // Image target, by default equivalent to $target.
         this._initOverlay();
 
         // Resize overlay content on window resize because background images
@@ -6540,29 +6539,22 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * Sets the background type (cover/repeat pattern).
-     *
-     * @see this.selectClass for params
-     */
-    backgroundType: function (previewMode, widgetValue, params) {
-        this.$target.toggleClass('o_bg_img_opt_repeat', widgetValue === 'repeat-pattern');
-        this.$target.css('background-position', '');
-        this.$target.css('background-size', '');
-    },
-    /**
      * Saves current background position and enables overlay.
      *
      * @see this.selectClass for params
      */
     backgroundPositionOverlay: async function (previewMode, widgetValue, params) {
+        if (this.$backgroundOverlay && this.$backgroundOverlay.is('.oe_active')) {
+            return;
+        }
         // Updates the internal image
         await new Promise(resolve => {
             this.img = document.createElement('img');
             this.img.addEventListener('load', () => resolve());
-            this.img.src = getBgImageURL(this.$target[0]);
+            this.img.src = getBgImageURL(this.$t[0]);
         });
 
-        const position = this.$target.css('background-position').split(' ').map(v => parseInt(v));
+        const position = this.$t.css('background-position').split(' ').map(v => parseInt(v));
         const delta = this._getBackgroundDelta();
         // originalPosition kept in % for when movement in one direction doesn't make sense
         this.originalPosition = {
@@ -6575,7 +6567,7 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
             top: position[1] / 100 * delta.y || 0,
         };
         // Make sure the element is in a visible area.
-        const rect = this.$target[0].getBoundingClientRect();
+        const rect = this.$t[0].getBoundingClientRect();
         const viewportTop = $(window).scrollTop();
         const viewportBottom = viewportTop + $(window).height();
         const visibleHeight = rect.top < viewportTop
@@ -6584,21 +6576,9 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
                 ? Math.min(viewportBottom, rect.bottom) - rect.top // Starts inside
                 : 0; // Starts after
         if (visibleHeight < 200) {
-            await scrollTo(this.$target[0], {extraOffset: 50});
+            await scrollTo(this.$t[0], {extraOffset: 50});
         }
         this._toggleBgOverlay(true);
-    },
-    /**
-     * @override
-     */
-    selectStyle: function (previewMode, widgetValue, params) {
-        if (params.cssProperty === 'background-size'
-                && !this.$target.hasClass('o_bg_img_opt_repeat')) {
-            // Disable the option when the image is in cover mode, otherwise
-            // the background-size: auto style may be forced.
-            return;
-        }
-        this._super(...arguments);
     },
 
     //--------------------------------------------------------------------------
@@ -6606,19 +6586,13 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * @override
+     * Applies the new position
+     *
+     * @private
+     * @param position as obtained from CSS "background-position"
      */
-    _computeVisibility: function () {
-        return this._super(...arguments) && !!getBgImageURL(this.$target[0]);
-    },
-    /**
-     * @override
-     */
-    _computeWidgetState: function (methodName, params) {
-        if (methodName === 'backgroundType') {
-            return this.$target.css('background-repeat') === 'repeat' ? 'repeat-pattern' : 'cover';
-        }
-        return this._super(...arguments);
+    _applyPosition: async function (position) {
+        this.$t.css('background-position', position);
     },
     /**
      * Initializes the overlay, binds events to the buttons, inserts it in
@@ -6631,8 +6605,8 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
         this.$overlayContent = this.$backgroundOverlay.find('.o_we_overlay_content');
         this.$overlayBackground = this.$overlayContent.find('.o_overlay_background');
 
-        this.$backgroundOverlay.on('click', '.o_btn_apply', () => {
-            this.$target.css('background-position', this.$bgDragger.css('background-position'));
+        this.$backgroundOverlay.on('click', '.o_btn_apply', async () => {
+            await this._applyPosition(this.$bgDragger[0].style['background-position']);
             this._toggleBgOverlay(false);
         });
         this.$backgroundOverlay.on('click', '.o_btn_discard', () => {
@@ -6651,24 +6625,33 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
         if (!this.$backgroundOverlay.is('.oe_active')) {
             return;
         }
-        // TODO: change #wrapwrap after web_editor rework.
-        const $wrapwrap = $('#wrapwrap');
-        const targetOffset = this.$target.offset();
+        const targetOffset = this.$t.offset();
 
-        this.$backgroundOverlay.css({
-            width: $wrapwrap.innerWidth(),
-            height: $wrapwrap.innerHeight(),
-        });
+        this.$backgroundOverlay.css(this._getOverlaySize());
 
         this.$overlayContent.offset(targetOffset);
 
         this.$bgDragger.css({
-            width: `${this.$target.innerWidth()}px`,
-            height: `${this.$target.innerHeight()}px`,
+            width: `${this.$t.innerWidth()}px`,
+            height: `${this.$t.innerHeight()}px`,
         });
 
-        const topPos = Math.max(0, $(window).scrollTop() - this.$target.offset().top);
+        const topPos = Math.max(0, $(window).scrollTop() - this.$t.offset().top);
         this.$overlayContent.find('.o_we_overlay_buttons').css('top', `${topPos}px`);
+    },
+    /**
+     * Returns the overlay size.
+     *
+     * @private
+     * @returns {Object} width and height of overlay
+     */
+    _getOverlaySize() {
+        // TODO: change #wrapwrap after web_editor rework.
+        const $wrapwrap = $('#wrapwrap');
+        return {
+            width: $wrapwrap.innerWidth(),
+            height: $wrapwrap.innerHeight(),
+        };
     },
     /**
      * Toggles the overlay's display and renders a background clone inside of it.
@@ -6684,29 +6667,36 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
         if (!activate) {
             this.$backgroundOverlay.removeClass('oe_active');
             this.trigger_up('unblock_preview_overlays');
-            this.trigger_up('activate_snippet', {$snippet: this.$target});
-
+            if (this.$t === this.$target) {
+                this.trigger_up('activate_snippet', {$snippet: this.$t});
+            }
             $(document).off('click.bgposition');
             return;
         }
 
         this.trigger_up('hide_overlay');
         this.trigger_up('activate_snippet', {
-            $snippet: this.$target,
+            $snippet: this.$t,
             previewMode: true,
         });
         this.trigger_up('block_preview_overlays');
 
-        // Create empty clone of $target with same display size, make it draggable and give it a tooltip.
-        this.$bgDragger = this.$target.clone().empty();
+        // Create empty clone of $t with same display size, make it draggable and give it a tooltip.
+        this.$bgDragger = this.$t.clone().empty();
         // Prevent clone from being seen as editor if target is editor (eg. background on root tag)
         this.$bgDragger.removeClass('o_editable');
-        // Some CSS child selector rules will not be applied since the clone has a different container from $target.
-        // The background-attachment property should be the same in both $target & $bgDragger, this will keep the
+        // Some CSS child selector rules will not be applied since the clone has a different container from $t.
+        // The background-attachment property should be the same in both $t & $bgDragger, this will keep the
         // preview more "wysiwyg" instead of getting different result when bg position saved (e.g. parallax snippet)
-        // TODO: improve this to copy all style from $target and override it with overlay related style (copying all
+        // TODO: improve this to copy all style from $t and override it with overlay related style (copying all
         // css into $bgDragger will not work since it will change overlay content style too).
-        this.$bgDragger.css('background-attachment', this.$target.css('background-attachment'));
+        this.$bgDragger.css('background-attachment', this.$t.css('background-attachment'));
+        if (this.$bgDragger.css('background-repeat') === 'no-repeat') {
+            this.$bgDragger.css('background-size', 'cover');
+        }
+        if (this.data['draggerTransparent']) {
+            this.$bgDragger.css('opacity', 0.8);
+        }
         this.$bgDragger.on('mousedown', this._onDragBackgroundStart.bind(this));
         this.$bgDragger.tooltip({
             title: 'Click and drag the background to adjust its position!',
@@ -6731,31 +6721,31 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
      * @private
      */
     _getBackgroundDelta: function () {
-        const bgSize = this.$target.css('background-size');
+        const bgSize = this.$t.css('background-size');
         if (bgSize !== 'cover') {
             let [width, height] = bgSize.split(' ');
             if (width === 'auto' && (height === 'auto' || !height)) {
                 return {
-                    x: this.$target.outerWidth() - this.img.naturalWidth,
-                    y: this.$target.outerHeight() - this.img.naturalHeight,
+                    x: this.$t.outerWidth() - this.img.naturalWidth,
+                    y: this.$t.outerHeight() - this.img.naturalHeight,
                 };
             }
             // At least one of width or height is not auto, so we can use it to calculate the other if it's not set
             [width, height] = [parseInt(width), parseInt(height)];
             return {
-                x: this.$target.outerWidth() - (width || (height * this.img.naturalWidth / this.img.naturalHeight)),
-                y: this.$target.outerHeight() - (height || (width * this.img.naturalHeight / this.img.naturalWidth)),
+                x: this.$t.outerWidth() - (width || (height * this.img.naturalWidth / this.img.naturalHeight)),
+                y: this.$t.outerHeight() - (height || (width * this.img.naturalHeight / this.img.naturalWidth)),
             };
         }
 
         const renderRatio = Math.max(
-            this.$target.outerWidth() / this.img.naturalWidth,
-            this.$target.outerHeight() / this.img.naturalHeight
+            this.$t.outerWidth() / this.img.naturalWidth,
+            this.$t.outerHeight() / this.img.naturalHeight
         );
 
         return {
-            x: this.$target.outerWidth() - Math.round(renderRatio * this.img.naturalWidth),
-            y: this.$target.outerHeight() - Math.round(renderRatio * this.img.naturalHeight),
+            x: this.$t.outerWidth() - Math.round(renderRatio * this.img.naturalWidth),
+            y: this.$t.outerHeight() - Math.round(renderRatio * this.img.naturalHeight),
         };
     },
 
@@ -6817,6 +6807,58 @@ registry.BackgroundPosition = SnippetOptionWidget.extend({
         if (!$(ev.target).closest('.o_we_background_position_overlay').length) {
             this._toggleBgOverlay(false);
         }
+    },
+};
+
+/**
+ * Handles the edition of snippets' background image position.
+ */
+registry.BackgroundPosition = SnippetOptionWidget.extend(BackgroundPositionMixin, {
+    xmlDependencies: ['/web_editor/static/src/xml/editor.xml'],
+
+    //--------------------------------------------------------------------------
+    // Options
+    //--------------------------------------------------------------------------
+
+    /**
+     * Sets the background type (cover/repeat pattern).
+     *
+     * @see this.selectClass for params
+     */
+    backgroundType: function (previewMode, widgetValue, params) {
+        this.$target.toggleClass('o_bg_img_opt_repeat', widgetValue === 'pattern');
+        this.$target.css('background-position', '');
+        this.$target.css('background-size', '');
+        this.$target.css('background-repeat', widgetValue === 'pattern' ? 'repeat' : 'no-repeat');
+    },
+    /**
+     * @override
+     */
+    selectStyle: function (previewMode, widgetValue, params) {
+        if (params.cssProperty === 'background-size'
+                && !this.$target.hasClass('o_bg_img_opt_repeat')) {
+            // Disable the option when the image is in cover mode, otherwise
+            // the background-size: auto style may be forced.
+            return;
+        }
+        this._super(...arguments);
+    },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * @override
+     */
+    _computeWidgetState: function (methodName, params) {
+        if (methodName === 'backgroundType') {
+            if (getBgImageURL(this.$target[0])) {
+                return this.$target.css('background-repeat') === 'repeat' ? 'pattern' : 'image';
+            }
+            return '';
+        }
+        return this._super(...arguments);
     },
 });
 
@@ -7401,6 +7443,7 @@ return {
     UserValueWidget: UserValueWidget,
     userValueWidgetsRegistry: userValueWidgetsRegistry,
     UnitUserValueWidget: UnitUserValueWidget,
+    BackgroundPositionMixin: BackgroundPositionMixin,
 
     addTitleAndAllowedAttributes: _addTitleAndAllowedAttributes,
     buildElement: _buildElement,
