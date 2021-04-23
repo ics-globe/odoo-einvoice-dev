@@ -127,9 +127,13 @@ Wysiwyg.include({
         }
         this.__savedCovers[resModel].push(resID);
 
-        var cssBgImage = $(el.querySelector('.o_record_cover_image')).css('background-image');
-        var coverProps = {
+        const $bgImage = $(el.querySelector('.o_record_cover_image'));
+        const cssBgImage = $bgImage.css('background-image');
+        const coverProps = {
             'background-image': cssBgImage.replace(/"/g, '').replace(window.location.protocol + "//" + window.location.host, ''),
+            'background-position': $bgImage[0].style['background-position'],
+            'background-repeat': $bgImage[0].style['background-repeat'],
+            'background-size': $bgImage[0].style['background-size'],
             'background_color_class': el.dataset.bgColorClass,
             'background_color_style': el.dataset.bgColorStyle,
             'opacity': el.dataset.filterValue,

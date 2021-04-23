@@ -2635,20 +2635,16 @@ options.registry.CoverProperties = options.Class.extend({
     //--------------------------------------------------------------------------
 
     /**
-     * Handles a background change.
+     * Toggles background image on or off.
      *
      * @see this.selectClass for parameters
      */
-    background: async function (previewMode, widgetValue, params) {
-        if (widgetValue === '') {
+    toggleBgImage: async function (previewMode, widgetValue, params) {
+        if (widgetValue) {
+            this._requestUserValueWidgets('bg_image_opt')[0].enable();
+        } else {
             this.$image.css('background-image', '');
             this.$target.removeClass('o_record_has_cover');
-        } else {
-            this.$image.css('background-image', `url('${widgetValue}')`);
-            this.$target.addClass('o_record_has_cover');
-            const $defaultSizeBtn = this.$el.find('.o_record_cover_opt_size_default');
-            $defaultSizeBtn.click();
-            $defaultSizeBtn.closest('we-select').click();
         }
 
         if (!previewMode) {
@@ -2699,12 +2695,9 @@ options.registry.CoverProperties = options.Class.extend({
             case 'filterValue': {
                 return parseFloat(this.$filter.css('opacity')).toFixed(1);
             }
-            case 'background': {
+            case 'toggleBgImage': {
                 const background = this.$image.css('background-image');
-                if (background && background !== 'none') {
-                    return background.match(/^url\(["']?(.+?)["']?\)$/)[1];
-                }
-                return '';
+                return background && background !== 'none';
             }
         }
         return this._super(...arguments);
