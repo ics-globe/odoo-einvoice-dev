@@ -89,8 +89,8 @@ class SaleAdvancePaymentInv(models.TransientModel):
             'medium_id': order.medium_id.id,
             'source_id': order.source_id.id,
             'invoice_line_ids': [(0, 0, {
-                'name': self._get_order_name(order),
-                'price_unit': self._get_order_amount(order),
+                'name': self._get_down_payment_name(order),
+                'price_unit': self._get_down_payment_amount(order),
                 'quantity': 1.0,
                 'product_id': self.product_id.id,
                 'product_uom_id': so_line.product_uom.id,
@@ -111,9 +111,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
     def _get_down_payment_name(self, order):
         context = {'lang': order.partner_id.lang}
         if self.advance_payment_method == 'percentage':
-            name = _("Down payment of %s%%", self.amount)
+            name = _("Down payment of %s%% (%s)", self.amount, time.strftime('%m %Y'))
         else:
-            name = _('Down Payment')
+            name = _('Down Payment (%s)', time.strftime('%m %Y'))
         del context
 
         return name
@@ -136,9 +136,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
             lambda t: t.company_id == order.company_id)
         taxes = order.fiscal_position_id.map_tax(product_taxes)
         amount = self._get_down_payment_amount(order)
-        name = self._get_down_payment_name(order) # Fixme why is the soline described with the downpayment time, while this is not the case for the invoice ?
+        name = self._get_down_payment_name(order)
         return {
-            'name': _('Down Payment: %s', time.strftime('%m %Y')),
+            'name': name,
             'price_unit': amount,
             'product_uom_qty': 0.0,
             'order_id': order.id,
