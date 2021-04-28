@@ -301,15 +301,20 @@ class Lead(models.Model):
             # invalidate wrong configuration: company not in responsible companies or in team company if set
             if proposal and lead.user_id and proposal not in lead.user_id.company_ids:
                 proposal = False
-            if proposal and lead.team_id.company_id and proposal != lead.team_id.company_id:
-                proposal = False
+            if proposal and proposal != lead.team_id.company_id:
+                if lead.team_id.company_id:  # inconsistent
+                    proposal = False
+                elif lead.team_id and not lead.user_id:  # void company on team and no assignee
+                    proposal = False
 
             # propose a new company based on responsible, limited by team
             if not proposal:
-                if not lead.user_id or lead.user_id == self.env.user:
-                    proposal = self.env.company
-                elif lead.user_id:
-                    proposal = lead.user_id.company_id
+                if lead.user_id:
+                    proposal = lead.team_id.company_id or lead.user_id.company_id
+                elif lead.team_id:
+                    proposal = lead.team_id.company_id
+                else:
+                    proposal = False
 
                 if lead.team_id.company_id and proposal != lead.team_id.company_id:
                     proposal = False

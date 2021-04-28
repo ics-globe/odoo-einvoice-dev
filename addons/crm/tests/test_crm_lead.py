@@ -652,3 +652,31 @@ class TestCRMLead(TestCrmCommon):
         self.assertEqual(lead.phone, self.test_phone_data[1])
         self.assertEqual(lead.mobile, self.test_phone_data[2])
         self.assertFalse(lead.phone_sanitized)
+
+
+class TestCRMLeadMultiCompany(TestCrmCommon):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestCRMLeadMultiCompany, cls).setUpClass()
+        cls.new_company = cls.env['res.company'].create({'name': 'Other Company'})
+        cls.company_team = cls.env['crm.team'].create({'name': 'Company Team', 'company_id': cls.new_company.id})
+        cls.no_company_team = cls.env['crm.team'].create({'name': 'No Company Team', 'company_id': False})
+
+    def test_multicompany_team(self):
+        """ Create lead without user, check the company is set from the team_id
+            or from the env if there is no team
+        """
+
+        lead_no_team = self.env['crm.lead'].create({'name': 'L1', 'team_id': False, 'user_id': False})
+        self.assertFalse(lead_no_team.company_id)
+
+        lead_team_company = self.env['crm.lead'].create({'name': 'L2', 'team_id': self.company_team.id, 'user_id': False})
+        self.assertEqual(lead_team_company.company_id, self.company_team.company_id)
+        lead_team_company.team_id = self.no_company_team
+        self.assertEqual(lead_team_company.company_id, self.no_company_team.company_id)
+
+        lead_team_no_company = self.env['crm.lead'].create({'name': 'No company', 'team_id': self.no_company_team.id, 'user_id': False})
+        self.assertEqual(lead_team_no_company.company_id, self.no_company_team.company_id)
+        lead_team_no_company.team_id = self.company_team
+        self.assertEqual(lead_team_no_company.company_id, self.company_team.company_id)
