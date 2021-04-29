@@ -686,51 +686,54 @@ class BaseModel(object):
         for name, field in manual_fields.iteritems():
             if name in self._fields:
                 continue
-            attrs = {
-                'manual': True,
-                'string': field['field_description'],
-                'help': field['help'],
-                'index': bool(field['index']),
-                'copy': bool(field['copy']),
-                'related': field['related'],
-                'required': bool(field['required']),
-                'readonly': bool(field['readonly']),
-            }
-            # FIXME: ignore field['serialization_field_id']
-            if field['ttype'] in ('char', 'text', 'html'):
-                attrs['translate'] = bool(field['translate'])
-                attrs['size'] = field['size'] or None
-            elif field['ttype'] in ('selection', 'reference'):
-                attrs['selection'] = eval(field['selection'])
-            elif field['ttype'] == 'many2one':
-                if partial and field['relation'] not in self.pool:
-                    continue
-                attrs['comodel_name'] = field['relation']
-                attrs['ondelete'] = field['on_delete']
-                attrs['domain'] = eval(field['domain']) if field['domain'] else None
-            elif field['ttype'] == 'one2many':
-                if partial and not (
-                    field['relation'] in self.pool and (
-                        field['relation_field'] in self.pool[field['relation']]._fields or
-                        field['relation_field'] in self.pool.get_manual_fields(self._cr, field['relation'])
-                )):
-                    continue
-                attrs['comodel_name'] = field['relation']
-                attrs['inverse_name'] = field['relation_field']
-                attrs['domain'] = eval(field['domain']) if field['domain'] else None
-            elif field['ttype'] == 'many2many':
-                if partial and field['relation'] not in self.pool:
-                    continue
-                attrs['comodel_name'] = field['relation']
-                rel, col1, col2 = self.env['ir.model.fields']._custom_many2many_names(field['model'], field['relation'])
-                attrs['relation'] = field['relation_table'] or rel
-                attrs['column1'] = field['column1'] or col1
-                attrs['column2'] = field['column2'] or col2
-                attrs['domain'] = eval(field['domain']) if field['domain'] else None
-            # add compute function if given
-            if field['compute']:
-                attrs['compute'] = make_compute(field['compute'], field['depends'])
-            self._add_field(name, Field.by_type[field['ttype']](**attrs))
+            try:
+                attrs = {
+                    'manual': True,
+                    'string': field['field_description'],
+                    'help': field['help'],
+                    'index': bool(field['index']),
+                    'copy': bool(field['copy']),
+                    'related': field['related'],
+                    'required': bool(field['required']),
+                    'readonly': bool(field['readonly']),
+                }
+                # FIXME: ignore field['serialization_field_id']
+                if field['ttype'] in ('char', 'text', 'html'):
+                    attrs['translate'] = bool(field['translate'])
+                    attrs['size'] = field['size'] or None
+                elif field['ttype'] in ('selection', 'reference'):
+                    attrs['selection'] = eval(field['selection'])
+                elif field['ttype'] == 'many2one':
+                    if partial and field['relation'] not in self.pool:
+                        continue
+                    attrs['comodel_name'] = field['relation']
+                    attrs['ondelete'] = field['on_delete']
+                    attrs['domain'] = eval(field['domain']) if field['domain'] else None
+                elif field['ttype'] == 'one2many':
+                    if partial and not (
+                        field['relation'] in self.pool and (
+                            field['relation_field'] in self.pool[field['relation']]._fields or
+                            field['relation_field'] in self.pool.get_manual_fields(self._cr, field['relation'])
+                    )):
+                        continue
+                    attrs['comodel_name'] = field['relation']
+                    attrs['inverse_name'] = field['relation_field']
+                    attrs['domain'] = eval(field['domain']) if field['domain'] else None
+                elif field['ttype'] == 'many2many':
+                    if partial and field['relation'] not in self.pool:
+                        continue
+                    attrs['comodel_name'] = field['relation']
+                    rel, col1, col2 = self.env['ir.model.fields']._custom_many2many_names(field['model'], field['relation'])
+                    attrs['relation'] = field['relation_table'] or rel
+                    attrs['column1'] = field['column1'] or col1
+                    attrs['column2'] = field['column2'] or col2
+                    attrs['domain'] = eval(field['domain']) if field['domain'] else None
+                # add compute function if given
+                if field['compute']:
+                    attrs['compute'] = make_compute(field['compute'], field['depends'])
+                self._add_field(name, Field.by_type[field['ttype']](**attrs))
+            except Exception:
+                _logger.exception("Failed to load field %s.%s: skipped", self._name, name)
 
     @classmethod
     def _init_constraints_onchanges(cls):
@@ -3056,7 +3059,7 @@ class BaseModel(object):
             try:
                 field.setup_full(self)
             except Exception:
-                if partial and field.manual:
+                if field.manual:
                     # Something goes wrong when setup a manual field.
                     # This can happen with related fields using another manual many2one field
                     # that hasn't been loaded because the comodel does not exist yet.
