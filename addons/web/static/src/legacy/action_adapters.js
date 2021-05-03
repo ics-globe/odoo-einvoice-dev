@@ -319,6 +319,7 @@ export class ViewAdapter extends ActionAdapter {
           recordIds: state.resIds,
           searchModel: state.searchModel,
           searchPanel: state.searchPanel,
+          mode: payload.mode,
         });
       } catch (e) {
         if (e instanceof ViewNotFoundError) {

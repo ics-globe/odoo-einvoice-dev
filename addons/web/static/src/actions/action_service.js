@@ -363,6 +363,9 @@ function makeActionManager(env) {
     if (options.searchPanel) {
       props.searchPanel = options.searchPanel;
     }
+    if (options.mode) {
+      props.mode = options.mode;
+    }
     return props;
   }
 
