@@ -32,7 +32,6 @@ function registerView(name, LegacyView) {
         // legacy views automatically add the last part of the breadcrumbs
         breadcrumbs: breadcrumbsToLegacy(this.props.breadcrumbs),
         modelName: this.props.model,
-        mode: this.props.mode,
         currentId: this.props.recordId,
         controllerState: {
           currentId:
