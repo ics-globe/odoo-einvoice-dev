@@ -209,26 +209,7 @@ class AttachmentViewer extends Component {
      * @private
      */
     _print() {
-        const printWindow = window.open('about:blank', '_new');
-        printWindow.document.open();
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <script>
-                        function onloadImage() {
-                            setTimeout('printImage()', 10);
-                        }
-                        function printImage() {
-                            window.print();
-                            window.close();
-                        }
-                    </script>
-                </head>
-                <body onload='onloadImage()'>
-                    <img src="${this.attachmentViewer.attachment.defaultSource}" alt=""/>
-                </body>
-            </html>`);
-        printWindow.document.close();
+        window.print();
     }
 
     /**

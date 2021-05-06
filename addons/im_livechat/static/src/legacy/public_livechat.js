@@ -3826,14 +3826,7 @@ var DocumentViewer = Widget.extend({
      */
     _onPrint: function (e) {
         e.preventDefault();
-        var src = this.$('.o_viewer_img').prop('src');
-        var script = QWeb.render('im_livechat.legacy.mail.PrintImage', {
-            src: src
-        });
-        var printWindow = window.open('about:blank', "_new");
-        printWindow.document.open();
-        printWindow.document.write(script);
-        printWindow.document.close();
+        window.print();
     },
     /**
      * Zoom image on scroll
