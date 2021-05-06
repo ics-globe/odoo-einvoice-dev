@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+    <t t-name="mail.Category" owl="1">
+        <div class="o_Category" t-att-category-local-id="category.localId" t-att-category-type="category.type">
+            <div class="o_Category_header">
+                <div class="o_Category_title o_Category_headerItem" t-on-click="_toggleCategoryOpen">
+                    <div class="o_Category_titleIcon fa" t-att-class="category.isOpen ? 'fa-chevron-down' : 'fa-chevron-right'"/>
+                    <span class="o_Category_titleText"><t t-esc="category.displayName"/></span>
+                </div>
+                <div class="o-autogrow o_Category_headerItem"/>
+                <div class="o_Category_commands o_Category_headerItem">
+                    <t t-if="category.hasView">
+                        <div class="o_Category_command o_Category_commandView fa fa-cog" title="View or join channels" t-on-click="_onClickView" role="img"/>
+                    </t>
+                    <t t-if="category.hasAdd">
+                        <div class="o_Category_command o_CategoryCommandAdd fa fa-plus" t-on-click="_onClickAdd" t-att-title="COMMAND_ADD_TITLE" role="img"/>
+                    </t>
+                </div>
+                <t t-if="!category.isOpen and category.counter > 0">
+                    <div class="o_Category_counter o_Category_headerItem badge badge-pill">
+                        <t t-esc="category.counter"/>
+                    </div>
+                </t>
+            </div>
+            <div class="o_Category_content">
+                <t t-if="category.isOpen">
+                    <t t-if="category.isAddingItem">
+                        <div class="o_Category_newItem">
+                            <AutocompleteInput
+                                class="o_Category_itemNewInput"
+                                customClass="category.type === 'channel' ? 'o_Category_newChannelAutocompleteSuggestions' : ''"
+                                isFocusOnMount="true"
+                                isHtml="true"
+                                placeholder="NEW_ITEM_PLACEHOLDER"
+                                select="_onAddItemAutocompleteSelect"
+                                source="_onAddItemAutocompleteSource"
+                                t-on-o-hide="_onHideAddingItem"
+                            />
+                        </div>
+                    </t>
+                    <t t-foreach="category.categoryItems" t-as="item" t-key="item.localId">
+                        <CategoryItem 
+                            class="o_Category_item" 
+                            categoryItemLocalId="item.localId"
+                        />
+                    </t>
+                </t>
+                <t t-else="">
+                    <t t-if="category.activeItem">
+                        <CategoryItem 
+                            class="o_Category_item" 
+                            categoryItemLocalId="category.activeItem.localId"
+                        />
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

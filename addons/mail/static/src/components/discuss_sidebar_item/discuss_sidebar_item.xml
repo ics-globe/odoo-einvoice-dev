@@ -13,7 +13,7 @@
                 <div class=" o_DiscussSidebarItem_activeIndicator o_DiscussSidebarItem_item" t-att-class="{ 'o-item-active': discuss.thread === thread }"/>
                 <ThreadIcon class="o_DiscussSidebarItem_item" threadLocalId="thread.localId"/>
                 <t t-if="thread.channel_type === 'chat' and discuss.renamingThreads.includes(thread)">
-                    <div class="o_DiscussSidebarItem_item o_DiscussSidebarItem_name o-editable">
+                    <!-- <div class="o_DiscussSidebarItem_item o_DiscussSidebarItem_name o-editable">
                         <EditableText
                             class="o_DiscussSidebarItem_nameInput"
                             placeholder="thread.correspondent ? thread.correspondent.name : thread.name"
@@ -22,7 +22,7 @@
                             t-on-o-clicked="_onClickedEditableText"
                             t-on-o-validate="_onValidateEditableText"
                         />
-                    </div>
+                    </div> -->
                 </t>
                 <t t-else="">
                     <div class="o_DiscussSidebarItem_item o_DiscussSidebarItem_name" t-att-class="{ 'o-item-unread': thread.localMessageUnreadCounter > 0 }">

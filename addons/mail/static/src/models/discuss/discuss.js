@@ -237,6 +237,17 @@ function factory(dependencies) {
             return `${thread.model}_${thread.id}`;
         }
 
+        /**
+         * @param {String} value
+         */
+         updateSidebarQuickSearchValue(value) {
+            if (!this.sidebarQuickSearchValue) {
+                this.categoryChat.open();
+                this.categoryChannel.open();
+            }
+            this.update({ sidebarQuickSearchValue: value });
+        }
+
         //----------------------------------------------------------------------
         // Private
         //----------------------------------------------------------------------
@@ -394,6 +405,8 @@ function factory(dependencies) {
             default: "",
             dependencies: ['isOpen'],
         }),
+        categoryChannel: one2one('mail.category'),
+        categoryChat: one2one('mail.category'),
         /**
          * Serves as compute dependency.
          */

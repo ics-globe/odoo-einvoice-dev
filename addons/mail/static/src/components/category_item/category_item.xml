@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mail.CategoryItem" owl="1">
+        <div class="o_CategoryItem"
+            t-att-class="{
+                'o-active': categoryItem.isActive,
+                'o-unread': categoryItem.isUnread,
+            }" t-on-click="_onClick" t-att-data-thread-local-id="thread.localId" t-att-data-thread-name="categoryItem.displayName"
+        >
+            <div class="o_CategoryItem_item o_CategoryItem_avatar">
+                <div class="o_CategoryItem_imageContainer">
+                    <img class="o_CategoryItem_image rounded-circle" t-att-src="categoryItem.avatarUrl" alt="Thread Image"/>
+                    <ThreadIcon class="o_CategoryItem_threadIcon" threadLocalId="thread.localId"/>
+                </div>
+            </div>
+            <t t-if="categoryItem.isRenaming">
+                <span class="o_CategoryItem_item o_CategoryItem_name o-editable">
+                    <EditableText
+                        class="o_CategoryItem_nameInput"
+                        placeholder="categoryItem.correspondent ? categoryItem.correspondent.name : categoryItem.threadName"
+                        value="categoryItem.displayName"
+                        t-on-o-cancel="_onCancelRenaming"
+                        t-on-o-clicked="_onClickedEditableText"
+                        t-on-o-validate="_onValidateEditableText"
+                    />
+                </span>
+            </t>
+            <t t-else="">
+                <span class="o_CategoryItem_item o_CategoryItem_name" t-att-class="{ 'o-item-unread': categoryItem.isUnread }">
+                    <t t-esc="categoryItem.displayName"/>
+                </span>
+                <t t-if="categoryItem.threadMassMailing">
+                    <i class="fa fa-envelope-o" title="Messages are sent by email" role="img"/>
+                </t>
+            </t>
+            <div class="o-autogrow o_CategoryItem_item"/>
+            <div class="o_CategoryItem_item o_CategoryItem_commands">
+                <t t-if="categoryItem.hasSettings">
+                    <div class="o_CategoryItem_command o_CategoryItem_commandSettings fa fa-cog" t-on-click="_onClickSettings" title="Channel settings" role="img"/>
+                </t>
+                <t t-if="categoryItem.hasLeave">
+                    <div class="o_CategoryItem_command o_CategoryItem_commandLeave fa fa-times" t-on-click="_onClickLeave" title="Leave this channel" role="img"/>
+                </t>
+                <t t-if="categoryItem.hasRename">
+                    <div class="o_CategoryItem_command o_CategoryItem_commandRname fa fa-cog" t-on-click="_onClickRename" title="Rename conversation" role="img"/>
+                </t>
+                <t t-if="categoryItem.hasUnpin">
+                    <div class="o_CategoryItem_command o_CategoryItem_commandUnpin fa fa-times" t-on-click="_onClickUnpin" title="Unpin Conversation" role="img"/>
+                </t>
+            </div>
+            <t t-if="categoryItem.counter > 0">
+                <div class="o_CategoryItem_counter o_CategoryItem_item badge badge-pill">
+                    <t t-esc="categoryItem.counter"/>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

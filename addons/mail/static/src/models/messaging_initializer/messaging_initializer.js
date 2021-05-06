@@ -70,6 +70,7 @@ function factory(dependencies) {
         /**
          * @private
          * @param {Object} param0
+         * @param {Object} param0.category_open_states
          * @param {Object} param0.channel_slots
          * @param {Array} [param0.commands=[]]
          * @param {Object} param0.current_partner
@@ -85,6 +86,7 @@ function factory(dependencies) {
          * @param {integer} [param0.starred_counter=0]
          */
         async _init({
+            category_open_states,
             channel_slots,
             commands = [],
             current_partner,
@@ -125,6 +127,8 @@ function factory(dependencies) {
             await this.async(() => this._initChannels(channel_slots));
             // failures after channels
             this._initMailFailures(mail_failures);
+            // discuss sidebar category states
+            this._initCategoryStates(category_open_states)
             discuss.update({ menu_id });
         }
 
@@ -135,6 +139,30 @@ function factory(dependencies) {
         _initCannedResponses(cannedResponsesData) {
             this.messaging.update({
                 cannedResponses: insert(cannedResponsesData),
+            });
+        }
+
+        /**
+         *
+         * @param {Object} categoryStates
+         * @param {Boolean} categoryStates.is_category_channel_open
+         * @param {Boolean} categoryStates.is_category_chat_open
+         */
+        _initCategoryStates(categoryStates) {
+            const discuss = this.messaging.discuss;
+            const {
+                is_category_channel_open,
+                is_category_chat_open,
+            } = categoryStates;
+            discuss.update({
+                categoryChannel: create({
+                    type: 'channel',
+                    isServerOpen: is_category_channel_open,
+                }),
+                categoryChat: create({
+                    type: 'chat',
+                    isServerOpen: is_category_chat_open,
+                }),
             });
         }
 

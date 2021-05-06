@@ -4,12 +4,14 @@ import useShouldUpdateBasedOnProps from '@mail/component_hooks/use_should_update
 import useStore from '@mail/component_hooks/use_store/use_store';
 import useUpdate from '@mail/component_hooks/use_update/use_update';
 import AutocompleteInput from '@mail/components/autocomplete_input/autocomplete_input';
+import Category from '@mail/components/category/category';
 import DiscussSidebarItem from '@mail/components/discuss_sidebar_item/discuss_sidebar_item';
+import DiscussSidebarMailBox from '@mail/components/discuss_sidebar_mailbox/discuss_sidebar_mailbox';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;
 
-const components = { AutocompleteInput, DiscussSidebarItem };
+const components = { AutocompleteInput, DiscussSidebarItem, Category, DiscussSidebarMailBox };
 
 class DiscussSidebar extends Component {
 
@@ -289,9 +291,7 @@ class DiscussSidebar extends Component {
      */
     _onInputQuickSearch(ev) {
         ev.stopPropagation();
-        this.discuss.update({
-            sidebarQuickSearchValue: this._quickSearchInputRef.el.value,
-        });
+        this.discuss.updateSidebarQuickSearchValue(this._quickSearchInputRef.el.value);
     }
 
 }

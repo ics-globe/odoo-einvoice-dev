@@ -95,6 +95,25 @@ function factory(dependencies) {
 
         /**
          * @private
+         * @param {Object} data
+         * @param {Boolean} data.is_category_channel_open
+         * @param {Boolean} data.is_category_chat_open
+         */
+        _handleNotificationCategoryStates(data) {
+            if ('is_category_channel_open' in data) {
+                this.env.messaging.discuss.categoryChannel.update({
+                    isServerOpen: data.is_category_channel_open,
+                });
+            }
+            if ('is_category_chat_open' in data) {
+                this.env.messaging.discuss.categoryChat.update({
+                    isServerOpen: data.is_category_chat_open,
+                });
+            }
+        }
+
+        /**
+         * @private
          * @param {integer} channelId
          * @param {Object} data
          * @param {string} [data.info]
@@ -395,7 +414,9 @@ function factory(dependencies) {
                 this.env.bus.trigger('activity_updated', data);
             } else if (type === 'author') {
                 return this._handleNotificationPartnerAuthor(data);
-            } else if (info === 'channel_seen') {
+            } else if (type === 'category_states') {
+                return this._handleNotificationCategoryStates(data);
+            }else if (info === 'channel_seen') {
                 return this._handleNotificationChannelSeen(data.channel_id, data);
             } else if (type === 'deletion') {
                 return this._handleNotificationPartnerDeletion(data);

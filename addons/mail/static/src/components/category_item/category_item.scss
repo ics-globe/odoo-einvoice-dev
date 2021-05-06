@@ -1,0 +1,129 @@
+// ------------------------------------------------------------------
+// Layout
+// ------------------------------------------------------------------
+
+.o_CategoryItem {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: map-get($spacers, 2) 0;
+
+    &:hover .o_CategoryItem_commands {
+        display: flex;
+    }
+}
+
+.o_CategoryItem_command {
+    margin-left: 3px;
+    margin-right: 3px;
+
+    &:first-child {
+        margin-left: 0px;
+    }
+
+    &:last-child {
+        margin-right: 0px;
+    }
+}
+
+.o_CategoryItem_commands {
+    display: none;
+}
+
+.o_CategoryItem_imageContainer {
+    position: relative;
+}
+
+.o_CategoryItem_item {
+    margin-left: 3px;
+    margin-right: 3px;
+
+    &:first-child {
+        margin-left: 18px;
+    }
+
+    &:last-child {
+        margin-right: $o-mail-discuss-sidebar-scrollbar-width;
+    }
+}
+
+.o_CategoryItem_name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 10px;
+
+    &.o-editable {
+        margin-right: $o-mail-discuss-sidebar-scrollbar-width;
+    }
+}
+
+.o_CategoryItem_nameInput {
+    width: 100%;
+}
+
+.o_CategoryItem_threadIcon {
+    @include o-position-absolute($bottom: 0, $right: 0);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// ------------------------------------------------------------------
+// style
+// ------------------------------------------------------------------
+
+.o_CategoryItem {
+
+    .o_CategoryItem_threadIcon {
+        font-size: xx-small;
+        background-color: gray('900');
+        width: 1.2rem;
+        height: 1.2rem;
+        border-radius: 50%;
+    }
+
+    &.o-active {
+        background-color: lighten(gray('900'), 5%);
+    }
+
+    &:hover {
+        background-color: darken(gray('900'), 5%);
+    }
+}
+
+.o_CategoryItem_command {
+
+    &:not(:hover) {
+        color: gray('600');
+    }
+}
+
+.o_CategoryItem_counter {
+    background-color: $o-brand-primary;
+    color: gray('300');
+}
+
+.o_CategoryItem_image {
+    width: map-get($sizes, 100);
+    height: map-get($sizes, 100);
+}
+
+.o_CategoryItem_imageContainer {
+    width: 30px;
+    height: 30px;
+}
+
+.o_CategoryChatItem_name {
+    &.o-item-unread {
+        font-weight: bold;
+    }
+}
+
+.o_CategoryItem_nameInput{
+    outline: none;
+    border: none;
+    border-radius: 2px;
+}
+
