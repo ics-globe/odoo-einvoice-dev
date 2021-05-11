@@ -455,7 +455,7 @@ class ModelManager {
      * @param {Object} Models
      * @throws {Error} in case some fields are not correct.
      */
-    _checkProcessedFieldsOnModels(Models) {
+    _checkProcessedFieldsOnModels(Models, Features) {
         for (const Model of Object.values(Models)) {
             for (const fieldName in Model.fields) {
                 const field = Model.fields[fieldName];
@@ -497,78 +497,88 @@ class ModelManager {
                     );
                 }
                 const RelatedModel = Models[field.to];
-                if (!RelatedModel) {
+                const RelatedFeature = Features[field.to];
+                if (!RelatedFeature && !RelatedModel) {
                     throw new Error(
-                        `Model name of relation "${Model.modelName}/${fieldName}" does not exist.`
+                        `Model name (or feature name) of relation "${Model.modelName}/${fieldName}" does not exist.`
                     );
                 }
-                const inverseField = RelatedModel.fields[field.inverse];
-                if (!inverseField) {
-                    throw new Error(
-                        `Relation "${
-                            Model.modelName
-                        }/${
-                            fieldName
-                        }" has no inverse field "${RelatedModel.modelName}/${field.inverse}".`
-                    );
-                }
-                if (inverseField.inverse !== fieldName) {
-                    throw new Error(
-                        `Inverse field name of relation "${
-                            Model.modelName
-                        }/${
-                            fieldName
-                        }" does not match with field name of relation "${
-                            RelatedModel.modelName
-                        }/${
-                            inverseField.inverse
-                        }".`
-                    );
-                }
-                const allSelfAndParentNames = [];
-                let TargetModel = Model;
-                while (TargetModel) {
-                    allSelfAndParentNames.push(TargetModel.modelName);
-                    TargetModel = TargetModel.__proto__;
-                }
-                if (!allSelfAndParentNames.includes(inverseField.to)) {
-                    throw new Error(
-                        `Relation "${
-                            Model.modelName
-                        }/${
-                            fieldName
-                        }" has inverse relation "${
-                            RelatedModel.modelName
-                        }/${
-                            field.inverse
-                        }" misconfigured (currently "${
-                            inverseField.to
-                        }", should instead refer to this model or parented models: ${
-                            allSelfAndParentNames.map(name => `"${name}"`).join(', ')
-                        }?)`
-                    );
-                }
-                if (
-                    (field.relationType === 'many2many' && inverseField.relationType !== 'many2many') ||
-                    (field.relationType === 'one2one' && inverseField.relationType !== 'one2one') ||
-                    (field.relationType === 'one2many' && inverseField.relationType !== 'many2one') ||
-                    (field.relationType === 'many2one' && inverseField.relationType !== 'one2many')
-                ) {
-                    throw new Error(
-                        `Mismatch relations types "${
-                            Model.modelName
-                        }/${
-                            fieldName
-                        }" (${
-                            field.relationType
-                        }) and "${
-                            RelatedModel.modelName
-                        }/${
-                            field.inverse
-                        }" (${
-                            inverseField.relationType
-                        }).`
-                    );
+                const RelatedModels = new Set([RelatedModel, ...RelatedFeature.modelsUsingFeature]);
+                for (const RelatedModel of RelatedModels) {
+                    const inverseField = RelatedModel.fields[field.inverse];
+                    if (!inverseField) {
+                        throw new Error(
+                            `Relation "${
+                                Model.modelName
+                            }/${
+                                fieldName
+                            }" has no inverse field "${RelatedModel.modelName}/${field.inverse}".`
+                        );
+                    }
+                    if (inverseField.inverse !== fieldName) {
+                        throw new Error(
+                            `Inverse field name of relation "${
+                                Model.modelName
+                            }/${
+                                fieldName
+                            }" does not match with field name of relation "${
+                                RelatedModel.modelName
+                            }/${
+                                inverseField.inverse
+                            }".`
+                        );
+                    }
+                    const allSelfAndParentNames = [];
+                    let TargetModel = Model;
+                    while (TargetModel) {
+                        allSelfAndParentNames.push(TargetModel.modelName);
+                        TargetModel = TargetModel.__proto__;
+                    }
+                    const Feature = Features[inverseField.to];
+                    if (!Feature && !allSelfAndParentNames.includes(inverseField.to)) {
+                        throw new Error(
+                            `Relation "${
+                                Model.modelName
+                            }/${
+                                fieldName
+                            }" has inverse relation "${
+                                RelatedModel.modelName
+                            }/${
+                                field.inverse
+                            }" misconfigured (currently "${
+                                inverseField.to
+                            }", should instead refer to this model or parented models: ${
+                                allSelfAndParentNames.map(name => `"${name}"`).join(', ')
+                            }?)`
+                        );
+                    }
+                    if (Feature && !Feature.modelsUsingFeature.includes(Model)) {
+                        throw new Error(
+                            `Relation "${Model.modelName}/${fieldName}" has inverse relation "${RelatedModel.modelName}/${field.inverse}" misconfigured (currently "${inverseField.to}", should instead refer to one of this features?)`
+                        );
+                    }
+                    if (
+                        (field.relationType === 'many2many' && inverseField.relationType !== 'many2many') ||
+                        (field.relationType === 'one2one' && inverseField.relationType !== 'one2one') ||
+                        (field.relationType === 'one2many' && inverseField.relationType !== 'many2one') ||
+                        (field.relationType === 'many2one' && inverseField.relationType !== 'one2many')
+                    ) {
+                        throw new Error(
+                            `Mismatch relations types "${
+                                Model.modelName
+                            }/${
+                                fieldName
+                            }" (${
+                                field.relationType
+                            }) and "${
+                                RelatedModel.modelName
+                            }/${
+                                field.inverse
+                            }" (${
+                                inverseField.relationType
+                            }).`
+                        );
+                    }
                 }
             }
         }
@@ -873,7 +883,7 @@ class ModelManager {
          * Check that all model fields are correct, notably one relation
          * should have matching reversed relation.
          */
-        this._checkProcessedFieldsOnModels(Models);
+        this._checkProcessedFieldsOnModels(Models, Features);
         return Models;
     }
 
