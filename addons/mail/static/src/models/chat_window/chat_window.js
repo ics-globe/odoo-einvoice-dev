@@ -246,21 +246,6 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.thread_viewer}
-         */
-        _computeThreadViewer() {
-            const threadViewerData = {
-                hasThreadView: this.hasThreadView,
-                thread: this.thread ? link(this.thread) : unlink(),
-            };
-            if (!this.threadViewer) {
-                return create(threadViewerData);
-            }
-            return update(threadViewerData);
-        }
-
-        /**
-         * @private
          * @returns {integer|undefined}
          */
         _computeVisibleIndex() {
@@ -360,6 +345,21 @@ function factory(dependencies) {
 
     }
 
+    ChatWindow.features = {
+        'mail.thread_viewer': {
+            fieldPatch: {
+                'hasThreadView': {
+                    compute: '_computeHasThreadView',
+                    dependencies: [
+                        'isFolded',
+                        'isVisible',
+                        'thread',
+                    ],
+                },
+            },
+        },
+    };
+
     ChatWindow.fields = {
         /**
          * Determines whether "new message form" should be displayed.
@@ -381,17 +381,6 @@ function factory(dependencies) {
             compute: '_computeHasShiftNext',
             dependencies: ['managerAllOrderedVisible'],
             default: false,
-        }),
-        /**
-         * Determines whether `this.thread` should be displayed.
-         */
-        hasThreadView: attr({
-            compute: '_computeHasThreadView',
-            dependencies: [
-                'isFolded',
-                'isVisible',
-                'thread',
-            ],
         }),
         /**
          * Determine whether the chat window should be programmatically
@@ -441,34 +430,8 @@ function factory(dependencies) {
                 'threadDisplayName',
             ],
         }),
-        /**
-         * Determines the `mail.thread` that should be displayed by `this`.
-         * If no `mail.thread` is linked, `this` is considered "new message".
-         */
-        thread: one2one('mail.thread', {
-            inverse: 'chatWindow',
-        }),
         threadDisplayName: attr({
             related: 'thread.displayName',
-        }),
-        /**
-         * States the `mail.thread_view` displaying `this.thread`.
-         */
-        threadView: one2one('mail.thread_view', {
-            related: 'threadViewer.threadView',
-        }),
-        /**
-         * Determines the `mail.thread_viewer` managing the display of `this.thread`.
-         */
-        threadViewer: one2one('mail.thread_viewer', {
-            compute: '_computeThreadViewer',
-            dependencies: [
-                'hasThreadView',
-                'thread',
-            ],
-            isCausal: true,
-            readonly: true,
-            required: true,
         }),
         /**
          * This field handle the "order" (index) of the visible chatWindow inside the UI.

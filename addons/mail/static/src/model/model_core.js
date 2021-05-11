@@ -10,6 +10,7 @@
  */
 
 const registry = {};
+const featuresRegistry = {};
 
 //------------------------------------------------------------------------------
 // Private
@@ -90,10 +91,32 @@ function registerInstancePatchModel(modelName, patchName, patch) {
 
 /**
  * @param {string} name
+ * @param {Object} definition
+ * @param {Object} [definition.instanceMethods]
+ * @param {Object} [definition.fields]
+ */
+function registerNewFeature(name, { instanceMethods = {}, fields = {} }) {
+    if (featuresRegistry[name]) {
+        throw new Error(`Feature "${name}" has already been registered!`);
+    }
+    if (registry[name]) {
+        throw new Error(`Feature "${name}" is already the name of a model!`);
+    }
+    featuresRegistry[name] = {
+        instanceMethods,
+        fields,
+    };
+}
+
+/**
+ * @param {string} name
  * @param {function} factory
  * @param {string[]} [dependencies=[]]
  */
 function registerNewModel(name, factory, dependencies = []) {
+    if (featuresRegistry[name]) {
+        throw new Error(`Model "${name}" is already the name of a feature!`);
+    }
     const entry = _getEntryFromModelName(name);
     let entryDependencies = [...dependencies];
     if (name !== 'mail.model') {
@@ -114,9 +137,11 @@ function registerNewModel(name, factory, dependencies = []) {
 //------------------------------------------------------------------------------
 
 export {
+    featuresRegistry,
     registerClassPatchModel,
     registerFieldPatchModel,
     registerInstancePatchModel,
+    registerNewFeature,
     registerNewModel,
     registry,
 };

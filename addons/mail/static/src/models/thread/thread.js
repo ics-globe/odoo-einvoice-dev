@@ -1741,20 +1741,6 @@ function factory(dependencies) {
             isCausal: true,
         }),
         channel_type: attr(),
-        /**
-         * States the `mail.chat_window` related to `this`. Serves as compute
-         * dependency. It is computed from the inverse relation and it should
-         * otherwise be considered read-only.
-         */
-        chatWindow: one2one('mail.chat_window', {
-            inverse: 'thread',
-        }),
-        /**
-         * Serves as compute dependency.
-         */
-        chatWindowIsFolded: attr({
-            related: 'chatWindow.isFolded',
-        }),
         composer: one2one('mail.composer', {
             default: create(),
             inverse: 'thread',

@@ -91,21 +91,6 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.thread_viewer}
-         */
-        _computeThreadViewer() {
-            const threadViewerData = {
-                hasThreadView: this.hasThreadView,
-                thread: this.thread ? link(this.thread) : unlink(),
-            };
-            if (!this.threadViewer) {
-                return create(threadViewerData);
-            }
-            return update(threadViewerData);
-        }
-
-        /**
-         * @private
          */
         _onThreadIdOrThreadModelChanged() {
             if (this.threadId) {
@@ -193,6 +178,20 @@ function factory(dependencies) {
 
     }
 
+    Chatter.features = {
+        'mail.thread_viewer': {
+            fieldPatch: {
+                'hasThreadView': {
+                    compute: '_computeHasThreadView',
+                    dependencies: [
+                        'hasMessageList',
+                        'thread',
+                    ],
+                },
+            },
+        },
+    };
+
     Chatter.fields = {
         composer: many2one('mail.composer', {
             related: 'thread.composer',
@@ -230,16 +229,6 @@ function factory(dependencies) {
          */
         hasMessageListScrollAdjust: attr({
             default: false,
-        }),
-        /**
-         * Determines whether `this.thread` should be displayed.
-         */
-        hasThreadView: attr({
-            compute: '_computeHasThreadView',
-            dependencies: [
-                'hasMessageList',
-                'thread',
-            ],
         }),
         hasTopbarCloseButton: attr({
             default: false,
@@ -302,10 +291,6 @@ function factory(dependencies) {
             isOnChange: true,
         }),
         /**
-         * Determines the `mail.thread` that should be displayed by `this`.
-         */
-        thread: many2one('mail.thread'),
-        /**
          * Determines the id of the thread that will be displayed by `this`.
          */
         threadId: attr(),
@@ -325,25 +310,6 @@ function factory(dependencies) {
          * Determines the model of the thread that will be displayed by `this`.
          */
         threadModel: attr(),
-        /**
-         * States the `mail.thread_view` displaying `this.thread`.
-         */
-        threadView: one2one('mail.thread_view', {
-            related: 'threadViewer.threadView',
-        }),
-        /**
-         * Determines the `mail.thread_viewer` managing the display of `this.thread`.
-         */
-        threadViewer: one2one('mail.thread_viewer', {
-            compute: '_computeThreadViewer',
-            dependencies: [
-                'hasThreadView',
-                'thread',
-            ],
-            isCausal: true,
-            readonly: true,
-            required: true,
-        }),
     };
 
     Chatter.modelName = 'mail.chatter';

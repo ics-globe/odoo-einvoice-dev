@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { registry } from '@mail/model/model_core';
+import { featuresRegistry, registry } from '@mail/model/model_core';
 import ModelField from '@mail/model/model_field';
 import { patchClassMethods, patchInstanceMethods } from '@mail/utils/utils';
 import { unlinkAll } from '@mail/model/model_field_command';
@@ -290,7 +290,7 @@ class ModelManager {
      * @param {Object} Models
      * @throws {Error} in case some declared fields are not correct.
      */
-    _checkDeclaredFieldsOnModels(Models) {
+    _checkDeclaredFieldsOnModels(Models, Features) {
         for (const Model of Object.values(Models)) {
             for (const fieldName in Model.fields) {
                 const field = Model.fields[fieldName];
@@ -348,8 +348,8 @@ class ModelManager {
                     if (invalidKeys.length > 0) {
                         throw new Error(`Field "${Model.modelName}/${fieldName}" contains some invalid keys: "${invalidKeys.join(", ")}".`);
                     }
-                    if (!Models[field.to]) {
-                        throw new Error(`Relational field "${Model.modelName}/${fieldName}" targets to unknown model name "${field.to}".`);
+                    if (!Models[field.to] && !Features[field.to]) {
+                        throw new Error(`Relational field "${Model.modelName}/${fieldName}" targets to unknown model or feature name "${field.to}".`);
                     }
                     if (field.isCausal && !(['one2many', 'one2one'].includes(field.relationType))) {
                         throw new Error(`Relational field "${Model.modelName}/${fieldName}" has "isCausal" true with a relation of type "${field.relationType}" but "isCausal" is only supported for "one2many" and "one2one".`);
@@ -416,13 +416,22 @@ class ModelManager {
                     // Assuming related relation is valid...
                     // find field name on related model or any parents.
                     const RelatedModel = Models[relatedRelation.to];
+                    const RelatedFeature = Features[relatedRelation.to];
+                    if (!RelatedModel && !RelatedFeature) {
+                        throw new Error(`Related field "${Model.modelName}/${fieldName}" targets through unknown related model or feature "${relatedRelation.to}".`);
+                    }
                     let relatedField;
-                    TargetModel = RelatedModel;
-                    while (Models[TargetModel.modelName] && !relatedField) {
-                        if (TargetModel.fields) {
-                            relatedField = TargetModel.fields[relatedFieldName];
+                    if (RelatedModel) {
+                        TargetModel = RelatedModel;
+                        while (Models[TargetModel.modelName] && !relatedField) {
+                            if (TargetModel.fields) {
+                                relatedField = TargetModel.fields[relatedFieldName];
+                            }
+                            TargetModel = TargetModel.__proto__;
                         }
-                        TargetModel = TargetModel.__proto__;
+                    }
+                    if (RelatedFeature) {
+                        relatedField = RelatedFeature.fields[relatedFieldName];
                     }
                     if (!relatedField) {
                         throw new Error(`Related field "${Model.modelName}/${fieldName}" relates to unknown related model field "${relatedFieldName}".`);
@@ -777,6 +786,10 @@ class ModelManager {
     _generateModels() {
         const allNames = Object.keys(registry);
         const Models = {};
+        const Features = {};
+        for (const [featureName, featureDefinition] of Object.entries(featuresRegistry)) {
+            Features[featureName] = Object.assign({}, featureDefinition, { modelsUsingFeature: [] });
+        }
         const generatedNames = [];
         let toGenerateNames = [...allNames];
         while (toGenerateNames.length > 0) {
@@ -818,6 +831,29 @@ class ModelManager {
             if (generatedNames.includes(Model.modelName)) {
                 throw new Error(`Duplicate model name "${Model.modelName}" shared on 2 distinct Model classes.`);
             }
+            // Add features
+            if (!Model.features) {
+                Model.features = {};
+            }
+            for (const [featureName, { fieldPatch = {} }] of Object.entries(Model.features)) {
+                const feature = Features[featureName];
+                if (!feature) {
+                    throw new Error(`Model "${Model.modelName}" using non-registered feature "${featureName}".`);
+                }
+                feature.modelsUsingFeature.push(Model);
+                for (const [instanceMethodName, instanceMethod] of Object.entries(feature.instanceMethods)) {
+                    if (Model.prototype[instanceMethodName]) {
+                        throw new Error(`Model "${Model.modelName}" already has the instance method "${instanceMethodName}" of its feature "${featureName}".`);
+                    }
+                    Model.prototype[instanceMethodName] = instanceMethod;
+                }
+                for (const [fieldName, fieldDefinition] of Object.entries(feature.fields)) {
+                    if (Model.fields[fieldName]) {
+                        throw new Error(`Model "${Model.modelName}" already has the field "${fieldName}" of its feature "${featureName}".`);
+                    }
+                    Model.fields[fieldName] = Object.assign({}, fieldDefinition, fieldPatch[fieldName]);
+                }
+            }
             Models[Model.modelName] = Model;
             generatedNames.push(Model.modelName);
             toGenerateNames = toGenerateNames.filter(name => name !== Model.modelName);
@@ -825,14 +861,14 @@ class ModelManager {
         /**
          * Check that declared model fields are correct.
          */
-        this._checkDeclaredFieldsOnModels(Models);
+        this._checkDeclaredFieldsOnModels(Models, Features);
         /**
          * Process declared model fields definitions, so that these field
          * definitions are much easier to use in the system. For instance, all
          * relational field definitions have an inverse, or fields track all their
          * dependents.
          */
-        this._processDeclaredFieldsOnModels(Models);
+        this._processDeclaredFieldsOnModels(Models, Features);
         /**
          * Check that all model fields are correct, notably one relation
          * should have matching reversed relation.
@@ -902,7 +938,7 @@ class ModelManager {
      * @private
      * @param {Object} Models
      */
-    _processDeclaredFieldsOnModels(Models) {
+    _processDeclaredFieldsOnModels(Models, Features) {
         /**
          * 1. Prepare fields.
          */
@@ -977,22 +1013,35 @@ class ModelManager {
                         ...new Set(relationField.dependents.concat([relationFieldDependent]))
                     ];
                     const OtherModel = Models[relationField.to];
-                    let OtherTargetModel = OtherModel;
-                    let relatedField = OtherTargetModel.fields[relatedFieldName];
-                    while (!relatedField) {
-                        OtherTargetModel = OtherTargetModel.__proto__;
-                        relatedField = OtherTargetModel.fields[relatedFieldName];
+                    const OtherFeature = Features[relationField.to];
+                    const relatedFields = [];
+                    if (OtherModel) {
+                        let OtherTargetModel = OtherModel;
+                        let relatedField = OtherTargetModel.fields[relatedFieldName];
+                        while (!relatedField) {
+                            OtherTargetModel = OtherTargetModel.__proto__;
+                            relatedField = OtherTargetModel.fields[relatedFieldName];
+                        }
+                        relatedFields.push(relatedField);
                     }
-                    const relatedFieldDependent = [
-                        field.id,
-                        relationField.inverse,
-                        field.fieldName,
-                    ].join(DEPENDENT_INNER_SEPARATOR);
-                    relatedField.dependents = [
-                        ...new Set(
-                            relatedField.dependents.concat([relatedFieldDependent])
-                        )
-                    ];
+                    if (OtherFeature) {
+                        for (const OtherModel of OtherFeature.modelsUsingFeature) {
+                            const relatedField = OtherModel.fields[relatedFieldName];
+                            relatedFields.push(relatedField);
+                        }
+                    }
+                    for (const relatedField of relatedFields) {
+                        const relatedFieldDependent = [
+                            field.id,
+                            relationField.inverse,
+                            field.fieldName,
+                        ].join(DEPENDENT_INNER_SEPARATOR);
+                        relatedField.dependents = [
+                            ...new Set(
+                                relatedField.dependents.concat([relatedFieldDependent])
+                            )
+                        ];
+                    }
                 }
             }
         }

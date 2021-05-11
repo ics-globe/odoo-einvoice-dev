@@ -326,6 +326,15 @@ function factory(dependencies) {
             return;
         }
 
+        /**
+         * @returns {mail.message}
+         */
+        _computeSelectedMessage() {
+            if (!this.replyingToMessage) {
+                return unlink();
+            }
+            return link(this.replyingToMessage);
+        }
 
         /**
          * Only pinned threads are allowed in discuss.
@@ -353,23 +362,42 @@ function factory(dependencies) {
             return;
         }
 
-        /**
-         * @private
-         * @returns {mail.thread_viewer}
-         */
-        _computeThreadViewer() {
-            const threadViewerData = {
-                hasThreadView: this.hasThreadView,
-                selectedMessage: this.replyingToMessage ? link(this.replyingToMessage) : unlink(),
-                stringifiedDomain: this.stringifiedDomain,
-                thread: this.thread ? link(this.thread) : unlink(),
-            };
-            if (!this.threadViewer) {
-                return create(threadViewerData);
-            }
-            return update(threadViewerData);
-        }
     }
+
+    Discuss.features = {
+        'mail.thread_viewer': {
+            fieldPatch: {
+                'hasThreadView': {
+                    compute: '_computeHasThreadView',
+                    dependencies: [
+                        'activeMobileNavbarTabId',
+                        'deviceIsMobile',
+                        'isOpen',
+                        'thread',
+                        'threadModel',
+                    ],
+                },
+                'selectedMessage': {
+                    compute: '_computeSelectedMessage',
+                    dependencies: [
+                        'replyingToMessage',
+                    ],
+                },
+                'thread': {
+                    compute: '_computeThread',
+                    dependencies: [
+                        'activeMobileNavbarTabId',
+                        'deviceIsMobile',
+                        'isThreadPinned',
+                        'messaging',
+                        'messagingInbox',
+                        'thread',
+                        'threadModel',
+                    ],
+                },
+            },
+        },
+    };
 
     Discuss.fields = {
         activeId: attr({
@@ -417,19 +445,6 @@ function factory(dependencies) {
          */
         hasModerationRejectDialog: attr({
             default: false,
-        }),
-        /**
-         * Determines whether `this.thread` should be displayed.
-         */
-        hasThreadView: attr({
-            compute: '_computeHasThreadView',
-            dependencies: [
-                'activeMobileNavbarTabId',
-                'deviceIsMobile',
-                'isOpen',
-                'thread',
-                'threadModel',
-            ],
         }),
         /**
          * Formatted init thread on opening discuss for the first time,
@@ -530,54 +545,11 @@ function factory(dependencies) {
         sidebarQuickSearchValue: attr({
             default: "",
         }),
-        /**
-         * Determines the domain to apply when fetching messages for `this.thread`.
-         * This value should only be written by the control panel.
-         */
-        stringifiedDomain: attr({
-            default: '[]',
-        }),
-        /**
-         * Determines the `mail.thread` that should be displayed by `this`.
-         */
-        thread: many2one('mail.thread', {
-            compute: '_computeThread',
-            dependencies: [
-                'activeMobileNavbarTabId',
-                'deviceIsMobile',
-                'isThreadPinned',
-                'messaging',
-                'messagingInbox',
-                'thread',
-                'threadModel',
-            ],
-        }),
         threadId: attr({
             related: 'thread.id',
         }),
         threadModel: attr({
             related: 'thread.model',
-        }),
-        /**
-         * States the `mail.thread_view` displaying `this.thread`.
-         */
-        threadView: one2one('mail.thread_view', {
-            related: 'threadViewer.threadView',
-        }),
-        /**
-         * Determines the `mail.thread_viewer` managing the display of `this.thread`.
-         */
-        threadViewer: one2one('mail.thread_viewer', {
-            compute: '_computeThreadViewer',
-            dependencies: [
-                'hasThreadView',
-                'replyingToMessage',
-                'stringifiedDomain',
-                'thread',
-            ],
-            isCausal: true,
-            readonly: true,
-            required: true,
         }),
     };
 
