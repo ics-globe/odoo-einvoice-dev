@@ -347,7 +347,8 @@
         </record>
         <template id="report_viewhierarchy_children">
             <t t-set="classes_for_search" t-value="'d-flex align-items-center'"/>
-            <p t-attf-class="o_tree_entry mb-0 #{'text-muted font-weight-normal' if not view.active else ''} #{view.inherit_children_ids and 'o_has_child' or ''} #{classes_for_search}">
+            <p t-att-data-view_id="view.id"
+               t-attf-class="o_tree_entry mb-0 #{'text-muted font-weight-normal' if not view.active else ''} #{view.inherit_children_ids and 'o_has_child' or ''} #{classes_for_search}">
                 <i t-if="view.inherit_children_ids" class="js_fold o_fold_icon fa fa-minus-square-o mr-1"/>
                 <i t-if="view.arch_updated" class="fa fa-pencil-square mr-1 o_text_pink" title="This view arch has been modified"/>
                 <span class="js_fold">
@@ -357,8 +358,11 @@
                 <a type="action" data-model="ir.ui.view" t-att-data-res-id="view.id">
                     <i class="fa fa-eye ml-2 text-muted" title="Go to View"/>
                 </a>
-                <a href="#" class="o_show_diff" t-att-data-view_id="view.id">
+                <a href="#" class="o_show_diff">
                     <i class="fa fa-files-o ml-2 text-muted" title="Show Arch Diff"/>
+                </a>
+                <a href="#" class="o_bulk_delete">
+                    <i class="fa fa-trash-o ml-2 text-muted" title="Bulk Delete"/>
                 </a>
             </p>
             <ul t-if="view.inherit_children_ids">

@@ -540,6 +540,12 @@ actual arch.
             self.inherit_children_ids.unlink()
         return super(View, self).unlink()
 
+    def bulk_delete(self):
+        """ Deletes the given views and all their children views, including
+        inactive ones.
+        """
+        return self.with_context(active_test=False, _force_unlink=True).unlink()
+
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
         self.ensure_one()

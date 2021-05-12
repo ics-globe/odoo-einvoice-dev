@@ -13,6 +13,7 @@ const Renderer = qweb.Renderer.extend({
         'click .o_website_filter a': '_onWebsiteFilterClick',
         'click .o_search button': '_onSearchButtonClick',
         'click .o_show_diff': '_onShowDiffClick',
+        'click .o_bulk_delete': '_onBulkDeleteClick',
         'click .o_load_hierarchy': '_onLoadHierarchyClick',
         'keydown .o_search input': '_onSearchInputKeyDown',
         'input .o_search input': '_onSearchInputKeyInput',
@@ -150,12 +151,47 @@ const Renderer = qweb.Renderer.extend({
      * @private
      * @param {Event} ev
      */
+     /**
+      * @private
+      * @param {Event} ev
+      */
+     _onBulkDeleteClick: function (ev) {
+         ev.preventDefault();
+         const deletedViewId = parseInt(ev.currentTarget.parentElement.dataset['view_id']);
+         return this._rpc({
+             model: 'ir.ui.view',
+             method: 'bulk_delete',
+             args: [deletedViewId],
+         }).then(result => {
+             if (result.error) {
+                 this.do_warn(result.error.title, result.error.message);
+                 return;
+             }
+             const topLevelViewId = this.$('p[data-view_id]:first').data('view_id');
+             if (topLevelViewId === deletedViewId) {
+                 this.do_action('base.action_ui_view');
+             } else {
+                 // TODO: Replace current breadcrumb entry (not the whole breadcrumb)
+                 // Or bug in this case:
+                 // - Visit a child view
+                 // - Delete it in the tree view
+                 // - New breadcrumb entry is created but if click on previous one
+                 //   it crahes as the view was deleted -> That entry should be removed
+                 this.do_action('website.action_show_viewhierarchy', {
+                     additional_context: {
+                         'active_model': 'ir.ui.view',
+                         'active_id': topLevelViewId,
+                     }
+                 });
+             }
+         });
+     },
     _onShowDiffClick: function (ev) {
         ev.preventDefault();
         this.do_action('base.reset_view_arch_wizard_action', {
             additional_context: {
                 'active_model': 'ir.ui.view',
-                'active_ids': [parseInt(ev.currentTarget.dataset['view_id'])],
+                'active_ids': [parseInt(ev.currentTarget.parentElement.dataset['view_id'])],
             }
         });
     },
