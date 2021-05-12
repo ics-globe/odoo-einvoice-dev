@@ -486,8 +486,8 @@ class Team(models.Model):
         _logger.info('## Assigned %s leads' % (len(global_data['assigned']) + len(global_data['merged'])))
         for team, team_data in teams_data.items():
             _logger.info(
-                '## Assigned %s leads to team %s',
-                len(team_data['assigned']) + len(team_data['merged']), team.id)
+                '## Assigned %s leads to team %s (removed %s duplicates)',
+                len(team_data['assigned']) + len(team_data['merged']), team.id, len(team_data['duplicates']))
             _logger.info(
                 '\tLeads: direct assign %s / merge result %s / duplicates merged: %s',
                 team_data['assigned'], team_data['merged'], team_data['duplicates'])

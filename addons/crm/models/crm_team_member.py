@@ -124,31 +124,29 @@ class Team(models.Model):
         if not members:
             return members_data
 
-        # prepare a global lead count based on total leads to assign to salespersons
-        lead_limit = sum(
-            member._get_assignment_quota(work_days=work_days)
-            for member in members
-        )
+        # prepare a global lead cache for each team
+        team_leads = dict()
+        for team in self.crm_team_id:
+            lead_domain = ['&', '&', ('user_id', '=', False), ('date_open', '=', False), ('team_id', '=', team.id)]
+            team_leads[team] = self.env["crm.lead"].search(lead_domain)
 
-        # could probably be optimized
+        # prepare member information (leads + assign data)
         for member in members:
-            lead_domain = expression.AND([
-                literal_eval(member.assignment_domain or '[]'),
-                ['&', '&', ('user_id', '=', False), ('date_open', '=', False), ('team_id', '=', member.crm_team_id.id)]
-            ])
+            if member.assignment_domain:
+                lead_domain = literal_eval(member.assignment_domain or '[]')
+                leads = team_leads[member.crm_team_id].filtered_domain(lead_domain)
+            else:
+                leads = team_leads[member.crm_team_id]
+            assignment_quota = member._get_assignment_quota(work_days=work_days)
 
-            leads = self.env["crm.lead"].search(lead_domain, order='probability DESC', limit=lead_limit)
-
-            to_assign = member._get_assignment_quota(work_days=work_days)
             members_data[member.id] = {
                 "team_member": member,
-                "max": member.assignment_max,
-                "to_assign": to_assign,
+                "assignment_quota": assignment_quota,
                 "leads": leads,
                 "assigned": self.env["crm.lead"],
             }
             population.append(member.id)
-            weights.append(to_assign)
+            weights.append(assignment_quota)
 
         leads_done_ids = set()
         counter = 0
