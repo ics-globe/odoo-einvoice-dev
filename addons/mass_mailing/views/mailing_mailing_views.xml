@@ -29,6 +29,7 @@
             </field>
         </record>
 
+
         <record model="ir.ui.view" id="view_mail_mass_mailing_tree">
             <field name="name">mailing.mailing.tree</field>
             <field name="model">mailing.mailing</field>

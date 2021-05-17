@@ -63,3 +63,31 @@ class MailingList(models.Model):
         opt_out_contacts = subscriptions.filtered(lambda sub: sub.opt_out).mapped('contact_id')
         opt_in_contacts = subscriptions.filtered(lambda sub: not sub.opt_out).mapped('contact_id')
         return list(set(c.id for c in opt_out_contacts if c not in opt_in_contacts))
+
+    def _mailing_list_get_contact_condition(self):
+        email_condition = super(MailingList, self)._mailing_list_get_contact_condition()
+        return "(%s OR %s)" % (
+            email_condition,
+            "contact.phone_sanitized NOT IN (select mobile from phone_blacklist where active = TRUE)"
+        )
+
+    def _mailing_list_get_select_values(self):
+        select_values = super(MailingList, self)._mailing_list_get_select_values()
+        return "%s, %s" % (
+            select_values,
+            "contact.mobile"
+        )
+
+    def _mailing_list_get_rn(self):
+        rn = super(MailingList, self)._mailing_list_get_rn()
+        return "%s, %s" % (
+            rn,
+            "row_number() OVER (PARTITION BY mobile ORDER BY mobile) AS rn_mobile"
+        )
+
+    def _mailing_list_get_rn_where(self):
+        rn = super(MailingList, self)._mailing_list_get_rn_where()
+        return "%s OR %s" % (
+            rn,
+            "st.rn_mobile = 1"
+        )

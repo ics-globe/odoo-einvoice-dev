@@ -159,17 +159,41 @@ class MassMailingList(models.Model):
         action['context'] = {'default_list_ids': self.ids, 'create': False, 'search_default_filter_bounce': 1}
         return action
 
-    def action_merge(self, src_lists, archive):
+    def action_mailing_lists_merge(self):
+        sorted_lists = self.sorted(
+            lambda list:
+                (list.contact_count,
+                list.mailing_count,
+                -list.id),
+            reverse=True
+        )
+        dest = sorted_lists[0]
+
+        #Replace used mailing lists by the merge result
+        for mailing_list in sorted_lists[1:]:
+            for mailing in mailing_list.mailing_ids:
+                mailing.contact_list_ids += dest
+                mailing.contact_list_ids -= mailing_list
+
+        dest.action_merge((self - dest))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Mailing Lists'),
+            'res_model': 'mailing.list',
+            'view_mode': 'form',
+            'res_id': dest.id
+        }
+
+    def action_merge(self, src_lists):
         """
             Insert all the contact from the mailing lists 'src_lists' to the
-            mailing list in 'self'. Possibility to archive the mailing lists
-            'src_lists' after the merge except the destination mailing list 'self'.
+            mailing list in 'self'. Delete mailing lists 'src_lists' after
+            the merge except the destination mailing list 'self'.notes
         """
         # Explation of the SQL query with an example. There are the following lists
         # A (id=4): yti@odoo.com; yti@example.com
         # B (id=5): yti@odoo.com; yti@openerp.com
-        # C (id=6): nothing
-        # To merge the mailing lists A and B into C, we build the view st that looks
+        # To merge the mailing lists A and B, we build the view st that looks
         # like this with our example:
         #
         #  contact_id |           email           | row_number |  list_id |
@@ -188,41 +212,72 @@ class MassMailingList(models.Model):
         src_lists |= self
         self.env['mailing.contact'].flush(['email', 'email_normalized'])
         self.env['mailing.contact.subscription'].flush(['contact_id', 'opt_out', 'list_id'])
-        self.env.cr.execute("""
+        contact_condition = self._mailing_list_get_contact_condition()
+        select_values = self._mailing_list_get_select_values()
+        rn = self._mailing_list_get_rn()
+        rn_where = self._mailing_list_get_rn_where()
+        select = ', '.join("COALESCE(%s, '')" % field for field in select_values.split(', '))
+        join_select = ', '.join("COALESCE(%s, '')" % ("sub_" + field) for field in select_values.split(', ')) #Need to add coalesce as in postgresql (NULL, 1) = 1
+        insert_query = f"""
             INSERT INTO mailing_contact_list_rel (contact_id, list_id)
-            SELECT st.contact_id AS contact_id, %s AS list_id
-            FROM
-                (
-                SELECT
-                    contact.id AS contact_id,
-                    contact.email AS email,
-                    list.id AS list_id,
-                    row_number() OVER (PARTITION BY email ORDER BY email) AS rn
-                FROM
-                    mailing_contact contact,
-                    mailing_contact_list_rel contact_list_rel,
-                    mailing_list list
+            SELECT contact_id, %(id)s AS list_id
+            FROM (
+                SELECT contact.id AS contact_id,
+                       list.id AS list_id,
+                       {select_values},
+                       {rn}
+                FROM mailing_contact contact,
+                     mailing_contact_list_rel contact_list_rel,
+                     mailing_list list
                 WHERE contact.id=contact_list_rel.contact_id
-                AND COALESCE(contact_list_rel.opt_out,FALSE) = FALSE
-                AND contact.email_normalized NOT IN (select email from mail_blacklist where active = TRUE)
+                AND {contact_condition}
                 AND list.id=contact_list_rel.list_id
-                AND list.id IN %s
-                AND NOT EXISTS
-                    (
-                    SELECT 1
-                    FROM
-                        mailing_contact contact2,
-                        mailing_contact_list_rel contact_list_rel2
-                    WHERE contact2.email = contact.email
-                    AND contact_list_rel2.contact_id = contact2.id
-                    AND contact_list_rel2.list_id = %s
-                    )
-                ) st
-            WHERE st.rn = 1;""", (self.id, tuple(src_lists.ids), self.id))
+                AND list.id IN %(ids)s
+                AND ({select}) NOT IN (
+                    SELECT {join_select}
+                    FROM mailing_contact_list_rel rel
+                    JOIN mailing_contact sub_contact ON rel.contact_id=sub_contact.id
+                    WHERE rel.list_id = %(id)s
+                )
+            ) st
+            WHERE {rn_where};
+        """
+        update_query = f"""
+            UPDATE mailing_contact_list_rel
+            SET opt_out = TRUE
+            WHERE list_id = %(id)s
+            AND contact_id in (
+                SELECT id
+                FROM mailing_contact contact
+                WHERE ({select}) IN (
+                    SELECT {select.replace("contact.", "")}
+                    FROM mailing_contact
+                    WHERE id IN (
+                        SELECT contact_id
+                        FROM mailing_contact_list_rel
+                        WHERE COALESCE(mailing_contact_list_rel.opt_out, FALSE) = TRUE
+                        AND list_id IN %(ids)s
+                    )    
+                )
+            );
+        """
+        self.env.cr.execute(insert_query, ({'id': self.id, 'ids': tuple(src_lists.ids)}))
+        self.env.cr.execute(update_query, ({'id': self.id, 'ids': tuple(src_lists.ids)}))
         self.flush()
         self.invalidate_cache()
-        if archive:
-            (src_lists - self).action_archive()
+        (src_lists - self).unlink()
+
+    def _mailing_list_get_contact_condition(self):
+        return "contact.email_normalized NOT IN (select email from mail_blacklist where active = TRUE)"
+
+    def _mailing_list_get_select_values(self):
+        return "contact.email"
+
+    def _mailing_list_get_rn(self):
+        return "row_number() OVER (PARTITION BY email ORDER BY email) AS rn_email"
+
+    def _mailing_list_get_rn_where(self):
+        return "st.rn_email = 1"
 
     def close_dialog(self):
         return {'type': 'ir.actions.act_window_close'}
