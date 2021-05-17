@@ -486,6 +486,12 @@ return AbstractRenderer.extend({
                 var element = $(info.el);
                 var view = info.view;
                 self._addEventAttributes(element, event);
+                if (
+                    self.state.context.default_calendar_event_id &&
+                    self.state.context.default_calendar_event_id === parseInt(event.id)
+                ) {
+                    self._renderEventPopover(event, element);
+                }
                 if (view.type === 'dayGridYear') {
                     const color = this.getColor(event.extendedProps.color_index);
                     if (typeof color === 'string') {
