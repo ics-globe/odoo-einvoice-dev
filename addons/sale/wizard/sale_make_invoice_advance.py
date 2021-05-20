@@ -12,8 +12,8 @@ class SaleAdvancePaymentInv(models.TransientModel):
     _description = "Sales Advance Payment Invoice"
 
     @api.model
-    def _count(self):
-        return len(self._context.get('active_ids', []))
+    def _default_sale_order_ids(self):
+        return self.env['sale.order'].browse(self.env.context.get('active_ids')).exists()
 
     @api.model
     def _default_product_id(self):
@@ -29,20 +29,13 @@ class SaleAdvancePaymentInv(models.TransientModel):
         return self._default_product_id().taxes_id
 
     @api.model
-    def _default_has_down_payment(self):
-        if self._context.get('active_model') == 'sale.order' and self._context.get('active_id', False):
-            sale_order = self.env['sale.order'].browse(self._context.get('active_id'))
-            return sale_order.order_line.filtered(
-                lambda sale_order_line: sale_order_line.is_downpayment
-            )
-
-        return False
-
-    @api.model
     def _default_currency_id(self):
         if self._context.get('active_model') == 'sale.order' and self._context.get('active_id', False):
             sale_order = self.env['sale.order'].browse(self._context.get('active_id'))
             return sale_order.currency_id
+
+    sale_order_ids = fields.Many2many('sale.order', default=_default_sale_order_ids)
+    orders_count = fields.Integer(string="Order Count", compute="_compute_orders_count")
 
     advance_payment_method = fields.Selection([
         ('delivered', 'Regular invoice'),
@@ -51,17 +44,29 @@ class SaleAdvancePaymentInv(models.TransientModel):
         ], string='Create Invoice', default='delivered', required=True,
         help="A standard invoice is issued with all the order lines ready for invoicing, \
         according to their invoicing policy (based on ordered or delivered quantity).")
+
+    # NOTE VFE: ONLY FOR DELIVERED METHOD
     deduct_down_payments = fields.Boolean('Deduct down payments', default=True)
-    has_down_payments = fields.Boolean('Has down payments', default=_default_has_down_payment, readonly=True)
-    product_id = fields.Many2one('product.product', string='Down Payment Product', domain=[('type', '=', 'service')],
+    has_down_payments = fields.Boolean(
+        'Has down payments', compute="_compute_has_down_payments")
+
+    # NOTE VFE: NOT FOR DELIVERED METHOD
+    amount = fields.Float(
+        'Down Payment Amount', digits='Account',
+        help="The percentage of amount to be invoiced in advance, taxes excluded.")
+    currency_id = fields.Many2one(
+        'res.currency', string='Currency', default=_default_currency_id)
+    fixed_amount = fields.Monetary(
+        'Down Payment Amount (Fixed)', help="The fixed amount to be invoiced in advance, taxes excluded.")
+
+    product_id = fields.Many2one(
+        'product.product', string='Down Payment Product', domain=[('type', '=', 'service')],
         default=_default_product_id)
-    count = fields.Integer(default=_count, string='Order Count')
-    amount = fields.Float('Down Payment Amount', digits='Account', help="The percentage of amount to be invoiced in advance, taxes excluded.")
-    currency_id = fields.Many2one('res.currency', string='Currency', default=_default_currency_id)
-    fixed_amount = fields.Monetary('Down Payment Amount (Fixed)', help="The fixed amount to be invoiced in advance, taxes excluded.")
-    deposit_account_id = fields.Many2one("account.account", string="Income Account", domain=[('deprecated', '=', False)],
+    deposit_account_id = fields.Many2one(
+        "account.account", string="Income Account", domain=[('deprecated', '=', False)],
         help="Account used for deposits", default=_default_deposit_account_id)
-    deposit_taxes_id = fields.Many2many("account.tax", string="Customer Taxes", help="Taxes used for deposits", default=_default_deposit_taxes_id)
+    deposit_taxes_id = fields.Many2many(
+        "account.tax", string="Customer Taxes", help="Taxes used for deposits", default=_default_deposit_taxes_id)
 
     @api.onchange('advance_payment_method')
     def onchange_advance_payment_method(self):
@@ -69,6 +74,17 @@ class SaleAdvancePaymentInv(models.TransientModel):
             amount = self.default_get(['amount']).get('amount')
             return {'value': {'amount': amount}}
         return {}
+
+    @api.depends('sale_order_ids')
+    def _compute_orders_count(self):
+        for wizard in self:
+            wizard.orders_count = len(wizard.sale_order_ids)
+
+    @api.depends('sale_order_ids')
+    def _compute_has_down_payments(self):
+        for wizard in self:
+            wizard.has_down_payments = wizard.orders_count == 1 and any(
+                line.is_downpayment for line in wizard.sale_order_ids.order_line)
 
     def _prepare_invoice_values(self, order, so_line):
         invoice_vals = {
