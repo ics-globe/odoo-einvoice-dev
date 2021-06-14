@@ -199,10 +199,6 @@
         <field name="partner_id" ref="base.partner_admin"/>
         <field name="vote">1</field>
     </record>
-    <record id="slide_channel_2_partner_demo" model="slide.channel.partner">
-        <field name="channel_id" ref="website_slides.slide_channel_demo_2_gard2"/>
-        <field name="partner_id" ref="base.partner_demo"/>
-    </record>
     <record id="slide_slide_2_0_partner_demo" model="slide.slide.partner">
         <field name="slide_id" ref="website_slides.slide_slide_demo_2_0"/>
         <field name="partner_id" ref="base.partner_demo"/>
