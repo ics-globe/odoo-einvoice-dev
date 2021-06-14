@@ -175,6 +175,9 @@ class Slide(models.Model):
     # channel
     channel_type = fields.Selection(related="channel_id.channel_type", string="Channel type")
     channel_allow_comment = fields.Boolean(related="channel_id.allow_comment", string="Allows comment")
+    channel_enrolled_partners = fields.Many2many(
+        'res.partner', string='Enrolled partners to the channel of the slide',
+        compute="_compute_channel_enrolled_partners", search="_search_channel_enrolled_partners")
     # Statistics in case the slide is a category
     nbr_presentation = fields.Integer("Number of Presentations", compute='_compute_slides_statistics', store=True)
     nbr_document = fields.Integer("Number of Documents", compute='_compute_slides_statistics', store=True)
@@ -217,6 +220,29 @@ class Slide(models.Model):
                     current_category = slide
                 elif slide.category_id != current_category:
                     slide.category_id = current_category.id
+
+    @api.depends('channel_id.channel_partner_ids.member_status')
+    def _compute_channel_enrolled_partners(self):
+        for slide in self:
+            slide.channel_enrolled_partners = self.env['slide.channel.partner'].search([
+                ('channel_id', '=', self.channel_id.id),
+                ('member_status', '!=', 'invite_sent')
+            ]).partner_id
+
+    # Used in ir.rule rule_slide_slide_not_website
+    def _search_channel_enrolled_partners(self, operator, value):
+        if not isinstance(value, int) and not isinstance(value, list):
+            raise ValueError('Invalid value: %s' % (value))
+        if operator not in ['=', '!=', 'in', 'not in']:
+            raise ValueError('Invalid operator: %s' % (operator))
+        return [(
+            'channel_id',
+            'in',
+            self.env['slide.channel.partner'].search([
+                ('partner_id', operator, value),
+                ('member_status', '!=', 'invite_sent')
+            ]).channel_id.ids
+        )]
 
     @api.depends('question_ids')
     def _compute_questions_count(self):

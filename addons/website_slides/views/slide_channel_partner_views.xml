@@ -5,14 +5,18 @@
             <field name="name">slide.channel.partner.search</field>
             <field name="model">slide.channel.partner</field>
             <field name="arch" type="xml">
-                <search string="Channel Member">
+                <search string="Course Member">
                     <field name="partner_id"/>
                     <field name="partner_email"/>
                     <field name="channel_id" string="Course"/>
                      <separator/>
-                    <filter string="Completed" name="filter_completed" domain="[('completed', '=', True)]"/>
+                    <filter string="Invite Sent" name="filter_pending" domain="[('member_status', '=', 'invite_sent')]"/>
+                    <filter string="Joined" name="filter_joined" domain="[('member_status', '=', 'joined')]"/>
+                    <filter string="Ongoing" name="filter_ongoing" domain="[('member_status', '=', 'ongoing')]"/>
+                    <filter string="Completed" name="filter_done" domain="[('member_status', '=', 'finished')]"/>
                     <group expand="0" string="Group By">
-                        <filter string="Channel" name="groupby_channel_id" context="{'group_by': 'channel_id'}"/>
+                        <filter string="Course" name="groupby_channel_id" context="{'group_by': 'channel_id'}"/>
+                        <filter string="Status" name="groupby_member_status" context="{'group_by': 'member_status'}"/>
                     </group>
                 </search>
             </field>
@@ -22,12 +26,20 @@
             <field name="name">slide.channel.partner.tree</field>
             <field name="model">slide.channel.partner</field>
             <field name="arch" type="xml">
-                <tree string="Attendees" editable="top" sample="1">
-                    <field name="channel_id" string="Course Name"/>
-                    <field name="channel_user_id"/>
+                <tree string="Attendees" editable="top" js_class="slide_channel_partner_invite_tree" sample="1">
+                    <field name="channel_id" string="Course Name" attrs="{'readonly':[('id', '!=', False)]}"
+                        domain="[('partner_ids', 'not in', partner_id)]"/>
+                    <field name="channel_user_id" widget="many2one_avatar_user"/>
+                    <field name="partner_id" options="{'no_create': true, 'no_create_edit': true}"
+                        attrs="{'readonly':[('id', '!=', False)]}" domain="[('slide_channel_ids', 'not in', channel_id), ('user_ids', '!=', False)]"/>
                     <field name="partner_email" string="Email"/>
-                    <field name="create_date" string="Enrolled On"/>
+                    <field name="create_date" string="Added On"/>
                     <field name="write_date" string="Last Action On"/>
+                    <field name="member_status" string="Status" widget="badge"
+                        decoration-success="member_status == 'finished'"
+                        decoration-info="member_status == 'ongoing'"
+                        decoration-warning="member_status == 'joined'"
+                        decoration-muted="member_status == 'invite_sent'"/>
                     <field name="completion" string="Progress" widget="progressbar"/>
                     <field name="channel_type" optional="hide"/>
                     <field name="channel_visibility" optional="hide"/>
@@ -74,6 +86,24 @@
             </field>
         </record>
 
+        <record id="slide_channel_partner_view_graph" model="ir.ui.view">
+            <field name="name">slide.channel.partner.view.graph</field>
+            <field name="model">slide.channel.partner</field>
+            <field name="arch" type="xml">
+                <graph string="Attendees" stacked="0" sample="1"/>
+            </field>
+        </record>
+
+        <record id="slide_channel_partner_view_pivot" model="ir.ui.view">
+            <field name="name">slide.channel.partner.view.pivot</field>
+            <field name="model">slide.channel.partner</field>
+            <field name="arch" type="xml">
+                <pivot string="Attendees" sample="1">
+                    <field name="completion" invisible="1"/>
+                </pivot>
+            </field>
+        </record>
+
         <record id="slide_channel_partner_action" model="ir.actions.act_window">
             <field name="name">Attendees</field>
             <field name="res_model">slide.channel.partner</field>
@@ -92,9 +122,9 @@
         <record id="slide_channel_partner_action_report" model="ir.actions.act_window">
             <field name="name">Attendees</field>
             <field name="res_model">slide.channel.partner</field>
-            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_mode">graph,pivot,tree,form,kanban</field>
             <field name="search_view_id" ref="website_slides.slide_channel_partner_view_search"/>
-            <field name="context">{'search_default_groupby_channel': 1}</field>
+            <field name="context">{'search_default_groupby_member_status': 1}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                     <strong>No Attendees Yet!</strong>

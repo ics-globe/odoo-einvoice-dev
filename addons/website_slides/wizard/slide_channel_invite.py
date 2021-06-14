@@ -22,27 +22,19 @@ class SlideChannelInvite(models.TransientModel):
     # recipients
     partner_ids = fields.Many2many('res.partner', string='Recipients')
     # slide channel
-    channel_id = fields.Many2one('slide.channel', string='Slide channel', required=True)
+    channel_id = fields.Many2one('slide.channel', string='Course', required=True)
+    channel_invite_url = fields.Char('Course Invitation URL', compute='_compute_channel_invite_url')
+    visibility = fields.Selection(related="channel_id.visibility", string='Course Visibility')
+
+    @api.depends('channel_id')
+    def _compute_channel_invite_url(self):
+        for invite in self:
+            invite.channel_invite_url = invite.channel_id._get_channel_invitation_link()
 
     # Overrides of mail.composer.mixin
     @api.depends('channel_id')  # fake trigger otherwise not computed in new mode
     def _compute_render_model(self):
         self.render_model = 'slide.channel.partner'
-
-    @api.onchange('partner_ids')
-    def _onchange_partner_ids(self):
-        if self.partner_ids:
-            signup_allowed = self.env['res.users'].sudo()._get_signup_invitation_scope() == 'b2c'
-            if not signup_allowed:
-                invalid_partners = self.env['res.partner'].search([
-                    ('user_ids', '=', False),
-                    ('id', 'in', self.partner_ids.ids)
-                ])
-                if invalid_partners:
-                    raise UserError(_(
-                        'The following recipients have no user account: %s. You should create user accounts for them or allow external sign up in configuration.',
-                        ', '.join(invalid_partners.mapped('name'))
-                    ))
 
     @api.model
     def create(self, values):
@@ -66,11 +58,15 @@ class SlideChannelInvite(models.TransientModel):
 
         mail_values = []
         for partner_id in self.partner_ids:
-            slide_channel_partner = self.channel_id._action_add_members(partner_id)
+            slide_channel_partner = self.channel_id._action_add_members(partner_id, add_member_mode='invite')
             if slide_channel_partner:
                 mail_values.append(self._prepare_mail_values(slide_channel_partner))
 
-        self.env['mail.mail'].sudo().create(mail_values)
+        created_mails = self.env['mail.mail'].sudo().create(mail_values)
+
+        # This will auto-publish the course if at least one email is sent and it was not published before
+        if created_mails and self.channel_id.can_publish and not self.channel_id.is_published:
+            self.channel_id.is_published = True
 
         return {'type': 'ir.actions.act_window_close'}
 

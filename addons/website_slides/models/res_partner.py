@@ -26,13 +26,13 @@ class ResPartner(models.Model):
         for partner in self:
             partner.slide_channel_completed_ids = self.env['slide.channel.partner'].search([
                 ('partner_id', '=', partner.id),
-                ('completed', '=', True)
+                ('member_status', '=', 'finished')
             ]).mapped('channel_id')
 
     def _search_slide_channel_completed_ids(self, operator, value):
         cp_done = self.env['slide.channel.partner'].sudo().search([
             ('channel_id', operator, value),
-            ('completed', '=', True)
+            ('member_status', '=', 'finished')
         ])
         return [('id', 'in', cp_done.partner_id.ids)]
 

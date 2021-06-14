@@ -242,19 +242,20 @@
 
         <div class="o_wslides_sidebar_top d-flex justify-content-between">
             <div class="o_wslides_js_course_join flex-grow-1">
-                <a t-if="not channel.is_member and channel.enroll == 'public'" role="button"
-                    class="btn btn-primary btn-block o_wslides_js_course_join_link"
+        <a t-if="not channel.is_member and (channel.enroll == 'public' or (channel.is_member_invitation_pending and channel.enroll == 'invite'))"
+                    role="button" class="btn btn-primary btn-block o_wslides_js_course_join_link"
                     title="Start Course" aria-label="Start Course Channel"
                     t-att-href="'#'"
                     t-att-data-channel-id="channel.id"
-                    t-att-data-channel-enroll="channel.enroll">
+                    t-att-data-channel-enroll="channel.enroll"
+                    t-att-data-is-allowed-member="channel.is_member or channel.is_member_invitation_pending">
                     <span class="cta-title text_small_caps">
                         <t t-if="channel.channel_type == 'documentation'">Start Course</t>
                         <t t-else="">Join Course</t>
                     </span>
                 </a>
-
-                <div t-if="not channel.is_member and channel.enroll == 'invite'" class="text-center">
+                
+                <div t-if="not channel.is_member and not channel.is_member_invitation_pending and channel.enroll == 'invite'" class="text-center">
                     <div t-attf-class="alert my-0 bg-100 p-2 #{'o_wslides_js_channel_enroll' if not is_public_user else ''}"
                          t-att-data-channel-id="channel.id">
                         Private Course
@@ -279,7 +280,8 @@
                     <button class="d-flex align-items-center alert my-0 px-2 px-xl-3 bg-100 w-100 o_wslides_js_channel_unsubscribe"
                             t-att-data-channel-id="channel.id"
                             t-att-data-is-follower="channel.message_is_follower"
-                            t-att-data-enroll="channel.enroll">
+                            t-att-data-enroll="channel.enroll"
+                            t-att-data-visibility="channel.visibility">
                         <t t-call="website_slides.slides_misc_user_image">
                             <t t-set="img_class" t-value="'rounded-circle mr-1'"/>
                             <t t-set="img_style" t-value="'width: 1.4em; height: 1.4em; object-fit: cover;'"/>
@@ -322,7 +324,7 @@
                 </tr>
                 <tr>
                     <th>Members</th>
-                    <td><t t-esc="channel.members_count"/></td>
+                    <td><t t-esc="channel.members_active_count + channel.members_done_count"/></td>
                 </tr>
             </table>
 

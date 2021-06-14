@@ -12,6 +12,7 @@
                     </t>
                     <t t-else="" t-esc="widget.joinMessage" />
                 </t>
+                <t t-if="widget.channel.channelEnroll == 'invite' and widget.isAllowedMember" t-esc="widget.joinMessage"/>
             </a>
         </div>
     </t>

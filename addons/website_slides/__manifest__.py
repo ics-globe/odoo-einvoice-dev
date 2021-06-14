@@ -65,9 +65,11 @@ Featuring
     'assets': {
         'web.assets_backend': [
             'website_slides/static/src/scss/rating_rating_views.scss',
+            'website_slides/static/src/scss/slide_channel_views.scss',
             'website_slides/static/src/scss/slide_views.scss',
             'website_slides/static/src/components/activity/activity.js',
             'website_slides/static/src/js/slide_category_one2many.js',
+            'website_slides/static/src/js/slide_channel_partner_invite.js',
             'website_slides/static/src/js/rating_field_backend.js',
         ],
         'web.assets_frontend': [
@@ -114,6 +116,7 @@ Featuring
         ],
         'web.assets_qweb': [
             'website_slides/static/src/components/activity/activity.xml',
+            'website_slides/static/src/xml/slide_channel_partner_invite.xml',
         ],
     },
     'license': 'LGPL-3',

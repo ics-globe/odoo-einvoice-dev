@@ -1,0 +1,10 @@
+// Course Kanban View
+// **************************************************
+.o_kanban_card_attendees_buttons a{
+    .fa-graduation-cap{
+        color: #444B5A;
+    }
+    &:hover .fa-graduation-cap{
+        color: black;
+    }
+} 

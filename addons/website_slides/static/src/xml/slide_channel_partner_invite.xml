@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+    <t t-extend="ListView.buttons" t-name="SlideChannelPartnerInviteListView.buttons">
+        <t t-jquery="button.o_list_button_add" t-operation="after">
+            <button t-type="button" class="btn btn-secondary o_button_slide_channel_partner_invite">
+                Share
+            </button>
+        </t>
+    </t>
+
+</templates>

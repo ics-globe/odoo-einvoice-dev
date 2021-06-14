@@ -6,11 +6,18 @@
             <field name="model">slide.channel.invite</field>
             <field name="arch" type="xml">
                 <form string="Compose Email">
+                    <field name="visibility" invisible="1"/>
                     <group col="1">
+                        <group col="2">
+                            <field name="channel_id" options="{'no_open': True}"/>
+                            <field name="channel_invite_url" readonly="1" widget="CopyClipboardChar"
+                                        attrs="{'invisible':[('visibility', '!=', 'public')]}"
+                                        class="mb16"/>
+                        </group>
                         <group col="2">
                             <field name="partner_ids"
                                 widget="many2many_tags_email"
-                                placeholder="Add existing contacts..."
+                                placeholder="Add contacts..."
                                 required="1"
                                 context="{'force_email':True, 'show_email':True, 'no_create_edit': True, 'no_quick_create': True}"/>
                         </group>

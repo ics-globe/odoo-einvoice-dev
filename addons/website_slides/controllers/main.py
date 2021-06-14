@@ -288,7 +288,7 @@ class WebsiteSlides(WebsiteProfile):
         domain = request.website.website_domain()
         channels_all = request.env['slide.channel'].search(domain)
         if not request.env.user._is_public():
-            #If a course is completed, we don't want to see it in first position but in last
+            # If a course is completed, we don't want to see it in first position but in last
             channels_my = channels_all.filtered(lambda channel: channel.is_member).sorted(lambda channel: 0 if channel.completed else channel.completion, reverse=True)[:3]
         else:
             channels_my = request.env['slide.channel']
@@ -599,6 +599,36 @@ class WebsiteSlides(WebsiteProfile):
                 })
 
         return values
+
+    @http.route('/slides/<int:channel_id>/invite', type='http', auth='public', website=True, sitemap=False)
+    def slide_channel_invite(self, channel_id):
+        """ This route is included in the invitation link in email to join the course.
+        (See '_get_channel_invitation_link' for more info)
+
+        It acts as a dipatcher, here are the supported use cases:
+            - If the current user (public or logged) can access the course, redirects to the course page
+            - If no user is logged and the public user has no access to the course, redirects to login page,
+            then redirects in turn to this route to be dispatched again, once the user is logged, according
+            to its access rights.
+            - If a logged user has not access to the course, redirects to the main page with all courses.
+
+        :param channel_id: The id of the course the user is invited to. Do not use <model> in the route
+                           instead, otherwise an error 403 could be returned if the (public) user has no
+                           access to the record.
+
+        :return: redirects to the relevant route, see above.
+        """
+        channel = request.env['slide.channel'].browse(int(channel_id))
+        try:
+            channel.check_access_rights('read')
+            channel.check_access_rule('read')
+        except AccessError:
+            if request.website.is_public_user():
+                return werkzeug.utils.redirect('/web/login?redirect=/slides/%s/invite' % channel_id)
+            else:
+                return werkzeug.utils.redirect("/slides")
+        else:
+            return werkzeug.utils.redirect("/slides/%s" % (slug(channel)))
 
     @http.route(['/slides/channel/join'], type='json', auth='public', website=True)
     def slide_channel_join(self, channel_id):
@@ -1168,7 +1198,7 @@ class WebsiteSlides(WebsiteProfile):
 
     def _prepare_user_slides_profile(self, user):
         courses = request.env['slide.channel.partner'].sudo().search([('partner_id', '=', user.partner_id.id)])
-        courses_completed = courses.filtered(lambda c: c.completed)
+        courses_completed = courses.filtered(lambda c: c.member_status == 'finished')
         courses_ongoing = courses - courses_completed
         values = {
             'uid': request.env.user.id,

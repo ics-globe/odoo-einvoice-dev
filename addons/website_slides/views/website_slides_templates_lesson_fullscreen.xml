@@ -103,6 +103,7 @@
         <ul class="o_wslides_fs_sidebar_section_slides collapse show position-relative px-0 pb-1 my-0 mx-n3" t-att-id="('collapse-%s') % (category.id if category else 0)">
             <t t-foreach="slides" t-as="slide">
                 <t t-set="slide_completed" t-value="channel_progress[slide.id].get('completed')"/>
+                <t t-set="is_allowed_member" t-value="current_slide.channel_id.is_member or current_slide.channel_id.is_member_invitation_pending"/>
                 <t t-set="is_member" t-value="current_slide.channel_id.is_member"/>
                 <t t-set="can_access" t-value="slide.is_preview or is_member or current_slide.channel_id.can_publish"/>
                 <li t-att-class="'o_wslides_fs_sidebar_list_item d-flex align-items-top py-1 %s' % ('active' if slide.id == current_slide.id else '')"
@@ -115,6 +116,7 @@
                     t-att-data-is-quiz="0"
                     t-att-data-completed="1 if slide_completed else 0"
                     t-att-data-embed-code="slide.embed_code if slide.slide_type in ['video', 'document', 'presentation', 'infographic'] else False"
+                    t-att-data-is-allowed-member="is_allowed_member"
                     t-att-data-is-member="is_member"
                     t-att-data-session-answers="session_answers">
                     <span class="ml-3">
@@ -168,6 +170,7 @@
                                 t-att-data-has-question="1 if slide.question_ids else 0"
                                 t-att-data-is-quiz="1"
                                 t-att-data-completed="1 if slide_completed else 0"
+                                t-att-data-is-allowed-member="is_allowed_member"
                                 t-att-data-is-member="is_member"
                                 t-att-data-session-answers="session_answers">
                                 <a t-if="can_access" class="o_wslides_fs_slide_quiz" href="#" t-att-index="i">

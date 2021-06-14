@@ -151,6 +151,44 @@ class TestAccess(common.SlidesCase):
         self.slide.with_user(self.user_portal).read(['name'])
         self.slide.with_user(self.user_public).read(['name'])
 
+    @mute_logger('odoo.models', 'odoo.addons.base.models.ir_rule')
+    def test_access_members_channel_invited_member(self):
+        """ Channels with 'members-only' visibility are visible to members with pending invitation"""
+        self.channel.write({'visibility': 'members'})
+        self.channel.flush(['visibility'])
+
+        with self.assertRaises(AccessError):
+            self.channel.with_user(self.user_portal).read(['name'])
+        self.env['slide.channel.partner'].sudo().create({
+            'channel_id': self.channel.id,
+            'partner_id': self.user_portal.partner_id.id,
+            'member_status': 'invite_sent'
+        })
+        self.channel.with_user(self.user_portal).read(['name'])
+
+    @mute_logger('odoo.models', 'odoo.addons.base.models.ir_rule')
+    def test_access_slide_invited_or_joined(self):
+        """ Slides without preview flag are not visible to members with pending invitation
+        Slides with preview flag are visible to invited members, even for members-only visibility """
+        channel_partner_portal = self.env['slide.channel.partner'].sudo().create({
+            'channel_id': self.channel.id,
+            'partner_id': self.user_portal.partner_id.id,
+            'member_status': 'invite_sent'
+        })
+        with self.assertRaises(AccessError):
+            self.slide.with_user(self.user_portal).read(['name'])
+
+        channel_partner_portal.write({'member_status': 'joined'})
+        self.slide.with_user(self.user_portal).read(['name'])
+
+        channel_partner_portal.write({'member_status': 'invite_sent'})
+        self.slide.write({'is_preview': True})
+        self.slide.flush(['is_preview'])
+        self.slide.with_user(self.user_portal).read(['name'])
+        self.channel.write({'visibility': 'members'})
+        self.channel.flush(['visibility'])
+        self.slide.with_user(self.user_portal).read(['name'])
+
 
 @tagged('functional', 'security')
 class TestRemoveMembership(common.SlidesCase):

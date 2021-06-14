@@ -10,7 +10,7 @@ from odoo.addons.base.tests.common import HttpCaseWithUserDemo, HttpCaseWithUser
 
 
 class TestUICommon(HttpCaseWithUserDemo, HttpCaseWithUserPortal):
-    
+
     def setUp(self):
         super(TestUICommon, self).setUp()
         # Load pdf and img contents

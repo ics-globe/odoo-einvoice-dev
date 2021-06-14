@@ -445,6 +445,7 @@
         t-att-data-id="slide.id"
         t-att-data-name="slide.name"
         t-att-data-slide-type="slide.slide_type"
+        t-att-data-is-allowed-member="slide.channel_id.is_member or slide.channel_id.is_member_invitation_pending"
         t-att-data-is-member="slide.channel_id.is_member"
         t-att-data-completed="1 if slide_completed else 0"
         t-att-data-quiz-attempts-count="quiz_attempts_count"

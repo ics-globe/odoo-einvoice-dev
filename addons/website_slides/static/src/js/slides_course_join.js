@@ -19,7 +19,10 @@ var CourseJoinWidget = publicWidget.Widget.extend({
      * @param {Object} parent
      * @param {Object} options
      * @param {Object} options.channel slide.channel information
-     * @param {boolean} options.isMember whether current user is member or not
+     * @param {boolean} options.isAllowedMember whether current user is in attendees.
+     * This is true for all attendees, even if their invitation is pending.
+     * @param {boolean} options.isMember whether current user is member is enrolled to
+     * the course: true if its member status is 'joined', 'ongoing' or 'finished'.
      * @param {boolean} options.publicUser whether current user is public or not
      * @param {string} [options.joinMessage] the message to use for the simple join case
      *   when the course if free and the user is logged in, defaults to "Join Course".
@@ -31,6 +34,7 @@ var CourseJoinWidget = publicWidget.Widget.extend({
     init: function (parent, options) {
         this._super.apply(this, arguments);
         this.channel = options.channel;
+        this.isAllowedMember = options.isAllowedMember;
         this.isMember = options.isMember;
         this.publicUser = options.publicUser;
         this.joinMessage = options.joinMessage || _t('Join Course'),
@@ -49,10 +53,10 @@ var CourseJoinWidget = publicWidget.Widget.extend({
     _onClickJoin: function (ev) {
         ev.preventDefault();
 
-        if (this.channel.channelEnroll !== 'invite') {
+        if (this.channel.channelEnroll !== 'invite' || (this.channel.channelEnroll === 'invite' && this.isAllowedMember)) {
             if (this.publicUser) {
                 this.beforeJoin().then(this._redirectToLogin.bind(this));
-            } else if (!this.isMember && this.channel.channelEnroll === 'public') {
+            } else if (!this.isMember) {
                 this.joinChannel(this.channel.channelId);
             }
         }
@@ -144,7 +148,7 @@ publicWidget.registry.websiteSlidesCourseJoin = publicWidget.Widget.extend({
         var self = this;
         var proms = [this._super.apply(this, arguments)];
         var data = self.$el.data();
-        var options = {channel: {channelEnroll: data.channelEnroll, channelId: data.channelId}};
+        var options = {channel: {channelEnroll: data.channelEnroll, channelId: data.channelId}, isAllowedMember: data.isAllowedMember};
         $('.o_wslides_js_course_join').each(function () {
             proms.push(new CourseJoinWidget(self, options).attachTo($(this)));
         });
