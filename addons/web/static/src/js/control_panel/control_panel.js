@@ -128,10 +128,12 @@ odoo.define('web.ControlPanel', function (require) {
         }
 
         mounted() {
+            console.log(`>>>>> mounted <<<<<`);
             this._attachAdditionalContent();
         }
 
         patched() {
+            console.log(`>>>>> patched <<<<<`);
             this._attachAdditionalContent();
         }
 
@@ -161,6 +163,7 @@ odoo.define('web.ControlPanel', function (require) {
                 if (this.additionalContent[key] && this.additionalContent[key].length) {
                     const target = this.contentRefs[key].el;
                     if (target) {
+                        console.log(`>>>>> _attachAdditionalContent => ${key} <<<<<`);
                         target.innerHTML = "";
                         target.append(...this.additionalContent[key]);
                     }

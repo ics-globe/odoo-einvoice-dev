@@ -299,6 +299,8 @@ return core.Class.extend(mixins.EventDispatcherMixin, ServicesMixin, {
             $visible_alt_trigger = get_first_visible_element($alt_trigger);
         }
 
+        console.log(`>>>>> _check_for_tooltip => Before check .o_statusbar_buttons > .btn-group => ${$('.o_statusbar_buttons > .btn-group').hasClass('show')} <<<<<`);
+
         var triggered = $visible_trigger.length && extra_trigger;
         if (triggered) {
             if (!tip.widget) {
@@ -326,13 +328,13 @@ return core.Class.extend(mixins.EventDispatcherMixin, ServicesMixin, {
             this._deactivate_tip(tip);
 
             if (this.running_tour === tour_name) {
-                this._log.push("_check_for_tooltip");
-                this._log.push("- modal_displayed: " + this.$modal_displayed.length);
-                this._log.push("- trigger '" + tip.trigger + "': " + $trigger.length);
-                this._log.push("- visible trigger '" + tip.trigger + "': " + $visible_trigger.length);
+                console.log("_check_for_tooltip");
+                console.log("- modal_displayed: " + this.$modal_displayed.length);
+                console.log("- trigger '" + tip.trigger + "': " + $trigger.length);
+                console.log("- visible trigger '" + tip.trigger + "': " + $visible_trigger.length);
                 if ($extra_trigger !== undefined) {
-                    this._log.push("- extra_trigger '" + tip.extra_trigger + "': " + $extra_trigger.length);
-                    this._log.push("- visible extra_trigger '" + tip.extra_trigger + "': " + extra_trigger);
+                    console.log("- extra_trigger '" + tip.extra_trigger + "': " + $extra_trigger.length);
+                    console.log("- visible extra_trigger '" + tip.extra_trigger + "': " + extra_trigger);
                 }
             }
         }

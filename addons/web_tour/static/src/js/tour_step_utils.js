@@ -107,8 +107,10 @@ return core.Class.extend({
                 extra_trigger: extraTrigger,
                 run: actions => {
                     const $action = $('.o_statusbar_buttons .btn.dropdown-toggle:contains(Action)');
+                    console.log(`>>>>> statusbarButtonsSteps .o_statusbar_buttons len(${$action.length}) <<<<<`);
                     if ($action.length) {
                         actions.click($action);
+                        console.log(`>>>>> ${$('.o_statusbar_buttons > .btn-group').hasClass('show')} <<<<<`);
                     }
                 },
             }, {
