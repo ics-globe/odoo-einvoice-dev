@@ -3,10 +3,34 @@
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2one } from '@mail/model/model_field';
 import { clear, create, link, unlink, update } from '@mail/model/model_field_command';
+import {
+    isEventHandled,
+    markEventHandled,
+} from '@mail/utils/utils';
 
 function factory(dependencies) {
 
     class ChatWindow extends dependencies['mail.model'] {
+
+        /**
+         * @override
+         */
+        _created() {
+            this.onAutocompleteSelect = this.onAutocompleteSelect.bind(this);
+            this.onAutocompleteSource = this.onAutocompleteSource.bind(this);
+            this.onClickChatWindowHeader = this.onClickChatWindowHeader.bind(this);
+            this.onClickChatWindowHeaderClose = this.onClickChatWindowHeaderClose.bind(this);
+            this.onClickChatWindowHeaderExpand = this.onClickChatWindowHeaderExpand.bind(this);
+            this.onClickChatWindowHeaderShiftNext = this.onClickChatWindowHeaderShiftNext.bind(this);
+            this.onClickChatWindowHeaderShiftPrev = this.onClickChatWindowHeaderShiftPrev.bind(this);
+            this.onClickedHeader = this.onClickedHeader.bind(this);
+            this.onFocusinThread = this.onFocusinThread.bind(this);
+            this.onFocusout = this.onFocusout.bind(this);
+            this.onKeydown = this.onKeydown.bind(this);
+
+            const res = super._created(...arguments);
+            return res;
+        }
 
         //----------------------------------------------------------------------
         // Public
@@ -108,16 +132,153 @@ function factory(dependencies) {
         }
 
         /**
+         * Called when selecting an item in the autocomplete input of the
+         * 'new_message' chat window.
+         *
+         * @private
+         * @param {Event} ev
+         * @param {Object} ui
+         * @param {Object} ui.item
+         * @param {integer} ui.item.id
+         */
+        async onAutocompleteSelect(ev, ui) {
+            const chat = await this.env.messaging.getChat({ partnerId: ui.item.id });
+            if (!chat) {
+                return;
+            }
+            this.manager.openThread(chat, {
+                makeActive: true,
+                replaceNewMessage: true,
+            });
+        }
+
+        /**
+         * Called when typing in the autocomplete input of the 'new_message' chat
+         * window.
+         *
+         * @private
+         * @param {Object} req
+         * @param {string} req.term
+         * @param {function} res
+         */
+        onAutocompleteSource(req, res) {
+            this.env.models['mail.partner'].imSearch({
+                callback: (partners) => {
+                    const suggestions = partners.map(partner => {
+                        return {
+                            id: partner.id,
+                            value: partner.nameOrDisplayName,
+                            label: partner.nameOrDisplayName,
+                        };
+                    });
+                    res(_.sortBy(suggestions, 'label'));
+                },
+                keyword: _.escape(req.term),
+                limit: 10,
+            });
+        }
+
+        /**
+         * Called when an element in the thread becomes focused.
+         */
+        onFocusinThread(ev) {
+            ev.stopPropagation();
+            if (!this.exists()) {
+                // prevent crash on destroy
+                return;
+            }
+            this.update({ isFocused: true });
+        }
+
+        /**
+         * Handle onFocusout of the chat window.
+         */
+        onFocusout() {
+            if (!this.exists()) {
+                // prevent crash on destroy
+                return;
+            }
+            this.update({ isFocused: false });
+        }
+
+        /**
+         * Handle keydown on chat_window.
+         *
+         * @param {KeyboardEvent} ev
+         */
+        onKeydown(ev) {
+            if (!this.exists()) {
+                // prevent crash on destroy
+                return;
+            }
+            switch (ev.key) {
+                case 'Tab':
+                    ev.preventDefault();
+                    if (ev.shiftKey) {
+                        this.focusPreviousVisibleUnfoldedChatWindow();
+                    } else {
+                        this.focusNextVisibleUnfoldedChatWindow();
+                    }
+                    break;
+                case 'Escape':
+                    if (isEventHandled(ev, 'ComposerTextInput.closeSuggestions')) {
+                        break;
+                    }
+                    if (isEventHandled(ev, 'Composer.closeEmojisPopover')) {
+                        break;
+                    }
+                    ev.preventDefault();
+                    this.focusNextVisibleUnfoldedChatWindow();
+                    this.close();
+                    break;
+            }
+        }
+
+        /**
+         * @param {MouseEvent} ev
+         */
+        onClickChatWindowHeader(ev) {
+            if (isEventHandled(ev, 'ChatWindowHeader.ClickShiftNext')) {
+                return;
+            }
+            if (isEventHandled(ev, 'ChatWindowHeader.ClickShiftPrev')) {
+                return;
+            }
+            this.componentChatWindowHeader.trigger('o-clicked', { chatWindow: this });
+        }
+
+        /**
+         * @param {MouseEvent} ev
+         */
+        onClickChatWindowHeaderClose(ev) {
+            ev.stopPropagation();
+            if (!this.exists()) {
+                return;
+            }
+            this.close();
+        }
+
+        /**
+         * @param {MouseEvent} ev
+         */
+        onClickChatWindowHeaderExpand(ev) {
+            ev.stopPropagation();
+            this.expand();
+        }
+
+        /**
          * Swap this chat window with the previous one.
          */
-        shiftPrev() {
+        onClickChatWindowHeaderShiftPrev(ev) {
+            markEventHandled(ev, 'ChatWindowHeader.ClickShiftPrev');
             this.manager.shiftPrev(this);
         }
 
         /**
          * Swap this chat window with the next one.
          */
-        shiftNext() {
+        onClickChatWindowHeaderShiftNext(ev) {
+            markEventHandled(ev, 'ChatWindowHeader.ClickShiftNext');
             this.manager.shiftNext(this);
         }
 
@@ -312,9 +473,67 @@ function factory(dependencies) {
             return nextToFocus;
         }
 
+        /**
+         * Save the scroll positions of the chat window in the store.
+         * This is useful in order to remount chat windows and keep previous
+         * scroll positions. This is necessary because when toggling on/off
+         * home menu, the chat windows have to be remade from scratch.
+         *
+         * @private
+         */
+        _saveThreadScrollTop() {
+            if (
+                !this.threadRef.comp ||
+                !this.threadViewer ||
+                !this.threadViewer.threadView
+            ) {
+                return;
+            }
+            if (this.threadViewer.threadView.componentHintList.length > 0) {
+                // the current scroll position is likely incorrect due to the
+                // presence of hints to adjust it
+                return;
+            }
+            this.threadViewer.saveThreadCacheScrollHeightAsInitial(
+                this.threadRef.comp.getScrollHeight()
+            );
+            this.threadViewer.saveThreadCacheScrollPositionsAsInitial(
+                this.threadRef.comp.getScrollTop()
+            );
+        }
+
+        /**
+         * Called when clicking on header of chat window. Usually folds the chat
+         * window.
+         *
+         * @private
+         * @param {CustomEvent} ev
+         */
+        onClickedHeader(ev) {
+            ev.stopPropagation();
+            if (this.env.messaging.device.isMobile) {
+                return;
+            }
+            if (this.isFolded) {
+                this.unfold();
+                this.focus();
+            } else {
+                this._saveThreadScrollTop();
+                this.fold();
+            }
+        }
+
     }
 
     ChatWindow.fields = {
+        /**
+         * States the OWL component of this chat window.
+         */
+        component: attr(),
+        /**
+         * States the OWL component of this chat window header.
+         */
+        componentChatWindowHeader: attr(),
         /**
          * Determines whether "new message form" should be displayed.
          */
@@ -377,6 +596,10 @@ function factory(dependencies) {
         thread: one2one('mail.thread', {
             inverse: 'chatWindow',
         }),
+        /**
+         * States the OWL ref of the "thread"" of this chat window.
+         */
+        threadRef: attr(),
         /**
          * States the `mail.thread_view` displaying `this.thread`.
          */
