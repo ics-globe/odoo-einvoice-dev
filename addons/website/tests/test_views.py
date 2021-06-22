@@ -1085,6 +1085,75 @@ class TestCowViewSaving(TestViewSavingCommon):
         self.assertTrue(self.inherit_view in base_view_2.inherit_children_ids, "D should be under B")
         self.assertTrue(specific_child_view in base_view_2.inherit_children_ids, "D' should be under B")
 
+    def test_unlink_part_cow_tree(self):
+        # Consider the follow case
+        # 1. The following view hierarchy:
+        #   - web.layout (A)
+        #     - web.frontend_layout (B)
+        #       - portal.frontend_layout (C)
+        #         - website.layout (D)
+        # 2. A template (Z) t-calling (D)
+        # 3. The hierarchy is COW'd starting from (B)
+        #     A        <- web.layout
+        #    / \
+        #   B   B'     <- web.frontend_layout
+        #   |   |
+        #   C   C'     <- portal.frontend_layout
+        #   |   |
+        #   D   D'     <- website.layout
+        #
+        # In a website context:
+        # - When C' is archived, t-calling `website.layout` should render AB' as
+        #   it should retrieve D', then moving up the tree, then rendering what
+        #   is active in the specific tree
+        # - When C' is deleted, t-calling `website.layout` should ?????
+
+    def test_unlink_part_cow_tree_2(self):
+        View = self.env['ir.ui.view']
+        Website = self.env['website']
+        # 1. Setup following view trees, where only C' has an actual diff
+        #     A
+        #    / \
+        #   B   B'
+        #   |   |
+        #   C   C'*
+        inherit_view_C = View.create({
+            'name': 'C',
+            'mode': 'extension',
+            'inherit_id': self.inherit_view.id,
+            'arch': '<div position="inside">C</div>',
+            'key': 'website.inherit_view_C',
+        })
+        self.base_view.write({'arch': '<div>A</div>'})
+        self.inherit_view.write({'arch': '<div position="inside">B</div>'})
+        self.inherit_view.with_context(website_id=1).write({'name': "B'"})  # trigger cow (no diff)
+
+        generic_arch = self.base_view.read_combined(['arch'])['arch']
+        specific_arch = self.base_view.with_context(website_id=1).read_combined(['arch'])['arch']
+        self.assertTrue(generic_arch == specific_arch == '<div>ABC</div>')
+
+        # Note: 2 next lines are equivalent than writting directly on cow view
+        inherit_view_C.with_context(website_id=1).write({'arch': '<div position="inside">c</div>'})
+        specific_arch = self.base_view.with_context(website_id=1).read_combined(['arch'])['arch']
+        self.assertEqual(specific_arch, "<div>ABc</div>")
+
+        # 2. Delete C'
+        Website.with_context(load_all_views=True, website_id=1, _force_unlink=True).viewref(inherit_view_C.key).unlink()
+
+        # 3. B and C should be re-cow'd as when deleting a cow view, we expect to
+        #    use the generic one, but since it is in another tree, we need to
+        #    recow those in the specific tree
+        #     A
+        #    / \
+        #   B   B'
+        #   |   |
+        #   C   C'
+        specific_arch = self.base_view.with_context(website_id=1).read_combined(['arch'])['arch']
+        import pudb; pudb.set_trace()
+        View._render_template(183)
+        View._render_template(755)
+        self.assertEqual(specific_arch, "<div>ABC</div>")
+
 
 @tagged('-at_install', 'post_install')
 class Crawler(HttpCase):
