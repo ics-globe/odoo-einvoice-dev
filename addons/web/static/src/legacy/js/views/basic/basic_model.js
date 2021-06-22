@@ -1599,7 +1599,7 @@ var BasicModel = AbstractModel.extend({
             }
             return new Promise(function (resolve, reject) {
                 if (onChangeFields.length) {
-                    self._performOnChange(record, onChangeFields, { viewType: options.viewType })
+                    self._performOnChange(record, onChangeFields, { viewType: options.viewType, context: options.context })
                     .then(function (result) {
                         delete record._warning;
                         resolve(_.keys(changes).concat(Object.keys(result && result.value || {})));
@@ -4277,6 +4277,7 @@ var BasicModel = AbstractModel.extend({
         var idList = record.data.id ? [record.data.id] : [];
         const ctxOptions = {
             full: true,
+            additionalContext: options.context || {},
         };
         if (fields.length === 1) {
             fields = fields[0];

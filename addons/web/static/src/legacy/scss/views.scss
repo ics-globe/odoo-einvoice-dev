@@ -26,6 +26,10 @@
         @extend .bg-danger;
     }
 
+    &.o_status_orange {
+        @extend .bg-warning;
+    }
+
     .dropdown-item > & {
         margin-bottom: .2em;
         transform: translateX(-50%);

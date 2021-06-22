@@ -739,27 +739,6 @@ class TestAccountPayment(AccountTestInvoicingCommon):
             'is_matched': False,
         }])
 
-        statement = self.env['account.bank.statement'].create({
-            'name': 'test_statement',
-            'journal_id': self.company_data['default_journal_bank'].id,
-            'line_ids': [
-                (0, 0, {
-                    'payment_ref': '50 to pay',
-                    'partner_id': self.partner_a.id,
-                    'amount': 50.0,
-                }),
-            ],
-        })
-        statement.button_post()
-        statement_line = statement.line_ids
-
-        statement_line.reconcile([{'id': liquidity_lines.id}])
-
-        self.assertRecordValues(payment, [{
-            'is_reconciled': True,
-            'is_matched': True,
-        }])
-
     def test_payment_name(self):
         AccountPayment = self.env['account.payment']
         AccountPayment.search([]).unlink()

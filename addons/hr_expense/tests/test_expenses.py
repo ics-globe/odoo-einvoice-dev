@@ -36,32 +36,14 @@ class TestExpenses(TestExpenseCommon):
         expense_sheet.approve_expense_sheets()
         expense_sheet.action_sheet_move_create()
 
-        payment = get_payment(expense_sheet, 100.0)
-        liquidity_lines1 = payment._seek_for_lines()[0]
+        get_payment(expense_sheet, 100.0)
 
         self.assertEqual(expense_sheet.payment_state, 'partial', 'payment_state should be partial')
 
-        payment = get_payment(expense_sheet, 250.0)
-        liquidity_lines2 = payment._seek_for_lines()[0]
+        get_payment(expense_sheet, 250.0)
 
         in_payment_state = expense_sheet.account_move_id._get_invoice_in_payment_state()
         self.assertEqual(expense_sheet.payment_state, in_payment_state, 'payment_state should be ' + in_payment_state)
-
-        statement = self.env['account.bank.statement'].create({
-            'name': 'test_statement',
-            'journal_id': self.company_data['default_journal_bank'].id,
-            'line_ids': [
-                (0, 0, {
-                    'payment_ref': 'pay_ref',
-                    'amount': -350.0,
-                    'partner_id': self.expense_employee.address_home_id.id,
-                }),
-            ],
-        })
-        statement.button_post()
-        statement.line_ids.reconcile([{'id': liquidity_lines1.id}, {'id': liquidity_lines2.id}])
-
-        self.assertEqual(expense_sheet.payment_state, 'paid', 'payment_state should be paid')
 
     def test_expense_values(self):
         """ Checking accounting move entries and analytic entries when submitting expense """
