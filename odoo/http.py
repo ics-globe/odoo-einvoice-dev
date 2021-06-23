@@ -45,7 +45,7 @@ import odoo
 from .modules.module import module_manifest
 from .service.server import memory_info
 from .service import security, model as service_model
-from .tools import ustr, consteq, frozendict, pycompat, unique, date_utils
+from .tools import ustr, consteq, frozendict, pycompat, unique, date_utils, DotDict
 from .tools.mimetypes import guess_mimetype
 
 #----------------------------------------------------------
@@ -107,6 +107,29 @@ NO_POSTMORTEM = (
     odoo.exceptions.Warning,
     odoo.exceptions.RedirectWarning,
 )
+
+MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
+PG_CONCURRENCY_ERRORS_TO_RETRY = {
+    errorcodes.LOCK_NOT_AVAILABLE,
+    errorcodes.SERIALIZATION_FAILURE,
+    errorcodes.DEADLOCK_DETECTED,
+}
+NOT_NULL_VIOLATION_MESSAGE = """\
+The operation cannot be completed:
+- Create/update: a mandatory field is not set.
+- Delete: another model requires the record being deleted. If possible, archive it instead.
+
+Model: %(model_name)s (%(model_tech_name)s)
+Field: %(field_name)s (%(field_tech_name)s)
+"""
+FOREIGN_KEY_VIOLATION_MESSAGE = """\
+The operation cannot be completed: another model requires the record being deleted. If possible, archive it instead.
+
+Model: %(model_name)s (%(model_tech_name)s)
+Constraint: %(constraint)s
+"""
+CONSTRAINT_VIOLATION_MESSAGE = "The operation cannot be completed: %s"
+INTEGRITY_ERROR_MESSAGE = "The operation cannot be completed: %s"
 
 #----------------------------------------------------------
 # Helpers
@@ -496,35 +519,73 @@ class Request(object):
             threading.current_thread().uid = self.session.uid
 
     def _call_function(self, endpoint, *args, **kwargs):
-        ## Move to handle
-        #first_time = True
-        ## Correct exception handling and concurency retry
-        #@service_model.check
-        #def checked_call(___dbname, *a, **kw):
-        #    nonlocal first_time
-        #    # The decorator can call us more than once if there is an database error. In this
-        #    # case, the request cursor is unusable. Rollback transaction to create a new one.
-        #    if self._cr and not first_time:
-        #        self._cr.rollback()
-        #        self.env.clear()
-        #    first_time = False
-        #    #_logger.info("CALLL function",stack_info=True)
-        #    result = endpoint(*a, **kw)
-        #    if isinstance(result, Response) and result.is_qweb:
-        #        # Early rendering of lazy responses to benefit from @service_model.check protection
-        #        result.flatten()
-        #    # TODO
-        #    #if self._cr is not None:
-        #    #    # flush here to avoid triggering a serialization error outside
-        #    #    # of this context, which would not retry the call
-        #    #    flush_env(self._cr)
-        #    #    self._cr.precommit()
-        #    self.env['base'].flush()
-        #    return result
+        def as_validation_error(exc):
+            """ Return the IntegrityError encapsuled in a nice ValidationError """
+            unknown = _('Unknown')
+            for name, rclass in self.env.registry.items():
+                if inst.diag.table_name == rclass._table:
+                    model = rclass
+                    field = model._fields.get(inst.diag.column_name)
+                    break
+            else:
+                model = DotDict({'_name': unknown.lower(), '_description': unknown})
+                field = DotDict({'name': unknown.lower(), 'string': unknown})
 
-        #if self.db:
-        #    return checked_call(self.db, *args, **kwargs)
-        return endpoint(*args, **kwargs)
+            if exc.code == NOT_NULL_VIOLATION:
+                return ValidationError(_(NOT_NULL_VIOLATION_MESSAGE, **{
+                    'model_name': model._description,
+                    'model_tech_name': model._name,
+                    'field_name': field.string,
+                    'field_tech_name': field.name
+                }))
+
+            if exc.code == FOREIGN_KEY_VIOLATION:
+                return ValidationError(_(FOREIGN_KEY_VIOLATION_MESSAGE, **{
+                    'model_name': model._description,
+                    'model_tech_name': model._name, 
+                    'constraint': exc.diag.constraint_name,
+                }))
+
+            if exc.diag.constraint_name in registry._sql_constraints:
+                return ValidationError(_(CONSTRAINT_VIOLATION_MESSAGE,
+                    translate_sql_constraint(exc.diag.constraint_name, self.env.cr, self.env.context['lang'])
+                ))
+
+            return ValidationError(_(INTEGRITY_ERROR_MESSAGE, exc.args[0]))
+
+        # Execute the business code. In case the SQL transaction failed due
+        # to a serialization failure (like two transactions writing on a
+        # same record) wait a bit and retry. Other exceptions bubble up.
+        for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
+            try:
+                result = endpoint(*args, **kwargs)
+                if isinstance(result, Response) and result.is_qweb:
+                    result.flatten()
+                flush_env(self.env.cr)
+                self.env.cr.precommit()
+                self.env['base'].flush()
+                return result
+            except (IntegrityError, OperationalError) as exc:
+                self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
+                self.env.clear()
+                if type(exc) is IntegrityError:
+                    raise as_validation_error(exc) from exc
+                if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                    raise
+
+                # would ideally go outside of the for-loop but it is only
+                # possible to re-raise from within an except block
+                if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
+                    _logger.info("%s, was %s/%s, maximum number of tries reached!",
+                        errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
+                    raise
+
+            wait_time = random.uniform(0.0, 2 ** tries)
+            _logger.info("%s, was %s/%s, try again in %.04f sec...",
+                errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
+            time.sleep(wait_time)
+
+        raise RuntimeError("unreachable")
 
     def rpc_debug_pre(self, endpoint, params, model=None, method=None):
         # For Odoo service RPC params is a list or a tuple, for call_kw style it is a dict
@@ -1178,13 +1239,6 @@ class Request(object):
                 return self.send_file(content)
 
     def handle(self):
-        # Thread local request
-        _request_stack.push(self)
-        # Serve static file if found
-        response = self.handle_static()
-        if response:
-            return response
-        else:
             # Serve controllers
             # locate nodb controller first
             try:
@@ -1233,7 +1287,6 @@ class Request(object):
                         result = nodb_exception
                     response = self.coerce_response(result)
                     return response
-        _request_stack.pop()
 
 #----------------------------------------------------------
 # WSGI Layer
@@ -1304,16 +1357,19 @@ class Application(object):
             self.setup_nodb_routing_map()
             _logger.info("HTTP Application configured")
 
+        httprequest = werkzeug.wrappers.Request(environ)
+        httprequest.parameter_storage_class = werkzeug.datastructures.ImmutableOrderedMultiDict
+        request = Request(self, httprequest)
+        _request_stack.push(request)
         try:
-            httprequest = werkzeug.wrappers.Request(environ)
-            httprequest.parameter_storage_class = werkzeug.datastructures.ImmutableOrderedMultiDict
-            request = Request(self, httprequest)
-            response = request.handle()
+            response = request.handle_static() or request.handle()
             # TODO removed app on httprequest grep website and test_qweb request.httprequest.app.get_db_router(request.db)
+        except werkzeug.exceptions.HTTPException as response_error:
+            return response_error(environ, start_response)
+        else:
             return response(environ, start_response)
-
-        except werkzeug.exceptions.HTTPException as e:
-            return e(environ, start_response)
+        finally:
+            _request_stack.pop()
 
 # wsgi handler
 application = root = Application()
