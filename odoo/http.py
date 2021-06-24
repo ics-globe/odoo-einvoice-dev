@@ -108,28 +108,6 @@ NO_POSTMORTEM = (
     odoo.exceptions.RedirectWarning,
 )
 
-MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
-PG_CONCURRENCY_ERRORS_TO_RETRY = {
-    errorcodes.LOCK_NOT_AVAILABLE,
-    errorcodes.SERIALIZATION_FAILURE,
-    errorcodes.DEADLOCK_DETECTED,
-}
-NOT_NULL_VIOLATION_MESSAGE = """\
-The operation cannot be completed:
-- Create/update: a mandatory field is not set.
-- Delete: another model requires the record being deleted. If possible, archive it instead.
-
-Model: %(model_name)s (%(model_tech_name)s)
-Field: %(field_name)s (%(field_tech_name)s)
-"""
-FOREIGN_KEY_VIOLATION_MESSAGE = """\
-The operation cannot be completed: another model requires the record being deleted. If possible, archive it instead.
-
-Model: %(model_name)s (%(model_tech_name)s)
-Constraint: %(constraint)s
-"""
-CONSTRAINT_VIOLATION_MESSAGE = "The operation cannot be completed: %s"
-INTEGRITY_ERROR_MESSAGE = "The operation cannot be completed: %s"
 
 #----------------------------------------------------------
 # Helpers
@@ -518,74 +496,6 @@ class Request(object):
         if self.session.uid:
             threading.current_thread().uid = self.session.uid
 
-    def _call_function(self, endpoint, *args, **kwargs):
-        def as_validation_error(exc):
-            """ Return the IntegrityError encapsuled in a nice ValidationError """
-            unknown = _('Unknown')
-            for name, rclass in self.env.registry.items():
-                if inst.diag.table_name == rclass._table:
-                    model = rclass
-                    field = model._fields.get(inst.diag.column_name)
-                    break
-            else:
-                model = DotDict({'_name': unknown.lower(), '_description': unknown})
-                field = DotDict({'name': unknown.lower(), 'string': unknown})
-
-            if exc.code == NOT_NULL_VIOLATION:
-                return ValidationError(_(NOT_NULL_VIOLATION_MESSAGE, **{
-                    'model_name': model._description,
-                    'model_tech_name': model._name,
-                    'field_name': field.string,
-                    'field_tech_name': field.name
-                }))
-
-            if exc.code == FOREIGN_KEY_VIOLATION:
-                return ValidationError(_(FOREIGN_KEY_VIOLATION_MESSAGE, **{
-                    'model_name': model._description,
-                    'model_tech_name': model._name, 
-                    'constraint': exc.diag.constraint_name,
-                }))
-
-            if exc.diag.constraint_name in registry._sql_constraints:
-                return ValidationError(_(CONSTRAINT_VIOLATION_MESSAGE,
-                    translate_sql_constraint(exc.diag.constraint_name, self.env.cr, self.env.context['lang'])
-                ))
-
-            return ValidationError(_(INTEGRITY_ERROR_MESSAGE, exc.args[0]))
-
-        # Execute the business code. In case the SQL transaction failed due
-        # to a serialization failure (like two transactions writing on a
-        # same record) wait a bit and retry. Other exceptions bubble up.
-        for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
-            try:
-                result = endpoint(*args, **kwargs)
-                if isinstance(result, Response) and result.is_qweb:
-                    result.flatten()
-                flush_env(self.env.cr)
-                self.env.cr.precommit()
-                self.env['base'].flush()
-                return result
-            except (IntegrityError, OperationalError) as exc:
-                self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
-                self.env.clear()
-                if type(exc) is IntegrityError:
-                    raise as_validation_error(exc) from exc
-                if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
-                    raise
-
-                # would ideally go outside of the for-loop but it is only
-                # possible to re-raise from within an except block
-                if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
-                    _logger.info("%s, was %s/%s, maximum number of tries reached!",
-                        errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
-                    raise
-
-            wait_time = random.uniform(0.0, 2 ** tries)
-            _logger.info("%s, was %s/%s, try again in %.04f sec...",
-                errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
-            time.sleep(wait_time)
-
-        raise RuntimeError("unreachable")
 
     def rpc_debug_pre(self, endpoint, params, model=None, method=None):
         # For Odoo service RPC params is a list or a tuple, for call_kw style it is a dict
@@ -1110,7 +1020,9 @@ class Request(object):
 
         # Call the endpoint
         t0 = self.rpc_debug_pre(endpoint, params)
-        result = self._call_function(endpoint, **params)
+        try:
+            result = self._call_function(endpoint, **params)
+
         self.rpc_debug_post(t0, result)
 
         return self.json_response(result, request_id=request_id)
@@ -1127,6 +1039,28 @@ class Request(object):
         elif endpoint.routing['type'] == 'json':
             r = self.json_dispatch(endpoint, args, auth)
         return r
+
+    def prepare(self):
+        ir_http = self.env['ir.http']
+        ir_http._handle_debug()
+        rule, arguments = ir_http._match(self.httprequest.path)
+        auth_method = ir_http._authenticate(rule.endpoint)
+        ir_http._postprocess_args(arguments, rule)
+        return rule, arguments, auth_method
+
+    @contextmanager
+    def json_catch_errors(self):
+        try:
+            yield
+        except Exception:
+            # reraise the error
+
+    @contextmanager
+    def http_catch_errors(self):
+        try:
+            yield
+        except Exception:
+            ...
 
     def _handle_exception(self, exception):
         """Called within an except block to allow converting exceptions
@@ -1241,10 +1175,66 @@ class Request(object):
     def handle(self):
             # Serve controllers
             # locate nodb controller first
+
+
+            reqtype = (
+                     'json' if self.httprequest.mimetype in ("application/json", "application/json-rpc")
+                else 'http'
+            )
+            error_catcher = getattr(request, f'{reqtype}_errors_catcher', request.http_error_catcher)
+
+
+            # determine if the request point a no database endpoint
+            nodb_exception = None
             try:
                 nodb_endpoint, nodb_args = self.app.nodb_routing_map.bind_to_environ(self.httprequest.environ).match()
-            except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed) as nodb_exception:
+            except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed) as nodb_exception_:
+                nodb_exception = nodb_exception_  # Dangerous, see https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
                 nodb_endpoint = None
+
+
+            with odoo.api.Environment.manage():
+                self.session_pre()
+
+                with error_catcher() as errcatcher:
+                    if nodb_endpoint:
+                        result = request.dispatch(nodb_endpoint, nodb_args, "none")
+                    elif not self.db:
+                        result = nodb_exception
+                    else:
+                        rule, arguments, auth_method = request.prepare()
+                        result = request.dispatch(
+                            partial(self.env['ir.http']._dispatch, rule.endpoint),
+                            arguments,
+                            auth_method
+                        )
+                if errcatcher.result:
+                    result = errcatcher.result
+
+                self.session_post()
+
+                if self.env.cr:
+                    try:
+                        if not errcatcher.result:
+                            self.env.cr.commit()
+                            if self.registry:
+                                self.registry.signal_changes()
+                        elif self.registry:
+                            self.registry.reset_changes()
+                    finally:
+                        self.env.cr.close()
+
+                return self.coerce_response(errcatcher.result or result)
+                    
+
+
+
+
+
+
+
+
+
             # Thread local environments
             with odoo.api.Environment.manage():
                 self.session_pre()

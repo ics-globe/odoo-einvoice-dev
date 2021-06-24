@@ -1603,3 +1603,9 @@ def hmac(env, scope, message, hash_function=hashlib.sha256):
         message.encode(),
         hash_function,
     ).hexdigest()
+
+class Ref:
+    def get(self, value):
+        return self.value
+    def set(self, value):
+        self.value = value

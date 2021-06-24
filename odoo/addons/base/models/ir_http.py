@@ -9,6 +9,7 @@ import mimetypes
 import os
 import re
 import sys
+import time
 import traceback
 
 import werkzeug
@@ -29,6 +30,28 @@ from odoo.http import ALLOWED_DEBUG_MODES
 from odoo.tools.misc import str2bool
 
 COUNT=1
+MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
+PG_CONCURRENCY_ERRORS_TO_RETRY = {
+    errorcodes.LOCK_NOT_AVAILABLE,
+    errorcodes.SERIALIZATION_FAILURE,
+    errorcodes.DEADLOCK_DETECTED,
+}
+NOT_NULL_VIOLATION_MESSAGE = """\
+The operation cannot be completed:
+- Create/update: a mandatory field is not set.
+- Delete: another model requires the record being deleted. If possible, archive it instead.
+
+Model: %(model_name)s (%(model_tech_name)s)
+Field: %(field_name)s (%(field_tech_name)s)
+"""
+FOREIGN_KEY_VIOLATION_MESSAGE = """\
+The operation cannot be completed: another model requires the record being deleted. If possible, archive it instead.
+
+Model: %(model_name)s (%(model_tech_name)s)
+Constraint: %(constraint)s
+"""
+CONSTRAINT_VIOLATION_MESSAGE = "The operation cannot be completed: %s"
+INTEGRITY_ERROR_MESSAGE = "The operation cannot be completed: %s"
 
 _logger = logging.getLogger(__name__)
 
@@ -227,38 +250,74 @@ class IrHttp(models.AbstractModel):
 #                    return cls._handle_exception(werkzeug.exceptions.NotFound())
 
     @classmethod
-    def _dispatch(cls):
-        cls._handle_debug()
-        # locate the controller method
-        try:
-            rule, arguments = cls._match(request.httprequest.path)
-            func = rule.endpoint
-        except werkzeug.exceptions.NotFound as e:
-            return cls._handle_exception(e)
+    def _dispatch(cls, endpoint, *args, **kwargs):
+        def as_validation_error(exc):
+            """ Return the IntegrityError encapsuled in a nice ValidationError """
+            unknown = _('Unknown')
+            for name, rclass in self.env.registry.items():
+                if inst.diag.table_name == rclass._table:
+                    model = rclass
+                    field = model._fields.get(inst.diag.column_name)
+                    break
+            else:
+                model = DotDict({'_name': unknown.lower(), '_description': unknown})
+                field = DotDict({'name': unknown.lower(), 'string': unknown})
 
-        # check authentication level
-        try:
-            auth_method = cls._authenticate(func)
-        except Exception as e:
-            return cls._handle_exception(e)
+            if exc.code == NOT_NULL_VIOLATION:
+                return ValidationError(_(NOT_NULL_VIOLATION_MESSAGE, **{
+                    'model_name': model._description,
+                    'model_tech_name': model._name,
+                    'field_name': field.string,
+                    'field_tech_name': field.name
+                }))
 
-        processing = cls._postprocess_args(arguments, rule)
-        if processing:
-            return processing
+            if exc.code == FOREIGN_KEY_VIOLATION:
+                return ValidationError(_(FOREIGN_KEY_VIOLATION_MESSAGE, **{
+                    'model_name': model._description,
+                    'model_tech_name': model._name, 
+                    'constraint': exc.diag.constraint_name,
+                }))
 
-        try:
-            #print( '_dispatch', request, func, arguments, auth_method)
-            result = request.dispatch(func, arguments, auth_method)
-            if isinstance(result, Exception):
-                raise result
+            if exc.diag.constraint_name in registry._sql_constraints:
+                return ValidationError(_(CONSTRAINT_VIOLATION_MESSAGE,
+                    translate_sql_constraint(exc.diag.constraint_name, self.env.cr, self.env.context['lang'])
+                ))
 
-        except Exception as e:
-            #import traceback
-            #print('-'*40)
-            #traceback.print_exc()
-            return cls._handle_exception(e)
+            return ValidationError(_(INTEGRITY_ERROR_MESSAGE, exc.args[0]))
 
-        return result
+        # Execute the business code. In case the SQL transaction failed due
+        # to a serialization failure (like two transactions writing on a
+        # same record) wait a bit and retry. Other exceptions bubble up.
+        for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
+            try:
+                result = endpoint(*args, **kwargs)
+                if isinstance(result, Response) and result.is_qweb:
+                    result.flatten()
+                flush_env(self.env.cr)
+                self.env.cr.precommit()
+                self.env['base'].flush()
+                return result
+            except (IntegrityError, OperationalError) as exc:
+                self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
+                self.env.clear()
+                if type(exc) is IntegrityError:
+                    raise as_validation_error(exc) from exc
+                if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                    raise
+
+                # would ideally go outside of the for-loop but it is only
+                # possible to re-raise from within an except block
+                if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
+                    _logger.info("%s, was %s/%s, maximum number of tries reached!",
+                        errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
+                    raise
+
+            wait_time = random.uniform(0.0, 2 ** tries)
+            _logger.info("%s, was %s/%s, try again in %.04f sec...",
+                errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
+            time.sleep(wait_time)
+
+        raise RuntimeError("unreachable")
 
 
     @classmethod
