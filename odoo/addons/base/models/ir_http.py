@@ -29,7 +29,8 @@ from odoo.modules.module import get_resource_path, get_module_path
 from odoo.http import ALLOWED_DEBUG_MODES
 from odoo.tools.misc import str2bool
 
-COUNT=1
+_logger = logging.getLogger(__name__)
+
 MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
 PG_CONCURRENCY_ERRORS_TO_RETRY = {
     errorcodes.LOCK_NOT_AVAILABLE,
@@ -52,8 +53,6 @@ Constraint: %(constraint)s
 """
 CONSTRAINT_VIOLATION_MESSAGE = "The operation cannot be completed: %s"
 INTEGRITY_ERROR_MESSAGE = "The operation cannot be completed: %s"
-
-_logger = logging.getLogger(__name__)
 
 
 class RequestUID(object):
@@ -288,36 +287,45 @@ class IrHttp(models.AbstractModel):
         # Execute the business code. In case the SQL transaction failed due
         # to a serialization failure (like two transactions writing on a
         # same record) wait a bit and retry. Other exceptions bubble up.
-        for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
-            try:
-                result = endpoint(*args, **kwargs)
-                if isinstance(result, Response) and result.is_qweb:
-                    result.flatten()
-                flush_env(self.env.cr)
-                self.env.cr.precommit()
-                self.env['base'].flush()
-                return result
-            except (IntegrityError, OperationalError) as exc:
-                self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
-                self.env.clear()
-                if type(exc) is IntegrityError:
-                    raise as_validation_error(exc) from exc
-                if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
-                    raise
+        try:
+            for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
+                try:
+                    result = endpoint(*args, **kwargs)
+                    ... # miss flatten
 
-                # would ideally go outside of the for-loop but it is only
-                # possible to re-raise from within an except block
-                if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
-                    _logger.info("%s, was %s/%s, maximum number of tries reached!",
-                        errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
-                    raise
+                    flush_env(self)
+                    self.env.cr.precommit.run()
+                    result = self._cnx.commit()
+                    self.env.cr.prerollback.clear()
+                    self.env.cr.postrollback.clear()
+                    break
+                except (IntegrityError, OperationalError) as exc:
+                    self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
+                    self.env.clear()
+                    if type(exc) is IntegrityError:
+                        raise as_validation_error(exc) from exc
+                    if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                        raise
 
-            wait_time = random.uniform(0.0, 2 ** tries)
-            _logger.info("%s, was %s/%s, try again in %.04f sec...",
-                errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
-            time.sleep(wait_time)
+                    # would ideally go outside of the for-loop but it is only
+                    # possible to re-raise from within an except block
+                    if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
+                        _logger.info("%s, was %s/%s, maximum number of tries reached!",
+                            errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
+                        raise
 
-        raise RuntimeError("unreachable")
+                wait_time = random.uniform(0.0, 2 ** tries)
+                _logger.info("%s, was %s/%s, try again in %.04f sec...",
+                    errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
+                time.sleep(wait_time)
+
+            self.env.cr.postcommit.run()
+        except:
+            rollback
+        finally:
+            close
+
+        return result
 
 
     @classmethod

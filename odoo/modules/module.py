@@ -241,6 +241,12 @@ def get_module_icon(module):
         return ('/' + module + '/') + '/'.join(iconpath)
     return '/base/'  + '/'.join(iconpath)
 
+def get_module_static(module):
+    path = get_module_resource('static')
+    if path and os.path.isdir(path):
+        return path
+    return None
+
 def module_manifest(path):
     """Returns path to module manifest if one can be found under `path`, else `None`."""
     if not path:

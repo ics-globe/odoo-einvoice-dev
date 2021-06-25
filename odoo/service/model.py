@@ -60,7 +60,7 @@ def execute_kw(db, uid, obj, method, args, kw=None):
     return execute(db, uid, obj, method, *args, **kw or {})
 
 # MOVE to controller RPC
-@check
+#@check
 def execute(db, uid, obj, method, *args, **kw):
     threading.currentThread().dbname = db
     with odoo.registry(db).cursor() as cr:

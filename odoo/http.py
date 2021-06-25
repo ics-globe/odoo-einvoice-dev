@@ -42,7 +42,7 @@ except ImportError:
     psutil = None
 
 import odoo
-from .modules.module import module_manifest
+from .modules.module import get_module_static, load_information_from_description_file
 from .service.server import memory_info
 from .service import security, model as service_model
 from .tools import ustr, consteq, frozendict, pycompat, unique, date_utils, DotDict
@@ -107,6 +107,9 @@ NO_POSTMORTEM = (
     odoo.exceptions.Warning,
     odoo.exceptions.RedirectWarning,
 )
+
+# Regexps
+session_id_re = re.compile(r'(?P<sid>[a-zA-Z0-9]{40})(_(?P<dbname>[\w-]{1,64}))?')
 
 
 #----------------------------------------------------------
@@ -628,10 +631,10 @@ class Request(object):
 
         cookie = self.httprequest.cookies.get('session_id','')
         cookie_dbname = None
-        r = re.match('([0-9a-zA-Z]{40})(_([0-9a-zA-Z_-]{1,64}))?',cookie)
+        r = session_id_re.match(cookie)
         if r:
-            self.session_sid = r.group(1)
-            cookie_dbname = r.group(3)
+            self.session_sid = r.group('sid')
+            cookie_dbname = r.group('dbname')
 
         # Decode session
         self.session_orig = "{}"
@@ -658,6 +661,7 @@ class Request(object):
 
         dbname = self.session_locate_db(cookie_dbname)
         if dbname:
+            # nodb doesn't use any of this, move to ir.http
             try:
                 registry = odoo.registry(dbname)
                 registry.check_signaling()
@@ -896,6 +900,16 @@ class Request(object):
         hm_expected = hmac.new(secret.encode('ascii'), msg.encode('utf-8'), hashlib.sha1).hexdigest()
         return consteq(hm, hm_expected)
 
+    @contextlib.contextmanager
+    def http_error_catcher(self):
+        error = types.SimpleNamespace()
+        try:
+            yield error
+        except:
+            error.result = ...
+        else:
+            error.result = None
+
     def http_dispatch(self, endpoint, args, auth):
         """ Handle ``http`` request type.
 
@@ -968,6 +982,19 @@ class Request(object):
     #------------------------------------------------------
     # JSON-RPC2 Controllers
     #------------------------------------------------------
+    @contextlib.contextmanager
+    def json_error_catcher(self):
+        error = types.SimpleNamespace()
+        try:
+            yield error
+        except:
+            error.result = self.json_response(
+                error=...,
+                request_id=getattr(self, 'request_id', None)
+            )
+        else:
+            error.result = None
+
     def json_response(self, result=None, error=None, request_id=None):
         status = 200
         response = { 'jsonrpc': '2.0', 'id': request_id }
@@ -1008,7 +1035,7 @@ class Request(object):
         except ValueError:
             _logger.info('%s: Invalid JSON data: %r', self.httprequest.path, json_request)
             raise werkzeug.exceptions.BadRequest()
-        request_id = self.jsonrequest.get("id")
+        self.request_id = self.jsonrequest.get("id")
         params = dict(self.jsonrequest.get("params", {}))
 
         # Includes args from route path parsing
@@ -1020,47 +1047,19 @@ class Request(object):
 
         # Call the endpoint
         t0 = self.rpc_debug_pre(endpoint, params)
-        try:
-            result = self._call_function(endpoint, **params)
+        result = self._call_function(endpoint, **params)
 
         self.rpc_debug_post(t0, result)
 
         return self.json_response(result, request_id=request_id)
 
+    
+    def _call_function(self, endpoint, *args, **kwargs):
+        return endpoint(*args, **kwargs)
+
     #------------------------------------------------------
     # Handling
     #------------------------------------------------------
-    def dispatch(self, endpoint, args, auth='none'):
-        # save endpoint in self.endpoint for cors in response
-        self.endpoint = endpoint
-        # args are deducted by the route path parsing
-        if endpoint.routing['type'] == 'http':
-            r = self.http_dispatch(endpoint, args, auth)
-        elif endpoint.routing['type'] == 'json':
-            r = self.json_dispatch(endpoint, args, auth)
-        return r
-
-    def prepare(self):
-        ir_http = self.env['ir.http']
-        ir_http._handle_debug()
-        rule, arguments = ir_http._match(self.httprequest.path)
-        auth_method = ir_http._authenticate(rule.endpoint)
-        ir_http._postprocess_args(arguments, rule)
-        return rule, arguments, auth_method
-
-    @contextmanager
-    def json_catch_errors(self):
-        try:
-            yield
-        except Exception:
-            # reraise the error
-
-    @contextmanager
-    def http_catch_errors(self):
-        try:
-            yield
-        except Exception:
-            ...
 
     def _handle_exception(self, exception):
         """Called within an except block to allow converting exceptions
@@ -1172,111 +1171,61 @@ class Request(object):
                 #            new_headers.append((k, v))
                 return self.send_file(content)
 
+    @contextlib.contextmanager
+    def session(self):
+        try:
+            ...
+
+
     def handle(self):
-            # Serve controllers
-            # locate nodb controller first
+        
+
+        handle_error = getattr(request, f'{reqtype}_error_handler')
+        dispatch = getattr(request, f'{reqtype}_dispatch')
 
 
-            reqtype = (
-                     'json' if self.httprequest.mimetype in ("application/json", "application/json-rpc")
-                else 'http'
-            )
-            error_catcher = getattr(request, f'{reqtype}_errors_catcher', request.http_error_catcher)
-
-
-            # determine if the request point a no database endpoint
-            nodb_exception = None
+        with odoo.api.Environment.manage():
+            self.session_pre()
             try:
-                nodb_endpoint, nodb_args = self.app.nodb_routing_map.bind_to_environ(self.httprequest.environ).match()
-            except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed) as nodb_exception_:
-                nodb_exception = nodb_exception_  # Dangerous, see https://docs.python.org/3/reference/compound_stmts.html#the-try-statement
-                nodb_endpoint = None
-
-
-            with odoo.api.Environment.manage():
-                self.session_pre()
-
-                with error_catcher() as errcatcher:
-                    if nodb_endpoint:
-                        result = request.dispatch(nodb_endpoint, nodb_args, "none")
-                    elif not self.db:
-                        result = nodb_exception
-                    else:
-                        rule, arguments, auth_method = request.prepare()
-                        result = request.dispatch(
-                            partial(self.env['ir.http']._dispatch, rule.endpoint),
-                            arguments,
-                            auth_method
-                        )
-                if errcatcher.result:
-                    result = errcatcher.result
-
-                self.session_post()
-
-                if self.env.cr:
+                try:
+                    # find a no-database endpoint
+                    nodb_endpoint = None
                     try:
-                        if not errcatcher.result:
-                            self.env.cr.commit()
-                            if self.registry:
-                                self.registry.signal_changes()
-                        elif self.registry:
-                            self.registry.reset_changes()
-                    finally:
-                        self.env.cr.close()
-
-                return self.coerce_response(errcatcher.result or result)
+                        nodb_endpoint, nodb_args = self.app.nodb_routing_map.bind_to_environ(self.httprequest.environ).match()
+                    except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed):
+                        if not self.db:
+                            raise
                     
-
-
-
-
-
-
-
-
-
-            # Thread local environments
-            with odoo.api.Environment.manage():
-                self.session_pre()
-                # ir.http handling
-                if self.db:
-                    try:
-                        if nodb_endpoint:
-                            result = request.dispatch(nodb_endpoint, nodb_args, "none")
-                        else:
-                            result = self.env["ir.http"]._dispatch()
-                        self.coerce_response(result)
-                        # TODO proper commit and sign changes
-                        #return request._handle_exception(e)
-                        # finnaly
-                        #def __exit__(self, exc_type, exc_value, traceback):
-                        #    if self._cr:
-                        #        try:
-                        #            if exc_type is None and not self._failed:
-                        #                self._cr.commit()
-                        #                if self.registry:
-                        #                    self.registry.signal_changes()
-                        #            elif self.registry:
-                        #                self.registry.reset_changes()
-                        #        finally:
-                        #            self._cr.close()
-                        # release thread local request
-                        _logger.info("session POSt")
-                        self.session_post()
-                        self.env.cr.commit()
-                        self.env.registry.signal_changes()
-                        return self.response
-                    except Exception as e:
-                        _logger.exception(e)
-                        raise e
-                # no db handling
-                else:
-                    if nodb_endpoint:
-                        result = request.dispatch(nodb_endpoint, nodb_args, "none")
+                    if nodb_endpoint is not None:
+                        # nodb dispatch
+                        result = dispatch(nodb_endpoint, nodb_args, "none")
                     else:
-                        result = nodb_exception
-                    response = self.coerce_response(result)
-                    return response
+                        # regular dispatch
+                        ir_http = self.env['ir.http']
+                        ir_http._handle_debug()
+                        rule, args = ir_http._match(self.httprequest.path)
+                        auth_method = ir_http._authenticate(rule.endpoint)
+                        ir_http._postprocess_args(args, rule)
+                        result = dispatch(functools.partial(ir_http._dispatch, rule.endpoint), args, auth_method)
+
+                    result = self.coerce_response(result)
+                finally:
+                    self.session_post()
+            except Exception as exc:
+                if self.registry:
+                    self.registry.reset_changes()
+                raise handle_error(exc) from exc
+            else:
+                if self.cr:
+                    self.cr.commit()
+                if self.registry:
+                    self.registry.signal_changes()
+            finally:
+                if self.cr:
+                    self.cr.close()
+
+            return result
+
 
 #----------------------------------------------------------
 # WSGI Layer
@@ -1314,21 +1263,15 @@ class Application(object):
         controllers and configure them.  """
         self.statics = {}
         for addons_path in odoo.addons.__path__:
-            for module in sorted(os.listdir(str(addons_path))):
-                if module not in addons_manifest:
-                    mod_path = os.path.join(addons_path, module)
-                    manifest_path = module_manifest(mod_path)
-                    path_static = os.path.join(addons_path, module, 'static')
-                    if manifest_path and os.path.isdir(path_static):
-                        with open(manifest_path, 'rb') as fd:
-                            manifest_data = fd.read()
-                        manifest = ast.literal_eval(pycompat.to_text(manifest_data))
-                        if not manifest.get('installable', True):
-                            continue
-                        manifest['addons_path'] = addons_path
-                        _logger.debug("Loading %s", module)
-                        addons_manifest[module] = manifest
-                        self.statics['/%s/static/' % module] = path_static
+            breakpoint()
+            for module in get_modules():
+                path_static = get_module_static(module)
+                manifest = load_information_from_description_file(module)
+                if path_static and manifest and manifest.get('installable', True):
+                    _logger.debug("Loading %s", module)
+                    manifest['addons_path'] = addons_path
+                    addons_manifest[module] = manifest
+                    self.statics[f'/{module}/static/'] = path_static
 
     def setup_nodb_routing_map(self):
         self.nodb_routing_map = werkzeug.routing.Map(strict_slashes=False, converters=None)
