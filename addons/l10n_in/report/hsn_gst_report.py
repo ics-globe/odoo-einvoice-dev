@@ -101,8 +101,8 @@ class L10nInProductHsnReport(models.Model):
             LEFT JOIN account_tax_report_line_tags_rel tag_rep_ln ON aat.id = tag_rep_ln.account_account_tag_id
             LEFT JOIN account_move_line_account_tax_rel mt ON mt.account_move_line_id = aml.id
             LEFT JOIN uom_uom uom ON uom.id = aml.product_uom_id
-            WHERE aa.internal_type = 'other' AND (aml.tax_line_id IS NOT NULL OR mt.account_tax_id IS NULL)
-              AND am.state = 'posted'
+            WHERE aa.internal_type = 'other' AND (aml.tax_line_id IS NULL OR mt.account_tax_id IS NULL)
+              AND am.state = 'posted' AND aml.exclude_from_invoice_tab = False
         """
         return from_str
 
