@@ -244,88 +244,10 @@ class IrHttp(models.AbstractModel):
             # Replace uid placeholder by the current request.uid
             if isinstance(val, models.BaseModel) and isinstance(val._uid, RequestUID):
                 arguments[key] = val.with_user(request.uid)
-# TODO check
-#                if not val.exists():
-#                    return cls._handle_exception(werkzeug.exceptions.NotFound())
 
     @classmethod
     def _dispatch(cls, endpoint, *args, **kwargs):
-        def as_validation_error(exc):
-            """ Return the IntegrityError encapsuled in a nice ValidationError """
-            unknown = _('Unknown')
-            for name, rclass in self.env.registry.items():
-                if inst.diag.table_name == rclass._table:
-                    model = rclass
-                    field = model._fields.get(inst.diag.column_name)
-                    break
-            else:
-                model = DotDict({'_name': unknown.lower(), '_description': unknown})
-                field = DotDict({'name': unknown.lower(), 'string': unknown})
-
-            if exc.code == NOT_NULL_VIOLATION:
-                return ValidationError(_(NOT_NULL_VIOLATION_MESSAGE, **{
-                    'model_name': model._description,
-                    'model_tech_name': model._name,
-                    'field_name': field.string,
-                    'field_tech_name': field.name
-                }))
-
-            if exc.code == FOREIGN_KEY_VIOLATION:
-                return ValidationError(_(FOREIGN_KEY_VIOLATION_MESSAGE, **{
-                    'model_name': model._description,
-                    'model_tech_name': model._name, 
-                    'constraint': exc.diag.constraint_name,
-                }))
-
-            if exc.diag.constraint_name in registry._sql_constraints:
-                return ValidationError(_(CONSTRAINT_VIOLATION_MESSAGE,
-                    translate_sql_constraint(exc.diag.constraint_name, self.env.cr, self.env.context['lang'])
-                ))
-
-            return ValidationError(_(INTEGRITY_ERROR_MESSAGE, exc.args[0]))
-
-        # Execute the business code. In case the SQL transaction failed due
-        # to a serialization failure (like two transactions writing on a
-        # same record) wait a bit and retry. Other exceptions bubble up.
-        try:
-            for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
-                try:
-                    result = endpoint(*args, **kwargs)
-                    ... # miss flatten
-
-                    flush_env(self)
-                    self.env.cr.precommit.run()
-                    result = self._cnx.commit()
-                    self.env.cr.prerollback.clear()
-                    self.env.cr.postrollback.clear()
-                    break
-                except (IntegrityError, OperationalError) as exc:
-                    self.env.cr.rollback()  # cursor is wasted and must be reniewed before the next query
-                    self.env.clear()
-                    if type(exc) is IntegrityError:
-                        raise as_validation_error(exc) from exc
-                    if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
-                        raise
-
-                    # would ideally go outside of the for-loop but it is only
-                    # possible to re-raise from within an except block
-                    if tries == MAX_TRIES_ON_CONCURRENCY_FAILURE:
-                        _logger.info("%s, was %s/%s, maximum number of tries reached!",
-                            errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE)
-                        raise
-
-                wait_time = random.uniform(0.0, 2 ** tries)
-                _logger.info("%s, was %s/%s, try again in %.04f sec...",
-                    errorcodes.lookup(e.pgcode), tryno, MAX_TRIES_ON_CONCURRENCY_FAILURE, wait_time)
-                time.sleep(wait_time)
-
-            self.env.cr.postcommit.run()
-        except:
-            rollback
-        finally:
-            close
-
-        return result
+        return endpoint(*args, **kwargs)
 
 
     @classmethod

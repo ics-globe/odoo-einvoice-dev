@@ -23,6 +23,7 @@ import threading
 import time
 import traceback
 import zlib
+from functools import partial
 
 import babel.core
 import psycopg2
@@ -34,6 +35,7 @@ import werkzeug.security
 import werkzeug.urls
 import werkzeug.wrappers
 import werkzeug.wsgi
+from werkzeug.exceptions import NotFound
 
 # Optional psutil, not packaged on windows
 try:
@@ -42,7 +44,9 @@ except ImportError:
     psutil = None
 
 import odoo
+from .exceptions import UserError
 from .modules.module import get_module_static, load_information_from_description_file
+from .modules.registry import Registry
 from .service.server import memory_info
 from .service import security, model as service_model
 from .tools import ustr, consteq, frozendict, pycompat, unique, date_utils, DotDict
@@ -108,40 +112,11 @@ NO_POSTMORTEM = (
     odoo.exceptions.RedirectWarning,
 )
 
-# Regexps
-session_id_re = re.compile(r'(?P<sid>[a-zA-Z0-9]{40})(_(?P<dbname>[\w-]{1,64}))?')
-
+TREE_MONTHS = 90 * 24 * 60 * 60
 
 #----------------------------------------------------------
 # Helpers
 #----------------------------------------------------------
-# Move to Request.json_exception
-def serialize_exception(e):
-    tmp = {
-        "name": type(e).__module__ + "." + type(e).__name__ if type(e).__module__ else type(e).__name__,
-        "debug": traceback.format_exc(),
-        "message": ustr(e),
-        "arguments": e.args,
-        "exception_type": "internal_error",
-        "context": getattr(e, 'context', {}),
-    }
-    if isinstance(e, odoo.exceptions.UserError):
-        tmp["exception_type"] = "user_error"
-    elif isinstance(e, odoo.exceptions.Warning):
-        tmp["exception_type"] = "warning"
-    elif isinstance(e, odoo.exceptions.RedirectWarning):
-        tmp["exception_type"] = "warning"
-    elif isinstance(e, odoo.exceptions.AccessError):
-        tmp["exception_type"] = "access_error"
-    elif isinstance(e, odoo.exceptions.MissingError):
-        tmp["exception_type"] = "missing_error"
-    elif isinstance(e, odoo.exceptions.AccessDenied):
-        tmp["exception_type"] = "access_denied"
-    elif isinstance(e, odoo.exceptions.ValidationError):
-        tmp["exception_type"] = "validation_error"
-    elif isinstance(e, odoo.exceptions.except_orm):
-        tmp["exception_type"] = "except_orm"
-    return tmp
 
 # TODO check usage and remove of move to request as helper
 def content_disposition(filename):
@@ -404,6 +379,7 @@ class Request(object):
         self.response_template = None
         self.response_qcontext = None
 
+
     #------------------------------------------------------
     # Common helpers
     #------------------------------------------------------
@@ -568,59 +544,86 @@ class Request(object):
     #------------------------------------------------------
     # Session
     #------------------------------------------------------
-    def session_locate_db(self, cookie_dbname):
-        """ Rationale
-        For
-        - easier to invalidate session (remove res.user cache crap)
-        - moving of seamlessly db across server is now possible
-        - easier deployement only filestore and db
-        Against
-        - select data from table where key = sid might be slower than open(),read()
-        - dev mode need to store dbanme in cookie and one sql query more to list
-        """
+    def get_session_id(self):
+
+        # Extract the session id and the database from the request
+        sid, _, requested_db = (
+               self.httprequest.args.get('session_id')
+            or self.httprequest.headers.get("X-Openerp-Session-Id")
+            or self.httprequest.cookies.get('session_id')
+        ).partition('.')
+        query_db = self.httprequest.args.get('db')
+        if query_db:
+            requested_db = query_db
+
+        # List the available databases
         if odoo.tools.config['db_name']:
-            # Production mode --database defined as a comma seperated list of
-            # exposed databases. Beware that existence is not guaranted.
-            dbs = [db.strip() for db in odoo.tools.config['db_name'].split(',')]
+            available_dbs = [db.strip() for db in odoo.tools.config['db_name'].split(',')]
+        elif odoo.tools.config['dbfilter']:
+            host = self.httprequest.environ.get('HTTP_HOST', '')
+            domain = host.removeprefix('www.').partition('.')[0]
+            dbfilter_re = re.compile(
+                odoo.tools.config['dbfilter']
+                    .replace('%h', re.escape(host))
+                    .replace('%d', re.escape(domain))
+            )
+            all_dbs = odoo.service.db.list_dbs(force=True)
+            available_dbs = [db for db in all_dbs if dbfilter_re.match(db)]
         else:
-            # Development mode where the list of all available dbs is checked
-            # this generate one (potentially big) sql query for every request
-            # TODO use cookie_dbname and regex to filter list in sql
-            dbs = odoo.service.db.list_dbs(force)
-            if odoo.tools.config['dbfilter']:
-                host = self.httprequest.environ.get('HTTP_HOST', '').split(':')[0]
-                domain, _, r = host.partition('.')
-                if domain == "www" and r:
-                    domain = r.partition('.')[0]
-                domain, host = re.escape(d), re.escape(host)
-                regex = odoo.tools.config['dbfilter'].replace('%h', host).replace('%d', domain)
-                dbs = [i for i in re.match(regex, i)]
+            available_dbs = odoo.service.db.list_dbs(force=True)
 
-        if cookie_dbname in dbs:
-            self.session_db = cookie_dbname
-        else:
-            if len(dbs):
-                self.session_db = dbs[0]
-            else:
-                self.session_db = None
-        self.session_mono = len(dbs) == 1
-        return self.session_db
+        # Ensure the requested database is accessible, use another one otherwise
+        if requested_db in available_dbs:
+            return sid, requested_db
 
-        #    def setup_db(self, httprequest):
-        #        db = httprequest.session.db
-        #        # Check if session.db is legit
-        #        if db:
-        #            if db not in db_filter([db], httprequest=httprequest):
-        #                _logger.warning("Logged into database '%s', but dbfilter rejects it; logging session out.", db)
-        #                httprequest.session.logout()
-        #                db = None
+        if available_dbs:
+            return sid, available_dbs[0]
 
-    def session_reset_env(self):
-        # No uid means 1, I know it looks dangerous but it's checked again in
-        # ir.http dispatch auth_*
-        uid = self.session["uid"] or 1
-        # TODO load context
-        self.env = odoo.api.Environment(self.cr, uid, {})
+        return sid, None
+
+    @contextlib.contextmanager
+    def open_session(self, sid, dbname):
+        self.session_touch = True
+        self._session_orig = json.dumps({
+            'db': dbname,
+            'uid': 1,  # it is updated by ir.http auth methods
+            'login': None,
+            'debug': '',
+            'context': {
+                'lang': self.httprequest.accept_languages.best or "en-US",
+            },
+        })
+
+        db = sql_db.db_connect(dbname)
+        if sid:
+            with db.cursor() as cr:
+                cr.execute("SELECT data FROM ir_session WHERE sid = %s", (sid,))
+                row = cr.fetchone()
+                if row:
+                    self.session_touch = False
+                    self._session_orig = row[0]
+
+        self.session = DotDict(json.loads(self._session_orig))
+        
+        yield
+
+        if not sid:
+            # use a sensitive default length, 32 bytes of entropy as of Py3.10
+            sid = secrets.token_urlsafe()
+
+        dump = json.dumps(self.session, ensure_ascii=False)
+        if self.session_touch or self._session_orig != dump:
+            with db.cursor() as cr:
+                cr.execute("""
+                    INSERT INTO ir_session (
+                        sid, data, create_uid, create_date, write_uid, write_date
+                    ) VALUES (
+                        %s, %s, %s, NOW(), %s, NOW()
+                    ) ON CONFLICT (sid) DO UPDATE SET write_date = NOW(), json = %s
+                """, (sid, dump, odoo.SUPERUSER_ID, odoo.SUPERUSER_ID, dump))
+
+        fullsid = f'{sid}.{dbname}' if dbname else sid
+        self.response.set_cookie('session_id', fullsid, max_age=TREE_MONTHS, httponly=True)
 
     def session_pre(self):
 
@@ -638,13 +641,9 @@ class Request(object):
 
         # Decode session
         self.session_orig = "{}"
-        self.session = {
-            "uid": None,
-            "login": None,
-            "token": None, # TODO REMOVE
-            "context": {},
-            "debug": '',
-        }
+        self.session = 
+
+
 
         #def setup_lang(self, httprequest):
         #    if "lang" not in httprequest.session.context:
@@ -786,6 +785,7 @@ class Request(object):
                 if not self.session_sid:
                     # 232 bits (30*8*62/64) of urandom entropy should be enough for everyone
                     self.session_sid = base64.b64encode(os.urandom(30)).decode('ascii').replace('/','a').replace('+','l')
+                    self.session_sid = secrets.token_urlsafe(32)
                 # SAVE in DB
 
                 self.cr.execute("""
@@ -900,16 +900,6 @@ class Request(object):
         hm_expected = hmac.new(secret.encode('ascii'), msg.encode('utf-8'), hashlib.sha1).hexdigest()
         return consteq(hm, hm_expected)
 
-    @contextlib.contextmanager
-    def http_error_catcher(self):
-        error = types.SimpleNamespace()
-        try:
-            yield error
-        except:
-            error.result = ...
-        else:
-            error.result = None
-
     def http_dispatch(self, endpoint, args, auth):
         """ Handle ``http`` request type.
 
@@ -967,34 +957,24 @@ class Request(object):
             ignored = ['<%s=%s>' % (name, params.pop(name)) for name in params_names]
             _logger.debug("<function %s.%s> called ignoring args %s" % (endpoint.__module__, endpoint.__name__, ', '.join(ignored)))
 
-        r = self._call_function(endpoint, **params)
-        if not r:
-            r = Response(status=204)  # no content
-        elif isinstance(r, (bytes, str)):
-            r = Response(response)
+        result = endpoint(**params)
+        if not result:
+            result = Response(status=204)  # no content
+        elif isinstance(result, (bytes, str)):
+            result = Response(response)
         #elif isinstance(r, werkzeug.exceptions.HTTPException):
         #    r = r.get_response(request.httprequest.environ)
         #elif isinstance(r, werkzeug.wrappers.BaseResponse):
         #    r = Response.force_type(r)
         #    r.set_default()
-        return r
+        return result
+
+    def http_handle_error(self, exception):
+        raise Response()
 
     #------------------------------------------------------
     # JSON-RPC2 Controllers
     #------------------------------------------------------
-    @contextlib.contextmanager
-    def json_error_catcher(self):
-        error = types.SimpleNamespace()
-        try:
-            yield error
-        except:
-            error.result = self.json_response(
-                error=...,
-                request_id=getattr(self, 'request_id', None)
-            )
-        else:
-            error.result = None
-
     def json_response(self, result=None, error=None, request_id=None):
         status = 200
         response = { 'jsonrpc': '2.0', 'id': request_id }
@@ -1047,15 +1027,54 @@ class Request(object):
 
         # Call the endpoint
         t0 = self.rpc_debug_pre(endpoint, params)
-        result = self._call_function(endpoint, **params)
+        result = endpoint(**params)
 
         self.rpc_debug_post(t0, result)
 
         return self.json_response(result, request_id=request_id)
 
-    
-    def _call_function(self, endpoint, *args, **kwargs):
-        return endpoint(*args, **kwargs)
+    def json_handle_error(self, exception):
+        exc = exception
+        name = type(exc).__name__
+        module = type(exc).__module__
+
+        if not isinstance(exc, SessionExpiredException):
+            if exc.args and exc.args[0] == "bus.Bus not available in test mode":
+                _logger.info(exc)
+            elif isinstance(exc, (UserError, NotFound)):
+                _logger.warning(exc)
+            else:
+                _logger.exception("Exception during JSON request handling.")
+
+        error = {
+            'code': 200,  # this code is the JSON-RPC level code, it is
+                          # distinct from the HTTP status code. This
+                          # code is ignored and the value 200 (while
+                          # misleading) is totally arbitrary.
+            'message': "Odoo Server Error",
+            'data': {
+                'name': f'{name}.{module}' if module else name,
+                'debug': traceback.format_exc(),
+                'message': ustr(exc),
+                'arguments': exc.args,
+                'context': getattr(exc, 'context', {}),
+            },
+        }
+        if isinstance(exc, NotFound):
+            error['http_status'] = 404
+            error['code'] = 404
+            error['message'] = "404: Not Found"
+        if isinstance(exc, AuthenticationError):
+            error['code'] = 100
+            error['message'] = "Odoo Session Invalid"
+        if isinstance(exc, SessionExpiredException):
+            error['code'] = 100
+            error['message'] = "Odoo Session Expired"
+
+        return self._json_response(
+            error=error,
+            request_id=getattr(self, 'request_id', None)
+        )
 
     #------------------------------------------------------
     # Handling
@@ -1156,8 +1175,9 @@ class Request(object):
                 suffix = path_info[len(prefix):]
                 filename = werkzeug.security.safe_join(directory, suffix)
                 try:
-                    content = open(filename, "rb")
-                except Exception:
+                    with open(filename, "rb") as fd:
+                        return self.send_file(fd)
+                except OSError:
                     raise werkzeug.exceptions.NotFound("File not found.\n")
                 # TODO Honor DisableCacheMiddleware TODO implement DisableCacheMiddleware(app)
                 # May we need to move to Request to do this as we need session
@@ -1169,62 +1189,140 @@ class Request(object):
                 #    for k, v in headers:
                 #        if k.lower() != 'cache-control':
                 #            new_headers.append((k, v))
-                return self.send_file(content)
 
-    @contextlib.contextmanager
-    def session(self):
-        try:
-            ...
-
+    def get_dispatchers(self, reqtype):
+        dispatch = getattr(request, f'{reqtype}_dispatch')
+        handle_error = getattr(request, f'{reqtype}_error_handler')
+        return dispatch, handle_error
 
     def handle(self):
-        
+        sid, dbname = self.get_session_id()
 
-        handle_error = getattr(request, f'{reqtype}_error_handler')
-        dispatch = getattr(request, f'{reqtype}_dispatch')
+        # find a no-database endpoint
+        nodb_endpoint = None
+        try:
+            nodb_endpoint, nodb_args = self.app.nodb_routing_map.bind_to_environ(self.httprequest.environ).match()
+        except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed):
+            if not dbname:
+                raise
 
-
-        with odoo.api.Environment.manage():
-            self.session_pre()
+        # nodb dispatch
+        if nodb_endpoint is not None:
+            dispatch, handle_error = self.get_dispatchers(nodb_endpoint.routing['type'])
             try:
-                try:
-                    # find a no-database endpoint
-                    nodb_endpoint = None
-                    try:
-                        nodb_endpoint, nodb_args = self.app.nodb_routing_map.bind_to_environ(self.httprequest.environ).match()
-                    except (werkzeug.exceptions.NotFound, werkzeug.exceptions.MethodNotAllowed):
-                        if not self.db:
-                            raise
-                    
-                    if nodb_endpoint is not None:
-                        # nodb dispatch
-                        result = dispatch(nodb_endpoint, nodb_args, "none")
-                    else:
-                        # regular dispatch
-                        ir_http = self.env['ir.http']
-                        ir_http._handle_debug()
-                        rule, args = ir_http._match(self.httprequest.path)
-                        auth_method = ir_http._authenticate(rule.endpoint)
-                        ir_http._postprocess_args(args, rule)
-                        result = dispatch(functools.partial(ir_http._dispatch, rule.endpoint), args, auth_method)
-
-                    result = self.coerce_response(result)
-                finally:
-                    self.session_post()
+                response = dispatch(nodb_endpoint, nodb_args, "none")
             except Exception as exc:
-                if self.registry:
-                    self.registry.reset_changes()
                 raise handle_error(exc) from exc
-            else:
-                if self.cr:
-                    self.cr.commit()
-                if self.registry:
-                    self.registry.signal_changes()
-            finally:
-                if self.cr:
-                    self.cr.close()
+            return self.coerce_response(response)
 
-            return result
+        # regular dispatch
+        with odoo.api.Environment.manage(), \
+             self.open_session(sid, dbname) as session, \
+             closing(sql_db.db_connect(dbname).cursor()) as self.cr:
+
+            self.session_orig = session
+            self.session = session
+
+            try:
+                Registry(dbname).check_signaling()
+            except (AttributeError, psycopg2.OperationalError, psycopg2.ProgrammingError) as e:
+                # psycopg2 error or attribute error while constructing
+                # the registry. That means either
+                # - the database probably does not exists anymore
+                # - the database is corrupted
+                # - the database version doesnt match the server version
+                self.response.set_cookie('session_id', sid, max_age=TREE_MONTHS, httponly=True)  # remove the database from the cookie
+                return self.coerce_response(werkzeug.utils.redirect('/web/database/selector'))
+
+            self.env = Environment(cr, session.uid or 1, session.context, su=False)
+
+            ir_http = self.env['ir.http']
+            ir_http._handle_debug()
+            rule, args = ir_http._match(self.httprequest.path)
+
+            dispatch, handle_error = self.get_dispatchers(rule.endpoint.routing['type'])
+            try:
+                ir_http._postprocess_args(args, rule)
+                auth_method = ir_http._authenticate(rule.endpoint)
+                # retrying and ir_http._dispatch are optional middlewares, they
+                # are executed only in the context of a regular dispatch after
+                # self.x_dispatch() but before the controller endpoint.
+                # call order: self.x_dispatch() -> retrying() -> ir_http._dispatch() -> rule.endpoint()
+                response = dispatch(partial(retrying, partial(ir_http._dispatch, rule.endpoint)), args, auth_method)
+            except Exception as exc:
+                raise handle_error(exc) from exc
+            return self.coerce_response(response)
+
+
+def retrying(endpoint, *args, **kwargs)
+    def as_validation_error(exc):
+        """ Return the IntegrityError encapsuled in a nice ValidationError """
+        unknown = _('Unknown')
+        for name, rclass in self.env.registry.items():
+            if inst.diag.table_name == rclass._table:
+                model = rclass
+                field = model._fields.get(inst.diag.column_name)
+                break
+        else:
+            model = DotDict({'_name': unknown.lower(), '_description': unknown})
+            field = DotDict({'name': unknown.lower(), 'string': unknown})
+
+        if exc.code == NOT_NULL_VIOLATION:
+            return ValidationError(_(NOT_NULL_VIOLATION_MESSAGE, **{
+                'model_name': model._description,
+                'model_tech_name': model._name,
+                'field_name': field.string,
+                'field_tech_name': field.name
+            }))
+
+        if exc.code == FOREIGN_KEY_VIOLATION:
+            return ValidationError(_(FOREIGN_KEY_VIOLATION_MESSAGE, **{
+                'model_name': model._description,
+                'model_tech_name': model._name, 
+                'constraint': exc.diag.constraint_name,
+            }))
+
+        if exc.diag.constraint_name in registry._sql_constraints:
+            return ValidationError(_(CONSTRAINT_VIOLATION_MESSAGE,
+                translate_sql_constraint(exc.diag.constraint_name, self.env.cr, self.env.context['lang'])
+            ))
+
+        return ValidationError(_(INTEGRITY_ERROR_MESSAGE, exc.args[0]))
+
+    try:
+        for tryno in range(1, MAX_TRIES_ON_CONCURRENCY_FAILURE + 1):
+            tryleft = MAX_TRIES_ON_CONCURRENCY_FAILURE - tryno
+            try:
+                result = endpoint(*args, **kwargs)
+                request.cr._precommit()
+                request.cr._commit()
+                return result
+            except (IntegrityError, OperationalError) as exc:
+                request.cr.rollback()
+                request.env.registry.reset_changes()
+                request.env.clear()
+                request.session = json.loads(request._session_orig)
+                if type(exc) is IntegrityError:
+                    raise as_validation_error(exc) from exc
+                if e.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                    raise
+                if not tryleft:
+                    _logger.info("%s, maximum number of tries reached!", errorcodes.lookup(e.pgcode))
+                    raise
+
+            wait_time = random.uniform(0.0, 2 ** tryno)
+            _logger.info("%s, %s tries left, try again in %.04f sec...", errorcodes.lookup(e.pgcode), tryleft, wait_time)
+            time.sleep(wait_time)
+
+        raise RuntimeError("unreachable")
+    except Exception:
+        request.registry.reset_changes()
+        raise
+    else:
+        request.cr._postcommit()
+        request.registry.signal_changes()
+    finally:
+        request.cr.close()
 
 
 #----------------------------------------------------------
@@ -1263,7 +1361,6 @@ class Application(object):
         controllers and configure them.  """
         self.statics = {}
         for addons_path in odoo.addons.__path__:
-            breakpoint()
             for module in get_modules():
                 path_static = get_module_static(module)
                 manifest = load_information_from_description_file(module)
@@ -1299,11 +1396,13 @@ class Application(object):
             # TODO removed app on httprequest grep website and test_qweb request.httprequest.app.get_db_router(request.db)
         except werkzeug.exceptions.HTTPException as response_error:
             return response_error(environ, start_response)
+        except Exception as exc:
+            response_error = request.http_handle_error(exc)
+            return response_error(environ, start_response)
         else:
             return response(environ, start_response)
         finally:
             _request_stack.pop()
 
 # wsgi handler
-application = root = Application()
-#
+app = application = root = Application()

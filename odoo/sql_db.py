@@ -439,14 +439,26 @@ class Cursor(BaseCursor):
             self.postrollback.add(func)
 
     @check
-    def commit(self):
-        """ Perform an SQL `COMMIT` """
+    def _precommit(self):
         flush_env(self)
         self.precommit.run()
-        result = self._cnx.commit()
+
+    @check
+    def _commit(self):
+        return self._cnx.commit()
+
+    @check
+    def _postcommit(self):
         self.prerollback.clear()
         self.postrollback.clear()
         self.postcommit.run()
+
+    @check
+    def commit(self):
+        """ Perform an SQL `COMMIT` """
+        self._precommit()
+        result = self._commit()
+        self._postcommit()
         return result
 
     @check
