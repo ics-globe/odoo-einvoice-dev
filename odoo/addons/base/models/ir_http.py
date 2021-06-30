@@ -31,29 +31,6 @@ from odoo.tools.misc import str2bool
 
 _logger = logging.getLogger(__name__)
 
-MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
-PG_CONCURRENCY_ERRORS_TO_RETRY = {
-    errorcodes.LOCK_NOT_AVAILABLE,
-    errorcodes.SERIALIZATION_FAILURE,
-    errorcodes.DEADLOCK_DETECTED,
-}
-NOT_NULL_VIOLATION_MESSAGE = """\
-The operation cannot be completed:
-- Create/update: a mandatory field is not set.
-- Delete: another model requires the record being deleted. If possible, archive it instead.
-
-Model: %(model_name)s (%(model_tech_name)s)
-Field: %(field_name)s (%(field_tech_name)s)
-"""
-FOREIGN_KEY_VIOLATION_MESSAGE = """\
-The operation cannot be completed: another model requires the record being deleted. If possible, archive it instead.
-
-Model: %(model_name)s (%(model_tech_name)s)
-Constraint: %(constraint)s
-"""
-CONSTRAINT_VIOLATION_MESSAGE = "The operation cannot be completed: %s"
-INTEGRITY_ERROR_MESSAGE = "The operation cannot be completed: %s"
-
 
 class RequestUID(object):
     def __init__(self, **kw):
