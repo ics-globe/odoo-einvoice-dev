@@ -653,19 +653,7 @@ tour.stepUtils.autoExpandMoreButtons('.o_form_readonly'),
 ...tour.stepUtils.goToAppSteps('stock.menu_stock_root', _t('Go to Inventory')),
 tour.stepUtils.openBuggerMenu("li.breadcrumb-item.active:contains('Inventory Overview')"),
 {
-    mobile: false,
     trigger: ".o_menu_sections button[data-menu-xmlid='stock.menu_stock_config_settings']",
-    extra_trigger: '.o_main_navbar',
-    content: _t("Go to Configuration"),
-    position: "bottom"
-}, {
-    mobile: false,
-    trigger: ".o_menu_sections li[data-menu-xmlid='stock.menu_reordering_rules_config']",
-    content: _t("Reordering Rules"),
-    position: "bottom"
-}, {
-    mobile: true,
-    trigger: ".o_menu_sections button:contains('Configuration')",
     extra_trigger: '.o_main_navbar',
     content: _t("Go to Configuration"),
     position: "bottom"
@@ -675,9 +663,8 @@ tour.stepUtils.openBuggerMenu("li.breadcrumb-item.active:contains('Inventory Ove
     content: _t("Click on Product Section"),
     position: "bottom"
 }, {
-    mobile: true,
-    trigger: ".o_menu_sections li:contains('Reordering Rules')",
-    content: _t("Click on Product Section"),
+    trigger: ".o_menu_sections li[data-menu-xmlid='stock.menu_reordering_rules_config']",
+    content: _t("Reordering Rules"),
     position: "bottom"
 }, {
     mobile: false,
