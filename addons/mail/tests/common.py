@@ -74,6 +74,9 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
             self.send_email_mocked = send_email_mocked
             yield
 
+        if mail_unlink_sent:
+            self.env['mail.mail'].sudo().search([('to_delete', '=', True)]).unlink()
+
     def _init_mail_mock(self):
         self._mails = []
         self._mails_args = []

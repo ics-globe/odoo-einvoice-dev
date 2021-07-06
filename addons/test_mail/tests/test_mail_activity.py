@@ -590,6 +590,8 @@ class TestActivityMixin(TestActivityCommon):
             origin_2_activity_4 = origin_2_activity_1.copy()
             origin_2_activity_4.date_deadline = datetime(2020, 1, 2, 0, 0, 0)
 
+            self.env['mail.mail'].search([('to_delete', '=', True)]).unlink()
+
             self.assertEqual(origin_2_activity_1.state, 'planned')
             self.assertEqual(origin_2_activity_2.state, 'today')
             self.assertEqual(origin_2_activity_3.state, 'today')
