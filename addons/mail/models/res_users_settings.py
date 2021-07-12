@@ -25,7 +25,9 @@ class ResUsersSettings(models.Model):
 
     def _res_users_settings_format(self):
         self.ensure_one()
-        return self._read_format(fnames=[name for name, field in self._fields.items() if name == 'id' or not field.automatic])[0]
+        res = self._read_format(fnames=[name for name, field in self._fields.items() if name == 'id' or not field.automatic])[0]
+        res['volume_settings'] = self.volume_settings_ids._read_format(['id', 'user_setting_id', 'partner_id', 'volume'])
+        return res
 
     def set_res_users_settings(self, new_settings):
         self.ensure_one()
@@ -38,3 +40,24 @@ class ResUsersSettings(models.Model):
             'type': 'res.users_settings_changed',
             'payload': changed_settings,
         })
+
+    def set_volume_setting(self, partner_id, volume):
+        self.ensure_one()
+        volume_setting = None
+        volume_settings = self.volume_settings_ids.filtered(lambda record: record.partner_id.id == partner_id)
+        if volume_settings:
+            volume_setting = volume_settings[0]
+            volume_setting.write({'volume': volume})
+        else:
+            volume_setting = self.env['mail.volume.setting'].create([{
+                'user_setting_id': self.id,
+                'partner_id': partner_id,
+                'volume': volume,
+            }])
+        notification = {
+            'type': 'mail_volume_setting_update',
+            'payload': {
+                'volumeSetting': volume_setting.read()[0],
+            }
+        }
+        self.env['bus.bus'].sendone((self._cr.dbname, 'res.partner', self.user_id.partner_id.id), notification)

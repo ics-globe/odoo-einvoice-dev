@@ -27,9 +27,12 @@ from . import mail_tracking_value
 from . import mail_template
 
 # discuss
-from . import mail_channel_partner
 from . import mail_channel
+from . import mail_channel_partner
+from . import mail_ice_server
+from . import mail_rtc_session
 from . import mail_shortcode
+from . import mail_volume_setting
 from . import res_users_settings
 
 # odoo models
