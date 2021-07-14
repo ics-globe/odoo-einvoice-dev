@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="survey.survey_choice_image_zoom">
+        <div role="dialog" class="modal o_technical_modal fade o_survey_choice_image_modal p-0" aria-labbelledby="Image Zoom Dialog" tabindex="-1">
+            <div class="modal-dialog" role="Picture Enlarged">
+                <div class="modal-content bg-transparent">
+                    <div class="modal-body o_survey_slide bg-transparent">
+                        <button type="button" class="close text-white" data-dismiss="modal" style="position: absolute; right: 10px; top: 5px; font-size: 2.5rem;">
+                            <span role="img" aria-label="Close">×</span><span class="sr-only">Close</span>
+                        </button>
+                        <img t-attf-class="img img-fluid d-block px-4" t-att-src="sourceImage" alt="Zoom on Image"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

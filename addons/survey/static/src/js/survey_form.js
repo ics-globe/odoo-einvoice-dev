@@ -11,16 +11,19 @@ var utils = require('web.utils');
 
 var SurveyPreloadImageMixin = require('survey.preload_image_mixin');
 
+var qweb = core.qweb;
 var _t = core._t;
 var isMac = navigator.platform.toUpperCase().includes('MAC');
 
 publicWidget.registry.SurveyFormWidget = publicWidget.Widget.extend(SurveyPreloadImageMixin, {
     selector: '.o_survey_form',
+    xmlDependencies: ['/survey/static/src/xml/survey_question_image_templates.xml'],
     events: {
         'change .o_survey_form_choice_item': '_onChangeChoiceItem',
         'click .o_survey_matrix_btn': '_onMatrixBtnClick',
         'click input[type="radio"]': '_onRadioChoiceClick',
         'click button[type="submit"]': '_onSubmit',
+        'click .o_survey_choice_image img': '_onChoiceImgClick',
         'focusin .form-control': '_updateEnterButtonText',
         'focusout .form-control': '_updateEnterButtonText'
     },
@@ -252,6 +255,36 @@ publicWidget.registry.SurveyFormWidget = publicWidget.Widget.extend(SurveyPreloa
                 }
             }
         }
+    },
+
+    /**
+     * Called when an image on an answer in muti-answers question is clicked.
+     * Starts a widget opening a dialog to display the image with a bigger size.
+     *
+     * @private
+     * @param {Event} ev
+     */
+    _onChoiceImgClick: function (ev) {
+        ev.preventDefault();
+        var $img = $(ev.currentTarget);
+
+        var $modal = $(qweb.render('survey.survey_choice_image_zoom', {
+            sourceImage: $img.attr('src'),
+        }));
+        $modal.modal({
+            keyboard: true,
+            backdrop: false,
+        });
+        $modal.on('hidden.bs.modal', function () {
+            $(this).hide();
+            $(this).remove();
+        });
+        $modal.find('.modal-content, .modal-body.o_survey_slide').css('height', '100%');
+        // We allow the user to close the modal by clicking anywhere.
+        $modal.on('click', function (ev) {
+            $modal.modal('hide');
+        });
+        $modal.appendTo(document.body);
     },
 
     /**
