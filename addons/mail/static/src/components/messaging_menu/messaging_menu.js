@@ -62,7 +62,7 @@ export class MessagingMenu extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.discuss}
+     * @returns {discuss.discuss_component}
      */
     get discuss() {
         return this.env.messaging && this.env.messaging.discuss;
@@ -195,7 +195,7 @@ export class MessagingMenu extends Component {
      */
     _onMobileNewMessageInputSource(req, res) {
         const value = _.escape(req.term);
-        this.env.models['mail.partner'].imSearch({
+        this.env.models['res.partner'].imSearch({
             callback: partners => {
                 const suggestions = partners.map(partner => {
                     return {

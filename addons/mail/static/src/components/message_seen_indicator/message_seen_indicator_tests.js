@@ -1,13 +1,13 @@
 /** @odoo-module **/
 
 import { MessageSeenIndicator } from '@mail/components/message_seen_indicator/message_seen_indicator';
-import { create, insert, link } from '@mail/model/model_field_command';
+import { create, insert, link } from '@discuss/model/model_field_command';
 import {
     afterEach,
     beforeEach,
     createRootComponent,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const components = { MessageSeenIndicator };
 

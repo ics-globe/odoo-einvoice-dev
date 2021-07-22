@@ -7,7 +7,7 @@ import { AttachmentList } from '@mail/components/attachment_list/attachment_list
 import { MessageSeenIndicator } from '@mail/components/message_seen_indicator/message_seen_indicator';
 import { NotificationPopover } from '@mail/components/notification_popover/notification_popover';
 import { PartnerImStatusIcon } from '@mail/components/partner_im_status_icon/partner_im_status_icon';
-import { isEventHandled, markEventHandled } from '@mail/utils/utils';
+import { isEventHandled, markEventHandled } from '@discuss/utils/utils';
 
 import { _lt } from 'web.core';
 import { format } from 'web.field_utils';

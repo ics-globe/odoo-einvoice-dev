@@ -7,7 +7,7 @@ const {
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const components = { PartnerImStatusIcon };
 
@@ -42,7 +42,7 @@ QUnit.test('on leave & online', async function (assert) {
     assert.expect(2);
 
     await this.start();
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         id: 7,
         name: "Demo User",
         im_status: 'leave_online',
@@ -64,7 +64,7 @@ QUnit.test('on leave & away', async function (assert) {
     assert.expect(2);
 
     await this.start();
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         id: 7,
         name: "Demo User",
         im_status: 'leave_away',
@@ -86,7 +86,7 @@ QUnit.test('on leave & offline', async function (assert) {
     assert.expect(2);
 
     await this.start();
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         id: 7,
         name: "Demo User",
         im_status: 'leave_offline',

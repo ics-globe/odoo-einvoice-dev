@@ -7,7 +7,7 @@ const {
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const components = { ThreadIcon };
 

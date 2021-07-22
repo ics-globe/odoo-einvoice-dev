@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2many, many2one } from '@mail/model/model_field';
-import { clear, insert, link, unlink, unlinkAll } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2many, many2one } from '@discuss/model/model_field';
+import { clear, insert, link, unlink, unlinkAll } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class Activity extends dependencies['mail.model'] {
+    class Activity extends dependencies['discuss.model'] {
 
 
         //----------------------------------------------------------------------
@@ -166,7 +166,7 @@ function factory(dependencies) {
 
         /**
          * @param {Object} param0
-         * @param {mail.attachment[]} [param0.attachments=[]]
+         * @param {ir.attachment[]} [param0.attachments=[]]
          * @param {string|boolean} [param0.feedback=false]
          */
         async markAsDone({ attachments = [], feedback = false }) {
@@ -237,7 +237,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.messaging}
+         * @returns {discuss.messaging}
          */
         _computeMessaging() {
             return link(this.env.messaging);
@@ -260,18 +260,18 @@ function factory(dependencies) {
     }
 
     Activity.fields = {
-        assignee: many2one('mail.user'),
-        assigneePartner: many2one('mail.partner', {
+        assignee: many2one('res.users'),
+        assigneePartner: many2one('res.partner', {
             related: 'assignee.partner',
         }),
-        attachments: many2many('mail.attachment', {
+        attachments: many2many('ir.attachment', {
             inverse: 'activities',
         }),
         canWrite: attr({
             default: false,
         }),
         category: attr(),
-        creator: many2one('mail.user'),
+        creator: many2one('res.users'),
         dateCreate: attr(),
         dateDeadline: attr(),
         /**
@@ -298,10 +298,10 @@ function factory(dependencies) {
         mailTemplates: many2many('mail.mail_template', {
             inverse: 'activities',
         }),
-        messaging: many2one('mail.messaging', {
+        messaging: many2one('discuss.messaging', {
             compute: '_computeMessaging',
         }),
-        messagingCurrentPartner: many2one('mail.partner', {
+        messagingCurrentPartner: many2one('res.partner', {
             related: 'messaging.currentPartner',
         }),
         /**
@@ -323,7 +323,7 @@ function factory(dependencies) {
          * Also, be useful when the assigned user is different from the
          * "source" or "requesting" partner.
          */
-        requestingPartner: many2one('mail.partner'),
+        requestingPartner: many2one('res.partner'),
         state: attr(),
         summary: attr(),
         /**

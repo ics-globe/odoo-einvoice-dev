@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_discuss_channel_message_all,discuss.channel.message.all,model_discuss_channel_message,,1,1,1,1
+access_discuss_channel_all,discuss.channel.all,model_discuss_channel,,1,1,1,1
+access_discuss_channel_member_all,discuss.channel.member.all,model_discuss_channel_member,,1,1,1,1

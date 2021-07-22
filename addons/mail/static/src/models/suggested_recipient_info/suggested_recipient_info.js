@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2one } from '@mail/model/model_field';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2one } from '@discuss/model/model_field';
 
 function factory(dependencies) {
 
-    class SuggestedRecipientInfo extends dependencies['mail.model'] {
+    class SuggestedRecipientInfo extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // private
@@ -77,9 +77,9 @@ function factory(dependencies) {
             ],
         }),
         /**
-         * Determines the optional `mail.partner` associated to `this`.
+         * Determines the optional `res.partner` associated to `this`.
          */
-        partner: many2one('mail.partner'),
+        partner: many2one('res.partner'),
         /**
          * Serves as compute dependency.
          */

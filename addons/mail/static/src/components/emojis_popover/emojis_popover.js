@@ -2,7 +2,7 @@
 
 import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
 import { useUpdate } from '@mail/component_hooks/use_update/use_update';
-import emojis from '@mail/js/emojis';
+import emojis from '@discuss/js/emojis';
 
 const { Component } = owl;
 

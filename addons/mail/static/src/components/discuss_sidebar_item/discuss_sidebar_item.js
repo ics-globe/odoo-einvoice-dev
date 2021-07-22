@@ -4,7 +4,7 @@ import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_up
 import { useStore } from '@mail/component_hooks/use_store/use_store';
 import { EditableText } from '@mail/components/editable_text/editable_text';
 import { ThreadIcon } from '@mail/components/thread_icon/thread_icon';
-import { isEventHandled } from '@mail/utils/utils';
+import { isEventHandled } from '@discuss/utils/utils';
 
 import Dialog from 'web.Dialog';
 
@@ -62,7 +62,7 @@ export class DiscussSidebarItem extends Component {
     }
 
     /**
-     * @returns {mail.discuss}
+     * @returns {discuss.discuss_component}
      */
     get discuss() {
         return this.env.messaging && this.env.messaging.discuss;

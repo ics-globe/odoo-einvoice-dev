@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { afterEach, beforeEach, start } from '@mail/utils/test_utils';
+import { afterEach, beforeEach, start } from '@discuss/utils/test_utils';
 
 QUnit.module('mail_bot', {}, function () {
 QUnit.module('models', {}, function () {

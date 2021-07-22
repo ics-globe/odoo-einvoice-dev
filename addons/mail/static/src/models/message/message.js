@@ -1,16 +1,16 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2many, many2one, one2many } from '@mail/model/model_field';
-import { clear, insert, insertAndReplace, link, replace, unlink, unlinkAll } from '@mail/model/model_field_command';
-import emojis from '@mail/js/emojis';
-import { addLink, htmlToTextContentInline, parseAndTransform, timeFromNow } from '@mail/js/utils';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2many, many2one, one2many } from '@discuss/model/model_field';
+import { clear, insert, insertAndReplace, link, replace, unlinkAll } from '@discuss/model/model_field_command';
+import emojis from '@discuss/js/emojis';
+import { addLink, htmlToTextContentInline, parseAndTransform, timeFromNow } from '@discuss/js/utils';
 
 import { str_to_datetime } from 'web.time';
 
 function factory(dependencies) {
 
-    class Message extends dependencies['mail.model'] {
+    class Message extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public
@@ -28,7 +28,7 @@ function factory(dependencies) {
                     data2.attachments = unlinkAll();
                 } else {
                     data2.attachments = insertAndReplace(data.attachment_ids.map(attachmentData =>
-                        this.env.models['mail.attachment'].convertData(attachmentData)
+                        this.env.models['ir.attachment'].convertData(attachmentData)
                     ));
                 }
             }
@@ -388,7 +388,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.messaging}
+         * @returns {discuss.messaging}
          */
         _computeMessaging() {
             return link(this.env.messaging);
@@ -435,15 +435,6 @@ function factory(dependencies) {
          */
         _computeThreads() {
             const threads = [];
-            if (this.isHistory) {
-                threads.push(this.env.messaging.history);
-            }
-            if (this.isNeedaction) {
-                threads.push(this.env.messaging.inbox);
-            }
-            if (this.isStarred) {
-                threads.push(this.env.messaging.starred);
-            }
             if (this.originThread) {
                 threads.push(this.originThread);
             }
@@ -453,11 +444,11 @@ function factory(dependencies) {
     }
 
     Message.fields = {
-        attachments: many2many('mail.attachment', {
-            inverse: 'messages',
+        attachments: many2many('ir.attachment', {
+            inverse: 'mailMessages',
         }),
-        author: many2one('mail.partner', {
-            inverse: 'messagesAsAuthor',
+        author: many2one('res.partner', {
+            inverse: 'mailMessagesAsAuthor',
         }),
         /**
          * This value is meant to be returned by the server
@@ -609,20 +600,11 @@ function factory(dependencies) {
             default: false,
         }),
         message_type: attr(),
-        messaging: many2one('mail.messaging', {
+        messaging: many2one('discuss.messaging', {
             compute: '_computeMessaging',
         }),
-        messagingCurrentPartner: many2one('mail.partner', {
+        messagingCurrentPartner: many2one('res.partner', {
             related: 'messaging.currentPartner',
-        }),
-        messagingHistory: many2one('mail.thread', {
-            related: 'messaging.history',
-        }),
-        messagingInbox: many2one('mail.thread', {
-            related: 'messaging.inbox',
-        }),
-        messagingStarred: many2one('mail.thread', {
-            related: 'messaging.starred',
         }),
         notifications: one2many('mail.notification', {
             inverse: 'message',
@@ -669,12 +651,6 @@ function factory(dependencies) {
         threads: many2many('mail.thread', {
             compute: '_computeThreads',
             dependencies: [
-                'isHistory',
-                'isNeedaction',
-                'isStarred',
-                'messagingHistory',
-                'messagingInbox',
-                'messagingStarred',
                 'originThread',
             ],
             inverse: 'messages',

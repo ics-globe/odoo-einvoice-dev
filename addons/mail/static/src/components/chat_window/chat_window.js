@@ -6,7 +6,7 @@ import { useUpdate } from '@mail/component_hooks/use_update/use_update';
 import { AutocompleteInput } from '@mail/components/autocomplete_input/autocomplete_input';
 import { ChatWindowHeader } from '@mail/components/chat_window_header/chat_window_header';
 import { ThreadView } from '@mail/components/thread_view/thread_view';
-import { isEventHandled } from '@mail/utils/utils';
+import { isEventHandled } from '@discuss/utils/utils';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;
@@ -22,7 +22,7 @@ export class ChatWindow extends Component {
         super(...args);
         useShouldUpdateBasedOnProps();
         useStore(props => {
-            const chatWindow = this.env.models['mail.chat_window'].get(props.chatWindowLocalId);
+            const chatWindow = this.env.models['discuss.chat_window'].get(props.chatWindowLocalId);
             const thread = chatWindow ? chatWindow.thread : undefined;
             return {
                 chatWindow,
@@ -86,10 +86,10 @@ export class ChatWindow extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.chat_window}
+     * @returns {discuss.chat_window}
      */
     get chatWindow() {
-        return this.env.models['mail.chat_window'].get(this.props.chatWindowLocalId);
+        return this.env.models['discuss.chat_window'].get(this.props.chatWindowLocalId);
     }
 
     /**
@@ -215,7 +215,7 @@ export class ChatWindow extends Component {
      * @param {function} res
      */
     _onAutocompleteSource(req, res) {
-        this.env.models['mail.partner'].imSearch({
+        this.env.models['res.partner'].imSearch({
             callback: (partners) => {
                 const suggestions = partners.map(partner => {
                     return {

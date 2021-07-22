@@ -3,10 +3,10 @@ odoo.define('hr/static/src/models/user/user.js', function (require) {
 
 const {
     registerFieldPatchModel,
-} = require('@mail/model/model_core');
-const { one2one } = require('@mail/model/model_field');
+} = require('@discuss/model/model_core');
+const { one2one } = require('@discuss/model/model_field');
 
-registerFieldPatchModel('mail.user', 'hr/static/src/models/user/user.js', {
+registerFieldPatchModel('res.users', 'hr/static/src/models/user/user.js', {
     /**
      * Employee related to this user.
      */

@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, one2many } from '@mail/model/model_field';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, one2many } from '@discuss/model/model_field';
 
 function factory(dependencies) {
 
-    class ActivityType extends dependencies['mail.model'] {
+    class ActivityType extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Private

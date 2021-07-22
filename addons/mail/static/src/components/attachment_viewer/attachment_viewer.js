@@ -3,7 +3,7 @@
 import { useRefs } from '@mail/component_hooks/use_refs/use_refs';
 import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
 import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { link } from '@mail/model/model_field_command';
+import { link } from '@discuss/model/model_field_command';
 
 import { hidePDFJSButtons } from '@web/legacy/js/libs/pdfjs';
 
@@ -24,7 +24,7 @@ export class AttachmentViewer extends Component {
         this.MIN_SCALE = MIN_SCALE;
         useShouldUpdateBasedOnProps();
         useStore(props => {
-            const attachmentViewer = this.env.models['mail.attachment_viewer'].get(props.localId);
+            const attachmentViewer = this.env.models['discuss.attachment_viewer'].get(props.localId);
             const device = this.env.messaging && this.env.messaging.device;
             return {
                 attachment: attachmentViewer && attachmentViewer.attachment
@@ -94,10 +94,10 @@ export class AttachmentViewer extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.attachment_viewer}
+     * @returns {discuss.attachment_viewer}
      */
     get attachmentViewer() {
-        return this.env.models['mail.attachment_viewer'].get(this.props.localId);
+        return this.env.models['discuss.attachment_viewer'].get(this.props.localId);
     }
 
     /**

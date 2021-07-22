@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { AttachmentBox } from '@mail/components/attachment_box/attachment_box';
-import { insert } from '@mail/model/model_field_command';
+import { insert } from '@discuss/model/model_field_command';
 import {
     afterEach,
     afterNextRender,
@@ -10,7 +10,7 @@ import {
     dragenterFiles,
     dropFiles,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import { file } from 'web.test_utils';
 
@@ -229,7 +229,7 @@ QUnit.test('view attachments', async function (assert) {
         id: 100,
         model: 'res.partner',
     });
-    const firstAttachment = this.env.models['mail.attachment'].findFromIdentifyingData({ id: 143 });
+    const firstAttachment = this.env.models['ir.attachment'].findFromIdentifyingData({ id: 143 });
     await this.createAttachmentBoxComponent(thread);
 
     await afterNextRender(() =>

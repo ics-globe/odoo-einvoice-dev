@@ -3,9 +3,9 @@ odoo.define('hr/static/src/models/messaging/messaging.js', function (require) {
 
 const {
     registerInstancePatchModel,
-} = require('@mail/model/model_core');
+} = require('@discuss/model/model_core');
 
-registerInstancePatchModel('mail.messaging', 'hr/static/src/models/messaging/messaging.js', {
+registerInstancePatchModel('discuss.messaging', 'hr/static/src/models/messaging/messaging.js', {
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------

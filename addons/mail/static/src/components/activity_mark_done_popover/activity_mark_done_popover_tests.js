@@ -1,14 +1,14 @@
 /** @odoo-module **/
 
 import { ActivityMarkDonePopover } from '@mail/components/activity_mark_done_popover/activity_mark_done_popover';
-import { insert } from '@mail/model/model_field_command';
+import { insert } from '@discuss/model/model_field_command';
 import {
     afterEach,
     afterNextRender,
     beforeEach,
     createRootComponent,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import Bus from 'web.Bus';
 

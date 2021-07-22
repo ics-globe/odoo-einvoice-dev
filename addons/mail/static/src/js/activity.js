@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import * as mailUtils from '@mail/js/utils';
+import * as mailUtils from '@discuss/js/utils';
 
 import AbstractField from 'web.AbstractField';
 import BasicModel from 'web.BasicModel';

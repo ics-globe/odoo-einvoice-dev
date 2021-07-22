@@ -118,7 +118,7 @@ export class ChatWindowHiddenMenu extends Component {
      * @private
      * @param {CustomEvent} ev
      * @param {Object} ev.detail
-     * @param {mail.chat_window} ev.detail.chatWindow
+     * @param {discuss.chat_window} ev.detail.chatWindow
      */
     _onClickedChatWindow(ev) {
         const chatWindow = ev.detail.chatWindow;

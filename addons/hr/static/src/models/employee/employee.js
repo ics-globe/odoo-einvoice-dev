@@ -1,13 +1,13 @@
 odoo.define('hr/static/src/models/employee/employee.js', function (require) {
 'use strict';
 
-const { registerNewModel } = require('@mail/model/model_core');
-const { attr, one2one } = require('@mail/model/model_field');
-const { insert, unlink } = require('@mail/model/model_field_command');
+const { registerNewModel } = require('@discuss/model/model_core');
+const { attr, one2one } = require('@discuss/model/model_field');
+const { insert, unlink } = require('@discuss/model/model_field_command');
 
 function factory(dependencies) {
 
-    class Employee extends dependencies['mail.model'] {
+    class Employee extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public
@@ -185,14 +185,14 @@ function factory(dependencies) {
         /**
          * Partner related to this employee.
          */
-        partner: one2one('mail.partner', {
+        partner: one2one('res.partner', {
             inverse: 'employee',
             related: 'user.partner',
         }),
         /**
          * User related to this employee.
          */
-        user: one2one('mail.user', {
+        user: one2one('res.users', {
             inverse: 'employee',
         }),
     };

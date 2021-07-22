@@ -4,7 +4,7 @@ import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_up
 import { useStore } from '@mail/component_hooks/use_store/use_store';
 import { useUpdate } from '@mail/component_hooks/use_update/use_update';
 import { ComposerSuggestionList } from '@mail/components/composer_suggestion_list/composer_suggestion_list';
-import { markEventHandled } from '@mail/utils/utils';
+import { markEventHandled } from '@discuss/utils/utils';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;

@@ -2,13 +2,13 @@ odoo.define('website_slides/static/src/tests/activity_tests.js', function (requi
 'use strict';
 
 const { Activity } = require('@mail/components/activity/activity');
-const { insert } = require('@mail/model/model_field_command');
+const { insert } = require('@discuss/model/model_field_command');
 const {
     afterEach,
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const components = { Activity };
 

@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { one2many } from '@mail/model/model_field';
-import { link } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { one2many } from '@discuss/model/model_field';
+import { link } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class NotificationGroupManager extends dependencies['mail.model'] {
+    class NotificationGroupManager extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public

@@ -417,7 +417,7 @@
                         </div>
                         <div t-if="message.hasNonImageAttachments()" class="o_attachments_list">
                             <t t-foreach="message.getNonImageAttachments()" t-as="attachment">
-                                <t t-call="im_livechat.legacy.mail.Attachment">
+                                <t t-call="im_livechat.legacy.ir.attachment">
                                     <t t-set="isDeletable" t-value="options.hasMessageAttachmentDeletable"/>
                                 </t>
                             </t>
@@ -545,7 +545,7 @@
     <t t-name="im_livechat.legacy.mail.composer.Attachments">
         <div t-if="attachments.length > 0" class="o_attachments o_attachments_list">
             <t t-foreach="attachments" t-as='attachment'>
-                <t t-call="im_livechat.legacy.mail.Attachment">
+                <t t-call="im_livechat.legacy.ir.attachment">
                      <t t-set="editable" t-value="true"/>
                 </t>
             </t>
@@ -588,7 +588,7 @@
           Some changes are required in that case, such as "delete" button is not visible (pretty unlink is used instead).
         @param {boolean} [isDeletable=false]
     -->
-    <t t-name="im_livechat.legacy.mail.Attachment">
+    <t t-name="im_livechat.legacy.ir.attachment">
         <t t-set="type" t-value="attachment.mimetype and attachment.mimetype.split('/').shift()"/>
         <div t-attf-class="o_attachment #{ editable ? 'o_attachment_editable' : '' } #{attachment.upload ? 'o_attachment_uploading' : ''}" t-att-title="attachment.name">
             <div class="o_attachment_wrap">

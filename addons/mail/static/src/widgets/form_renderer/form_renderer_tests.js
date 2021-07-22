@@ -7,7 +7,7 @@ import {
     beforeEach,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import config from 'web.config';
 import FormView from 'web.FormView';

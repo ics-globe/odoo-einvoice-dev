@@ -21,7 +21,7 @@ export class AttachmentList extends Component {
             },
         });
         useStore(props => {
-            const attachments = this.env.models['mail.attachment'].all().filter(attachment =>
+            const attachments = this.env.models['ir.attachment'].all().filter(attachment =>
                 props.attachmentLocalIds.includes(attachment.localId)
             );
             return {
@@ -41,30 +41,30 @@ export class AttachmentList extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.attachment[]}
+     * @returns {ir.attachment[]}
      */
     get attachments() {
-        return this.env.models['mail.attachment'].all().filter(attachment =>
+        return this.env.models['ir.attachment'].all().filter(attachment =>
             this.props.attachmentLocalIds.includes(attachment.localId)
         );
     }
 
     /**
-     * @returns {mail.attachment[]}
+     * @returns {ir.attachment[]}
      */
     get imageAttachments() {
         return this.attachments.filter(attachment => attachment.fileType === 'image');
     }
 
     /**
-     * @returns {mail.attachment[]}
+     * @returns {ir.attachment[]}
      */
     get nonImageAttachments() {
         return this.attachments.filter(attachment => attachment.fileType !== 'image');
     }
 
     /**
-     * @returns {mail.attachment[]}
+     * @returns {ir.attachment[]}
      */
     get viewableAttachments() {
         return this.attachments.filter(attachment => attachment.isViewable);

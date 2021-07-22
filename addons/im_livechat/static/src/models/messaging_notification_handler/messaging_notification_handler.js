@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { registerInstancePatchModel } from '@mail/model/model_core';
+import { registerInstancePatchModel } from '@discuss/model/model_core';
 
 registerInstancePatchModel('mail.messaging_notification_handler', 'im_livechat/static/src/models/messaging_notification_handler/messaging_notification_handler.js', {
 

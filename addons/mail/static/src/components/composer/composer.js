@@ -11,11 +11,11 @@ import { DropZone } from '@mail/components/drop_zone/drop_zone';
 import { EmojisPopover } from '@mail/components/emojis_popover/emojis_popover';
 import { FileUploader } from '@mail/components/file_uploader/file_uploader';
 import { ThreadTextualTypingStatus } from '@mail/components/thread_textual_typing_status/thread_textual_typing_status';
-import { replace } from '@mail/model/model_field_command';
+import { replace } from '@discuss/model/model_field_command';
 import {
     isEventHandled,
     markEventHandled,
-} from '@mail/utils/utils';
+} from '@discuss/utils/utils';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;

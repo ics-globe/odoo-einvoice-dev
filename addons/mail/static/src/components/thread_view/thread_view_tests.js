@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { ThreadView } from '@mail/components/thread_view/thread_view';
-import { insert, link } from '@mail/model/model_field_command';
+import { insert, link } from '@discuss/model/model_field_command';
 import {
     afterEach,
     afterNextRender,
@@ -9,7 +9,7 @@ import {
     createRootComponent,
     dragenterFiles,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const components = { ThreadView };
 
@@ -1038,7 +1038,7 @@ QUnit.test("delete all attachments of message without content should no longer d
 
     await afterNextRender(() => {
         document.querySelector(`.o_Attachment[data-attachment-local-id="${
-            this.env.models['mail.attachment'].findFromIdentifyingData({ id: 143 }).localId
+            this.env.models['ir.attachment'].findFromIdentifyingData({ id: 143 }).localId
         }"] .o_Attachment_asideItemUnlink`).click();
     });
     await afterNextRender(() =>
@@ -1097,7 +1097,7 @@ QUnit.test('delete all attachments of a message with some text content should st
 
     await afterNextRender(() => {
         document.querySelector(`.o_Attachment[data-attachment-local-id="${
-            this.env.models['mail.attachment'].findFromIdentifyingData({ id: 143 }).localId
+            this.env.models['ir.attachment'].findFromIdentifyingData({ id: 143 }).localId
         }"] .o_Attachment_asideItemUnlink`).click();
     });
     await afterNextRender(() =>
@@ -1163,7 +1163,7 @@ QUnit.test('delete all attachments of a message with tracking fields should stil
 
     await afterNextRender(() => {
         document.querySelector(`.o_Attachment[data-attachment-local-id="${
-            this.env.models['mail.attachment'].findFromIdentifyingData({ id: 143 }).localId
+            this.env.models['ir.attachment'].findFromIdentifyingData({ id: 143 }).localId
         }"] .o_Attachment_asideItemUnlink`).click();
     });
     await afterNextRender(() =>

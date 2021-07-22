@@ -6,7 +6,7 @@ import {
     beforeEach,
     createRootComponent,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const components = { ComposerSuggestion };
 
@@ -46,7 +46,7 @@ QUnit.test('canned response suggestion displayed', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const cannedResponse = this.env.models['mail.canned_response'].create({
+    const cannedResponse = this.env.models['discuss.canned_response'].create({
         id: 7,
         source: 'hello',
         substitution: "Hello, how are you?",
@@ -54,7 +54,7 @@ QUnit.test('canned response suggestion displayed', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.canned_response',
+        modelName: 'discuss.canned_response',
         recordLocalId: cannedResponse.localId,
     });
 
@@ -74,7 +74,7 @@ QUnit.test('canned response suggestion correct data', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const cannedResponse = this.env.models['mail.canned_response'].create({
+    const cannedResponse = this.env.models['discuss.canned_response'].create({
         id: 7,
         source: 'hello',
         substitution: "Hello, how are you?",
@@ -82,7 +82,7 @@ QUnit.test('canned response suggestion correct data', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.canned_response',
+        modelName: 'discuss.canned_response',
         recordLocalId: cannedResponse.localId,
     });
 
@@ -122,7 +122,7 @@ QUnit.test('canned response suggestion active', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const cannedResponse = this.env.models['mail.canned_response'].create({
+    const cannedResponse = this.env.models['discuss.canned_response'].create({
         id: 7,
         source: 'hello',
         substitution: "Hello, how are you?",
@@ -130,7 +130,7 @@ QUnit.test('canned response suggestion active', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.canned_response',
+        modelName: 'discuss.canned_response',
         recordLocalId: cannedResponse.localId,
     });
 

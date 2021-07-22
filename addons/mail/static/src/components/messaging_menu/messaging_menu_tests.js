@@ -6,7 +6,7 @@ import {
     beforeEach,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import { makeTestPromise } from 'web.test_utils';
 

@@ -5,7 +5,7 @@ import { useStore } from '@mail/component_hooks/use_store/use_store';
 import {
     isEventHandled,
     markEventHandled,
-} from '@mail/utils/utils';
+} from '@discuss/utils/utils';
 import { ThreadIcon } from '@mail/components/thread_icon/thread_icon';
 
 const { Component } = owl;
@@ -21,7 +21,7 @@ export class ChatWindowHeader extends Component {
         super(...args);
         useShouldUpdateBasedOnProps();
         useStore(props => {
-            const chatWindow = this.env.models['mail.chat_window'].get(props.chatWindowLocalId);
+            const chatWindow = this.env.models['discuss.chat_window'].get(props.chatWindowLocalId);
             const thread = chatWindow && chatWindow.thread;
             return {
                 chatWindow,
@@ -41,10 +41,10 @@ export class ChatWindowHeader extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.chat_window}
+     * @returns {discuss.chat_window}
      */
     get chatWindow() {
-        return this.env.models['mail.chat_window'].get(this.props.chatWindowLocalId);
+        return this.env.models['discuss.chat_window'].get(this.props.chatWindowLocalId);
     }
 
     /**

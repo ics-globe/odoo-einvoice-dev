@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { registerInstancePatchModel } from '@mail/model/model_core';
+import { registerInstancePatchModel } from '@discuss/model/model_core';
 
-registerInstancePatchModel('mail.chat_window', 'im_livechat/static/src/models/chat_window/chat_window.js', {
+registerInstancePatchModel('discuss.chat_window', 'im_livechat/static/src/models/chat_window/chat_window.js', {
 
     /**
      * @override

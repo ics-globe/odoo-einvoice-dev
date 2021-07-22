@@ -1,7 +1,7 @@
 odoo.define('calendar.systray.ActivityMenuTests', function (require) {
 "use strict";
 
-const { afterEach, beforeEach, start } = require('@mail/utils/test_utils');
+const { afterEach, beforeEach, start } = require('@discuss/utils/test_utils');
 var ActivityMenu = require('@mail/js/systray/systray_activity_menu')[Symbol.for("default")];
 
 var testUtils = require('web.test_utils');

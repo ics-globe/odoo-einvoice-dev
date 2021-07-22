@@ -1,13 +1,13 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { RecordDeletedError } from '@mail/model/model_errors';
-import { attr, many2many, many2one, one2one } from '@mail/model/model_field';
-import { clear, link, unlink } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { RecordDeletedError } from '@discuss/model/model_errors';
+import { attr, many2many, many2one, one2one } from '@discuss/model/model_field';
+import { clear, link, unlink } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class ThreadView extends dependencies['mail.model'] {
+    class ThreadView extends dependencies['discuss.model'] {
 
         /**
          * @override
@@ -68,7 +68,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.messaging}
+         * @returns {discuss.messaging}
          */
         _computeMessaging() {
             return link(this.env.messaging);
@@ -120,39 +120,6 @@ function factory(dependencies) {
                 return threadCacheInitialScrollPosition;
             }
             return clear();
-        }
-
-        /**
-         * Not a real field, used to trigger `thread.markAsSeen` when one of
-         * the dependencies changes.
-         *
-         * @private
-         * @returns {boolean}
-         */
-        _computeThreadShouldBeSetAsSeen() {
-            if (!this.thread) {
-                return;
-            }
-            if (!this.thread.lastNonTransientMessage) {
-                return;
-            }
-            if (!this.lastVisibleMessage) {
-                return;
-            }
-            if (this.lastVisibleMessage !== this.lastMessage) {
-                return;
-            }
-            if (!this.hasComposerFocus) {
-                // FIXME condition should not be on "composer is focused" but "threadView is active"
-                // See task-2277543
-                return;
-            }
-            this.thread.markAsSeen(this.thread.lastNonTransientMessage).catch(e => {
-                // prevent crash when executing compute during destroy
-                if (!(e instanceof RecordDeletedError)) {
-                    throw e;
-                }
-            });
         }
 
         /**
@@ -224,7 +191,7 @@ function factory(dependencies) {
         /**
          * Serves as compute dependency.
          */
-        device: one2one('mail.device', {
+        device: one2one('discuss.device', {
             related: 'messaging.device',
         }),
         /**
@@ -292,7 +259,7 @@ function factory(dependencies) {
         /**
          * Serves as compute dependency.
          */
-        messaging: many2one('mail.messaging', {
+        messaging: many2one('discuss.messaging', {
             compute: '_computeMessaging',
         }),
         nonEmptyMessages: many2many('mail.message', {
@@ -397,21 +364,6 @@ function factory(dependencies) {
          */
         threadModel: attr({
             related: 'thread.model',
-        }),
-        /**
-         * Not a real field, used to trigger `thread.markAsSeen` when one of
-         * the dependencies changes.
-         */
-        threadShouldBeSetAsSeen: attr({
-            compute: '_computeThreadShouldBeSetAsSeen',
-            dependencies: [
-                'hasComposerFocus',
-                'lastMessage',
-                'lastNonTransientMessage',
-                'lastVisibleMessage',
-                'threadCache',
-            ],
-            isOnChange: true,
         }),
         /**
          * Determines the `mail.thread_viewer` currently managing `this`.

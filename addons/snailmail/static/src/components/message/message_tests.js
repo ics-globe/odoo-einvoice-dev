@@ -2,14 +2,14 @@ odoo.define('snailmail/static/src/components/message/message_tests.js', function
 'use strict';
 
 const { Message } = require('@mail/components/message/message');
-const { create, insert, link } = require('@mail/model/model_field_command');
+const { create, insert, link } = require('@discuss/model/model_field_command');
 const {
     afterEach,
     afterNextRender,
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const Bus = require('web.Bus');
 

@@ -134,7 +134,7 @@ Help your customers with this chat, and analyse their feedback.
             'bus/static/src/js/longpolling_bus.js',
             'bus/static/src/js/crosstab_bus.js',
             'bus/static/src/js/services/bus_service.js',
-            'mail/static/src/js/utils.js',
+            'discuss/static/src/js/utils.js',
             'im_livechat/static/src/legacy/public_livechat.js',
 
             ('include', 'web._assets_helpers'),

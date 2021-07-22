@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-inherit="mail.Discuss.content" t-inherit-mode="extension">
+    <t t-inherit="discuss.discuss_component.content" t-inherit-mode="extension">
         <xpath expr="//*[hasclass('o_Discuss_thread')]" position="before">
             <t t-if="discuss.thread.visitor">
                 <VisitorBanner

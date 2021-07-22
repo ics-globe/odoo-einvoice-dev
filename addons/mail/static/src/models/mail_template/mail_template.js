@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2many } from '@mail/model/model_field';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2many } from '@discuss/model/model_field';
 
 function factory(dependencies) {
 
-    class MailTemplate extends dependencies['mail.model'] {
+    class MailTemplate extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public

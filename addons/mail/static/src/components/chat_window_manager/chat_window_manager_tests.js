@@ -7,7 +7,7 @@ import {
     beforeEach,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import { file, dom } from 'web.test_utils';
 const { createFile, inputFiles } = file;

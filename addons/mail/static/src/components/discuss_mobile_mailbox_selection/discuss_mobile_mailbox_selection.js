@@ -57,7 +57,7 @@ export class DiscussMobileMailboxSelection extends Component {
     }
 
     /**
-     * @returns {mail.discuss}
+     * @returns {discuss.discuss_component}
      */
     get discuss() {
         return this.env.messaging && this.env.messaging.discuss;

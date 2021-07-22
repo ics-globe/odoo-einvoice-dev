@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr } from '@mail/model/model_field';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr } from '@discuss/model/model_field';
 
 function factory(dependencies) {
 
-    class FollowerSubtype extends dependencies['mail.model'] {
+    class FollowerSubtype extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public

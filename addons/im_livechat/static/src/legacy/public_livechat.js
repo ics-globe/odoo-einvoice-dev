@@ -1536,7 +1536,7 @@ return ThreadTypingMixin;
 odoo.define('im_livechat.legacy.mail.model.AbstractMessage', function (require) {
 "use strict";
 
-var mailUtils = require('@mail/js/utils');
+var mailUtils = require('@discuss/js/utils');
 
 var Class = require('web.Class');
 var core = require('web.core');
@@ -2838,7 +2838,7 @@ odoo.define('im_livechat.legacy.mail.widget.Thread', function (require) {
 "use strict";
 
 var DocumentViewer = require('im_livechat.legacy.mail.DocumentViewer');
-var mailUtils = require('@mail/js/utils');
+var mailUtils = require('@discuss/js/utils');
 
 var core = require('web.core');
 var time = require('web.time');

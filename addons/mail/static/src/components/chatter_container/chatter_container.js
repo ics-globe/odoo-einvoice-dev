@@ -4,7 +4,7 @@ import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_up
 import { useStore } from '@mail/component_hooks/use_store/use_store';
 import { useUpdate } from '@mail/component_hooks/use_update/use_update';
 import { Chatter } from '@mail/components/chatter/chatter';
-import { clear } from '@mail/model/model_field_command';
+import { clear } from '@discuss/model/model_field_command';
 
 const { Component } = owl;
 

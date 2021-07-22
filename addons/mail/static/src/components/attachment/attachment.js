@@ -21,7 +21,7 @@ export class Attachment extends Component {
             },
         });
         useStore(props => {
-            const attachment = this.env.models['mail.attachment'].get(props.attachmentLocalId);
+            const attachment = this.env.models['ir.attachment'].get(props.attachmentLocalId);
             return {
                 attachment: attachment ? attachment.__state : undefined,
             };
@@ -36,10 +36,10 @@ export class Attachment extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.attachment}
+     * @returns {ir.attachment}
      */
     get attachment() {
-        return this.env.models['mail.attachment'].get(this.props.attachmentLocalId);
+        return this.env.models['ir.attachment'].get(this.props.attachmentLocalId);
     }
 
     /**
@@ -130,10 +130,10 @@ export class Attachment extends Component {
         if (!this.attachment.isViewable) {
             return;
         }
-        this.env.models['mail.attachment'].view({
+        this.env.models['ir.attachment'].view({
             attachment: this.attachment,
             attachments: this.props.attachmentLocalIds.map(
-                attachmentLocalId => this.env.models['mail.attachment'].get(attachmentLocalId)
+                attachmentLocalId => this.env.models['ir.attachment'].get(attachmentLocalId)
             ),
         });
     }
@@ -193,5 +193,5 @@ Object.assign(Attachment, {
         showExtension: Boolean,
         showFilename: Boolean,
     },
-    template: 'mail.Attachment',
+    template: 'ir.attachment',
 });

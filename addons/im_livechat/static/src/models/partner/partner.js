@@ -1,10 +1,10 @@
 /** @odoo-module **/
 
-import { registerClassPatchModel } from '@mail/model/model_core';
+import { registerClassPatchModel } from '@discuss/model/model_core';
 
 let nextPublicId = -1;
 
-registerClassPatchModel('mail.partner', 'im_livechat/static/src/models/partner/partner.js', {
+registerClassPatchModel('res.partner', 'im_livechat/static/src/models/partner/partner.js', {
 
     //----------------------------------------------------------------------
     // Public

@@ -14,7 +14,7 @@ export class PartnerImStatusIcon extends Component {
         super(...args);
         useShouldUpdateBasedOnProps();
         useStore(props => {
-            const partner = this.env.models['mail.partner'].get(props.partnerLocalId);
+            const partner = this.env.models['res.partner'].get(props.partnerLocalId);
             return {
                 partner,
                 partnerImStatus: partner && partner.im_status,
@@ -28,10 +28,10 @@ export class PartnerImStatusIcon extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.partner}
+     * @returns {res.partner}
      */
     get partner() {
-        return this.env.models['mail.partner'].get(this.props.partnerLocalId);
+        return this.env.models['res.partner'].get(this.props.partnerLocalId);
     }
 
     //--------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { registerInstancePatchModel } from '@mail/model/model_core';
+import { registerInstancePatchModel } from '@discuss/model/model_core';
 
-registerInstancePatchModel('mail.messaging_initializer', 'mail_bot/static/src/models/messaging_initializer/messaging_initializer.js', {
+registerInstancePatchModel('discuss.messaging_initializer', 'mail_bot/static/src/models/messaging_initializer/messaging_initializer.js', {
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------

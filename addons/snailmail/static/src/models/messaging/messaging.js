@@ -4,10 +4,10 @@ odoo.define('snailmail/static/src/models/messaging/messaging.js', function (requ
 const {
     registerInstancePatchModel,
     registerFieldPatchModel,
-} = require('@mail/model/model_core');
-const { attr } = require('@mail/model/model_field');
+} = require('@discuss/model/model_core');
+const { attr } = require('@discuss/model/model_field');
 
-registerInstancePatchModel('mail.messaging', 'snailmail/static/src/models/messaging/messaging.js', {
+registerInstancePatchModel('discuss.messaging', 'snailmail/static/src/models/messaging/messaging.js', {
     async fetchSnailmailCreditsUrl() {
         const snailmail_credits_url = await this.async(() => this.env.services.rpc({
             model: 'iap.account',
@@ -30,7 +30,7 @@ registerInstancePatchModel('mail.messaging', 'snailmail/static/src/models/messag
     },
 });
 
-registerFieldPatchModel('mail.messaging', 'snailmail/static/src/models/messaging/messaging.js', {
+registerFieldPatchModel('discuss.messaging', 'snailmail/static/src/models/messaging/messaging.js', {
     snailmail_credits_url: attr(),
     snailmail_credits_url_trial: attr(),
 });

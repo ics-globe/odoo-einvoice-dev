@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2many, many2one } from '@mail/model/model_field';
-import { insert, link, unlink, unlinkAll } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2many, many2one } from '@discuss/model/model_field';
+import { insert, link, unlink, unlinkAll } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class Follower extends dependencies['mail.model'] {
+    class Follower extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public
@@ -177,7 +177,7 @@ function factory(dependencies) {
         name: attr({
             related: 'partner.name',
         }),
-        partner: many2one('mail.partner', {
+        partner: many2one('res.partner', {
             required: true,
         }),
         partnerId: attr({

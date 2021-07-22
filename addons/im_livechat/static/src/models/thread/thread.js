@@ -3,8 +3,8 @@
 import {
     registerClassPatchModel,
     registerInstancePatchModel,
-} from '@mail/model/model_core';
-import { insert, link, unlink } from '@mail/model/model_field_command';
+} from '@discuss/model/model_core';
+import { insert, link, unlink } from '@discuss/model/model_field_command';
 
 registerClassPatchModel('mail.thread', 'im_livechat/static/src/models/thread/thread.js', {
 
@@ -40,16 +40,16 @@ registerClassPatchModel('mail.thread', 'im_livechat/static/src/models/thread/thr
                  * easier to handle one temporary partner per channel.
                  */
                 data2.members.push(unlink(this.env.messaging.publicPartners));
-                const partner = this.env.models['mail.partner'].create(
+                const partner = this.env.models['res.partner'].create(
                     Object.assign(
-                        this.env.models['mail.partner'].convertData(data.livechat_visitor),
-                        { id: this.env.models['mail.partner'].getNextPublicId() }
+                        this.env.models['res.partner'].convertData(data.livechat_visitor),
+                        { id: this.env.models['res.partner'].getNextPublicId() }
                     )
                 );
                 data2.members.push(link(partner));
                 data2.correspondent = link(partner);
             } else {
-                const partnerData = this.env.models['mail.partner'].convertData(data.livechat_visitor);
+                const partnerData = this.env.models['res.partner'].convertData(data.livechat_visitor);
                 data2.members.push(insert(partnerData));
                 data2.correspondent = insert(partnerData);
             }

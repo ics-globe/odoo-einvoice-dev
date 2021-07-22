@@ -8,7 +8,7 @@ import {
     createRootComponent,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const components = { ThreadTextualTypingStatus };
 

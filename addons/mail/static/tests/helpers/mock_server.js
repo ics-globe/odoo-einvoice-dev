@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { nextAnimationFrame } from '@mail/utils/test_utils';
+import { nextAnimationFrame } from '@discuss/utils/test_utils';
 
 import MockServer from 'web.MockServer';
 

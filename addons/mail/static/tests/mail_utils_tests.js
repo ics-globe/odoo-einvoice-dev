@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import * as utils from '@mail/js/utils';
+import * as utils from '@discuss/js/utils';
 
 QUnit.module('mail', {}, function () {
 

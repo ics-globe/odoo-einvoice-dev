@@ -6,7 +6,7 @@ import {
     insert,
     insertAndReplace,
     link,
-} from '@mail/model/model_field_command';
+} from '@discuss/model/model_field_command';
 import { makeDeferred } from '@mail/utils/deferred/deferred';
 import {
     afterEach,
@@ -15,7 +15,7 @@ import {
     createRootComponent,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import Bus from 'web.Bus';
 
@@ -287,7 +287,7 @@ QUnit.test("'channel_fetch' notification received is correctly handled", async f
         members: [this.data.currentPartnerId, 11],
     });
     await this.start();
-    const currentPartner = this.env.models['mail.partner'].insert({
+    const currentPartner = this.env.models['res.partner'].insert({
         id: this.env.messaging.currentPartner.id,
         display_name: "Demo User",
     });
@@ -353,7 +353,7 @@ QUnit.test("'channel_seen' notification received is correctly handled", async fu
         members: [this.data.currentPartnerId, 11],
     });
     await this.start();
-    const currentPartner = this.env.models['mail.partner'].insert({
+    const currentPartner = this.env.models['res.partner'].insert({
         id: this.env.messaging.currentPartner.id,
         display_name: "Demo User",
     });
@@ -418,7 +418,7 @@ QUnit.test("'channel_fetch' notification then 'channel_seen' received  are corre
         members: [this.data.currentPartnerId, 11],
     });
     await this.start();
-    const currentPartner = this.env.models['mail.partner'].insert({
+    const currentPartner = this.env.models['res.partner'].insert({
         id: this.env.messaging.currentPartner.id,
         display_name: "Demo User",
     });
@@ -491,7 +491,7 @@ QUnit.test('do not show messaging seen indicator if not authored by me', async f
     assert.expect(2);
 
     await this.start();
-    const author = this.env.models['mail.partner'].create({
+    const author = this.env.models['res.partner'].create({
         id: 100,
         display_name: "Demo User"
     });
@@ -540,7 +540,7 @@ QUnit.test('do not show messaging seen indicator if before last seen by all mess
     assert.expect(3);
 
     await this.start();
-    const currentPartner = this.env.models['mail.partner'].insert({
+    const currentPartner = this.env.models['res.partner'].insert({
         id: this.env.messaging.currentPartner.id,
         display_name: "Demo User",
     });
@@ -606,7 +606,7 @@ QUnit.test('only show messaging seen indicator if authored by me, after last see
     assert.expect(3);
 
     await this.start();
-    const currentPartner = this.env.models['mail.partner'].insert({
+    const currentPartner = this.env.models['res.partner'].insert({
         id: this.env.messaging.currentPartner.id,
         display_name: "Demo User"
     });
@@ -922,7 +922,7 @@ QUnit.test('open chat with author on avatar click should be disabled when curren
     await this.start({
         hasChatWindow: true,
     });
-    const correspondent = this.env.models['mail.partner'].insert({ id: 10 });
+    const correspondent = this.env.models['res.partner'].insert({ id: 10 });
     const message = this.env.models['mail.message'].create({
         author: link(correspondent),
         id: 10,

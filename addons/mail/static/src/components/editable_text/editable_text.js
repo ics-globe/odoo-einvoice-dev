@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { markEventHandled } from '@mail/utils/utils';
+import { markEventHandled } from '@discuss/utils/utils';
 
 const { Component } = owl;
 

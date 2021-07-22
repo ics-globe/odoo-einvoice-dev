@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2one, one2one } from '@mail/model/model_field';
-import { create, insert, link, unlink } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2one, one2one } from '@discuss/model/model_field';
+import { create, insert, link, unlink } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class ThreadViewer extends dependencies['mail.model'] {
+    class ThreadViewer extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public

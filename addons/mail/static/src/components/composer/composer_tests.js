@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
 import { Composer } from '@mail/components/composer/composer';
-import { create } from '@mail/model/model_field_command';
+import { create } from '@discuss/model/model_field_command';
 import {
     afterEach,
     afterNextRender,
@@ -12,7 +12,7 @@ import {
     nextAnimationFrame,
     pasteFiles,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import {
     file,

@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2one, one2one } from '@mail/model/model_field';
-import { create, insert, link, unlink, update } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2one, one2one } from '@discuss/model/model_field';
+import { create, insert, link, unlink, update } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
@@ -22,7 +22,7 @@ function factory(dependencies) {
         };
     })();
 
-    class Chatter extends dependencies['mail.model'] {
+    class Chatter extends dependencies['discuss.model'] {
 
         /**
          * @override

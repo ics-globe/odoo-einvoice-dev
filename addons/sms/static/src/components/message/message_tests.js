@@ -2,7 +2,7 @@ odoo.define('sms/static/src/components/message/message_tests.js', function (requ
 'use strict';
 
 const { Message } = require('@mail/components/message/message');
-const { create, insert, link } = require('@mail/model/model_field_command');
+const { create, insert, link } = require('@discuss/model/model_field_command');
 const { makeDeferred } = require('@mail/utils/deferred/deferred');
 const {
     afterEach,
@@ -10,7 +10,7 @@ const {
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const Bus = require('web.Bus');
 

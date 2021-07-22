@@ -4,7 +4,7 @@ import { useStore } from '@mail/component_hooks/use_store/use_store';
 import {
     afterNextRender,
     nextAnimationFrame,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const { Component, QWeb, Store } = owl;
 const { onPatched, useGetters } = owl.hooks;

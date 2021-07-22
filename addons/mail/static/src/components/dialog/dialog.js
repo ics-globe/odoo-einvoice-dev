@@ -21,7 +21,7 @@ export class Dialog extends Component {
         this._onKeydownDocument = this._onKeydownDocument.bind(this);
         useShouldUpdateBasedOnProps();
         useStore(props => {
-            const dialog = this.env.models['mail.dialog'].get(props.dialogLocalId);
+            const dialog = this.env.models['discuss.dialog'].get(props.dialogLocalId);
             return {
                 dialog: dialog ? dialog.__state : undefined,
             };
@@ -49,10 +49,10 @@ export class Dialog extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {mail.dialog}
+     * @returns {discuss.dialog}
      */
     get dialog() {
-        return this.env.models['mail.dialog'].get(this.props.dialogLocalId);
+        return this.env.models['discuss.dialog'].get(this.props.dialogLocalId);
     }
 
     //--------------------------------------------------------------------------
@@ -108,5 +108,5 @@ Object.assign(Dialog, {
     props: {
         dialogLocalId: String,
     },
-    template: 'mail.Dialog',
+    template: 'discuss.dialog',
 });

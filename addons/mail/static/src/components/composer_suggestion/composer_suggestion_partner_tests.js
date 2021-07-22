@@ -6,7 +6,7 @@ import {
     beforeEach,
     createRootComponent,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 const components = { ComposerSuggestion };
 
@@ -46,7 +46,7 @@ QUnit.test('partner mention suggestion displayed', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         id: 7,
         im_status: 'online',
         name: "Demo User",
@@ -54,7 +54,7 @@ QUnit.test('partner mention suggestion displayed', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.partner',
+        modelName: 'res.partner',
         recordLocalId: partner.localId,
     });
 
@@ -74,7 +74,7 @@ QUnit.test('partner mention suggestion correct data', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         email: "demo_user@odoo.com",
         id: 7,
         im_status: 'online',
@@ -83,7 +83,7 @@ QUnit.test('partner mention suggestion correct data', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.partner',
+        modelName: 'res.partner',
         recordLocalId: partner.localId,
     });
 
@@ -128,7 +128,7 @@ QUnit.test('partner mention suggestion active', async function (assert) {
         id: 20,
         model: 'mail.channel',
     });
-    const partner = this.env.models['mail.partner'].create({
+    const partner = this.env.models['res.partner'].create({
         id: 7,
         im_status: 'online',
         name: "Demo User",
@@ -136,7 +136,7 @@ QUnit.test('partner mention suggestion active', async function (assert) {
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.partner',
+        modelName: 'res.partner',
         recordLocalId: partner.localId,
     });
 

@@ -5,13 +5,13 @@ const {
     registerClassPatchModel,
     registerFieldPatchModel,
     registerInstancePatchModel,
-} = require('@mail/model/model_core');
-const { attr, one2one } = require('@mail/model/model_field');
-const { clear } = require('@mail/model/model_field_command');
+} = require('@discuss/model/model_core');
+const { attr, one2one } = require('@discuss/model/model_field');
+const { clear } = require('@discuss/model/model_field_command');
 
 const { str_to_datetime } = require('web.time');
 
-registerClassPatchModel('mail.partner', 'hr_holidays/static/src/models/partner/partner.js', {
+registerClassPatchModel('res.partner', 'hr_holidays/static/src/models/partner/partner.js', {
     /**
      * @override
      */
@@ -24,7 +24,7 @@ registerClassPatchModel('mail.partner', 'hr_holidays/static/src/models/partner/p
     },
 });
 
-registerInstancePatchModel('mail.partner', 'hr_holidays/static/src/models/partner/partner.js', {
+registerInstancePatchModel('res.partner', 'hr_holidays/static/src/models/partner/partner.js', {
     /**
      * @private
      */
@@ -48,7 +48,7 @@ registerInstancePatchModel('mail.partner', 'hr_holidays/static/src/models/partne
 
 });
 
-registerFieldPatchModel('mail.partner', 'hr/static/src/models/partner/partner.js', {
+registerFieldPatchModel('res.partner', 'hr/static/src/models/partner/partner.js', {
     /**
      * Serves as compute dependency.
      */

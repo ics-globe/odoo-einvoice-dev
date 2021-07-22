@@ -1,18 +1,18 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2many, many2one, one2one } from '@mail/model/model_field';
-import { clear, insert, link, replace, unlink, unlinkAll } from '@mail/model/model_field_command';
-import emojis from '@mail/js/emojis';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2many, many2one, one2one } from '@discuss/model/model_field';
+import { clear, insert, link, replace, unlink, unlinkAll } from '@discuss/model/model_field_command';
+import emojis from '@discuss/js/emojis';
 import {
     addLink,
     escapeAndCompactTextContent,
     parseAndTransform,
-} from '@mail/js/utils';
+} from '@discuss/js/utils';
 
 function factory(dependencies) {
 
-    class Composer extends dependencies['mail.model'] {
+    class Composer extends dependencies['discuss.model'] {
 
         /**
          * @override
@@ -51,16 +51,6 @@ function factory(dependencies) {
          */
         closeSuggestions() {
             this.update({ suggestionDelimiterPosition: clear() });
-        }
-
-        /**
-         * Hides the composer, which only makes sense if the composer is
-         * currently used as a Discuss Inbox reply composer.
-         */
-        discard() {
-            if (this.discussAsReplying) {
-                this.discussAsReplying.clearReplyingToMessage();
-            }
         }
 
         /**
@@ -139,7 +129,7 @@ function factory(dependencies) {
                 case 'mail.thread':
                     Object.assign(updateData, { mentionedChannels: link(this.activeSuggestedRecord) });
                     break;
-                case 'mail.partner':
+                case 'res.partner':
                     Object.assign(updateData, { mentionedPartners: link(this.activeSuggestedRecord) });
                     break;
             }
@@ -148,7 +138,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.partner[]}
+         * @returns {res.partner[]}
          */
         _computeRecipients() {
             const recipients = [...this.mentionedPartners];
@@ -376,7 +366,7 @@ function factory(dependencies) {
          * the active current record is no longer part of the suggestions.
          *
          * @private
-         * @returns {mail.model}
+         * @returns {discuss.model}
          */
         _computeActiveSuggestedRecord() {
             if (
@@ -413,7 +403,7 @@ function factory(dependencies) {
          * main list, which is a requirement for the navigation process.
          *
          * @private
-         * @returns {mail.model[]}
+         * @returns {discuss.model[]}
          */
         _computeExtraSuggestedRecords() {
             if (this.suggestionDelimiterPosition === undefined) {
@@ -442,7 +432,7 @@ function factory(dependencies) {
          * Clears the main suggested record on closing mentions.
          *
          * @private
-         * @returns {mail.model[]}
+         * @returns {discuss.model[]}
          */
         _computeMainSuggestedRecords() {
             if (this.suggestionDelimiterPosition === undefined) {
@@ -455,7 +445,7 @@ function factory(dependencies) {
          * and removes them if not.
          *
          * @private
-         * @returns {mail.partner[]}
+         * @returns {res.partner[]}
          */
         _computeMentionedPartners() {
             const unmentionedPartners = [];
@@ -481,7 +471,7 @@ function factory(dependencies) {
          * and removes them if not.
          *
          * @private
-         * @returns {mail.partner[]}
+         * @returns {res.partner[]}
          */
         _computeMentionedChannels() {
             const unmentionedChannels = [];
@@ -569,9 +559,9 @@ function factory(dependencies) {
         _computeSuggestionModelName() {
             switch (this.suggestionDelimiter) {
                 case '@':
-                    return 'mail.partner';
+                    return 'res.partner';
                 case ':':
-                    return 'mail.canned_response';
+                    return 'discuss.canned_response';
                 case '/':
                     return 'mail.channel_command';
                 case '#':
@@ -808,7 +798,7 @@ function factory(dependencies) {
          * is highlighted in the UI and it will be the selected record if the
          * suggestion is confirmed by the user.
          */
-        activeSuggestedRecord: many2one('mail.model', {
+        activeSuggestedRecord: many2one('discuss.model', {
             compute: '_computeActiveSuggestedRecord',
             dependencies: [
                 'activeSuggestedRecord',
@@ -816,8 +806,8 @@ function factory(dependencies) {
                 'mainSuggestedRecords',
             ],
         }),
-        attachments: many2many('mail.attachment', {
-            inverse: 'composers',
+        attachments: many2many('ir.attachment', {
+            inverse: 'mailMessageComposers',
         }),
         /**
          * This field watches the uploading status of attachments linked to this composer.
@@ -839,20 +829,12 @@ function factory(dependencies) {
             default: false,
         }),
         /**
-         * Instance of discuss if this composer is used as the reply composer
-         * from Inbox. This field is computed from the inverse relation and
-         * should be considered read-only.
-         */
-        discussAsReplying: one2one('mail.discuss', {
-            inverse: 'replyingToMessageOriginThreadComposer',
-        }),
-        /**
          * Determines the extra records that are currently suggested.
          * Allows to have different model types of mentions through a dynamic
          * process. 2 arbitrary lists can be provided and the second is defined
          * as "extra".
          */
-        extraSuggestedRecords: many2many('mail.model', {
+        extraSuggestedRecords: many2many('discuss.model', {
             compute: '_computeExtraSuggestedRecords',
             dependencies: [
                 'extraSuggestedRecords',
@@ -919,7 +901,7 @@ function factory(dependencies) {
          * process. 2 arbitrary lists can be provided and the first is defined
          * as "main".
          */
-        mainSuggestedRecords: many2many('mail.model', {
+        mainSuggestedRecords: many2many('discuss.model', {
             compute: '_computeMainSuggestedRecords',
             dependencies: [
                 'mainSuggestedRecords',
@@ -930,7 +912,7 @@ function factory(dependencies) {
             compute: '_computeMentionedChannels',
             dependencies: ['textInputContent'],
         }),
-        mentionedPartners: many2many('mail.partner', {
+        mentionedPartners: many2many('res.partner', {
             compute: '_computeMentionedPartners',
             dependencies: [
                 'mentionedPartners',
@@ -959,11 +941,11 @@ function factory(dependencies) {
             isOnChange: true,
         }),
         /**
-         * Determines the extra `mail.partner` (on top of existing followers)
+         * Determines the extra `res.partner` (on top of existing followers)
          * that will receive the message being composed by `this`, and that will
          * also be added as follower of `this.thread`.
          */
-        recipients: many2many('mail.partner', {
+        recipients: many2many('res.partner', {
             compute: '_computeRecipients',
             dependencies: [
                 'isLog',

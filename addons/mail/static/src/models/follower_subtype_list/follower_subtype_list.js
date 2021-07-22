@@ -1,11 +1,11 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { many2one } from '@mail/model/model_field';
+import { registerNewModel } from '@discuss/model/model_core';
+import { many2one } from '@discuss/model/model_field';
 
 function factory(dependencies) {
 
-    class FollowerSubtypeList extends dependencies['mail.model'] {}
+    class FollowerSubtypeList extends dependencies['discuss.model'] {}
 
     FollowerSubtypeList.fields = {
         follower: many2one('mail.follower'),

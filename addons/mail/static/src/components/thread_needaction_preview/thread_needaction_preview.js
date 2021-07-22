@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import * as mailUtils from '@mail/js/utils';
+import * as mailUtils from '@discuss/js/utils';
 
 import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
 import { useStore } from '@mail/component_hooks/use_store/use_store';

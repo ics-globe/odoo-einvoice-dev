@@ -2,13 +2,13 @@ odoo.define('hr_holidays/static/src/components/thread_view/thread_view_tests.js'
 'use strict';
 
 const { ThreadView } = require('@mail/components/thread_view/thread_view');
-const { link } = require('@mail/model/model_field_command');
+const { link } = require('@discuss/model/model_field_command');
 const {
     afterEach,
     beforeEach,
     createRootComponent,
     start,
-} = require('@mail/utils/test_utils');
+} = require('@discuss/utils/test_utils');
 
 const components = { ThreadView };
 

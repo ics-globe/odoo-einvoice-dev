@@ -1,14 +1,14 @@
 /** @odoo-module **/
 
 import { FollowerListMenu } from '@mail/components/follower_list_menu/follower_list_menu';
-import { insert, link } from '@mail/model/model_field_command';
+import { insert, link } from '@discuss/model/model_field_command';
 import {
     afterEach,
     afterNextRender,
     beforeEach,
     createRootComponent,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import Bus from 'web.Bus';
 

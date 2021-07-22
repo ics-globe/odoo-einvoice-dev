@@ -3,7 +3,7 @@ odoo.define('snailmail/static/src/models/notification_group/notification_group.j
 
 const {
     registerInstancePatchModel,
-} = require('@mail/model/model_core');
+} = require('@discuss/model/model_core');
 
 registerInstancePatchModel('mail.notification_group', 'snailmail/static/src/models/notification_group/notification_group.js', {
 

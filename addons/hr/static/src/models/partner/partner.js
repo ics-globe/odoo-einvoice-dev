@@ -4,10 +4,10 @@ odoo.define('hr/static/src/models/partner/partner.js', function (require) {
 const {
     registerInstancePatchModel,
     registerFieldPatchModel,
-} = require('@mail/model/model_core');
-const { attr, one2one } = require('@mail/model/model_field');
+} = require('@discuss/model/model_core');
+const { attr, one2one } = require('@discuss/model/model_field');
 
-registerInstancePatchModel('mail.partner', 'hr/static/src/models/partner/partner.js', {
+registerInstancePatchModel('res.partner', 'hr/static/src/models/partner/partner.js', {
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ registerInstancePatchModel('mail.partner', 'hr/static/src/models/partner/partner
     },
 });
 
-registerFieldPatchModel('mail.partner', 'hr/static/src/models/partner/partner.js', {
+registerFieldPatchModel('res.partner', 'hr/static/src/models/partner/partner.js', {
     /**
      * Employee related to this partner. It is computed through
      * the inverse relation and should be considered read-only.

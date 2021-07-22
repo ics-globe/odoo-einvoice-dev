@@ -6,7 +6,7 @@ import { useStore } from '@mail/component_hooks/use_store/use_store';
 import { AttachmentList } from '@mail/components/attachment_list/attachment_list';
 import { DropZone } from '@mail/components/drop_zone/drop_zone';
 import { FileUploader } from '@mail/components/file_uploader/file_uploader';
-import { link } from '@mail/model/model_field_command';
+import { link } from '@discuss/model/model_field_command';
 
 const { Component } = owl;
 const { useRef } = owl.hooks;

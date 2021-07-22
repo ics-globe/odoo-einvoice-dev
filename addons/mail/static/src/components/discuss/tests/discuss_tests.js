@@ -8,7 +8,7 @@ import {
     beforeEach,
     nextAnimationFrame,
     start,
-} from '@mail/utils/test_utils';
+} from '@discuss/utils/test_utils';
 
 import Bus from 'web.Bus';
 import { makeTestPromise, file } from 'web.test_utils';
@@ -2740,7 +2740,7 @@ QUnit.test('composer state: attachments save and restore', async function (asser
     );
     assert.strictEqual(
         document.querySelector(`.o_Composer .o_Attachment`).dataset.attachmentLocalId,
-        this.env.models['mail.attachment'].findFromIdentifyingData({ id: 1 }).localId,
+        this.env.models['ir.attachment'].findFromIdentifyingData({ id: 1 }).localId,
         "should have correct 1st attachment in the composer"
     );
 
@@ -2754,17 +2754,17 @@ QUnit.test('composer state: attachments save and restore', async function (asser
     );
     assert.strictEqual(
         document.querySelectorAll(`.o_Composer .o_Attachment`)[0].dataset.attachmentLocalId,
-        this.env.models['mail.attachment'].findFromIdentifyingData({ id: 2 }).localId,
+        this.env.models['ir.attachment'].findFromIdentifyingData({ id: 2 }).localId,
         "should have attachment with id 2 as 1st attachment"
     );
     assert.strictEqual(
         document.querySelectorAll(`.o_Composer .o_Attachment`)[1].dataset.attachmentLocalId,
-        this.env.models['mail.attachment'].findFromIdentifyingData({ id: 3 }).localId,
+        this.env.models['ir.attachment'].findFromIdentifyingData({ id: 3 }).localId,
         "should have attachment with id 3 as 2nd attachment"
     );
     assert.strictEqual(
         document.querySelectorAll(`.o_Composer .o_Attachment`)[2].dataset.attachmentLocalId,
-        this.env.models['mail.attachment'].findFromIdentifyingData({ id: 4 }).localId,
+        this.env.models['ir.attachment'].findFromIdentifyingData({ id: 4 }).localId,
         "should have attachment with id 4 as 3rd attachment"
     );
 });

@@ -1,13 +1,13 @@
 odoo.define('website_livechat/static/src/models/partner/partner.js', function (require) {
 'use strict';
 
-const { registerNewModel } = require('@mail/model/model_core');
-const { attr, many2one, one2many } = require('@mail/model/model_field');
-const { insert, link, unlink } = require('@mail/model/model_field_command');
+const { registerNewModel } = require('@discuss/model/model_core');
+const { attr, many2one, one2many } = require('@discuss/model/model_field');
+const { insert, link, unlink } = require('@discuss/model/model_field_command');
 
 function factory(dependencies) {
 
-    class Visitor extends dependencies['mail.model'] {
+    class Visitor extends dependencies['discuss.model'] {
         //----------------------------------------------------------------------
         // Public
         //----------------------------------------------------------------------
@@ -69,7 +69,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.country}
+         * @returns {res.country}
          */
         _computeCountry() {
             if (this.partner && this.partner.country) {
@@ -107,7 +107,7 @@ function factory(dependencies) {
         /**
          * Country of the visitor.
          */
-        country: many2one('mail.country', {
+        country: many2one('res.country', {
             compute: '_computeCountry',
             dependencies: [
                 'country',
@@ -140,11 +140,11 @@ function factory(dependencies) {
         /**
          * Partner linked to this visitor, if any.
          */
-        partner: many2one('mail.partner'),
+        partner: many2one('res.partner'),
         partnerAvatarUrl: attr({
             related: 'partner.avatarUrl',
         }),
-        partnerCountry: many2one('mail.country',{
+        partnerCountry: many2one('res.country', {
             related: 'partner.country',
         }),
         partnerNameOrDisplayName: attr({related: 'partner.nameOrDisplayName'}),

@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
-import { insert, insertAndReplace, link } from '@mail/model/model_field_command';
-import { afterEach, beforeEach, start } from '@mail/utils/test_utils';
+import { insert, insertAndReplace, link } from '@discuss/model/model_field_command';
+import { afterEach, beforeEach, start } from '@discuss/utils/test_utils';
 
 import { str_to_datetime } from 'web.time';
 
@@ -29,12 +29,12 @@ QUnit.test('create', async function (assert) {
     assert.expect(31);
 
     await this.start();
-    assert.notOk(this.env.models['mail.partner'].findFromIdentifyingData({ id: 5 }));
+    assert.notOk(this.env.models['res.partner'].findFromIdentifyingData({ id: 5 }));
     assert.notOk(this.env.models['mail.thread'].findFromIdentifyingData({
         id: 100,
         model: 'mail.channel',
     }));
-    assert.notOk(this.env.models['mail.attachment'].findFromIdentifyingData({ id: 750 }));
+    assert.notOk(this.env.models['ir.attachment'].findFromIdentifyingData({ id: 750 }));
     assert.notOk(this.env.models['mail.message'].findFromIdentifyingData({ id: 4000 }));
 
     const thread = this.env.models['mail.thread'].create({
@@ -58,12 +58,12 @@ QUnit.test('create', async function (assert) {
         originThread: link(thread),
     });
 
-    assert.ok(this.env.models['mail.partner'].findFromIdentifyingData({ id: 5 }));
+    assert.ok(this.env.models['res.partner'].findFromIdentifyingData({ id: 5 }));
     assert.ok(this.env.models['mail.thread'].findFromIdentifyingData({
         id: 100,
         model: 'mail.channel',
     }));
-    assert.ok(this.env.models['mail.attachment'].findFromIdentifyingData({ id: 750 }));
+    assert.ok(this.env.models['ir.attachment'].findFromIdentifyingData({ id: 750 }));
     assert.ok(this.env.models['mail.message'].findFromIdentifyingData({ id: 4000 }));
 
     assert.ok(message);
@@ -89,7 +89,7 @@ QUnit.test('create', async function (assert) {
     assert.ok(message.threads.includes(this.env.messaging.inbox));
     // from partnerId being in starred_partner_ids
     assert.ok(message.threads.includes(this.env.messaging.starred));
-    const attachment = this.env.models['mail.attachment'].findFromIdentifyingData({ id: 750 });
+    const attachment = this.env.models['ir.attachment'].findFromIdentifyingData({ id: 750 });
     assert.ok(attachment);
     assert.strictEqual(attachment.filename, "test.txt");
     assert.strictEqual(attachment.id, 750);
@@ -104,7 +104,7 @@ QUnit.test('create', async function (assert) {
     assert.strictEqual(channel.model, 'mail.channel');
     assert.strictEqual(channel.id, 100);
     assert.strictEqual(channel.name, "General");
-    const partner = this.env.models['mail.partner'].findFromIdentifyingData({ id: 5 });
+    const partner = this.env.models['res.partner'].findFromIdentifyingData({ id: 5 });
     assert.ok(partner);
     assert.strictEqual(partner.display_name, "Demo");
     assert.strictEqual(partner.id, 5);

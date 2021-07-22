@@ -4,7 +4,7 @@ import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_up
 import { useStore } from '@mail/component_hooks/use_store/use_store';
 import { useUpdate } from '@mail/component_hooks/use_update/use_update';
 import { PartnerImStatusIcon } from '@mail/components/partner_im_status_icon/partner_im_status_icon';
-import { link } from '@mail/model/model_field_command';
+import { link } from '@discuss/model/model_field_command';
 
 const { Component } = owl;
 
@@ -41,7 +41,7 @@ export class ComposerSuggestion extends Component {
     }
 
     get isCannedResponse() {
-        return this.props.modelName === "mail.canned_response";
+        return this.props.modelName === "discuss.canned_response";
     }
 
     get isChannel() {
@@ -53,7 +53,7 @@ export class ComposerSuggestion extends Component {
     }
 
     get isPartner() {
-        return this.props.modelName === "mail.partner";
+        return this.props.modelName === "res.partner";
     }
 
     get record() {

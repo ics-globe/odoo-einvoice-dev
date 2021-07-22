@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
-import { registerNewModel } from '@mail/model/model_core';
-import { attr, many2one } from '@mail/model/model_field';
-import { insert, unlinkAll } from '@mail/model/model_field_command';
+import { registerNewModel } from '@discuss/model/model_core';
+import { attr, many2one } from '@discuss/model/model_field';
+import { insert, unlinkAll } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class Notification extends dependencies['mail.model'] {
+    class Notification extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public
@@ -67,7 +67,7 @@ function factory(dependencies) {
         }),
         notification_status: attr(),
         notification_type: attr(),
-        partner: many2one('mail.partner'),
+        partner: many2one('res.partner'),
     };
 
     Notification.modelName = 'mail.notification';
