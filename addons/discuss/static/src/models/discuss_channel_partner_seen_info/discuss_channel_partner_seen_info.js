@@ -59,8 +59,8 @@ function factory(dependencies) {
         channelId: attr({
             required: true,
         }),
-        lastFetchedMessage: many2one('discuss.channel_message'),
-        lastSeenMessage: many2one('discuss.channel_message'),
+        lastFetchedMessage: many2one('discuss.channel.message'),
+        lastSeenMessage: many2one('discuss.channel.message'),
         /**
          * Partner that this seen info is related to.
          *

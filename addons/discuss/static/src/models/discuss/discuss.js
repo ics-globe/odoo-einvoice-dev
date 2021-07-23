@@ -2,11 +2,11 @@
 
 import { registerNewModel } from '@discuss/model/model_core';
 import { attr, many2one, one2many, one2one } from '@discuss/model/model_field';
-import { clear, create, link, replace, unlink, unlinkAll, update } from '@discuss/model/model_field_command';
+import { clear, create, link, replace, unlink, update } from '@discuss/model/model_field_command';
 
 function factory(dependencies) {
 
-    class DiscussComponent extends dependencies['discuss.model'] {
+    class Discuss extends dependencies['discuss.model'] {
 
         //----------------------------------------------------------------------
         // Public
@@ -328,7 +328,7 @@ function factory(dependencies) {
         }
     }
 
-    DiscussComponent.fields = {
+    Discuss.fields = {
         activeId: attr({
             compute: '_computeActiveId',
             dependencies: [
@@ -482,9 +482,9 @@ function factory(dependencies) {
         }),
     };
 
-    DiscussComponent.modelName = 'discuss.discuss_component';
+    Discuss.modelName = 'discuss.discuss';
 
-    return DiscussComponent;
+    return Discuss;
 }
 
-registerNewModel('discuss.discuss_component', factory);
+registerNewModel('discuss.discuss', factory);

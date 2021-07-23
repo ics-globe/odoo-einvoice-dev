@@ -226,7 +226,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message}
+         * @returns {discuss.channel.message}
          */
         _computeMessage() {
             return insert({ id: this.messageId });
@@ -297,7 +297,7 @@ function factory(dependencies) {
          * This is automatically computed based on messageId field.
          * @see messageId
          */
-        message: many2one('discuss.channel_message', {
+        message: many2one('discuss.channel.message', {
             compute: '_computeMessage',
             dependencies: [
                 'messageId',
@@ -347,7 +347,7 @@ function factory(dependencies) {
         channelPartnerSeenInfos: one2many('discuss.channel_partner_seen_info', {
             related: 'channel.partnerSeenInfos',
         }),
-        channelLastCurrentPartnerMessageSeenByEveryone: many2one('discuss.channel_message', {
+        channelLastCurrentPartnerMessageSeenByEveryone: many2one('discuss.channel.message', {
             related: 'channel.lastCurrentPartnerMessageSeenByEveryone',
         }),
     };

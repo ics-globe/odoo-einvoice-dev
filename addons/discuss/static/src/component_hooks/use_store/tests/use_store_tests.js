@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 import {
     afterNextRender,
     nextAnimationFrame,
@@ -10,7 +10,7 @@ const { Component, QWeb, Store } = owl;
 const { onPatched, useGetters } = owl.hooks;
 const { xml } = owl.tags;
 
-QUnit.module('mail', {}, function () {
+QUnit.module('discuss', {}, function () {
 QUnit.module('component_hooks', {}, function () {
 QUnit.module('use_store', {}, function () {
 QUnit.module('use_store_tests.js', {

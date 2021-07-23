@@ -54,7 +54,7 @@ function factory(dependencies) {
         }
 
         /**
-         * @param {discuss.channel_message} message
+         * @param {discuss.channel.message} message
          */
         handleVisibleMessage(message) {
             if (!this.lastVisibleMessage || this.lastVisibleMessage.id < message.id) {
@@ -213,7 +213,7 @@ function factory(dependencies) {
         componentHintList: attr({
             default: [],
         }),
-        composer: many2one('discuss.channel_message_composer', {
+        composer: many2one('discuss.channel.message_composer', {
             related: 'channel.composer',
         }),
         /**
@@ -267,15 +267,15 @@ function factory(dependencies) {
         /**
          * Last message in the context of the currently displayed channel cache.
          */
-        lastMessage: many2one('discuss.channel_message', {
+        lastMessage: many2one('discuss.channel.message', {
             related: 'channel.lastMessage',
         }),
         /**
          * Most recent message in this channel view that has been shown to the
          * current partner in the currently displayed channel cache.
          */
-        lastVisibleMessage: many2one('discuss.channel_message'),
-        messages: many2many('discuss.channel_message', {
+        lastVisibleMessage: many2one('discuss.channel.message'),
+        messages: many2many('discuss.channel.message', {
             related: 'channelCache.messages',
         }),
         /**
@@ -284,7 +284,7 @@ function factory(dependencies) {
         messaging: many2one('discuss.messaging', {
             compute: '_computeMessaging',
         }),
-        nonEmptyMessages: many2many('discuss.channel_message', {
+        nonEmptyMessages: many2many('discuss.channel.message', {
             related: 'channelCache.nonEmptyMessages',
         }),
         /**

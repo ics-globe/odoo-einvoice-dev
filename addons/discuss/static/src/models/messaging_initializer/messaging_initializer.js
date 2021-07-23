@@ -31,7 +31,7 @@ function factory(dependencies) {
             }, { shadow: true }));
             await this.async(() => this._init(data));
             if (discuss.isOpen) {
-                discuss.openInitThread();
+                discuss.openInitChannel();
             }
             if (this.env.autofetchPartnerImStatus) {
                 this.env.models['res.partner'].startLoopFetchImStatus();
@@ -145,7 +145,7 @@ function factory(dependencies) {
          */
         async _initMailFailures(mailFailuresData) {
             await executeGracefully(mailFailuresData.map(messageData => () => {
-                const message = this.env.models['discuss.channel_message'].insert(messageData);
+                const message = this.env.models['discuss.channel.message'].insert(messageData);
                 // implicit: failures are sent by the server at initialization
                 // only if the current partner is author of the message
                 if (!message.author && this.messaging.currentPartner) {

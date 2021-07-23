@@ -26,7 +26,7 @@ const DiscussWidget = AbstractAction.extend({
      * @param {string} [action.params.default_active_id]
      * @param {Object} [options={}]
      */
-    init(parent, action, options={}) {
+    init(parent, action, options = {}) {
         this._super(...arguments);
 
         // render buttons in control panel
@@ -43,7 +43,7 @@ const DiscussWidget = AbstractAction.extend({
         // control panel attributes
         this.action = action;
         this.actionManager = parent;
-        this.searchModelConfig.modelName = 'discuss.channel_message';
+        this.searchModelConfig.modelName = 'discuss.channel.message';
         this.discuss = undefined;
         this.options = options;
 
@@ -279,7 +279,7 @@ const DiscussWidget = AbstractAction.extend({
      * @private
      */
     _onClickMarkAllAsRead() {
-        this.env.models['discuss.channel_message'].markAllAsRead(this.domain);
+        this.env.models['discuss.channel.message'].markAllAsRead(this.domain);
     },
     /**
      * @private
@@ -294,7 +294,7 @@ const DiscussWidget = AbstractAction.extend({
         this.discuss.update({ isAddingChat: true });
     },
     _onClickUnstarAll() {
-        this.env.models['discuss.channel_message'].unstarAll();
+        this.env.models['discuss.channel.message'].unstarAll();
     },
     /**
      * @private

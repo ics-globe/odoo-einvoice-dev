@@ -218,7 +218,7 @@ function factory(dependencies) {
                 method: 'channel_fetch_preview',
                 args: [channels.map(channel => channel.id)],
             }, { shadow: true });
-            this.env.models['discuss.channel_message'].insert(channelPreviews.filter(p => p.last_message).map(
+            this.env.models['discuss.channel.message'].insert(channelPreviews.filter(p => p.last_message).map(
                 channelPreview => channelPreview.last_message
             ));
         }
@@ -495,7 +495,7 @@ function factory(dependencies) {
         /**
          * Mark the specified conversation as read/seen.
          *
-         * @param {discuss.channel_message} message the message to be considered as last seen.
+         * @param {discuss.channel.message} message the message to be considered as last seen.
          */
         async markAsSeen(message) {
             if (this.pendingSeenMessageId && message.id <= this.pendingSeenMessageId) {
@@ -519,7 +519,7 @@ function factory(dependencies) {
          */
         async markNeedactionMessagesAsRead() {
             await this.async(() =>
-                this.env.models['discuss.channel_message'].markAsRead(this.needactionMessages)
+                this.env.models['discuss.channel.message'].markAsRead(this.needactionMessages)
             );
         }
 
@@ -811,7 +811,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message}
+         * @returns {discuss.channel.message}
          */
         _computeLastCurrentPartnerMessageSeenByEveryone() {
             const otherPartnerSeenInfos =
@@ -847,7 +847,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message|undefined}
+         * @returns {discuss.channel.message|undefined}
          */
         _computeLastMessage() {
             const {
@@ -894,7 +894,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message|undefined}
+         * @returns {discuss.channel.message|undefined}
          */
         _computeLastNeedactionMessage() {
             const orderedNeedactionMessages = this.needactionMessages.sort(
@@ -967,7 +967,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeNeedactionMessages() {
             return replace(this.messages.filter(message => message.isNeedaction));
@@ -975,7 +975,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message|undefined}
+         * @returns {discuss.channel.message|undefined}
          */
         _computeMessageAfterNewMessageSeparator() {
             if (this.model !== 'discuss.channel') {
@@ -999,7 +999,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeOrderedMessages() {
             return replace(this.messages.sort((m1, m2) => m1.id < m2.id ? -1 : 1));
@@ -1236,7 +1236,7 @@ function factory(dependencies) {
         chatWindowIsFolded: attr({
             related: 'chatWindow.isFolded',
         }),
-        composer: one2one('discuss.channel_message_composer', {
+        composer: one2one('discuss.channel.message_composer', {
             default: create(),
             inverse: 'channel',
             isCausal: true,
@@ -1327,7 +1327,7 @@ function factory(dependencies) {
         isServerPinned: attr({
             default: false,
         }),
-        lastCurrentPartnerMessageSeenByEveryone: many2one('discuss.channel_message', {
+        lastCurrentPartnerMessageSeenByEveryone: many2one('discuss.channel.message', {
             compute: '_computeLastCurrentPartnerMessageSeenByEveryone',
             dependencies: [
                 'messagingCurrentPartner',
@@ -1338,14 +1338,14 @@ function factory(dependencies) {
         /**
          * Last message of the channel.
          */
-        lastMessage: many2one('discuss.channel_message', {
+        lastMessage: many2one('discuss.channel.message', {
             compute: '_computeLastMessage',
             dependencies: ['orderedMessages'],
         }),
         /**
          * States the last known needaction message of this channel.
          */
-        lastNeedactionMessage: many2one('discuss.channel_message', {
+        lastNeedactionMessage: many2one('discuss.channel.message', {
             compute: '_computeLastNeedactionMessage',
             dependencies: [
                 'needactionMessages',
@@ -1390,7 +1390,7 @@ function factory(dependencies) {
          * Determines the message before which the "new message" separator must
          * be positioned, if any.
          */
-        messageAfterNewMessageSeparator: many2one('discuss.channel_message', {
+        messageAfterNewMessageSeparator: many2one('discuss.channel.message', {
             compute: '_computeMessageAfterNewMessageSeparator',
             dependencies: [
                 'lastSeenByCurrentPartnerMessageId',
@@ -1404,7 +1404,7 @@ function factory(dependencies) {
         /**
          * All messages that this channel is linked to.
          */
-        messages: one2many('discuss.channel_message', {
+        messages: one2many('discuss.channel.message', {
             inverse: 'channel',
             readonly: true,
         }),
@@ -1432,7 +1432,7 @@ function factory(dependencies) {
         /**
          * States all known needaction messages having of this channel.
          */
-        needactionMessages: many2many('discuss.channel_message', {
+        needactionMessages: many2many('discuss.channel.message', {
             compute: '_computeNeedactionMessages',
             dependencies: [
                 'messages',
@@ -1485,7 +1485,7 @@ function factory(dependencies) {
         /**
          * All messages ordered like they are displayed.
          */
-        orderedMessages: many2many('discuss.channel_message', {
+        orderedMessages: many2many('discuss.channel.message', {
             compute: '_computeOrderedMessages',
             dependencies: ['messages'],
         }),
@@ -1547,7 +1547,7 @@ function factory(dependencies) {
          *
          * @see localMessageUnreadCounter
          */
-        serverLastMessage: many2one('discuss.channel_message'),
+        serverLastMessage: many2one('discuss.channel.message'),
         /**
          * Message unread counter coming from server.
          *

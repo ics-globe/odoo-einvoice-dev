@@ -432,7 +432,7 @@ function factory(dependencies) {
         deviceIsMobile: attr({
             related: 'device.isMobile',
         }),
-        discuss: one2one('discuss.discuss_component', {
+        discuss: one2one('discuss.discuss', {
             related: 'messaging.discuss',
         }),
         discussIsOpen: attr({

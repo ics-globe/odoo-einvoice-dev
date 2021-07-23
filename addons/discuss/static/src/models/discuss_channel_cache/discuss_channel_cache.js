@@ -46,7 +46,7 @@ function factory(dependencies) {
         }
 
         /**
-         * @returns {discuss.channel_message[]|undefined}
+         * @returns {discuss.channel.message[]|undefined}
          */
         async loadNewMessages() {
             if (this.isLoading) {
@@ -87,7 +87,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeFetchedMessages() {
             if (!this.channel) {
@@ -104,7 +104,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message|undefined}
+         * @returns {discuss.channel.message|undefined}
          */
         _computeLastFetchedMessage() {
             const {
@@ -119,7 +119,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message|undefined}
+         * @returns {discuss.channel.message|undefined}
          */
         _computeLastMessage() {
             const {
@@ -134,7 +134,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeMessages() {
             if (!this.channel) {
@@ -160,7 +160,7 @@ function factory(dependencies) {
         /**
          *
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeNonEmptyMessages() {
             return replace(this.messages.filter(message => !message.isEmpty));
@@ -168,7 +168,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeOrderedFetchedMessages() {
             return replace(this.fetchedMessages.sort((m1, m2) => m1.id < m2.id ? -1 : 1));
@@ -176,7 +176,7 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         _computeOrderedMessages() {
             return replace(this.messages.sort((m1, m2) => m1.id < m2.id ? -1 : 1));
@@ -255,7 +255,7 @@ function factory(dependencies) {
          * @param {Object} [param0={}]
          * @param {Array[]} [param0.extraDomain]
          * @param {integer} [param0.limit=30]
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          * @throws {Error} when failed to load messages
          */
         async _loadMessages({ extraDomain, limit = 30 } = {}) {
@@ -270,7 +270,7 @@ function factory(dependencies) {
             let messages;
             try {
                 messages = await this.async(() =>
-                    this.env.models['discuss.channel_message'].performRpcMessageFetch(
+                    this.env.models['discuss.channel.message'].performRpcMessageFetch(
                         domain,
                         limit,
                         context,
@@ -341,7 +341,7 @@ function factory(dependencies) {
                 // ignore the request
                 return;
             }
-            this.env.models['discuss.channel_message'].markAllAsRead([
+            this.env.models['discuss.channel.message'].markAllAsRead([
                 ['model', '=', this.channel.model],
                 ['res_id', '=', this.channel.id],
             ]);
@@ -412,7 +412,7 @@ function factory(dependencies) {
          * to manage "holes" in message list, while still allowing to display
          * new messages on main cache of channel in real-time.
          */
-        fetchedMessages: many2many('discuss.channel_message', {
+        fetchedMessages: many2many('discuss.channel.message', {
             // adjust with messages unlinked from channel
             compute: '_computeFetchedMessages',
             dependencies: ['channelMessages'],
@@ -467,18 +467,18 @@ function factory(dependencies) {
          * channel cache (@see lastMessage field for that). @see fetchedMessages
          * field for a deeper explanation about "fetched" messages.
          */
-        lastFetchedMessage: many2one('discuss.channel_message', {
+        lastFetchedMessage: many2one('discuss.channel.message', {
             compute: '_computeLastFetchedMessage',
             dependencies: ['orderedFetchedMessages'],
         }),
-        lastMessage: many2one('discuss.channel_message', {
+        lastMessage: many2one('discuss.channel.message', {
             compute: '_computeLastMessage',
             dependencies: ['orderedMessages'],
         }),
         /**
          * List of messages linked to this cache.
          */
-        messages: many2many('discuss.channel_message', {
+        messages: many2many('discuss.channel.message', {
             compute: '_computeMessages',
             dependencies: [
                 'fetchedMessages',
@@ -495,7 +495,7 @@ function factory(dependencies) {
         /**
          * List of non empty messages linked to this cache.
          */
-        nonEmptyMessages: many2many('discuss.channel_message', {
+        nonEmptyMessages: many2many('discuss.channel.message', {
             compute: '_computeNonEmptyMessages',
             dependencies: [
                 'messages',
@@ -567,14 +567,14 @@ function factory(dependencies) {
          * @see fetchedMessages field for deeper explanation about "fetched"
          * messages.
          */
-        orderedFetchedMessages: many2many('discuss.channel_message', {
+        orderedFetchedMessages: many2many('discuss.channel.message', {
             compute: '_computeOrderedFetchedMessages',
             dependencies: ['fetchedMessages'],
         }),
         /**
          * Ordered list of messages linked to this cache.
          */
-        orderedMessages: many2many('discuss.channel_message', {
+        orderedMessages: many2many('discuss.channel.message', {
             compute: '_computeOrderedMessages',
             dependencies: ['messages'],
         }),
@@ -590,7 +590,7 @@ function factory(dependencies) {
         channelMainCache: many2one('discuss.channel_cache', {
             related: 'channel.mainCache',
         }),
-        channelMessages: many2many('discuss.channel_message', {
+        channelMessages: many2many('discuss.channel.message', {
             related: 'channel.messages',
         }),
         /**

@@ -59,7 +59,7 @@ function factory(dependencies) {
          * same time.
          */
         focus() {
-            const allComposers = this.env.models['discuss.channel_message_composer'].all();
+            const allComposers = this.env.models['discuss.channel.message_composer'].all();
             for (const otherComposer of allComposers) {
                 if (otherComposer !== this && otherComposer.hasFocus) {
                     otherComposer.update({ hasFocus: false });
@@ -933,9 +933,9 @@ function factory(dependencies) {
         }),
     };
 
-    Composer.modelName = 'discuss.channel_message_composer';
+    Composer.modelName = 'discuss.channel.message_composer';
 
     return Composer;
 }
 
-registerNewModel('discuss.channel_message_composer', factory);
+registerNewModel('discuss.channel.message_composer', factory);

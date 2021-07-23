@@ -98,9 +98,9 @@ function factory(dependencies) {
             default: false,
         }),
         /**
-         * Determines the selected `discuss.channel_message`.
+         * Determines the selected `discuss.channel.message`.
          */
-        selectedMessage: many2one('discuss.channel_message'),
+        selectedMessage: many2one('discuss.channel.message'),
         /**
          * Determines the domain to apply when fetching messages for `this.channel`.
          */

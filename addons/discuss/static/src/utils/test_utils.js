@@ -524,7 +524,7 @@ async function start(param0 = {}) {
 
     const kwargs = Object.assign({}, param0, {
         archs: Object.assign({}, {
-            'discuss.channel_message,false,search': '<search/>'
+            'discuss.channel.message,false,search': '<search/>'
         }, param0.archs),
         debug: param0.debug || false,
         services: Object.assign({}, services, param0.services),

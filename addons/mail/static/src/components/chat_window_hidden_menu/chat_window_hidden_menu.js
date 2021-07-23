@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 import { ChatWindowHeader } from '@mail/components/chat_window_header/chat_window_header';
 
 const { Component } = owl;

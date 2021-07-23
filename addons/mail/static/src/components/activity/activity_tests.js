@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 import { Activity } from '@mail/components/activity/activity';
 import { insert } from '@discuss/model/model_field_command';
 import {

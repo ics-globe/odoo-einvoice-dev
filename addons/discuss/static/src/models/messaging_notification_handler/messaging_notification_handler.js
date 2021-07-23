@@ -195,7 +195,7 @@ function factory(dependencies) {
                 channel.pin();
             }
 
-            const message = this.env.models['discuss.channel_message'].insert(messageData);
+            const message = this.env.models['discuss.channel.message'].insert(messageData);
             this._notifyThreadViewsMessageReceived(message);
 
             // If the current partner is author, do nothing else.
@@ -253,7 +253,7 @@ function factory(dependencies) {
                 // knowledge of the channel
                 return;
             }
-            const lastMessage = this.env.models['discuss.channel_message'].insert({ id: last_message_id });
+            const lastMessage = this.env.models['discuss.channel.message'].insert({ id: last_message_id });
             // restrict computation of seen indicator for "non-channel" channels
             // for performance reasons
             const shouldComputeSeenIndicators = channel.channel_type !== 'channel';
@@ -327,7 +327,7 @@ function factory(dependencies) {
          * @param {Object} data
          */
         _handleNotificationNeedaction(data) {
-            const message = this.env.models['discuss.channel_message'].insert(data);
+            const message = this.env.models['discuss.channel.message'].insert(data);
             this.env.messaging.inbox.update({ counter: increment() });
             const originThread = message.originThread;
             if (originThread && message.isNeedaction) {
@@ -383,7 +383,7 @@ function factory(dependencies) {
          * @param {Object} data.message
          */
         _handleNotificationPartnerAuthor(data) {
-            this.env.models['discuss.channel_message'].insert(data.message);
+            this.env.models['discuss.channel.message'].insert(data.message);
         }
 
         /**
@@ -436,7 +436,7 @@ function factory(dependencies) {
          */
         _handleNotificationPartnerDeletion({ message_ids }) {
             for (const id of message_ids) {
-                const message = this.env.models['discuss.channel_message'].findFromIdentifyingData({ id });
+                const message = this.env.models['discuss.channel.message'].findFromIdentifyingData({ id });
                 if (message) {
                     message.delete();
                 }
@@ -451,7 +451,7 @@ function factory(dependencies) {
          */
         _handleNotificationPartnerMessageNotificationUpdate(data) {
             for (const messageData of data) {
-                const message = this.env.models['discuss.channel_message'].insert(messageData);
+                const message = this.env.models['discuss.channel.message'].insert(messageData);
                 // implicit: failures are sent by the server as notification
                 // only if the current partner is author of the message
                 if (!message.author && this.messaging.currentPartner) {
@@ -474,7 +474,7 @@ function factory(dependencies) {
                 // Furthermore, server should not send back all message_ids marked as read
                 // but something like last read message_id or something like that.
                 // (just imagine you mark 1000 messages as read ... )
-                const message = this.env.models['discuss.channel_message'].findFromIdentifyingData({ id: message_id });
+                const message = this.env.models['discuss.channel.message'].findFromIdentifyingData({ id: message_id });
                 if (!message) {
                     continue;
                 }
@@ -511,7 +511,7 @@ function factory(dependencies) {
          */
         _handleNotificationPartnerToggleStar({ message_ids = [], starred }) {
             for (const messageId of message_ids) {
-                const message = this.env.models['discuss.channel_message'].findFromIdentifyingData({
+                const message = this.env.models['discuss.channel.message'].findFromIdentifyingData({
                     id: messageId,
                 });
                 if (!message) {
@@ -530,12 +530,12 @@ function factory(dependencies) {
          * @param {Object} data
          */
         _handleNotificationPartnerTransientMessage(data) {
-            const lastMessageId = this.env.models['discuss.channel_message'].all().reduce(
+            const lastMessageId = this.env.models['discuss.channel.message'].all().reduce(
                 (lastMessageId, message) => Math.max(lastMessageId, message.id),
                 0
             );
             const partnerRoot = this.env.messaging.partnerRoot;
-            const message = this.env.models['discuss.channel_message'].create(Object.assign(data, {
+            const message = this.env.models['discuss.channel.message'].create(Object.assign(data, {
                 author: link(partnerRoot),
                 id: lastMessageId + 0.01,
                 isTransient: true,
@@ -602,7 +602,7 @@ function factory(dependencies) {
          * @private
          * @param {Object} param0
          * @param {discuss.channel} param0.channel
-         * @param {discuss.channel_message} param0.message
+         * @param {discuss.channel.message} param0.message
          */
         _notifyNewChannelMessageWhileOutOfFocus({ channel, message }) {
             const author = message.author;
@@ -651,7 +651,7 @@ function factory(dependencies) {
          * This can allow them adjust their scroll position if applicable.
          *
          * @private
-         * @param {discuss.channel_message}
+         * @param {discuss.channel.message}
          */
         _notifyThreadViewsMessageReceived(message) {
             for (const channelView of message.channel.channelViews) {

@@ -222,7 +222,7 @@ function factory(dependencies) {
             isCausal: true,
             readonly: true,
         }),
-        discuss: one2one('discuss.discuss_component', {
+        discuss: one2one('discuss.discuss', {
             default: create(),
             inverse: 'messaging',
             isCausal: true,

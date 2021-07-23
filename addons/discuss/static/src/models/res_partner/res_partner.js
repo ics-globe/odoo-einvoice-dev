@@ -412,7 +412,7 @@ function factory(dependencies) {
             required: true,
         }),
         im_status: attr(),
-        discussChannelMessagesAsAuthor: one2many('discuss.channel_message', {
+        discussChannelMessagesAsAuthor: one2many('discuss.channel.message', {
             inverse: 'author',
         }),
         /**

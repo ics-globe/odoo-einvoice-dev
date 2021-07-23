@@ -302,7 +302,7 @@ function factory(dependencies) {
             inverse: 'attachments',
         }),
         checkSum: attr(),
-        discussChannelMessageComposers: many2many('discuss.channel_message_composer', {
+        discussChannelMessageComposers: many2many('discuss.channel.message_composer', {
             inverse: 'attachments',
         }),
         defaultSource: attr({
@@ -367,7 +367,7 @@ function factory(dependencies) {
             compute: '_computeMediaType',
             dependencies: ['mimetype'],
         }),
-        discussChannelMessages: many2many('discuss.channel_message', {
+        discussChannelMessages: many2many('discuss.channel.message', {
             inverse: 'attachments',
         }),
         mimetype: attr({

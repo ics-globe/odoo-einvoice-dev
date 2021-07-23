@@ -99,7 +99,7 @@ const PartnerInviteDialog = Dialog.extend({
             return;
         }
         await this._rpc({
-            model: 'mail.channel',
+            model: 'discuss.channel',
             method: 'channel_invite',
             args: [this.channelId],
             kwargs: {

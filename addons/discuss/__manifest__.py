@@ -19,6 +19,9 @@
         'web.assets_backend': [
             'discuss/static/src/js/emojis.js',
             'discuss/static/src/js/utils.js',
+            'discuss/static/src/component_hooks/*/*.js',
+            'discuss/static/src/components/*/*.js',
+            'discuss/static/src/components/*/*.scss',
             'discuss/static/src/model/*.js',
             'discuss/static/src/models/*/*.js',
             'discuss/static/src/services/*/*.js',
@@ -31,13 +34,18 @@
             'discuss/static/src/main.js',
         ],
         'web.assets_qweb': [
-            'discuss/static/src/widgets/**/*.xml',
+            'discuss/static/src/components/*/*.xml',
+            'discuss/static/src/widgets/*/*.xml',
         ],
         'web.tests_assets': [
             'discuss/static/src/env/test_env.js',
             'discuss/static/src/utils/test_utils.js',
             'discuss/static/tests/helpers/mock_models.js',
             'discuss/static/tests/helpers/mock_server.js',
+        ],
+        'web.qunit_suite_tests': [
+            'discuss/static/src/component_hooks/*/tests/*.js',
+            'discuss/static/src/components/*/tests/*.js',
         ],
     },
 }

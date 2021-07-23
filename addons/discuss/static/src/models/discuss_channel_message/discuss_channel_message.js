@@ -24,7 +24,7 @@ function factory(dependencies) {
          */
         static async markAllAsRead(domain) {
             await this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'mark_all_as_read',
                 kwargs: { domain },
             });
@@ -40,28 +40,28 @@ function factory(dependencies) {
          * @see discuss.messaging_notification_handler:_handleNotificationPartnerMarkAsRead()
          *
          * @static
-         * @param {discuss.channel_message[]} messages
+         * @param {discuss.channel.message[]} messages
          */
         static async markAsRead(messages) {
             await this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'set_message_done',
                 args: [messages.map(message => message.id)]
             });
         }
 
         /**
-         * Performs the `message_fetch` RPC on `discuss.channel_message`.
+         * Performs the `message_fetch` RPC on `discuss.channel.message`.
          *
          * @static
          * @param {Array[]} domain
          * @param {integer} [limit]
          * @param {Object} [context]
-         * @returns {discuss.channel_message[]}
+         * @returns {discuss.channel.message[]}
          */
         static async performRpcMessageFetch(domain, limit, context) {
             const messagesData = await this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'message_fetch',
                 kwargs: {
                     context,
@@ -69,7 +69,7 @@ function factory(dependencies) {
                     limit,
                 },
             }, { shadow: true });
-            const messages = this.env.models['discuss.channel_message'].insert(messagesData);
+            const messages = this.env.models['discuss.channel.message'].insert(messagesData);
             // compute seen indicators (if applicable)
             for (const message of messages) {
                 this.env.models['discuss.message_seen_indicator'].insert({
@@ -85,7 +85,7 @@ function factory(dependencies) {
          */
         static async unstarAll() {
             await this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'unstar_all',
             });
         }
@@ -96,7 +96,7 @@ function factory(dependencies) {
          */
         async markAsRead() {
             await this.async(() => this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'set_message_done',
                 args: [[this.id]]
             }));
@@ -122,7 +122,7 @@ function factory(dependencies) {
          */
         async toggleStar() {
             await this.async(() => this.env.services.rpc({
-                model: 'discuss.channel_message',
+                model: 'discuss.channel.message',
                 method: 'toggle_message_starred',
                 args: [[this.id]]
             }));
@@ -336,9 +336,9 @@ function factory(dependencies) {
         }),
     };
 
-    DiscussChannelMessage.modelName = 'discuss.channel_message';
+    DiscussChannelMessage.modelName = 'discuss.channel.message';
 
     return DiscussChannelMessage;
 }
 
-registerNewModel('discuss.channel_message', factory);
+registerNewModel('discuss.channel.message', factory);
