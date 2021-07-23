@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 import { NotificationGroup } from '@mail/components/notification_group/notification_group';
 import { NotificationRequest } from '@mail/components/notification_request/notification_request';
 import { ThreadNeedactionPreview } from '@mail/components/thread_needaction_preview/thread_needaction_preview';
@@ -186,7 +186,7 @@ export class NotificationList extends Component {
                 .all(thread =>
                     thread.channel_type === 'channel' &&
                     thread.isPinned &&
-                    thread.model === 'mail.channel'
+                    thread.model === 'discuss.channel'
                 )
                 .sort((c1, c2) => c1.displayName < c2.displayName ? -1 : 1);
         } else if (props.filter === 'chat') {
@@ -194,13 +194,13 @@ export class NotificationList extends Component {
                 .all(thread =>
                     thread.isChatChannel &&
                     thread.isPinned &&
-                    thread.model === 'mail.channel'
+                    thread.model === 'discuss.channel'
                 )
                 .sort((c1, c2) => c1.displayName < c2.displayName ? -1 : 1);
         } else if (props.filter === 'all') {
             // "All" filter is for channels and chats
             return this.env.models['mail.thread']
-                .all(thread => thread.isPinned && thread.model === 'mail.channel')
+                .all(thread => thread.isPinned && thread.model === 'discuss.channel')
                 .sort((c1, c2) => c1.displayName < c2.displayName ? -1 : 1);
         } else {
             throw new Error(`Unsupported filter ${props.filter}`);

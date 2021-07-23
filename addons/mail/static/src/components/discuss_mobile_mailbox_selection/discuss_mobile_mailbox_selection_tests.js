@@ -93,7 +93,7 @@ QUnit.test('select another mailbox', async function (assert) {
 QUnit.test('auto-select "Inbox" when discuss had channel as active thread', async function (assert) {
     assert.expect(3);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start({
         discuss: {
             context: {

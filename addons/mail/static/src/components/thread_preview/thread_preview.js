@@ -2,8 +2,8 @@
 
 import * as mailUtils from '@discuss/js/utils';
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 import { MessageAuthorPrefix } from '@mail/components/message_author_prefix/message_author_prefix';
 import { PartnerImStatusIcon } from '@mail/components/partner_im_status_icon/partner_im_status_icon';
 
@@ -63,7 +63,7 @@ export class ThreadPreview extends Component {
         if (this.thread.correspondent) {
             return this.thread.correspondent.avatarUrl;
         }
-        return `/web/image/mail.channel/${this.thread.id}/image_128`;
+        return `/web/image/discuss.channel/${this.thread.id}/image_128`;
     }
 
     /**

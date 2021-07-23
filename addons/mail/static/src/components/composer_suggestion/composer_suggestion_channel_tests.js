@@ -40,11 +40,11 @@ QUnit.module('composer_suggestion_channel_tests.js', {
 QUnit.test('channel mention suggestion displayed', async function (assert) {
     assert.expect(1);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
@@ -63,14 +63,14 @@ QUnit.test('channel mention suggestion displayed', async function (assert) {
 QUnit.test('channel mention suggestion correct data', async function (assert) {
     assert.expect(3);
 
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         id: 20,
         name: "General",
     });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
@@ -99,11 +99,11 @@ QUnit.test('channel mention suggestion correct data', async function (assert) {
 QUnit.test('channel mention suggestion active', async function (assert) {
     assert.expect(2);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,

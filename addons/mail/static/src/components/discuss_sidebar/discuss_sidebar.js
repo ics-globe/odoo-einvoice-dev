@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import { AutocompleteInput } from '@mail/components/autocomplete_input/autocomplete_input';
 import { DiscussSidebarItem } from '@mail/components/discuss_sidebar_item/discuss_sidebar_item';
 
@@ -42,7 +42,7 @@ export class DiscussSidebar extends Component {
     //--------------------------------------------------------------------------
 
     /**
-     * @returns {discuss.discuss_component}
+     * @returns {discuss.discuss}
      */
     get discuss() {
         return this.env.messaging && this.env.messaging.discuss;
@@ -90,7 +90,7 @@ export class DiscussSidebar extends Component {
             .all(thread =>
                 thread.channel_type === 'chat' &&
                 thread.isPinned &&
-                thread.model === 'mail.channel'
+                thread.model === 'discuss.channel'
             )
             .sort((c1, c2) => c1.displayName < c2.displayName ? -1 : 1);
         if (!this.discuss.sidebarQuickSearchValue) {
@@ -113,7 +113,7 @@ export class DiscussSidebar extends Component {
             .all(thread =>
                 thread.channel_type === 'channel' &&
                 thread.isPinned &&
-                thread.model === 'mail.channel'
+                thread.model === 'discuss.channel'
             )
             .sort((c1, c2) => {
                 if (c1.displayName && !c2.displayName) {
@@ -179,7 +179,7 @@ export class DiscussSidebar extends Component {
                 this.env.models['mail.thread']
                 .all(thread =>
                     thread.isPinned &&
-                    thread.model === 'mail.channel'
+                    thread.model === 'discuss.channel'
                 ).length,
             discussIsAddingChannel: discuss && discuss.isAddingChannel,
             discussIsAddingChat: discuss && discuss.isAddingChat,
@@ -256,7 +256,7 @@ export class DiscussSidebar extends Component {
             action: {
                 name: this.env._t("Public Channels"),
                 type: 'ir.actions.act_window',
-                res_model: 'mail.channel',
+                res_model: 'discuss.channel',
                 views: [[false, 'kanban'], [false, 'form']],
                 domain: [['public', '!=', 'private']]
             },

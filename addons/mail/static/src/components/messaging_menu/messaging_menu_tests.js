@@ -288,14 +288,14 @@ QUnit.test('basic rendering', async function (assert) {
 QUnit.test('counter is taking into account failure notification', async function (assert) {
     assert.expect(2);
 
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         id: 31,
         seen_message_id: 11,
     });
     // message that is expected to have a failure
     this.data['mail.message'].records.push({
         id: 11, // random unique id, will be used to link failure to message
-        model: 'mail.channel', // expected value to link message to channel
+        model: 'discuss.channel', // expected value to link message to channel
         res_id: 31, // id of a random channel
     });
     // failure that is expected to be used in the test
@@ -495,7 +495,7 @@ QUnit.test('channel preview: basic rendering', async function (assert) {
         name: "Demo", // random name, will be asserted in the test
     });
     // channel that is expected to be found in the test
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         id: 20, // random unique id, will be used to link message to channel
         name: "General", // random name, will be asserted in the test
     });
@@ -503,7 +503,7 @@ QUnit.test('channel preview: basic rendering', async function (assert) {
     this.data['mail.message'].records.push({
         author_id: 7, // not current partner, will be asserted in the test
         body: "<p>test</p>", // random body, will be asserted in the test
-        model: 'mail.channel', // necessary to link message to channel
+        model: 'discuss.channel', // necessary to link message to channel
         res_id: 20, // id of related channel
     });
     await this.start();
@@ -589,17 +589,17 @@ QUnit.test('filtered previews', async function (assert) {
     assert.expect(12);
 
     // chat and channel expected to be found in the menu
-    this.data['mail.channel'].records.push(
+    this.data['discuss.channel'].records.push(
         { channel_type: "chat", id: 10 },
         { id: 20 },
     );
     this.data['mail.message'].records.push(
         {
-            model: 'mail.channel', // to link message to channel
+            model: 'discuss.channel', // to link message to channel
             res_id: 10, // id of related channel
         },
         {
-            model: 'mail.channel', // to link message to channel
+            model: 'discuss.channel', // to link message to channel
             res_id: 20, // id of related channel
         },
     );
@@ -619,7 +619,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 10,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -632,7 +632,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 20,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -654,7 +654,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 10,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -667,7 +667,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 20,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -692,7 +692,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 10,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -705,7 +705,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 20,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -727,7 +727,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 10,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -740,7 +740,7 @@ QUnit.test('filtered previews', async function (assert) {
             .o_ThreadPreview[data-thread-local-id="${
                 this.env.models['mail.thread'].findFromIdentifyingData({
                     id: 20,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                 }).localId
             }"]
         `).length,
@@ -753,7 +753,7 @@ QUnit.test('open chat window from preview', async function (assert) {
     assert.expect(1);
 
     // channel expected to be found in the menu, only its existence matters, data are irrelevant
-    this.data['mail.channel'].records.push({});
+    this.data['discuss.channel'].records.push({});
     await this.start({
         hasChatWindow: true,
     });
@@ -774,10 +774,10 @@ QUnit.test('open chat window from preview', async function (assert) {
 QUnit.test('no code injection in message body preview', async function (assert) {
     assert.expect(5);
 
-    this.data['mail.channel'].records.push({ id: 11 });
+    this.data['discuss.channel'].records.push({ id: 11 });
     this.data['mail.message'].records.push({
         body: "<p><em>&shoulnotberaised</em><script>throw new Error('CodeInjectionError');</script></p>",
-        model: "mail.channel",
+        model: "discuss.channel",
         res_id: 11,
     });
     await this.start();
@@ -816,10 +816,10 @@ QUnit.test('no code injection in message body preview', async function (assert) 
 QUnit.test('no code injection in message body preview from sanitized message', async function (assert) {
     assert.expect(5);
 
-    this.data['mail.channel'].records.push({ id: 11 });
+    this.data['discuss.channel'].records.push({ id: 11 });
     this.data['mail.message'].records.push({
         body: "<p>&lt;em&gt;&shoulnotberaised&lt;/em&gt;&lt;script&gt;throw new Error('CodeInjectionError');&lt;/script&gt;</p>",
-        model: "mail.channel",
+        model: "discuss.channel",
         res_id: 11,
     });
     await this.start();
@@ -858,10 +858,10 @@ QUnit.test('no code injection in message body preview from sanitized message', a
 QUnit.test('<br/> tags in message body preview are transformed in spaces', async function (assert) {
     assert.expect(4);
 
-    this.data['mail.channel'].records.push({ id: 11 });
+    this.data['discuss.channel'].records.push({ id: 11 });
     this.data['mail.message'].records.push({
         body: "<p>a<br/>b<br>c<br   />d<br     ></p>",
-        model: "mail.channel",
+        model: "discuss.channel",
         res_id: 11,
     });
     await this.start();

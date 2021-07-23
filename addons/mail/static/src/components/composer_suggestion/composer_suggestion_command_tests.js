@@ -40,20 +40,20 @@ QUnit.module('composer_suggestion_command_tests.js', {
 QUnit.test('command suggestion displayed', async function (assert) {
     assert.expect(1);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
-    const command = this.env.models['mail.channel_command'].create({
+    const command = this.env.models['discuss.channel_command'].create({
         name: 'whois',
         help: "Displays who it is",
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.channel_command',
+        modelName: 'discuss.channel_command',
         recordLocalId: command.localId,
     });
 
@@ -67,20 +67,20 @@ QUnit.test('command suggestion displayed', async function (assert) {
 QUnit.test('command suggestion correct data', async function (assert) {
     assert.expect(5);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
-    const command = this.env.models['mail.channel_command'].create({
+    const command = this.env.models['discuss.channel_command'].create({
         name: 'whois',
         help: "Displays who it is",
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.channel_command',
+        modelName: 'discuss.channel_command',
         recordLocalId: command.localId,
     });
 
@@ -114,20 +114,20 @@ QUnit.test('command suggestion correct data', async function (assert) {
 QUnit.test('command suggestion active', async function (assert) {
     assert.expect(2);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
-    const command = this.env.models['mail.channel_command'].create({
+    const command = this.env.models['discuss.channel_command'].create({
         name: 'whois',
         help: "Displays who it is",
     });
     await this.createComposerSuggestion({
         composerLocalId: thread.composer.localId,
         isActive: true,
-        modelName: 'mail.channel_command',
+        modelName: 'discuss.channel_command',
         recordLocalId: command.localId,
     });
 

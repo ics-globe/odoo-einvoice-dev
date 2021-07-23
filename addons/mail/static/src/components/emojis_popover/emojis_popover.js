@@ -1,7 +1,7 @@
 /** @odoo-module **/
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import emojis from '@discuss/js/emojis';
 
 const { Component } = owl;

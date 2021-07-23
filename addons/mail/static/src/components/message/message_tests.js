@@ -126,11 +126,11 @@ QUnit.test('basic rendering', async function (assert) {
 QUnit.test('Notification Sent', async function (assert) {
     assert.expect(9);
 
-    this.data['mail.channel'].records.push({ id: 11 });
+    this.data['discuss.channel'].records.push({ id: 11 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 11,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -222,11 +222,11 @@ QUnit.test('Notification Error', async function (assert) {
         openResendActionDef.resolve();
     });
 
-    this.data['mail.channel'].records.push({ id: 11 });
+    this.data['discuss.channel'].records.push({ id: 11 });
     await this.start({ env: { bus } });
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 11,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -281,7 +281,7 @@ QUnit.test("'channel_fetch' notification received is correctly handled", async f
         display_name: "Recipient",
         id: 11,
     });
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         channel_type: 'chat',
         id: 11,
         members: [this.data.currentPartnerId, 11],
@@ -293,7 +293,7 @@ QUnit.test("'channel_fetch' notification received is correctly handled", async f
     });
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 11,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -323,7 +323,7 @@ QUnit.test("'channel_fetch' notification received is correctly handled", async f
 
     // Simulate received channel fetched notification
     const notifications = [
-        [['myDB', 'mail.channel', 11], {
+        [['myDB', 'discuss.channel', 11], {
             info: 'channel_fetched',
             last_message_id: 100,
             partner_id: 11,
@@ -347,7 +347,7 @@ QUnit.test("'channel_seen' notification received is correctly handled", async fu
         display_name: "Recipient",
         id: 11,
     });
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         channel_type: 'chat',
         id: 11,
         members: [this.data.currentPartnerId, 11],
@@ -359,7 +359,7 @@ QUnit.test("'channel_seen' notification received is correctly handled", async fu
     });
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 11,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -388,7 +388,7 @@ QUnit.test("'channel_seen' notification received is correctly handled", async fu
 
     // Simulate received channel seen notification
     const notifications = [
-        [['myDB', 'mail.channel', 11], {
+        [['myDB', 'discuss.channel', 11], {
             info: 'channel_seen',
             last_message_id: 100,
             partner_id: 11,
@@ -412,7 +412,7 @@ QUnit.test("'channel_fetch' notification then 'channel_seen' received  are corre
         display_name: "Recipient",
         id: 11,
     });
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         channel_type: 'chat',
         id: 11,
         members: [this.data.currentPartnerId, 11],
@@ -424,7 +424,7 @@ QUnit.test("'channel_fetch' notification then 'channel_seen' received  are corre
     });
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 11,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -453,7 +453,7 @@ QUnit.test("'channel_fetch' notification then 'channel_seen' received  are corre
 
     // Simulate received channel fetched notification
     let notifications = [
-        [['myDB', 'mail.channel', 11], {
+        [['myDB', 'discuss.channel', 11], {
             info: 'channel_fetched',
             last_message_id: 100,
             partner_id: 11,
@@ -470,7 +470,7 @@ QUnit.test("'channel_fetch' notification then 'channel_seen' received  are corre
 
     // Simulate received channel seen notification
     notifications = [
-        [['myDB', 'mail.channel', 11], {
+        [['myDB', 'discuss.channel', 11], {
             info: 'channel_seen',
             last_message_id: 100,
             partner_id: 11,
@@ -510,7 +510,7 @@ QUnit.test('do not show messaging seen indicator if not authored by me', async f
                 partnerId: author.id,
             },
         ]),
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -551,7 +551,7 @@ QUnit.test('do not show messaging seen indicator if before last seen by all mess
             channelId: 11,
             messageId: 99,
         }),
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -630,7 +630,7 @@ QUnit.test('only show messaging seen indicator if authored by me, after last see
             channelId: 11,
             messageId: 100,
         }),
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const threadViewer = this.env.models['mail.thread_viewer'].create({
         hasThreadView: true,
@@ -912,7 +912,7 @@ QUnit.test('chat with author should be opened after clicking on his im status ic
 QUnit.test('open chat with author on avatar click should be disabled when currently chatting with the author', async function (assert) {
     assert.expect(3);
 
-    this.data['mail.channel'].records.push({
+    this.data['discuss.channel'].records.push({
         channel_type: 'chat',
         members: [this.data.currentPartnerId, 10],
         public: 'private',
@@ -1563,7 +1563,7 @@ QUnit.test('message should not be considered as "clicked" after clicking on noti
         hasThreadView: true,
         thread: [['create', {
             id: 11,
-            model: 'mail.channel',
+            model: 'discuss.channel',
         }]],
     });
     const message = this.env.models['mail.message'].create({

@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
 import { Dialog } from '@mail/components/dialog/dialog';
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
 
 const { Component } = owl;
 

@@ -177,7 +177,7 @@ function factory(dependencies) {
             // compute seen indicators (if applicable)
             for (const message of messages) {
                 for (const thread of message.threads) {
-                    if (thread.model !== 'mail.channel' || thread.channel_type === 'channel') {
+                    if (thread.model !== 'discuss.channel' || thread.channel_type === 'channel') {
                         // disabled on non-channel threads and
                         // on `channel` channels for performance reasons
                         continue;
@@ -350,7 +350,7 @@ function factory(dependencies) {
             return (
                 this.isCurrentPartnerMentioned &&
                 this.originThread &&
-                this.originThread.model === 'mail.channel'
+                this.originThread.model === 'discuss.channel'
             );
         }
 

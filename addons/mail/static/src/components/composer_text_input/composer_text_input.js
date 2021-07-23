@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import { ComposerSuggestionList } from '@mail/components/composer_suggestion_list/composer_suggestion_list';
 import { markEventHandled } from '@discuss/utils/utils';
 
@@ -86,7 +86,7 @@ export class ComposerTextInput extends Component {
         if (!this.composer.thread) {
             return "";
         }
-        if (this.composer.thread.model === 'mail.channel') {
+        if (this.composer.thread.model === 'discuss.channel') {
             if (this.composer.thread.correspondent) {
                 return _.str.sprintf("Message %s...", this.composer.thread.correspondent.nameOrDisplayName);
             }

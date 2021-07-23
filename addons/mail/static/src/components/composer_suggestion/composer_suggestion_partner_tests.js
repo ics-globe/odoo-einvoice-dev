@@ -40,11 +40,11 @@ QUnit.module('composer_suggestion_partner_tests.js', {
 QUnit.test('partner mention suggestion displayed', async function (assert) {
     assert.expect(1);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const partner = this.env.models['res.partner'].create({
         id: 7,
@@ -68,11 +68,11 @@ QUnit.test('partner mention suggestion displayed', async function (assert) {
 QUnit.test('partner mention suggestion correct data', async function (assert) {
     assert.expect(6);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const partner = this.env.models['res.partner'].create({
         email: "demo_user@odoo.com",
@@ -122,11 +122,11 @@ QUnit.test('partner mention suggestion correct data', async function (assert) {
 QUnit.test('partner mention suggestion active', async function (assert) {
     assert.expect(2);
 
-    this.data['mail.channel'].records.push({ id: 20 });
+    this.data['discuss.channel'].records.push({ id: 20 });
     await this.start();
     const thread = this.env.models['mail.thread'].findFromIdentifyingData({
         id: 20,
-        model: 'mail.channel',
+        model: 'discuss.channel',
     });
     const partner = this.env.models['res.partner'].create({
         id: 7,

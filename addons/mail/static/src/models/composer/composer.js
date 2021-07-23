@@ -214,7 +214,7 @@ function factory(dependencies) {
             try {
                 let messageId;
                 this.update({ isPostingMessage: true });
-                if (thread.model === 'mail.channel') {
+                if (thread.model === 'discuss.channel') {
                     const command = this._getCommandFromText(body);
                     Object.assign(postData, {
                         subtype_xmlid: 'mail.mt_comment',
@@ -289,7 +289,7 @@ function factory(dependencies) {
                 return;
             }
             if (
-                this.suggestionModelName === 'mail.channel_command' ||
+                this.suggestionModelName === 'discuss.channel_command' ||
                 this._getCommandFromText(this.textInputContent)
             ) {
                 return;
@@ -563,7 +563,7 @@ function factory(dependencies) {
                 case ':':
                     return 'discuss.canned_response';
                 case '/':
-                    return 'mail.channel_command';
+                    return 'discuss.channel_command';
                 case '#':
                     return 'mail.thread';
                 default:
@@ -663,7 +663,7 @@ function factory(dependencies) {
                 mentions.push({
                     class: 'o_channel_redirect',
                     id: channel.id,
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                     placeholder,
                     text,
                 });
@@ -685,7 +685,7 @@ function factory(dependencies) {
         /**
          * @private
          * @param {string} content html content
-         * @returns {mail.channel_command|undefined} command, if any in the content
+         * @returns {discuss.channel_command|undefined} command, if any in the content
          */
         _getCommandFromText(content) {
             if (content.startsWith('/')) {

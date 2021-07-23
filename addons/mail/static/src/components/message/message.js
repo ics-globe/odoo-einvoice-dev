@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import { AttachmentList } from '@mail/components/attachment_list/attachment_list';
 import { MessageSeenIndicator } from '@mail/components/message_seen_indicator/message_seen_indicator';
 import { NotificationPopover } from '@mail/components/notification_popover/notification_popover';
@@ -478,7 +478,7 @@ export class Message extends Component {
         if (ev.target.closest('.o_channel_redirect')) {
             this.env.messaging.openProfile({
                 id: Number(ev.target.dataset.oeId),
-                model: 'mail.channel',
+                model: 'discuss.channel',
             });
             // avoid following dummy href
             ev.preventDefault();

@@ -24,7 +24,7 @@ function factory(dependencies) {
                 // Except for channel where they are also grouped by id because
                 // we want to open the actual channel in discuss or chat window
                 // and not its kanban/list/form view.
-                const channelId = thread.model === 'mail.channel' ? thread.id : null;
+                const channelId = thread.model === 'discuss.channel' ? thread.id : null;
                 const id = `${thread.model}/${channelId}/${notification.notification_type}`;
                 const group = this.env.models['mail.notification_group'].insert({
                     id,

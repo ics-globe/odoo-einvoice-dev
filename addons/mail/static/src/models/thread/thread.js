@@ -132,7 +132,7 @@ function factory(dependencies) {
             }
             if ('channel_type' in data) {
                 data2.channel_type = data.channel_type;
-                data2.model = 'mail.channel';
+                data2.model = 'discuss.channel';
             }
             if ('create_uid' in data) {
                 data2.creator = insert({ id: data.create_uid });
@@ -190,7 +190,7 @@ function factory(dependencies) {
         /**
          * Fetches threads matching the given composer search state to extend
          * the JS knowledge and to update the suggestion list accordingly.
-         * More specifically only thread of model 'mail.channel' are fetched.
+         * More specifically only thread of model 'discuss.channel' are fetched.
          *
          * @static
          * @param {string} searchTerm
@@ -201,7 +201,7 @@ function factory(dependencies) {
         static async fetchSuggestions(searchTerm, { thread } = {}) {
             const channelsData = await this.env.services.rpc(
                 {
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                     method: 'get_mention_suggestions',
                     kwargs: { search: searchTerm },
                 },
@@ -209,7 +209,7 @@ function factory(dependencies) {
             );
             this.env.models['mail.thread'].insert(channelsData.map(channelData =>
                 Object.assign(
-                    { model: 'mail.channel' },
+                    { model: 'discuss.channel' },
                     this.env.models['mail.thread'].convertData(channelData),
                 )
             ));
@@ -229,16 +229,16 @@ function factory(dependencies) {
         static getSuggestionSortFunction(searchTerm, { thread } = {}) {
             const cleanedSearchTerm = cleanSearchTerm(searchTerm);
             return (a, b) => {
-                const isAPublic = a.model === 'mail.channel' && a.public === 'public';
-                const isBPublic = b.model === 'mail.channel' && b.public === 'public';
+                const isAPublic = a.model === 'discuss.channel' && a.public === 'public';
+                const isBPublic = b.model === 'discuss.channel' && b.public === 'public';
                 if (isAPublic && !isBPublic) {
                     return -1;
                 }
                 if (!isAPublic && isBPublic) {
                     return 1;
                 }
-                const isMemberOfA = a.model === 'mail.channel' && a.members.includes(this.env.messaging.currentPartner);
-                const isMemberOfB = b.model === 'mail.channel' && b.members.includes(this.env.messaging.currentPartner);
+                const isMemberOfA = a.model === 'discuss.channel' && a.members.includes(this.env.messaging.currentPartner);
+                const isMemberOfB = b.model === 'discuss.channel' && b.members.includes(this.env.messaging.currentPartner);
                 if (isMemberOfA && !isMemberOfB) {
                     return -1;
                 }
@@ -272,7 +272,7 @@ function factory(dependencies) {
          */
         static async loadPreviews(threads) {
             const channelIds = threads.reduce((list, thread) => {
-                if (thread.model === 'mail.channel') {
+                if (thread.model === 'discuss.channel') {
                     return list.concat(thread.id);
                 }
                 return list;
@@ -281,7 +281,7 @@ function factory(dependencies) {
                 return;
             }
             const channelPreviews = await this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_fetch_preview',
                 args: [channelIds],
             }, { shadow: true });
@@ -292,7 +292,7 @@ function factory(dependencies) {
 
 
         /**
-         * Performs the `channel_fold` RPC on `mail.channel`.
+         * Performs the `channel_fold` RPC on `discuss.channel`.
          *
          * @static
          * @param {string} uuid
@@ -300,7 +300,7 @@ function factory(dependencies) {
          */
         static async performRpcChannelFold(uuid, state) {
             return this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_fold',
                 kwargs: {
                     state,
@@ -310,7 +310,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `channel_info` RPC on `mail.channel`.
+         * Performs the `channel_info` RPC on `discuss.channel`.
          *
          * @static
          * @param {Object} param0
@@ -319,7 +319,7 @@ function factory(dependencies) {
          */
         static async performRpcChannelInfo({ ids }) {
             const channelInfos = await this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_info',
                 args: [ids],
             }, { shadow: true });
@@ -330,7 +330,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `channel_pin` RPC on `mail.channel`.
+         * Performs the `channel_pin` RPC on `discuss.channel`.
          *
          * @static
          * @param {Object} param0
@@ -339,7 +339,7 @@ function factory(dependencies) {
          */
         static async performRpcChannelPin({ pinned = false, uuid }) {
             return this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_pin',
                 kwargs: {
                     uuid,
@@ -349,7 +349,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `channel_create` RPC on `mail.channel`.
+         * Performs the `channel_create` RPC on `discuss.channel`.
          *
          * @static
          * @param {Object} param0
@@ -360,7 +360,7 @@ function factory(dependencies) {
         static async performRpcCreateChannel({ name, privacy }) {
             const device = this.env.messaging.device;
             const data = await this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_create',
                 args: [name, privacy],
                 kwargs: {
@@ -377,7 +377,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `channel_get` RPC on `mail.channel`.
+         * Performs the `channel_get` RPC on `discuss.channel`.
          *
          * `openChat` is preferable in business code because it will avoid the
          * RPC if the chat already exists.
@@ -392,7 +392,7 @@ function factory(dependencies) {
             const device = this.env.messaging.device;
             // TODO FIX: potential duplicate chat task-2276490
             const data = await this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_get',
                 kwargs: {
                     context: Object.assign({}, this.env.session.user_content, {
@@ -413,7 +413,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `channel_join_and_get_info` RPC on `mail.channel`.
+         * Performs the `channel_join_and_get_info` RPC on `discuss.channel`.
          *
          * @static
          * @param {Object} param0
@@ -423,7 +423,7 @@ function factory(dependencies) {
         static async performRpcJoinChannel({ channelId }) {
             const device = this.env.messaging.device;
             const data = await this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'channel_join_and_get_info',
                 args: [[channelId]],
                 kwargs: {
@@ -440,7 +440,7 @@ function factory(dependencies) {
         }
 
         /**
-         * Performs the `execute_command` RPC on `mail.channel`.
+         * Performs the `execute_command` RPC on `discuss.channel`.
          *
          * @static
          * @param {Object} param0
@@ -450,7 +450,7 @@ function factory(dependencies) {
          */
         static async performRpcExecuteCommand({ channelId, command, postData = {} }) {
             return this.env.services.rpc({
-                model: 'mail.channel',
+                model: 'discuss.channel',
                 method: 'execute_command',
                 args: [[channelId]],
                 kwargs: Object.assign({ command }, postData),
@@ -513,7 +513,7 @@ function factory(dependencies) {
 
         /*
          * Returns threads that match the given search term. More specially only
-         * threads of model 'mail.channel' are suggested, and if the context
+         * threads of model 'discuss.channel' are suggested, and if the context
          * thread is a private channel, only itself is returned if it matches
          * the search term.
          *
@@ -526,7 +526,7 @@ function factory(dependencies) {
          */
         static searchSuggestions(searchTerm, { thread } = {}) {
             let threads;
-            if (thread && thread.model === 'mail.channel' && thread.public !== 'public') {
+            if (thread && thread.model === 'discuss.channel' && thread.public !== 'public') {
                 // Only return the current channel when in the context of a
                 // non-public channel. Indeed, the message with the mention
                 // would appear in the target channel, so this prevents from
@@ -539,7 +539,7 @@ function factory(dependencies) {
             const cleanedSearchTerm = cleanSearchTerm(searchTerm);
             return [threads.filter(thread =>
                 !thread.isTemporary &&
-                thread.model === 'mail.channel' &&
+                thread.model === 'discuss.channel' &&
                 thread.channel_type === 'channel' &&
                 thread.displayName &&
                 cleanSearchTerm(thread.displayName).includes(cleanedSearchTerm)
@@ -641,7 +641,7 @@ function factory(dependencies) {
          * @param {string} state
          */
         async notifyFoldStateToServer(state) {
-            if (this.model !== 'mail.channel') {
+            if (this.model !== 'discuss.channel') {
                 // Server sync of fold state is only supported for channels.
                 return;
             }
@@ -839,7 +839,7 @@ function factory(dependencies) {
         async rename(newName) {
             if (this.channel_type === 'chat') {
                 await this.async(() => this.env.services.rpc({
-                    model: 'mail.channel',
+                    model: 'discuss.channel',
                     method: 'channel_set_custom_name',
                     args: [this.id],
                     kwargs: {
@@ -928,7 +928,7 @@ function factory(dependencies) {
             const { channel_type, id, model } = data;
             let threadModel = model;
             if (!threadModel && channel_type) {
-                threadModel = 'mail.channel';
+                threadModel = 'discuss.channel';
             }
             return `${this.modelName}_${threadModel}_${id}`;
         }
@@ -1175,7 +1175,7 @@ function factory(dependencies) {
          */
         _computeUrl() {
             const baseHref = this.env.session.url('/web');
-            if (this.model === 'mail.channel') {
+            if (this.model === 'discuss.channel') {
                 return `${baseHref}#action=mail.action_discuss&active_id=${this.model}_${this.id}`;
             }
             return `${baseHref}#model=${this.model}&id=${this.id}`;
@@ -1191,9 +1191,9 @@ function factory(dependencies) {
                 this._forceNotifyNextCurrentPartnerTypingStatus ||
                 isTyping !== this._currentPartnerLastNotifiedIsTyping
             ) {
-                if (this.model === 'mail.channel') {
+                if (this.model === 'discuss.channel') {
                     await this.async(() => this.env.services.rpc({
-                        model: 'mail.channel',
+                        model: 'discuss.channel',
                         method: 'notify_typing',
                         args: [this.id],
                         kwargs: { is_typing: isTyping },
@@ -1350,7 +1350,7 @@ function factory(dependencies) {
             required: true,
         }),
         /**
-         * States whether this thread is a `mail.channel` qualified as chat.
+         * States whether this thread is a `discuss.channel` qualified as chat.
          *
          * Useful to list chat channels, like in messaging menu with the filter
          * 'chat'.

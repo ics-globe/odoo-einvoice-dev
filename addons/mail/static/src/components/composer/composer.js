@@ -1,9 +1,9 @@
 /** @odoo-module **/
 
-import { useDragVisibleDropZone } from '@mail/component_hooks/use_drag_visible_dropzone/use_drag_visible_dropzone';
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useDragVisibleDropZone } from '@discuss/component_hooks/use_drag_visible_dropzone/use_drag_visible_dropzone';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import { AttachmentList } from '@mail/components/attachment_list/attachment_list';
 import { ComposerSuggestedRecipientList } from '@mail/components/composer_suggested_recipient_list/composer_suggested_recipient_list';
 import { ComposerTextInput } from '@mail/components/composer_text_input/composer_text_input';

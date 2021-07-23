@@ -1,10 +1,10 @@
 /** @odoo-module **/
 
-import { useRefs } from '@mail/component_hooks/use_refs/use_refs';
-import { useRenderedValues } from '@mail/component_hooks/use_rendered_values/use_rendered_values';
-import { useShouldUpdateBasedOnProps } from '@mail/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
-import { useStore } from '@mail/component_hooks/use_store/use_store';
-import { useUpdate } from '@mail/component_hooks/use_update/use_update';
+import { useRefs } from '@discuss/component_hooks/use_refs/use_refs';
+import { useRenderedValues } from '@discuss/component_hooks/use_rendered_values/use_rendered_values';
+import { useShouldUpdateBasedOnProps } from '@discuss/component_hooks/use_should_update_based_on_props/use_should_update_based_on_props';
+import { useStore } from '@discuss/component_hooks/use_store/use_store';
+import { useUpdate } from '@discuss/component_hooks/use_update/use_update';
 import { Message } from '@mail/components/message/message';
 
 const { Component } = owl;
@@ -328,7 +328,7 @@ export class MessageList extends Component {
             prevOriginThread &&
             originThread &&
             prevOriginThread.model === originThread.model &&
-            originThread.model !== 'mail.channel' &&
+            originThread.model !== 'discuss.channel' &&
             prevOriginThread.id !== originThread.id
         ) {
             // messages linked to different document thread
