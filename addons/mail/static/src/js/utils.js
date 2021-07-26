@@ -43,6 +43,11 @@ var urlRegexp = /\b(?:https?:\/\/\d{1,3}(?:\.\d{1,3}){3}|(?:https?:\/\/|(?:www\.
  * @return {string} linkified text
  */
 function linkify(text, attrs) {
+    function escapeEntities (str) {
+        const p = document.createElement("p");
+        p.textContent = str;
+        return p.innerHTML;
+    }
     attrs = attrs || {};
     if (attrs.target === undefined) {
         attrs.target = '_blank';
@@ -53,10 +58,17 @@ function linkify(text, attrs) {
     attrs = _.map(attrs, function (value, key) {
         return key + '="' + _.escape(value) + '"';
     }).join(' ');
-    return text.replace(urlRegexp, function (url) {
-        var href = (!/^https?:\/\//i.test(url)) ? "http://" + url : url;
-        return '<a ' + attrs + ' href="' + href + '">' + url + '</a>';
-    });
+    var curIndex = 0;
+    var result = "";
+    var match;
+    while ((match = urlRegexp.exec(text)) !== null) {
+        result += escapeEntities(text.slice(curIndex, match.index));
+        var url = match[0];
+        var href = (!/^https?:\/\//i.test(url)) ? "http://" + _.escape(url) : _.escape(url);
+        result += '<a ' + attrs + ' href="' + href + '">' + escapeEntities(url) + '</a>';
+        curIndex = match.index + match[0].length;
+    }
+    return result + escapeEntities(text.slice(curIndex));
 }
 
 function addLink(node, transformChildren) {
