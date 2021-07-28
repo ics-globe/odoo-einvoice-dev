@@ -1,6 +1,9 @@
 /** @odoo-module **/
+
+import { getCursorDirection } from './utils';
+
 // TODO: avoid empty keys when not necessary to reduce request size
-export function nodeToObject(node) {
+export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
     let result = {
         nodeType: node.nodeType,
         oid: node.oid,
@@ -19,7 +22,9 @@ export function nodeToObject(node) {
         }
         let child = node.firstChild;
         while (child) {
-            result.children.push(nodeToObject(child));
+            if (!nodesToStripFromChildren.has(child.oid)) {
+                result.children.push(nodeToObject(child, nodesToStripFromChildren));
+            }
             child = child.nextSibling;
         }
     }
@@ -41,4 +46,29 @@ export function objectToNode(obj) {
     }
     result.oid = obj.oid;
     return result;
+}
+
+export function selectionToObject(selection) {
+    const range = selection.getRangeAt(0);
+    return {
+        range: {
+            startContainer: range.startContainer.oid,
+            endContainer: range.endContainer.oid,
+            startOffset: range.startOffset,
+            endOffset: range.endOffset,
+        },
+        direction: getCursorDirection(
+            selection.anchorNode,
+            selection.anchorOffset,
+            selection.focusNode,
+            selection.focusOffset,
+        ),
+    };
+}
+
+export function objectToRange(obj, idFind, doc = document) {
+    const range = doc.createRange();
+    range.setStart(idFind(obj.startContainer), obj.startOffset);
+    range.setEnd(idFind(obj.endContainer), obj.endOffset);
+    return range;
 }

@@ -685,3 +685,14 @@ class Web_Editor(http.Controller):
             attachments.append(attachment._get_media_info())
 
         return attachments
+
+    @http.route("/web_editor/bus_broadcast", type="json", auth="user")
+    def bus_broadcast(self, bus_channel_name, bus_data):
+        # todo check security to not be able to broadcast to other bus than the
+        # one that are accessible.
+        import pprint; print('bus_data: ',end='');pprint.pprint(
+            bus_data.get('notificationName', '_') + ':' +
+            str(bus_data.get('fromClientId', '_')) + ':' +
+            str(bus_data.get('toClientId', '_'))
+        )
+        request.env['bus.bus'].sendone(bus_channel_name, bus_data)
