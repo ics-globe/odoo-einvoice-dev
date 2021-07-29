@@ -1136,3 +1136,59 @@ class TestPacking(TestPackingCommon):
             {'product_id': self.productA.id, 'reserved_uom_qty': 50, 'qty_done': 0, 'result_package_id': package_02.id, 'location_dest_id': sub_loc_02.id},
             {'product_id': self.productB.id, 'reserved_uom_qty': 50, 'qty_done': 0, 'result_package_id': package_02.id, 'location_dest_id': sub_loc_02.id},
         ])
+
+    def test_packaging_suggestion_00(self):
+        """Create a SO and use packaging. Check we suggested suitable packaging
+        according to the product_qty. Also check product_qty or product_packaging
+        are correctly calculated when one of them changed.
+        """
+        product_tmpl = self.env['product.template'].create({'name': "I'm a product"})
+        product = product_tmpl.product_variant_id
+        packaging_two = self.env['product.packaging'].create({
+            'name': "I'm a packaging",
+            'product_id': product.id,
+            'qty': 2.0,
+        })
+        packaging_dozen = self.env['product.packaging'].create({
+            'name': "I'm also a packaging",
+            'product_id': product.id,
+            'qty': 12.0,
+        })
+
+        picking = self.env['stock.picking'].create({
+            'picking_type_id': self.warehouse.in_type_id.id,
+            'location_id': self.customer_location.id,
+            'location_dest_id': self.stock_location.id,
+            'state': 'draft',
+        })
+        picking_form = Form(picking)
+
+        # set product_uom_qty to 1.0, no packaging will be added
+        with picking_form.move_ids_without_package.new() as line:
+            line.product_id = product
+            line.product_uom_qty = 1.0
+        picking_form.save()
+        self.assertFalse(picking.move_ids_without_package.product_packaging_id)
+        self.assertEqual(picking.move_ids_without_package.product_packaging_qty, 0)
+
+        # change product_uom_qty to 2.0, packaging_two will be added
+        with picking_form.move_ids_without_package.edit(0) as line:
+            line.product_uom_qty = 2.0
+        picking_form.save()
+        self.assertEqual(picking.move_ids_without_package.product_packaging_id, packaging_two)
+        self.assertEqual(picking.move_ids_without_package.product_packaging_qty, 1.0)
+
+        # change to packaging_dozen, product_uom_qty will be change to 12
+        with self.assertLogs(level='WARNING'):
+            with picking_form.move_ids_without_package.edit(0) as line:
+                line.product_packaging_id = packaging_dozen
+        picking_form.save()
+        self.assertEqual(picking.move_ids_without_package.product_uom_qty, 12.0)
+        self.assertEqual(picking.move_ids_without_package.product_packaging_qty, 1.0)
+
+        # change to product_uom_qty to 13, packaging will be removed
+        with picking_form.move_ids_without_package.edit(0) as line:
+            line.product_uom_qty = 13.0
+        picking_form.save()
+        self.assertFalse(picking.move_ids_without_package.product_packaging_id)
+        self.assertEqual(picking.move_ids_without_package.product_packaging_qty, 0)

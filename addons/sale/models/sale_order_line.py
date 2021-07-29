@@ -170,13 +170,13 @@ class SaleOrderLine(models.Model):
     product_packaging_id = fields.Many2one(
         comodel_name='product.packaging',
         string="Packaging",
-        compute='_compute_product_packaging_id',
+        compute='_compute_product_packaging',
         store=True, readonly=False, precompute=True,
         domain="[('sales', '=', True), ('product_id','=',product_id)]",
         check_company=True)
     product_packaging_qty = fields.Float(
         string="Packaging Quantity",
-        compute='_compute_product_packaging_qty',
+        compute='_compute_product_packaging',
         store=True, readonly=False, precompute=True)
 
     customer_lead = fields.Float(
@@ -590,27 +590,11 @@ class SaleOrderLine(models.Model):
             line.price_reduce_taxinc = line.price_total / line.product_uom_qty if line.product_uom_qty else 0.0
 
     @api.depends('product_id', 'product_uom_qty', 'product_uom')
-    def _compute_product_packaging_id(self):
+    def _compute_product_packaging(self):
         for line in self:
-            # remove packaging if not match the product
-            if line.product_packaging_id.product_id != line.product_id:
-                line.product_packaging_id = False
-            # Find biggest suitable packaging
-            if line.product_id and line.product_uom_qty and line.product_uom:
-                line.product_packaging_id = line.product_id.packaging_ids.filtered(
-                    'sales')._find_suitable_product_packaging(line.product_uom_qty, line.product_uom)
-
-    @api.depends('product_packaging_id', 'product_uom', 'product_uom_qty')
-    def _compute_product_packaging_qty(self):
-        for line in self:
-            if not line.product_packaging_id:
-                line.product_packaging_qty = False
-            else:
-                packaging_uom = line.product_packaging_id.product_uom_id
-                packaging_uom_qty = line.product_uom._compute_quantity(line.product_uom_qty, packaging_uom)
-                line.product_packaging_qty = float_round(
-                    packaging_uom_qty / line.product_packaging_id.qty,
-                    precision_rounding=packaging_uom.rounding)
+            line.product_packaging_id, line.product_packaging_qty = self.env["product.packaging"]._compute_packaging(
+                line.product_packaging_id, line.product_id, line.product_uom_qty, line.product_uom, 'sales'
+            )
 
     # This computed default is necessary to have a clean computation inheritance
     # (cf sale_stock) instead of simply removing the default and specifying
@@ -885,18 +869,22 @@ class SaleOrderLine(models.Model):
         if self.product_packaging_id and self.product_uom_qty:
             newqty = self.product_packaging_id._check_qty(self.product_uom_qty, self.product_uom, "UP")
             if float_compare(newqty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
-                return {
-                    'warning': {
-                        'title': _('Warning'),
-                        'message': _(
-                            "This product is packaged by %(pack_size).2f %(pack_name)s. You should sell %(quantity).2f %(unit)s.",
-                            pack_size=self.product_packaging_id.qty,
-                            pack_name=self.product_id.uom_id.name,
-                            quantity=newqty,
-                            unit=self.product_uom.name
-                        ),
-                    },
-                }
+                res = None
+                if float_compare(1.0, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                    res = {
+                        'warning': {
+                            'title': _('Warning'),
+                            'message': _(
+                                "This product is packaged by %(pack_size).2f %(pack_name)s. You should sell %(quantity).2f %(unit)s.",
+                                pack_size=self.product_packaging_id.qty,
+                                pack_name=self.product_id.uom_id.name,
+                                quantity=newqty,
+                                unit=self.product_uom.name
+                            ),
+                        },
+                    }
+                self.product_uom_qty = newqty
+                return res
 
     #=== CRUD METHODS ===#
     def _add_precomputed_values(self, vals_list):

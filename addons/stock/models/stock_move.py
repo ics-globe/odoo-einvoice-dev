@@ -174,8 +174,44 @@ class StockMove(models.Model):
     lot_ids = fields.Many2many('stock.lot', compute='_compute_lot_ids', inverse='_set_lot_ids', string='Serial Numbers', readonly=False)
     reservation_date = fields.Date('Date to Reserve', compute='_compute_reservation_date', store=True,
         help="This is a technical field for calculating when a move should be reserved")
-    product_packaging_id = fields.Many2one('product.packaging', 'Packaging', domain="[('product_id', '=', product_id)]", check_company=True)
+    product_packaging_id = fields.Many2one(
+        'product.packaging', string='Packaging',
+        compute='_compute_product_packaging', store=True, readonly=False, precompute=True,
+        domain="[('product_id', '=', product_id)]",
+        check_company=True)
+    product_packaging_qty = fields.Float(
+        'Packaging Quantity',
+        compute='_compute_product_packaging', store=True, readonly=False, precompute=True)
     from_immediate_transfer = fields.Boolean(related="picking_id.immediate_transfer")
+
+    @api.depends('product_id', 'product_uom_qty', 'product_uom')
+    def _compute_product_packaging(self):
+        for line in self:
+            line.product_packaging_id, line.product_packaging_qty = self.env["product.packaging"]._compute_packaging(
+                line.product_packaging_id, line.product_id, line.product_uom_qty, line.product_uom
+            )
+
+    @api.onchange('product_packaging_id')
+    def _onchange_product_packaging_id(self):
+        if self.product_packaging_id and self.product_uom_qty:
+            newqty = self.product_packaging_id._check_qty(self.product_uom_qty, self.product_uom, "UP")
+            if float_compare(newqty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                res = None
+                if float_compare(1.0, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                    res = {
+                        'warning': {
+                            'title': _('Warning'),
+                            'message': _(
+                                "This product is packaged by %(pack_size).2f %(pack_name)s. You should transfer %(quantity).2f %(unit)s.",
+                                pack_size=self.product_packaging_id.qty,
+                                pack_name=self.product_id.uom_id.name,
+                                quantity=newqty,
+                                unit=self.product_uom.name
+                            ),
+                        },
+                    }
+                self.product_uom_qty = newqty
+                return res
 
     @api.depends('has_tracking', 'picking_type_id.use_create_lots', 'picking_type_id.use_existing_lots', 'state')
     def _compute_display_assign_serial(self):
