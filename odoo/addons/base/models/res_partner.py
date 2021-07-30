@@ -356,12 +356,54 @@ class Partner(models.Model):
             self.company_id = self.parent_id.company_id.id
 
     @api.depends('name', 'email')
+    @api.depends_context('partner_email_single')
     def _compute_email_formatted(self):
+        """ Be defensive in formatted email computation.
+
+        Notably
+          * double format: if email already holds a formatted email like
+            'Name' <email@domain.com> we should not use it as it to compute
+            email formatted like "Name <'Name' <email@domain.com>>";
+          * multi emails: sometimes this field is used to hold several addresses
+            like email1@domain.com, email2@domain.com. We currently let this value
+            untouched (stable policy), unless a specific context key is given. In
+            that case using email_split allows to extract emails;
+          * falsy email: if something is wrong, better keep it in email_formatted
+            than harcoding "False". Indeed this eases management and understanding
+            of failures at mail.mail, mail.notification and mailing.trace level;
+        """
         for partner in self:
-            if partner.email:
-                partner.email_formatted = tools.formataddr((partner.name or u"False", partner.email or u"False"))
+            emails_normalized = partner._get_normalized_emails(single=self.env.context.get('partner_email_single'))
+            if emails_normalized:
+                # note: this is mainly invalid as it leads to "Name" <email1, email2> but
+                # this matches current behavior in Odoo 13+ and some servers allow it
+                partner.email_formatted = tools.formataddr((partner.name or u"False",
+                                                            ','.join(emails_normalized)))
             else:
                 partner.email_formatted = ''
+
+    def _get_normalized_emails(self, single=False):
+        """ Tool method allowing to extract email addresses from email field
+        with controllable support of multiple emails embed in a single field.
+        Defined after ``_compute_email_formatted`` as it shares common code
+        and ideas about trying to support a bit multiple emails.
+
+        :param boolean single: if False, return all found normalized emails in email
+          field as it may contain about anything. Otherwise just return the first
+          found one.
+          e.g. if email is 'tony@e.com, "Tony2" <tony2@e.com' returned result
+          is either ['tony@e.com'] (single=True), ['tony@e.com, tony2@e.com']
+          (single=False).
+        """
+        self.ensure_one()
+        if not self.email:
+            return ['']
+        emails = tools.email_split(self.email)
+        emails_normalized = list(filter(None, [tools.email_normalize(email) for email in emails])) if emails else []
+        # force single result, or fallback on partner email to have something to display
+        if single or not emails_normalized:
+            emails_normalized = emails_normalized[:1] if emails_normalized else [self.email]
+        return emails_normalized
 
     @api.depends('is_company')
     def _compute_company_type(self):

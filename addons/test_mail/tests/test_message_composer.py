@@ -294,7 +294,7 @@ class TestComposerWTpl(BaseFunctionalTest, MockEmails, TestRecipients):
             new_partners,
             email_cc=[],  # cc are transformed into To
             # from keeps multi email
-            email_from=tools.formataddr((self.user_employee.name, 'email.from.1@test.example.com, email.from.2@test.example.com')),
+            email_from=tools.formataddr((self.user_employee.name, 'email.from.1@test.example.com,email.from.2@test.example.com')),
         )
 
     def test_composer_template_onchange_attachments(self):
@@ -464,7 +464,7 @@ class TestComposerWTpl(BaseFunctionalTest, MockEmails, TestRecipients):
                              ('second.txt', b'My second attachment', 'text/plain')],
                 email_cc=[],  # cc are transformed into To
                 # from keeps multi email
-                email_from=tools.formataddr((self.user_employee.name, 'email.from.1@test.example.com, email.from.2@test.example.com')),
+                email_from=tools.formataddr((self.user_employee.name, 'email.from.1@test.example.com,email.from.2@test.example.com')),
             )
 
     def test_composer_template_save(self):

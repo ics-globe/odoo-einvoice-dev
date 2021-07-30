@@ -21,6 +21,17 @@ class TestPartner(TransactionCase):
             'Email formatted should be name <email>'
         )
 
+        # multi create
+        new_partners = self.env['res.partner'].create([{
+            'name': "Vlad the Impaler",
+            'email': 'vlad.the.impaler.%02d@example.com' % idx,
+        } for idx in range(5)])
+        self.assertEqual(
+            sorted(new_partners.mapped('email_formatted')),
+            sorted(['"Vlad the Impaler" <vlad.the.impaler.%02d@example.com>' % idx for idx in range(5)]),
+            'Email formatted should be name <email>'
+        )
+
         # test name_create with formatting / multi emails
         new_partner_id = self.env['res.partner'].name_create('Balázs <vlad.the.negociator@example.com>, vlad.the.impaler@example.com')[0]
         new_partner = self.env['res.partner'].browse(new_partner_id)
@@ -46,21 +57,21 @@ class TestPartner(TransactionCase):
         new_partner.write({'name': 'Balázs'})
         self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com>')
         new_partner.write({'email': "Vlad the Impaler <vlad.the.impaler@example.com>"})
-        # self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com>')
-        self.assertEqual(new_partner.email_formatted, '"Balázs" <Vlad the Impaler <vlad.the.impaler@example.com>>')
+        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com>')
         new_partner.write({'email': 'Balázs <balazs@adam.hu>'})
-        # self.assertEqual(new_partner.email_formatted, '"Balázs" <balazs@adam.hu>')
+        self.assertEqual(new_partner.email_formatted, '"Balázs" <balazs@adam.hu>')
 
         # check multi emails
         new_partner.write({'email': 'vlad.the.impaler@example.com, vlad.the.dragon@example.com'})
         # self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com>')
-        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com, vlad.the.dragon@example.com>')
+        self.assertEqual(
+            new_partner.email_formatted, '"Balázs" <vlad.the.impaler@example.com,vlad.the.dragon@example.com>',
+            'Currently keeping multi-emails enabled when possible for backward compatibility')
+        self.assertEqual(new_partner.with_context(partner_email_single=True).email_formatted, '"Balázs" <vlad.the.impaler@example.com>')
         new_partner.write({'email': 'vlad.the.impaler.com, vlad.the.dragon@example.com'})
-        # self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.dragon@example.com>')
-        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler.com, vlad.the.dragon@example.com>')
+        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.dragon@example.com>')
         new_partner.write({'email': 'vlad.the.impaler.com, "Vlad the Dragon" <vlad.the.dragon@example.com>'})
-        # self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.dragon@example.com>')
-        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.impaler.com, "Vlad the Dragon" <vlad.the.dragon@example.com>>')
+        self.assertEqual(new_partner.email_formatted, '"Balázs" <vlad.the.dragon@example.com>')
 
         # check false emails
         new_partner.write({'email': 'notanemail'})
