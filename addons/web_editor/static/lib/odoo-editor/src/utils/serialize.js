@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { getCursorDirection } from './utils';
+import { getCursorDirection } from './utils.js';
 
 // TODO: avoid empty keys when not necessary to reduce request size
 export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
@@ -9,7 +9,7 @@ export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
         oid: node.oid,
     };
     if (!node.oid) {
-        console.warn('OID can not be falsy!');
+        throw new Error('node.oid can not be falsy.');
     }
     if (node.nodeType === Node.TEXT_NODE) {
         result.textValue = node.nodeValue;

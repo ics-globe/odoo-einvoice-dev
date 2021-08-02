@@ -32,7 +32,7 @@ function _toDomLocation(node, index) {
     return [container, offset];
 }
 
-function _parseTextualSelection(testContainer) {
+export function parseTextualSelection(testContainer) {
     let anchorNode;
     let anchorOffset;
     let focusNode;
@@ -223,7 +223,7 @@ export async function testEditor(Editor = OdooEditor, spec) {
     // the editor as otherwise those would genererate mutations the editor would
     // consider and the tests would make no sense.
     testNode.innerHTML = spec.contentBefore;
-    const selection = _parseTextualSelection(testNode);
+    const selection = parseTextualSelection(testNode);
 
     const editor = new Editor(testNode, { toSanitize: false });
     editor.keyboardType = 'PHYSICAL_KEYBOARD';

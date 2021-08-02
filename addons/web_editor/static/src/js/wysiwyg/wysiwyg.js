@@ -84,6 +84,11 @@ class RTC {
                     await this._recoverConnection(clientId, { delay: 500, reason: 'connection disconnected' });
                     break;
             }
+
+            this.handleNotification({
+                notificationName: 'rtc_connection_statechange',
+                notificationPayload: peerConnection.connectionState,
+            });
         };
         peerConnection.onicecandidateerror = async (error) => {
             console.groupCollapsed('=== ERROR: onIceCandidate ===');
@@ -147,7 +152,7 @@ class RTC {
     }
 
     notifyAllClients(notificationName, notificationPayload, { transport = 'server' } = {}) {
-        console.log(`notifyAllClients ${transport}:${notificationName}:${this.currentClientId}:_`);
+        console.log(`notifyAllClients ${transport}:${notificationName}:${this.currentClientId}:_`, notificationPayload);
         const transportPayload = {
             fromClientId: this._currentClientId,
             notificationName,
@@ -199,18 +204,20 @@ class RTC {
     }
 
     handleNotification(notification) {
-        // console.log(`notification: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
+        console.log(`HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
+        const isInternalNotification = typeof notification.fromClientId === 'undefined' && typeof notification.toClientId === 'undefined';
         if (
-            notification.fromClientId !== this._currentClientId &&
-            !notification.toClientId || notification.toClientId === this._currentClientId
+             isInternalNotification ||
+                (notification.fromClientId !== this._currentClientId &&
+                !notification.toClientId || notification.toClientId === this._currentClientId)
         ) {
             const baseMethod = this._notificationMethods[notification.notificationName];
             if (baseMethod) {
                 return baseMethod.call(this, notification);
-            } else if (this.options.onNotification) {
+            }
+            if (this.options.onNotification) {
                 return this.options.onNotification(notification);
             }
-            throw new Error(`No handler has been found for notification "${notification.notificationName}".`);
         }
     }
 
@@ -347,6 +354,13 @@ const Wysiwyg = Widget.extend({
 
         const currentClientId = new Date().getTime();
 
+        let firstHistoryRequested = false;
+        const requestNewHistory = () => {
+            this.rtc.notifyAllClients(
+                'oe_history_request',
+                { transport: 'rtc' }
+            );
+        }
         this.rtc = new RTC({
             peerConnectionConfig: {
                 iceServers: [
@@ -370,6 +384,13 @@ const Wysiwyg = Widget.extend({
             },
             onNotification: ({ notificationName, notificationPayload }) => {
                 switch (notificationName) {
+                    case 'rtc_connection_statechange':
+                        if (!firstHistoryRequested && notificationPayload === 'connected') {
+                            firstHistoryRequested = true;
+                            console.log('requesting first history');
+                            requestNewHistory();
+                        }
+                        break;
                     case 'oe_history_request':
                         this.rtc.notifyAllClients(
                             'oe_history_reset',
@@ -378,13 +399,13 @@ const Wysiwyg = Widget.extend({
                         )
                         break;
                     case 'oe_history_reset':
-                        this.odooEditor.historySynchronise(notificationPayload);
+                        this.odooEditor.historyResetAndSync(notificationPayload);
                         break;
                     case 'oe_history_step':
-                        this.odooEditor.historyReceive(notificationPayload);
+                        this.odooEditor.onExternalHistoryStep(notificationPayload);
                         break;
                     case 'oe_history_set_selection':
-                        this.odooEditor.receiveCollaboratorSelection(notificationPayload);
+                        this.odooEditor.onExternalMultiselectionUpdate(notificationPayload);
                         break;
                     default:
                         throw new Error(`No method exists to process notification "${notificationName}".`);
@@ -412,11 +433,7 @@ const Wysiwyg = Widget.extend({
                 this.rtc.notifyAllClients('oe_history_set_selection', collaborativeSelection, { transport: 'rtc' });
             },
             onHistoryNeedReset: () => {
-                this.rtc.notifyAllClients(
-                    'oe_history_reset',
-                    this.odooEditor.historyGetSnapshot(),
-                    { transport: 'rtc' }
-                )
+                requestNewHistory();
             },
         });
 

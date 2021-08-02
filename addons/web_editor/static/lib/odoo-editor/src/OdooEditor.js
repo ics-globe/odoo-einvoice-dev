@@ -142,6 +142,7 @@ function defaultOptions(defaultObject, object) {
 export class OdooEditor extends EventTarget {
     constructor(editable, options = {}) {
         super();
+        window.editor = this;
 
         this.options = defaultOptions(
             {
@@ -216,7 +217,6 @@ export class OdooEditor extends EventTarget {
         // User id is only useful in collaborative mode, but to have effective
         // tests, the editor should work in the same manner as much as possible
         // in both mode.
-        this._isCollaborativeActive = false;
         this._clientId =
             (this.options.collaborative && this.options.collaborative.clientId) || uuidV4();
 
@@ -226,17 +226,11 @@ export class OdooEditor extends EventTarget {
         this._collaboratorIndicatorContainer = this.document.createElement('div');
         this._collaboratorIndicatorContainer.style = 'height: 0; width: 0; z-index: 1;';
         this.editable.before(this._collaboratorIndicatorContainer);
-        this._sendSelection = throttle(selection => {
-            if (this.options.collaborative && this.options.collaborative.sendSelection) {
-                this.options.collaborative.sendSelection();
-            }
-        }, 16);
 
         // Create a first step containing all of the document, with a different
         // clientId so that it can not be undone.
         this.idSet(editable);
         this._historySteps = this.historyGetSnapshot();
-        this._isCollaborativeActive = options.collaborative;
 
         this._createCommandBar();
 
@@ -309,14 +303,6 @@ export class OdooEditor extends EventTarget {
         }
     }
 
-    historySynchronise(masterHistory) {
-        // Replace current history by parameter history
-        this.observerUnactive();
-        this.resetHistory();
-        [...this.editable.childNodes].forEach(n => n.remove());
-        this.observerActive();
-        masterHistory.forEach(step => this.historyReceive(step));
-    }
     /**
      * Releases anything that was initialized.
      *
@@ -332,10 +318,8 @@ export class OdooEditor extends EventTarget {
     sanitize() {
         this.observerFlush();
 
-        // find common ancestror in this.history[-1]
-        const step = this.historyGetCurrentStep();
         let commonAncestor, record;
-        for (record of step.mutations) {
+        for (record of this._currentStep.mutations) {
             const node = this.idFind(record.parentId || record.id) || this.editable;
             commonAncestor = commonAncestor
                 ? commonParentGet(commonAncestor, node, this.editable)
@@ -360,7 +344,7 @@ export class OdooEditor extends EventTarget {
         if (!node.oid) {
             node.oid = uuidV4();
         }
-        // Always add to _idNodeMap for nodes whose ids are created through by
+        // Always add to _idToNodeMap for nodes whose ids are created through by
         // another client (in a collaboration setting)
         this._idToNodeMap.set(node.oid, node);
         // Rollback if node.ouid changed. This ensures that nodes never change
@@ -441,20 +425,20 @@ export class OdooEditor extends EventTarget {
         const mutatedNodes = new Set();
         for (const record of records) {
             if (record.type === 'childList') {
-                record.addedNodes.forEach(node => {
+                for (const node of record.addedNodes) {
                     this.idSet(node, this._checkStepUnbreakable);
                     mutatedNodes.add(node.oid);
-                });
-                record.removedNodes.forEach(node => {
+                }
+                for (const node of record.removedNodes) {
                     this.idSet(node, this._checkStepUnbreakable);
                     mutatedNodes.delete(node.oid);
-                });
+                }
             }
         }
         for (const record of records) {
             switch (record.type) {
                 case 'characterData': {
-                    this.historyGetCurrentStep().mutations.push({
+                    this._currentStep.mutations.push({
                         'type': 'characterData',
                         'id': record.target.oid,
                         'text': record.target.textContent,
@@ -463,7 +447,7 @@ export class OdooEditor extends EventTarget {
                     break;
                 }
                 case 'attributes': {
-                    this.historyGetCurrentStep().mutations.push({
+                    this._currentStep.mutations.push({
                         'type': 'attributes',
                         'id': record.target.oid,
                         'attributeName': record.attributeName,
@@ -493,13 +477,13 @@ export class OdooEditor extends EventTarget {
                         }
                         mutation.id = added.oid;
                         mutation.node = this.serialize(added, mutatedNodes);
-                        this.historyGetCurrentStep().mutations.push(mutation);
+                        this._currentStep.mutations.push(mutation);
                     });
                     record.removedNodes.forEach(removed => {
                         if (!this._toRollback && containsUnremovable(removed)) {
                             this._toRollback = UNREMOVABLE_ROLLBACK_CODE;
                         }
-                        this.historyGetCurrentStep().mutations.push({
+                        this._currentStep.mutations.push({
                             'type': 'remove',
                             'id': removed.oid,
                             'parentId': record.target.oid,
@@ -544,6 +528,9 @@ export class OdooEditor extends EventTarget {
         return filteredRecords;
     }
 
+    // History
+    // -------------------------------------------------------------------------
+
     resetHistory() {
         this._historySteps = [];
         this._currentStep = {
@@ -559,9 +546,18 @@ export class OdooEditor extends EventTarget {
         };
         this._historyStepsStates = new Map();
     }
-    //
-    // History
-    //
+    historyResetAndSync(steps) {
+        console.log('historyResetAndSync', steps);
+        this.observerUnactive();
+        for (const node of [...this.editable.childNodes]) {
+            node.remove();
+        }
+        this.resetHistory();
+        this.observerActive();
+        for (const step of steps) {
+            this.onExternalHistoryStep(step);
+        }
+    }
 
     // One step completed: apply to vDOM, setup next history step
     historyStep(skipRollback = false) {
@@ -576,7 +572,7 @@ export class OdooEditor extends EventTarget {
         }
 
         // push history
-        const current = this.historyGetCurrentStep();
+        const current = this._currentStep;
         if (!current.mutations.length) {
             return false;
         }
@@ -586,7 +582,9 @@ export class OdooEditor extends EventTarget {
         current.clientId = latest ? this._clientId : FIRST_STEP_USER_ID;
         current.previousStepId = (latest && latest.id) || FIRST_STEP_PREVIOUS_ID;
         this._historySteps.push(current);
-        this._historySend(current);
+        if (this.options.onHistoryStep) {
+            this.options.onHistoryStep(current);
+        }
         this._currentStep = {
             cursor: {},
             mutations: [],
@@ -594,13 +592,8 @@ export class OdooEditor extends EventTarget {
         this._checkStepUnbreakable = true;
         this._recordHistoryCursor();
         this.dispatchEvent(new Event('historyStep'));
-        this._refreshCollaboratorSelections();
+        this._multiselectionRefresh();
     }
-
-    historyGetCurrentStep() {
-        return this._currentStep;
-    }
-
     // apply changes according to some records
     historyApply(records) {
         for (const record of records) {
@@ -608,6 +601,8 @@ export class OdooEditor extends EventTarget {
                 const node = this.idFind(record.id);
                 if (node) {
                     node.textContent = record.text;
+                } else {
+                    throw new Error('no node was found');
                 }
             } else if (record.type === 'attributes') {
                 const node = this.idFind(record.id);
@@ -635,180 +630,6 @@ export class OdooEditor extends EventTarget {
             }
         }
     }
-
-    /**
-     * history receive algo:
-     *  Steps are conceptually a linked list where each step remembers the step
-     *  it comes after, called the "previous step". In case of conflict where
-     *  an incoming has the same previous step as a step already present in the
-     *  history, the clients have the same heuristic to decide which step is
-     *  gonna keep it's previous step and which is gonna get the other as its
-     *  own previous step.
-     *
-     *  if the received step is exactly the next one in the sequence:
-     *      we're not up to date but we're still synchronized so apply the step.
-     *
-     *  else if the received step's previous step is matching a step that
-     *  already has a next step:
-     *      someone introduced changes before us we need to reorder the steps.
-     *      1. rollback all the changes until the "previous step", not included
-     *      2. pick which step is gonna be reordered
-     *      3. apply both steps
-     *      4. reapply the rollbacked steps (make sure the first one to be
-     *         reapplied has the correct previous step)
-     *
-     */
-    historyReceive(newStep) {
-        // if (!this._isCollaborativeActive) {
-        //     return;
-        // }
-        this.observerUnactive();
-        const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
-        console.log("previousStep === this._historySteps[this._historySteps.length - 1]:", previousStep === this._historySteps[this._historySteps.length - 1]);
-        if (previousStep === this._historySteps[this._historySteps.length - 1]) {
-            // newStep has the correct previous id so we simply apply it.
-            this.historyApply(newStep.mutations);
-            this._historySteps.push(newStep);
-        } else if (previousStep) {
-            this._computeHistoryCursor();
-            const currentStep = this.historyGetCurrentStep();
-            if (currentStep.mutations && currentStep.mutations.length) {
-                this.historyRevert(currentStep);
-            }
-            // rollback right until the new step's previous step (not included)
-            const stepsToReapply = [];
-            while (
-                this._historySteps.length &&
-                this._historySteps[this._historySteps.length - 1] !== previousStep
-            ) {
-                // Put the step at the beginning of the array, so that the first
-                // reverted step is the last reapplied
-                stepsToReapply.unshift(this._historySteps.pop());
-                this.historyRevert(stepsToReapply[0]);
-            }
-            // pick between new step and local step for reordering
-            const localStep = stepsToReapply[0];
-            if (newStep.id.localeCompare(localStep.id) < 0) {
-                // New step's id comes before local step's id in alphabetical
-                // order so the local steps gets reordered
-                localStep.previousStepId = newStep.id;
-                stepsToReapply.unshift(newStep);
-            } else {
-                stepsToReapply.shift();
-                if (stepsToReapply[0]) {
-                    stepsToReapply[0].previousStepId = newStep.id;
-                }
-                stepsToReapply.unshift(newStep);
-                newStep.previousStepId = localStep.id;
-                stepsToReapply.unshift(localStep);
-            }
-            stepsToReapply.forEach(step => {
-                this.historyApply(step.mutations);
-                this._historySteps.push(step);
-            });
-
-            if (currentStep.mutations && currentStep.mutations.length) {
-                this.historyApply(currentStep.mutations);
-            }
-            this.historySetCursor(currentStep);
-        } else {
-            console.log('onHistoryNeedReset');
-            this.options.onHistoryNeedReset();
-        }
-        this.observerActive();
-        this._refreshCollaboratorSelections();
-    }
-
-    receiveCollaboratorSelection(selection) {
-        console.log("selection:", selection);
-        this._displayCollaboratorSelection(selection);
-        const { clientId } = selection;
-        if (this._cursorInfos.has(clientId)) {
-            this._cursorInfos.get(clientId).selection = selection;
-        } else {
-            this._cursorInfos.set(clientId, { selection });
-        }
-    }
-
-    _refreshCollaboratorSelections() {
-        Array.from(this._cursorInfos.values()).forEach(({ selection }) =>
-            this._displayCollaboratorSelection(selection),
-        );
-    }
-
-    _displayCollaboratorSelection({ range, color, direction, clientId, name = 'Anonyme' }) {
-        const className = `collaborator-selection-displayer collaborator-selection-user-${clientId}`;
-        let clientRects;
-        try {
-            clientRects = Array.from(
-                objectToRange(range, id => this.idFind(id), this.document).getClientRects(),
-            );
-        } catch (e) {
-            // changes in the dom might prevent the range to be instantiated
-            // (because of a removed node for example), in which case we ignore
-            // the range
-            clientRects = [];
-        }
-        if (!clientRects.length) {
-            return;
-        }
-        const indicators = clientRects.map(({ x, y, width, height }) => {
-            const el = this.document.createElement('div');
-            const top = this.document.documentElement.scrollTop + y;
-            el.style = `
-                position: absolute;
-                top: ${top}px;
-                left: ${x}px;
-                width: ${width}px;
-                height: ${height}px;
-                background-color: ${color};
-                opacity: 0.25;
-                pointer-events: none;`;
-
-            el.className = className;
-            return el;
-        });
-        const caret = this.document.createElement('div');
-        caret.style = `border-left: 2px solid ${color}; position: absolute;`;
-        caret.className = className;
-        // Unrelated to the comedian.
-        const caretTop = this.document.createElement('div');
-        const baseCaretTopStyle = `min-height: 5px; min-width: 5px; color: #fff; text-shadow: 0 0 5px #000; background-color: ${color}; position: absolute; bottom: 100%; left: -4px; white-space: nowrap;`
-        caretTop.style = baseCaretTopStyle;
-        caretTop.addEventListener('mouseenter', () => {
-            caretTop.innerText = name;
-            caretTop.style = baseCaretTopStyle + 'border-radius: 2px; padding: 0.3em 0.6em;';
-        });
-        caretTop.addEventListener('mouseleave', () => {
-            caretTop.innerText = '';
-            caretTop.style = baseCaretTopStyle;
-        });
-        caret.append(caretTop);
-        if (clientRects.length) {
-            if (direction === DIRECTIONS.LEFT) {
-                const rect = clientRects[0];
-                caret.style.height = `${rect.height * 1.2}px`;
-                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caret.style.left = `${rect.x}px`;
-            } else {
-                const rect = peek(clientRects);
-                caret.style.height = `${rect.height * 1.2}px`;
-                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caret.style.left = `${rect.x + rect.width}px`;
-            }
-        }
-        this.removeCollaboratorSelection(clientId);
-        this._collaboratorIndicatorContainer.append(caret, ...indicators);
-    }
-
-    removeCollaboratorSelection(clientId) {
-        Array.from(
-            this._collaboratorIndicatorContainer.querySelectorAll(
-                `.collaborator-selection-displayer.collaborator-selection-user-${clientId}`,
-            ),
-        ).forEach(el => el.remove());
-    }
-
     historyGetSnapshot() {
         const latestStep = peek(this._historySteps);
         const snapshot = {
@@ -825,26 +646,14 @@ export class OdooEditor extends EventTarget {
         };
         return [snapshot];
     }
-
-    getHistorySteps() {
-        return this._historySteps;
-    }
-
-    _historySend(item) {
-        if (this.options.onHistoryStep) {
-            this.options.onHistoryStep(item);
-        }
-    }
-
     historyRollback(until = 0) {
-        const step = this.historyGetCurrentStep();
+        const step = this._currentStep;
         this.observerFlush();
         this.historyRevert(step, until);
         this.observerFlush();
         step.mutations = step.mutations.slice(0, until);
         this._toRollback = false;
     }
-
     /**
      * Undo a step of the history.
      *
@@ -857,7 +666,7 @@ export class OdooEditor extends EventTarget {
      */
     historyUndo() {
         // The last step is considered an uncommited draft so always revert it.
-        const lastStep = this.historyGetCurrentStep();
+        const lastStep = this._currentStep;
         this.historyRevert(lastStep);
         // Clean the last step otherwise if no other step is created after, the
         // mutations of the revert itself will be added to the same step and
@@ -876,7 +685,6 @@ export class OdooEditor extends EventTarget {
             this.dispatchEvent(new Event('historyUndo'));
         }
     }
-
     /**
      * Redo a step of the history.
      *
@@ -964,21 +772,19 @@ export class OdooEditor extends EventTarget {
         this.historySetCursor(step);
         this.dispatchEvent(new Event('historyRevert'));
     }
-
     /**
      * Place the cursor on the last known cursor position from the history steps.
      *
      * @returns {boolean}
      */
     resetCursorOnLastHistoryCursor() {
-        const lastHistoryStep = this.historyGetCurrentStep();
+        const lastHistoryStep = this._currentStep;
         if (lastHistoryStep && lastHistoryStep.cursor && lastHistoryStep.cursor.anchorNode) {
             this.historySetCursor(lastHistoryStep);
             return true;
         }
         return false;
     }
-
     historySetCursor(step) {
         if (step.cursor && step.cursor.anchorNode) {
             const anchorNode = this.idFind(step.cursor.anchorNode);
@@ -1008,6 +814,182 @@ export class OdooEditor extends EventTarget {
     }
     historyUnpauseSteps() {
         this._historyStepsActive = true;
+    }
+
+    /**
+     * on external history step algorithm:
+     *  Steps are conceptually a linked list where each step remembers the step
+     *  it comes after, called the "previous step". In case of conflict where
+     *  an incoming has the same previous step as a step already present in the
+     *  history, the clients have the same heuristic to decide which step is
+     *  gonna keep it's previous step and which is gonna get the other as its
+     *  own previous step.
+     *
+     *  if the received step is exactly the next one in the sequence:
+     *      we're not up to date but we're still synchronized so apply the step.
+     *
+     *  else if the received step's previous step is matching a step that
+     *  already has a next step:
+     *      someone introduced changes before us we need to reorder the steps.
+     *      1. rollback all the changes until the "previous step", not included
+     *      2. pick which step is gonna be reordered
+     *      3. apply both steps
+     *      4. reapply the rollbacked steps (make sure the first one to be
+     *         reapplied has the correct previous step)
+     *
+     */
+    onExternalHistoryStep(newStep) {
+        // if (!this._isCollaborativeActive) {
+        //     return;
+        // }
+        this.observerUnactive();
+        const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
+        // newStep has the correct previous id so we simply apply it.
+        if (previousStep === peek(this._historySteps)) {
+            this.historyApply(newStep.mutations);
+            this._historySteps.push(newStep);
+        } else if (previousStep) {
+            this._computeHistoryCursor();
+            const currentStep = this._currentStep;
+            if (currentStep.mutations && currentStep.mutations.length) {
+                this.historyRevert(currentStep);
+            }
+            // rollback right until the new step's previous step (not included)
+            const stepsToReapply = [];
+            let i = 0;
+            while (
+                this._historySteps.length &&
+                this._historySteps[this._historySteps.length - 1] !== previousStep
+            ) {
+                if (i > 1000) throw new Error('loop error');
+                i++;
+                // Put the step at the beginning of the array, so that the first
+                // reverted step is the last reapplied
+                stepsToReapply.unshift(this._historySteps.pop());
+                this.historyRevert(stepsToReapply[0]);
+            }
+            // pick between new step and local step for reordering
+            const localStep = stepsToReapply[0];
+            if (newStep.id.localeCompare(localStep.id) < 0) {
+                // New step's id comes before local step's id in alphabetical
+                // order so the local steps gets reordered
+                localStep.previousStepId = newStep.id;
+                stepsToReapply.unshift(newStep);
+            } else {
+                stepsToReapply.shift();
+                if (stepsToReapply[0]) {
+                    stepsToReapply[0].previousStepId = newStep.id;
+                }
+                stepsToReapply.unshift(newStep);
+                newStep.previousStepId = localStep.id;
+                stepsToReapply.unshift(localStep);
+            }
+            stepsToReapply.forEach(step => {
+                this.historyApply(step.mutations);
+                this._historySteps.push(step);
+            });
+
+            if (currentStep.mutations && currentStep.mutations.length) {
+                this.historyApply(currentStep.mutations);
+            }
+            this.historySetCursor(currentStep);
+        } else {
+            if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
+        }
+        this.observerActive();
+        this._multiselectionRefresh();
+    }
+
+    // Multi selection
+    // -------------------------------------------------------------------------
+
+    onExternalMultiselectionUpdate(selection) {
+        this._multiselectionDisplay(selection);
+        const { clientId } = selection;
+        if (this._cursorInfos.has(clientId)) {
+            this._cursorInfos.get(clientId).selection = selection;
+        } else {
+            this._cursorInfos.set(clientId, { selection });
+        }
+    }
+
+    _multiselectionRefresh() {
+        Array.from(this._cursorInfos.values()).forEach(({ selection }) =>
+            this._multiselectionDisplay(selection),
+        );
+    }
+
+    _multiselectionDisplay({ range, color, direction, clientId, name = 'Anonyme' }) {
+        const className = `collaborator-selection-displayer collaborator-selection-user-${clientId}`;
+        let clientRects;
+        try {
+            clientRects = Array.from(
+                objectToRange(range, id => this.idFind(id), this.document).getClientRects(),
+            );
+        } catch (e) {
+            // changes in the dom might prevent the range to be instantiated
+            // (because of a removed node for example), in which case we ignore
+            // the range
+            clientRects = [];
+        }
+        if (!clientRects.length) {
+            return;
+        }
+        const indicators = clientRects.map(({ x, y, width, height }) => {
+            const el = this.document.createElement('div');
+            const top = this.document.documentElement.scrollTop + y;
+            el.style = `
+                position: absolute;
+                top: ${top}px;
+                left: ${x}px;
+                width: ${width}px;
+                height: ${height}px;
+                background-color: ${color};
+                opacity: 0.25;
+                pointer-events: none;`;
+
+            el.className = className;
+            return el;
+        });
+        const caret = this.document.createElement('div');
+        caret.style = `border-left: 2px solid ${color}; position: absolute;`;
+        caret.className = className;
+        // Unrelated to the comedian.
+        const caretTop = this.document.createElement('div');
+        const baseCaretTopStyle = `min-height: 5px; min-width: 5px; color: #fff; text-shadow: 0 0 5px #000; background-color: ${color}; position: absolute; bottom: 100%; left: -4px; white-space: nowrap;`
+        caretTop.style = baseCaretTopStyle;
+        caretTop.addEventListener('mouseenter', () => {
+            caretTop.innerText = name;
+            caretTop.style = baseCaretTopStyle + 'border-radius: 2px; padding: 0.3em 0.6em;';
+        });
+        caretTop.addEventListener('mouseleave', () => {
+            caretTop.innerText = '';
+            caretTop.style = baseCaretTopStyle;
+        });
+        caret.append(caretTop);
+        if (clientRects.length) {
+            if (direction === DIRECTIONS.LEFT) {
+                const rect = clientRects[0];
+                caret.style.height = `${rect.height * 1.2}px`;
+                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
+                caret.style.left = `${rect.x}px`;
+            } else {
+                const rect = peek(clientRects);
+                caret.style.height = `${rect.height * 1.2}px`;
+                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
+                caret.style.left = `${rect.x + rect.width}px`;
+            }
+        }
+        this._multiselectionRemove(clientId);
+        this._collaboratorIndicatorContainer.append(caret, ...indicators);
+    }
+
+    _multiselectionRemove(clientId) {
+        Array.from(
+            this._collaboratorIndicatorContainer.querySelectorAll(
+                `.collaborator-selection-displayer.collaborator-selection-user-${clientId}`,
+            ),
+        ).forEach(el => el.remove());
     }
 
     /**
@@ -1136,7 +1118,7 @@ export class OdooEditor extends EventTarget {
                 } else {
                     next = firstLeaf(next);
                 }
-            }, this.historyGetCurrentStep().mutations.length);
+            }, this._currentStep.mutations.length);
             if ([UNBREAKABLE_ROLLBACK_CODE, UNREMOVABLE_ROLLBACK_CODE].includes(res)) {
                 restore();
                 break;
@@ -1324,7 +1306,7 @@ export class OdooEditor extends EventTarget {
      * @param {boolean} [useCache=false]
      */
     _recordHistoryCursor(useCache = false) {
-        const latest = this.historyGetCurrentStep();
+        const latest = this._currentStep;
         latest.cursor =
             (useCache ? this._latestComputedCursor : this._computeHistoryCursor()) || {};
     }
@@ -1820,7 +1802,7 @@ export class OdooEditor extends EventTarget {
         // Record the cursor position that was computed on keydown or before
         // contentEditable execCommand (whatever preceded the 'input' event)
         this._recordHistoryCursor(true);
-        const cursor = this.historyGetCurrentStep().cursor;
+        const cursor = this._currentStep.cursor;
         const { focusOffset, focusNode, anchorNode, anchorOffset } = cursor || {};
         const wasCollapsed = !cursor || (focusNode === anchorNode && focusOffset === anchorOffset);
 
@@ -2177,7 +2159,7 @@ export class OdooEditor extends EventTarget {
         } else {
             this._activateContenteditable();
         }
-        // Ignore any changes that might have happened before this point
+        // Ignore any changes that might have happened before this point.
         this.observer.takeRecords();
 
         const node = ev.target;

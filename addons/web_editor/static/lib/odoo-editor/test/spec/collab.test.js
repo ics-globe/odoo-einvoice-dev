@@ -1,5 +1,6 @@
-import { OdooEditor as Editor } from '../editor.js';
-import { parseTextualSelection, setSelection } from './utils.js';
+import { OdooEditor } from '../../src/OdooEditor.js';
+import { parseTextualSelection, setSelection } from '../utils.js';
+// /home/goaman/src/master-editor-collab-nby/odoo/addons/web_editor/static/lib/odoo-editor/test/
 
 const getIncomingStep = (previousStepId, id = '328e7db4-6abf-48e5-88de-2ac505323735') => ({
     cursor: { anchorNode: 1, anchorOffset: 2, focusNode: 1, focusOffset: 2 },
@@ -37,7 +38,7 @@ const testCommandSerialization = (content, commandCb) => {
     const receivingNode = document.createElement('div');
     document.body.appendChild(receivingNode);
 
-    const receivingEditor = new Editor(receivingNode, {
+    const receivingEditor = new OdooEditor(receivingNode, {
         toSanitize: false,
         collaborative: {
             send: () => {},
@@ -49,21 +50,21 @@ const testCommandSerialization = (content, commandCb) => {
     } else {
         document.getSelection().removeAllRanges();
     }
-    const editor = new Editor(editable, {
+    const editor = new OdooEditor(editable, {
         toSanitize: false,
         collaborative: {
             send: s => {
-                receivingEditor.historyReceive(s);
+                receivingEditor.onExternalHistoryStep(s);
             },
         },
     });
     editor.keyboardType = 'PHYSICAL_KEYBOARD';
-    receivingEditor.historySynchronise(editor.historyGetSnapshot());
+    receivingEditor.historyResetAndSync(editor.historyGetSnapshot());
     commandCb(editor);
     window.chai.expect(editable.innerHTML).to.equal(receivingNode.innerHTML);
 };
 
-describe('Collaboration', () => {
+describe.only('Collaboration', () => {
     describe('Receive step', () => {
         it('should apply a step when receving a step that is not in the history yet', () => {
             const testNode = document.createElement('div');
@@ -72,7 +73,7 @@ describe('Collaboration', () => {
             document.getSelection().setPosition(testNode);
             const synchRequestSpy = window.sinon.fake();
             const sendSpy = window.sinon.fake();
-            const editor = new Editor(testNode, {
+            const editor = new OdooEditor(testNode, {
                 toSanitize: false,
                 collaborative: {
                     send: sendSpy,
@@ -87,7 +88,7 @@ describe('Collaboration', () => {
 
             const incomingStep = getIncomingStep(editor._historySteps[0].id);
             const historyStepsBeforeReceive = [...editor._historySteps];
-            editor.historyReceive(incomingStep);
+            editor.onExternalHistoryStep(incomingStep);
 
             window.chai.expect(synchRequestSpy.callCount).to.equal(0);
             window.chai.expect(sendSpy.callCount).to.equal(0);
@@ -107,7 +108,7 @@ describe('Collaboration', () => {
             document.getSelection().setPosition(testNode);
             const synchRequestSpy = window.sinon.fake();
             const sendSpy = window.sinon.fake();
-            const editor = new Editor(testNode, {
+            const editor = new OdooEditor(testNode, {
                 toSanitize: false,
                 collaborative: {
                     send: sendSpy,
@@ -130,7 +131,7 @@ describe('Collaboration', () => {
             const existingSteps = editor._historySteps.slice(1);
             existingSteps[0].id = 'b';
             const incomingSecondStep = { ...incomingStep };
-            editor.historyReceive(incomingSecondStep);
+            editor.onExternalHistoryStep(incomingSecondStep);
 
             window.chai.expect(synchRequestSpy.callCount).to.equal(0);
             window.chai.expect(observerUnactiveSpy.callCount).to.equal(1);
@@ -164,7 +165,7 @@ describe('Collaboration', () => {
             document.getSelection().setPosition(testNode);
             const synchRequestSpy = window.sinon.fake();
             const sendSpy = window.sinon.fake();
-            const editor = new Editor(testNode, {
+            const editor = new OdooEditor(testNode, {
                 toSanitize: false,
                 collaborative: {
                     send: sendSpy,
@@ -184,7 +185,7 @@ describe('Collaboration', () => {
             // Take everything but the "init" step.
             const existingSteps = editor._historySteps.slice(1);
             existingSteps[0].id = 'a';
-            editor.historyReceive(incomingStep);
+            editor.onExternalHistoryStep(incomingStep);
 
             window.chai.expect(synchRequestSpy.callCount).to.equal(0);
             window.chai.expect(observerUnactiveSpy.callCount).to.equal(1);
@@ -213,7 +214,7 @@ describe('Collaboration', () => {
             document.getSelection().setPosition(testNode);
             const synchRequestSpy = window.sinon.fake();
             const sendSpy = window.sinon.fake();
-            const editor = new Editor(testNode, {
+            const editor = new OdooEditor(testNode, {
                 toSanitize: false,
                 collaborative: {
                     send: sendSpy,
@@ -232,7 +233,7 @@ describe('Collaboration', () => {
             const incomingStep = getIncomingStep('42');
             const historyStepsBeforeReceive = [...editor._historySteps];
             const incoming6thStep = { ...incomingStep, index: 5 };
-            editor.historyReceive(incoming6thStep);
+            editor.onExternalHistoryStep(incoming6thStep);
 
             window.chai.expect(synchRequestSpy.callCount).to.equal(1);
             window.chai.expect(sendSpy.callCount).to.equal(0);
@@ -248,7 +249,7 @@ describe('Collaboration', () => {
             const testNode = document.createElement('div');
             document.body.appendChild(testNode);
             document.getSelection().setPosition(testNode);
-            const editor = new Editor(testNode, {
+            const editor = new OdooEditor(testNode, {
                 toSanitize: false,
                 collaborative: {
                     send: () => {},
@@ -263,14 +264,14 @@ describe('Collaboration', () => {
             const snap = editor.historyGetSnapshot();
             const virtualNode = document.createElement('div');
 
-            const secondEditor = new Editor(virtualNode, {
+            const secondEditor = new OdooEditor(virtualNode, {
                 toSanitize: false,
                 collaborative: {
                     send: () => {},
                     requestSynchronization: () => {},
                 },
             });
-            secondEditor.historySynchronise(snap);
+            secondEditor.historyResetAndSync(snap);
             var origIt = document.createNodeIterator(testNode);
             var destIt = document.createNodeIterator(virtualNode);
             var res;
