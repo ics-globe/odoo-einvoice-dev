@@ -982,7 +982,7 @@ export class OdooEditor extends EventTarget {
         caret.className = className;
         // Unrelated to the comedian.
         const caretTop = this.document.createElement('div');
-        const baseCaretTopStyle = `min-height: 5px; min-width: 5px; color: #fff; text-shadow: 0 0 5px #000; background-color: ${color}; position: absolute; bottom: 100%; left: -4px; white-space: nowrap;`
+        const baseCaretTopStyle = `min-height: 5px; min-width: 5px; color: #fff; text-shadow: 0 0 5px #000; background-color: ${color}; position: absolute; bottom: 100%; left: -4px; white-space: nowrap;`;
         caretTop.style = baseCaretTopStyle;
         caretTop.addEventListener('mouseenter', () => {
             caretTop.innerText = name;
@@ -1366,7 +1366,10 @@ export class OdooEditor extends EventTarget {
         // "undo"
         let totalConsumed = 0;
         for (let index = this._historySteps.length - 1; index >= 0; index--) {
-            if (this._historySteps[index] && this._historySteps[index].clientId === this._clientId) {
+            if (
+                this._historySteps[index] &&
+                this._historySteps[index].clientId === this._clientId
+            ) {
                 const state = this._historyStepsStates.get(this._historySteps[index].id);
                 switch (state) {
                     case 'undo':
