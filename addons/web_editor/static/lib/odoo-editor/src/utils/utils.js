@@ -482,6 +482,7 @@ export function setCursor(
         range.collapse(false);
     }
     sel.removeAllRanges();
+    console.warn('add range3');
     sel.addRange(range);
     sel.extend(focusNode, focusOffset);
 
@@ -646,6 +647,7 @@ export function getDeepRange(editable, { range, sel, splitText, select, correctT
             range.collapse(true);
         }
         sel.removeAllRanges();
+        console.warn('add range4');
         sel.addRange(range);
         try {
             sel.extend(end, endOffset);

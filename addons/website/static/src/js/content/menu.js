@@ -73,6 +73,7 @@ const BaseAnimatedHeader = animations.Animation.extend({
      * @private
      */
     _adaptFixedHeaderPosition() {
+        return
         dom.compensateScrollbar(this.el, this.fixedHeader, false, 'right');
     },
     /**

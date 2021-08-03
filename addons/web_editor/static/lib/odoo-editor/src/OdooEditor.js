@@ -263,6 +263,13 @@ export class OdooEditor extends EventTarget {
         this.addDomListener(this.document, 'mousedown', this._onDoumentMousedown);
         this.addDomListener(this.document, 'mouseup', this._onDoumentMouseup);
 
+        this.multiselectionRefresh = this.multiselectionRefresh.bind(this);
+        // this.addDomListener(this.document.body, 'scroll', this.multiselectionRefresh);
+        // this.document.defaultView.addEventListener('resize', this.multiselectionRefresh);
+
+        this.resizeObserver = new ResizeObserver(this.multiselectionRefresh);
+        this.resizeObserver.observe(this.document.body);
+        this.resizeObserver.observe(this.editable);
         // -------
         // Toolbar
         // -------
@@ -313,6 +320,8 @@ export class OdooEditor extends EventTarget {
         this._removeDomListener();
         this.commandBar.destroy();
         this.commandbarTablePicker.el.remove();
+        this.document.defaultView.removeEventListener('resize', this.multiselectionRefresh);
+
     }
 
     sanitize() {
@@ -592,7 +601,7 @@ export class OdooEditor extends EventTarget {
         this._checkStepUnbreakable = true;
         this._recordHistoryCursor();
         this.dispatchEvent(new Event('historyStep'));
-        this._multiselectionRefresh();
+        this.multiselectionRefresh();
     }
     // apply changes according to some records
     historyApply(records) {
@@ -843,6 +852,7 @@ export class OdooEditor extends EventTarget {
         //     return;
         // }
         this.observerUnactive();
+        console.log("newStep:", newStep);
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
@@ -897,7 +907,7 @@ export class OdooEditor extends EventTarget {
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
         this.observerActive();
-        this._multiselectionRefresh();
+        this.multiselectionRefresh();
     }
 
     // Multi selection
@@ -913,10 +923,10 @@ export class OdooEditor extends EventTarget {
         }
     }
 
-    _multiselectionRefresh() {
-        Array.from(this._cursorInfos.values()).forEach(({ selection }) =>
-            this._multiselectionDisplay(selection),
-        );
+    multiselectionRefresh() {
+        for (const { selection } of this._cursorInfos.values()) {
+            this._multiselectionDisplay(selection)
+        }
     }
 
     _multiselectionDisplay({ range, color, direction, clientId, name = 'Anonyme' }) {
@@ -2110,6 +2120,7 @@ export class OdooEditor extends EventTarget {
         }
         if (startContainerNotEditable || endContainerNotEditable) {
             selection.removeAllRanges();
+            console.warn('add range1');
             selection.addRange(newRange);
         }
     }
