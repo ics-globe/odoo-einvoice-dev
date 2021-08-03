@@ -925,21 +925,37 @@ export class OdooEditor extends EventTarget {
 
     multiselectionRefresh() {
         for (const { selection } of this._cursorInfos.values()) {
-            this._multiselectionDisplay(selection)
+            this._multiselectionDisplay(selection);
         }
     }
 
-    _multiselectionDisplay({ range, color, direction, clientId, name = 'Anonyme' }) {
+    _multiselectionDisplay({ selection, color, clientId, name = 'Anonyme' }) {
         const className = `collaborator-selection-displayer collaborator-selection-user-${clientId}`;
         let clientRects;
-        try {
-            clientRects = Array.from(
-                objectToRange(range, id => this.idFind(id), this.document).getClientRects(),
+
+        const anchorNode = this.idFind(selection.anchorNode);
+        const focusNode = this.idFind(selection.focusNode);
+        const direction = getCursorDirection(
+            anchorNode,
+            selection.anchorOffset,
+            focusNode,
+            selection.focusOffset,
             );
+        const range = new Range();
+        try {
+            if (direction === DIRECTIONS.RIGHT) {
+                range.setStart(anchorNode, selection.anchorOffset);
+                range.setEnd(focusNode, selection.focusOffset);
+            } else {
+                range.setStart(focusNode, selection.focusOffset);
+                range.setEnd(anchorNode, selection.anchorOffset);
+            }
+
+            clientRects = Array.from(range.getClientRects());
         } catch (e) {
-            // changes in the dom might prevent the range to be instantiated
+            // Changes in the dom might prevent the range to be instantiated
             // (because of a removed node for example), in which case we ignore
-            // the range
+            // the range.
             clientRects = [];
         }
         if (!clientRects.length) {
@@ -1304,9 +1320,9 @@ export class OdooEditor extends EventTarget {
             return this._latestComputedCursor;
         }
         this._latestComputedCursor = {
-            anchorNode: sel.anchorNode.oid,
+            anchorNode: sel.anchorNode,
             anchorOffset: sel.anchorOffset,
-            focusNode: sel.focusNode.oid,
+            focusNode: sel.focusNode,
             focusOffset: sel.focusOffset,
         };
         return this._latestComputedCursor;
@@ -1318,7 +1334,9 @@ export class OdooEditor extends EventTarget {
     _recordHistoryCursor(useCache = false) {
         const latest = this._currentStep;
         latest.cursor =
-            (useCache ? this._latestComputedCursor : this._computeHistoryCursor()) || {};
+            selectionToObject(
+                useCache ? this._latestComputedCursor : this._computeHistoryCursor(),
+            ) || {};
     }
     /**
      * Get the step index in the history to undo.
@@ -1954,10 +1972,18 @@ export class OdooEditor extends EventTarget {
             this._fixFontAwesomeSelection();
         }
         if (selection.getRangeAt(0) && this.options.onCollaborativeSelectionChange) {
-            this.options.onCollaborativeSelectionChange(
-                Object.assign(selectionToObject(selection), { color: this._cursorColor, clientId: this._clientId })
-            );
+            this.options.onCollaborativeSelectionChange(this.getCurrentCollaborativeCursor());
         }
+    }
+
+    getCurrentCollaborativeCursor() {
+        const selection = this._latestComputedCursor || this._computeHistoryCursor();
+        if (!selection) return;
+        return Object.assign({
+            selection: selectionToObject(selection),
+            color: this._cursorColor,
+            clientId: this._clientId,
+        });
     }
 
     clean() {

@@ -120,13 +120,14 @@ const Wysiwyg = Widget.extend({
                     },
                 });
             },
-            onNotification: ({ notificationName, notificationPayload }) => {
+            onNotification: ({ fromClientId, notificationName, notificationPayload }) => {
                 switch (notificationName) {
                     case 'rtc_connection_statechange':
-                        if (!firstHistoryRequested && notificationPayload === 'connected') {
+                        if (!firstHistoryRequested && notificationPayload.connectionState === 'connected') {
                             firstHistoryRequested = true;
                             console.log('requesting first history');
                             requestNewHistory();
+                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_cursor');
                         }
                         break;
                     case 'oe_history_request':
@@ -141,6 +142,17 @@ const Wysiwyg = Widget.extend({
                         break;
                     case 'oe_history_step':
                         this.odooEditor.onExternalHistoryStep(notificationPayload);
+                        break;
+                    case 'oe_history_request_cursor':
+                        const selection = this.odooEditor.getCurrentCollaborativeCursor();
+                        if (selection) {
+                            this.rtc.notifyClient(
+                                fromClientId,
+                                'oe_history_set_selection',
+                                this.odooEditor.getCurrentCollaborativeCursor(),
+                                { transport: 'rtc' }
+                            );
+                        }
                         break;
                     case 'oe_history_set_selection':
                         this.odooEditor.onExternalMultiselectionUpdate(notificationPayload);

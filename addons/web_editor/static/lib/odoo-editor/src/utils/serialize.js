@@ -49,20 +49,11 @@ export function objectToNode(obj) {
 }
 
 export function selectionToObject(selection) {
-    const range = selection.getRangeAt(0);
     return {
-        range: {
-            startContainer: range.startContainer.oid,
-            endContainer: range.endContainer.oid,
-            startOffset: range.startOffset,
-            endOffset: range.endOffset,
-        },
-        direction: getCursorDirection(
-            selection.anchorNode,
-            selection.anchorOffset,
-            selection.focusNode,
-            selection.focusOffset,
-        ),
+        anchorNode: selection.anchorNode.oid,
+        anchorOffset: selection.anchorOffset,
+        focusNode: selection.focusNode.oid,
+        focusOffset: selection.focusOffset,
     };
 }
 

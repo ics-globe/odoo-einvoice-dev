@@ -59,7 +59,10 @@ export class RTC {
 
             this.handleNotification({
                 notificationName: 'rtc_connection_statechange',
-                notificationPayload: peerConnection.connectionState,
+                notificationPayload: {
+                    connectionState: peerConnection.connectionState,
+                    connectionClientId: clientId,
+                },
             });
         };
         peerConnection.onicecandidateerror = async (error) => {
