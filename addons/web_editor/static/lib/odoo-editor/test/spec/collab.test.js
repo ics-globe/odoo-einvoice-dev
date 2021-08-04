@@ -1,6 +1,6 @@
 import { OdooEditor } from '../../src/OdooEditor.js';
-import { parseTextualSelection, setSelection } from '../utils.js';
-// /home/goaman/src/master-editor-collab-nby/odoo/addons/web_editor/static/lib/odoo-editor/test/
+import { sanitize } from '../../src/utils/sanitize.js';
+import { parseMultipleTextualSelection, setSelection } from '../utils.js';
 
 const getIncomingStep = (previousStepId, id = '328e7db4-6abf-48e5-88de-2ac505323735') => ({
     cursor: { anchorNode: 1, anchorOffset: 2, focusNode: 1, focusOffset: 2 },
@@ -64,7 +64,79 @@ const testCommandSerialization = (content, commandCb) => {
     window.chai.expect(editable.innerHTML).to.equal(receivingNode.innerHTML);
 };
 
-describe.only('Collaboration', () => {
+const testFunction = spec => {
+    const testNode = document.createElement('div');
+    document.body.appendChild(testNode);
+
+    // Add the content to edit and remove the "[]" markers *before* initializing
+    // the editor as otherwise those would genererate mutations the editor would
+    // consider and the tests would make no sense.
+    testNode.innerHTML = spec.contentBefore;
+    const selections = parseMultipleTextualSelection(testNode);
+    console.log('selections:', selections);
+    console.log("testNode:", testNode.innerHTML);
+
+    const testInfos = [];
+    const clientIds = Object.keys(spec.concurentActions);
+    for (const clientId of clientIds) {
+        const testInfo = {};
+        testInfo.iframe = document.createElement('iframe');
+        // avoid firefox to set the content of the iframe
+        testInfo.iframe.setAttribute('src', ' javascript:void(0);');
+        document.body.appendChild(testInfo.iframe);
+        const editable = document.createElement('div');
+        editable.setAttribute('contenteditable', 'true');
+        editable.innerHTML = spec.contentBefore;
+        const iframeDocument = testInfo.iframe.contentWindow.document;
+        iframeDocument.body.appendChild(editable);
+
+        const clientTestNode = testNode.cloneNode();
+        testInfo.editor = new OdooEditor(clientTestNode, { toSanitize: false });
+        testInfo.editor.keyboardType = 'PHYSICAL_KEYBOARD';
+        const selection = selections[clientId];
+        if (selection) {
+            setSelection(selection, iframeDocument);
+        } else {
+            iframeDocument.getSelection().removeAllRanges();
+        }
+
+        // we have to sanitize after having put the cursor
+        sanitize(editor.editable);
+    }
+
+    for (const testInfo of testInfos) {
+        testInfo.editor.destroy();
+        testInfo.iframe.destroy();
+    }
+    // iframes.forEach(x=>x.remove());
+
+    // iframe.contentWindow.document.body.innerHTML = 'foo';
+
+    // const editor = new Editor(testNode, { toSanitize: false });
+    // editor.keyboardType = 'PHYSICAL_KEYBOARD';
+    // if (selection) {
+    //     setSelection(selection);
+    // } else {
+    //     document.getSelection().removeAllRanges();
+    // }
+
+    // // we have to sanitize after having put the cursor
+    // sanitize(editor.editable);
+    // await spec.stepFunction(editor);
+
+    // // Same as above: disconnect mutation observers and other things, otherwise
+    // // reading the "[]" markers would broke the test.
+    // editor.destroy();
+
+    // if (spec.contentAfter) {
+    //     renderTextualSelection();
+    //     const value = testNode.innerHTML;
+    //     window.chai.expect(value).to.be.equal(spec.contentAfter);
+    // }
+    // testNode.remove();
+};
+
+describe('Collaboration', () => {
     describe('Receive step', () => {
         it('should apply a step when receving a step that is not in the history yet', () => {
             const testNode = document.createElement('div');
@@ -536,6 +608,20 @@ describe.only('Collaboration', () => {
             testCommandSerialization('<p>[test]<br></p>', editor => {
                 editor.execCommand('insertHTML', '<b>lol</b>');
             });
+        });
+    });
+    describe.only('Conflict resolution', () => {
+        testFunction({
+            contentBefore: 'ab[c1}{c1][c2}{c2]c',
+            concurentActions: {
+                c1: editor => {
+                    editor.execCommand('insertText', 'd');
+                },
+                c2: editor => {
+                    editor.execCommand('removeBackward');
+                },
+            },
+            contentAfter: 'a[c2}{c2]d[c1}{c1]c',
         });
     });
 });

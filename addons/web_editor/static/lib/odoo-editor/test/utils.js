@@ -93,13 +93,87 @@ export function parseTextualSelection(testContainer) {
     }
 }
 
+export function parseMultipleTextualSelection(testContainer) {
+    let currentNode = testContainer;
+
+    const clients = {};
+    while (currentNode) {
+        window.i = window.i || 1;
+        if (i++ > 1000) throw new Error('i too big');
+        console.log('currentNode:', currentNode);
+        if (currentNode.nodeType === Node.TEXT_NODE) {
+            // Look for special characters in the text content and remove them.
+            let match;
+            const regex = new RegExp(/(?:\[(\w+)\})|(?:\{(\w+)])/, 'gd');
+            while ((match = regex.exec(currentNode.textContent))) {
+                regex.lastIndex = 0;
+                const indexes = match.indices[0];
+
+                if (match[0].includes('}')) {
+                    const clientId = match[1];
+                    clients[clientId] = clients[clientId] || {};
+                    clients[clientId].anchorNode = currentNode;
+                    clients[clientId].anchorOffset = indexes[0];
+                    if (clients[clientId].focusNode) {
+                        clients[clientId].direction = Direction.FORWARD;
+                    }
+                } else {
+                    const clientId = match[2];
+                    clients[clientId] = clients[clientId] || {};
+                    clients[clientId].focusNode = currentNode;
+                    clients[clientId].focusOffset = indexes[0];
+                    if (clients[clientId].anchorNode) {
+                        clients[clientId].direction = Direction.BACKWARD;
+                    }
+                }
+                currentNode.textContent =
+                    currentNode.textContent.slice(0, indexes[0]) +
+                    currentNode.textContent.slice(indexes[1]);
+                console.log("currentNode.textContent:", currentNode.textContent);
+            }
+        }
+        currentNode = _nextNode(currentNode);
+    }
+
+    return clients;
+}
+
+/**
+ * Insert in the DOM:
+ * - `SELECTION_ANCHOR_CHAR` in place for the selection start
+ * - `SELECTION_FOCUS_CHAR` in place for the selection end
+ *
+ * This is used in the function `testEditor`.
+ */
+export function renderMultipleTextualSelection() {
+    const selection = document.getSelection();
+    if (selection.rangeCount === 0) {
+        return;
+    }
+
+    const anchor = targetDeepest(selection.anchorNode, selection.anchorOffset);
+    const focus = targetDeepest(selection.focusNode, selection.focusOffset);
+
+    // If the range characters have to be inserted within the same parent and
+    // the anchor range character has to be before the focus range character,
+    // the focus offset needs to be adapted to account for the first insertion.
+    const [anchorNode, anchorOffset] = anchor;
+    const [focusNode, baseFocusOffset] = focus;
+    let focusOffset = baseFocusOffset;
+    if (anchorNode === focusNode && anchorOffset <= focusOffset) {
+        focusOffset++;
+    }
+    _insertCharAt('[', ...anchor);
+    _insertCharAt(']', focusNode, focusOffset);
+}
+
 /**
  * Set a range in the DOM.
  *
  * @param selection
  */
-export function setSelection(selection) {
-    const domRange = document.createRange();
+export function setSelection(selection, doc = document) {
+    const domRange = doc.createRange();
     if (selection.direction === Direction.FORWARD) {
         domRange.setStart(selection.anchorNode, selection.anchorOffset);
         domRange.collapse(true);

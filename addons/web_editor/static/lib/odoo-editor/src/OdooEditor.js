@@ -214,11 +214,7 @@ export class OdooEditor extends EventTarget {
         // Set contenteditable before clone as FF updates the content at this point.
         this._activateContenteditable();
 
-        // User id is only useful in collaborative mode, but to have effective
-        // tests, the editor should work in the same manner as much as possible
-        // in both mode.
-        this._clientId =
-            (this.options.collaborative && this.options.collaborative.clientId) || uuidV4();
+        this._clientId = this.options.collaborationClientId;
 
         // Colaborator selection and caret display.
         this._cursorInfos = new Map();
@@ -321,7 +317,8 @@ export class OdooEditor extends EventTarget {
         this.commandBar.destroy();
         this.commandbarTablePicker.el.remove();
         this.document.defaultView.removeEventListener('resize', this.multiselectionRefresh);
-
+        this._collaboratorIndicatorContainer.remove();
+        this.resizeObserver.disconnect();
     }
 
     sanitize() {
@@ -852,7 +849,7 @@ export class OdooEditor extends EventTarget {
         //     return;
         // }
         this.observerUnactive();
-        console.log("newStep:", newStep);
+        console.log('newStep:', newStep);
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
@@ -924,13 +921,14 @@ export class OdooEditor extends EventTarget {
     }
 
     multiselectionRefresh() {
+        this._collaboratorIndicatorContainer.innerHTML = '';
         for (const { selection } of this._cursorInfos.values()) {
             this._multiselectionDisplay(selection);
         }
     }
 
     _multiselectionDisplay({ selection, color, clientId, name = 'Anonyme' }) {
-        const className = `collaborator-selection-displayer collaborator-selection-user-${clientId}`;
+        const className = `oe-collaboration-caret`;
         let clientRects;
 
         const anchorNode = this.idFind(selection.anchorNode);
@@ -940,7 +938,7 @@ export class OdooEditor extends EventTarget {
             selection.anchorOffset,
             focusNode,
             selection.focusOffset,
-            );
+        );
         const range = new Range();
         try {
             if (direction === DIRECTIONS.RIGHT) {
@@ -962,27 +960,37 @@ export class OdooEditor extends EventTarget {
             return;
         }
         const indicators = clientRects.map(({ x, y, width, height }) => {
-            const el = this.document.createElement('div');
-            const top = this.document.documentElement.scrollTop + y;
-            el.style = `
+            const rectElement = this.document.createElement('div');
+            rectElement.style = `
                 position: absolute;
-                top: ${top}px;
+                top: ${this.document.documentElement.scrollTop + y}px;
                 left: ${x}px;
                 width: ${width}px;
                 height: ${height}px;
                 background-color: ${color};
                 opacity: 0.25;
-                pointer-events: none;`;
-
-            el.className = className;
-            return el;
+                pointer-events: none;
+            `;
+            rectElement.setAttribute('data-selection-client-id', clientId);
+            return rectElement;
         });
-        const caret = this.document.createElement('div');
-        caret.style = `border-left: 2px solid ${color}; position: absolute;`;
-        caret.className = className;
+        const caretElement = this.document.createElement('div');
+        caretElement.style = `border-left: 2px solid ${color}; position: absolute;`;
+        caretElement.setAttribute('data-selection-client-id', clientId);
+        caretElement.className = className;
         // Unrelated to the comedian.
         const caretTop = this.document.createElement('div');
-        const baseCaretTopStyle = `min-height: 5px; min-width: 5px; color: #fff; text-shadow: 0 0 5px #000; background-color: ${color}; position: absolute; bottom: 100%; left: -4px; white-space: nowrap;`;
+        const baseCaretTopStyle = `
+            min-height: 5px;
+            min-width: 5px;
+            color: #fff;
+            text-shadow: 0 0 5px #000;
+            background-color: ${color};
+            position: absolute;
+            bottom: 100%;
+            left: -4px;
+            white-space: nowrap
+        `;
         caretTop.style = baseCaretTopStyle;
         caretTop.addEventListener('mouseenter', () => {
             caretTop.innerText = name;
@@ -992,30 +1000,36 @@ export class OdooEditor extends EventTarget {
             caretTop.innerText = '';
             caretTop.style = baseCaretTopStyle;
         });
-        caret.append(caretTop);
+        caretElement.append(caretTop);
         if (clientRects.length) {
             if (direction === DIRECTIONS.LEFT) {
                 const rect = clientRects[0];
-                caret.style.height = `${rect.height * 1.2}px`;
-                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caret.style.left = `${rect.x}px`;
+                caretElement.style.height = `${rect.height * 1.2}px`;
+                caretElement.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
+                caretElement.style.left = `${rect.x}px`;
             } else {
                 const rect = peek(clientRects);
-                caret.style.height = `${rect.height * 1.2}px`;
-                caret.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caret.style.left = `${rect.x + rect.width}px`;
+                caretElement.style.height = `${rect.height * 1.2}px`;
+                caretElement.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
+                caretElement.style.left = `${rect.x + rect.width}px`;
             }
         }
-        this._multiselectionRemove(clientId);
-        this._collaboratorIndicatorContainer.append(caret, ...indicators);
+        this._multiselectionRemoveElements(clientId);
+        this._collaboratorIndicatorContainer.append(caretElement, ...indicators);
     }
 
-    _multiselectionRemove(clientId) {
-        Array.from(
-            this._collaboratorIndicatorContainer.querySelectorAll(
-                `.collaborator-selection-displayer.collaborator-selection-user-${clientId}`,
-            ),
-        ).forEach(el => el.remove());
+    multiselectionRemove(clientId) {
+        this._cursorInfos.delete(clientId);
+        this._multiselectionRemoveElements(clientId);
+    }
+
+    _multiselectionRemoveElements(clientId) {
+        const elements = this._collaboratorIndicatorContainer.querySelectorAll(
+                `[data-selection-client-id="${clientId}"]`,
+            );
+        for (const element of elements) {
+            element.remove();
+        }
     }
 
     /**

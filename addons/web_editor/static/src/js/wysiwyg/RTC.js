@@ -37,7 +37,7 @@ export class RTC {
             switch (peerConnection.iceConnectionState) {
                 case "failed":
                 case "closed":
-                    this._removeClient(clientId);
+                    this.removeClient(clientId);
                     break;
                 case "disconnected":
                     await this._recoverConnection(clientId, { delay: 1000, reason: 'ice connection disconnected' });
@@ -50,19 +50,16 @@ export class RTC {
             switch (peerConnection.connectionState) {
                 case "failed":
                 case "closed":
-                    this._removeClient(clientId);
+                    this.removeClient(clientId);
                     break;
                 case "disconnected":
                     await this._recoverConnection(clientId, { delay: 500, reason: 'connection disconnected' });
                     break;
             }
 
-            this.handleNotification({
-                notificationName: 'rtc_connection_statechange',
-                notificationPayload: {
-                    connectionState: peerConnection.connectionState,
-                    connectionClientId: clientId,
-                },
+            this.notifySelf('rtc_connection_statechange', {
+                connectionState: peerConnection.connectionState,
+                connectionClientId: clientId,
             });
         };
         peerConnection.onicecandidateerror = async (error) => {
@@ -111,7 +108,7 @@ export class RTC {
             // hard reset: recreating a RTCPeerConnection
             console.log(`RTC RECOVERY: calling back client ${clientId} to salvage the connection ${clientInfos.peerConnection.iceConnectionState}, reason: ${reason}`);
             await this.notifyClient(clientId, 'rtc_signal_disconnect');
-            this._removeClient(clientId);
+            this.removeClient(clientId);
             await this._createClient(clientId);
             this._killPotentialZombie(clientId);
         }, delay);
@@ -125,19 +122,30 @@ export class RTC {
         clientInfos.zombieTimeout = setTimeout(() => {
             if (clientInfos && clientInfos.peerConnection.connectionState === 'new') {
                 console.log('KILL ZOMBIE' , clientId);
-                this._removeClient(clientId);
+                this.removeClient(clientId);
             }
         }, 10000);
     }
 
-    _removeClient(clientId) {
+    removeClient(clientId, { shouldNotify = true } = {}) {
+        // todo: insure the client properly received the rtc_close if the
+        // peerConnection.connectionState is "connected".
+        if (shouldNotify) this.notifyClient(clientId, 'rtc_close');
+        this.notifySelf('rtc_remove_client', clientId);
         const clientInfos = this.clientsInfos[clientId];
+        if (!clientInfos) return;
         clearTimeout(clientInfos.fallbackTimeout);
         clientInfos.dataChannel.close();
         if (clientInfos.peerConnection) {
             clientInfos.peerConnection.close();
         }
         delete this.clientsInfos[clientId];
+    }
+
+    closeAllConnections() {
+        for (const clientId of Object.keys(this.clientsInfos)) {
+            this.removeClient(clientId);
+        }
     }
 
     notifyAllClients(notificationName, notificationPayload, { transport = 'server' } = {}) {
@@ -173,6 +181,10 @@ export class RTC {
         } else if (transport === 'rtc') {
             this._channelNotify(clientId, transportPayload);
         }
+    }
+
+    notifySelf(notificationName, notificationPayload) {
+        this.handleNotification({ notificationName, notificationPayload });
     }
 
     _channelNotify(clientId, transportPayload) {
@@ -278,7 +290,7 @@ export class RTC {
             }
         },
         rtc_signal_disconnect: (notification) => {
-            this._removeClient(notification.from_rtc_client_id)
+            this.removeClient(notification.from_rtc_client_id)
         }
     }
 }

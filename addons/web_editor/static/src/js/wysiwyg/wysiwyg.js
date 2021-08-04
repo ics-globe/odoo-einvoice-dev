@@ -90,7 +90,7 @@ const Wysiwyg = Widget.extend({
         this.call('bus_service', 'addChannel', channelName);
         this.call('bus_service', 'startPolling');
 
-        const currentClientId = new Date().getTime();
+        const currentClientId = '' + new Date().getTime();
 
         let firstHistoryRequested = false;
         const requestNewHistory = () => {
@@ -122,6 +122,15 @@ const Wysiwyg = Widget.extend({
             },
             onNotification: ({ fromClientId, notificationName, notificationPayload }) => {
                 switch (notificationName) {
+                    case 'rtc_remove_client':
+                        this.odooEditor.multiselectionRemove(notificationPayload);
+                        break;
+                    case 'rtc_close':
+                        // Set shouldNotify to false as we know that the client
+                        // will remove us by receiving this notification.
+                        this.rtc.removeClient(fromClientId, { shouldNotify: false });
+                        this.odooEditor.multiselectionRemove(fromClientId);
+                        break;
                     case 'rtc_connection_statechange':
                         if (!firstHistoryRequested && notificationPayload.connectionState === 'connected') {
                             firstHistoryRequested = true;
@@ -175,6 +184,7 @@ const Wysiwyg = Widget.extend({
             getContextFromParentRect: options.getContextFromParentRect,
             noScrollSelector: 'body, .note-editable, .o_content, #wrapwrap',
             commands: commands,
+            collaborationClientId: currentClientId,
             onHistoryStep: (historyStep) => {
                 console.log("this:", this);
                 this.rtc.notifyAllClients('oe_history_step', historyStep, { transport: 'rtc' });
@@ -192,9 +202,8 @@ const Wysiwyg = Widget.extend({
             $wrapwrap[0].addEventListener('scroll', this.odooEditor.multiselectionRefresh, { passive: true });
         }
 
-        // // todo: remove method when finish debugging
-        // this.join = () => this.rtc.notifyAllClients('rtc_join');
-        // this.join();
+        // todo: remove method when finish debugging
+        this.join = () => this.rtc.notifyAllClients('rtc_join');
         this.rtc.notifyAllClients('rtc_join');
 
         this._observeOdooFieldChanges();
@@ -292,6 +301,7 @@ const Wysiwyg = Widget.extend({
         if (this.odooEditor) {
             this.odooEditor.destroy();
         }
+        this.rtc.closeAllConnections();
         this.$editable && this.$editable.off('blur', this._onBlur);
         document.removeEventListener('mousedown', this._onDocumentMousedown, true);
         const $body = $(document.body);
