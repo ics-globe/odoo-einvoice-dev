@@ -363,9 +363,9 @@ class Cursor(BaseCursor):
         self.sql_log_count = 0
         self.sql_log = False
 
-    @check
     def close(self):
-        return self._close(False)
+        if not self._closed:
+            self._close(False)
 
     def _close(self, leak=False):
         global sql_counter
@@ -453,15 +453,28 @@ class Cursor(BaseCursor):
             self.postrollback.add(func)
 
     @check
-    def commit(self):
-        """ Perform an SQL `COMMIT` """
+    def _precommit(self):
         flush_env(self)
         self.precommit.run()
+
+    @check
+    def _commit(self):
         result = self._cnx.commit()
         self._now = None
+        return result
+
+    @check
+    def _postcommit(self):
         self.prerollback.clear()
         self.postrollback.clear()
         self.postcommit.run()
+
+    @check
+    def commit(self):
+        """ Perform an SQL `COMMIT` """
+        self._precommit()
+        result = self._commit()
+        self._postcommit()
         return result
 
     @check

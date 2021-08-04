@@ -31,7 +31,7 @@ class Home(odoo.addons.web.controllers.main.Home):
             except ValueError:
                 error = _("Invalid authentication code format.")
             else:
-                request.session.finalize()
+                request.session_authenticate_finalize()
                 return request.redirect(self._login_redirect(request.session.uid, redirect=redirect))
 
         return request.render('auth_totp.auth_totp_form', {

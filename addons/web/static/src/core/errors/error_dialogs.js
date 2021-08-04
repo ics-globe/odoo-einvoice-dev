@@ -176,6 +176,5 @@ registry
     .add("odoo.exceptions.UserError", WarningDialog)
     .add("odoo.exceptions.ValidationError", WarningDialog)
     .add("odoo.exceptions.RedirectWarning", RedirectWarningDialog)
-    .add("odoo.http.SessionExpiredException", SessionExpiredDialog)
     .add("werkzeug.exceptions.Forbidden", SessionExpiredDialog)
     .add("504", Error504Dialog);

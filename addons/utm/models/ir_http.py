@@ -25,8 +25,8 @@ class IrHttp(models.AbstractModel):
         return response
 
     @classmethod
-    def _dispatch(cls):
-        response = super(IrHttp, cls)._dispatch()
+    def _dispatch(cls, endpoint, **params):
+        response = super(IrHttp, cls)._dispatch(endpoint, **params)
         return cls._set_utm(response)
 
     @classmethod

@@ -10,7 +10,7 @@ from odoo.tools import misc
 
 class ImportController(http.Controller):
 
-    @http.route('/base_import/set_file', methods=['POST'])
+    @http.route('/base_import/set_file', methods=['POST'], type='http')
     def set_file(self, file, import_id, jsonp='callback'):
         import_id = int(import_id)
 

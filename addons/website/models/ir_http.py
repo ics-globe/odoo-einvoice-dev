@@ -94,25 +94,24 @@ class Http(models.AbstractModel):
         rewrites = dict([(x.url_from, x) for x in request.env['website.rewrite'].sudo().search(domain)])
         cls._rewrite_len[website_id] = len(rewrites)
 
-        for url, endpoint, routing in super(Http, cls)._generate_routing_rules(modules, converters):
-            routing = dict(routing)
+        for url, endpoint in super(Http, cls)._generate_routing_rules(modules, converters):
             if url in rewrites:
                 rewrite = rewrites[url]
                 url_to = rewrite.url_to
                 if rewrite.redirect_type == '308':
                     logger.debug('Add rule %s for %s' % (url_to, website_id))
-                    yield url_to, endpoint, routing  # yield new url
+                    yield url_to, endpoint  # yield new url
 
                     if url != url_to:
                         logger.debug('Redirect from %s to %s for website %s' % (url, url_to, website_id))
                         _slug_matching = partial(cls._slug_matching, endpoint=endpoint)
-                        routing['redirect_to'] = _slug_matching
-                        yield url, endpoint, routing  # yield original redirected to new url
+                        endpoint.routing['redirect_to'] = _slug_matching
+                        yield url, endpoint  # yield original redirected to new url
                 elif rewrite.redirect_type == '404':
                     logger.debug('Return 404 for %s for website %s' % (url, website_id))
                     continue
             else:
-                yield url, endpoint, routing
+                yield url, endpoint
 
     @classmethod
     def _get_converters(cls):
@@ -159,45 +158,37 @@ class Http(models.AbstractModel):
         return False
 
     @classmethod
-    def _postprocess_args(cls, arguments, rule):
-        processing = super()._postprocess_args(arguments, rule)
-        if processing:
-            return processing
+    def _pre_dispatch(cls, rule, arguments):
+        super()._pre_dispatch(rule, arguments)
 
         for record in arguments.values():
             if isinstance(record, models.BaseModel) and hasattr(record, 'can_access_from_current_website'):
                 try:
                     if not record.can_access_from_current_website():
-                        return request.env['ir.http']._handle_exception(werkzeug.exceptions.NotFound())
+                        raise werkzeug.exceptions.NotFound()
                 except AccessError:
                     # record.website_id might not be readable as unpublished `event.event` due to ir.rule,
                     # return 403 instead of using `sudo()` for perfs as this is low level
-                    return request.env['ir.http']._handle_exception(werkzeug.exceptions.Forbidden())
+                    raise werkzeug.exceptions.Forbidden()
 
     @classmethod
-    def _dispatch(cls):
-        """
-        In case of rerouting for translate (e.g. when visiting odoo.com/fr_BE/),
-        _dispatch calls reroute() that returns _dispatch with altered request properties.
-        The second _dispatch will continue until end of process. When second _dispatch is finished, the first _dispatch
-        call receive the new altered request and continue.
-        At the end, 2 calls of _dispatch (and this override) are made with exact same request properties, instead of one.
-        As the response has not been sent back to the client, the visitor cookie does not exist yet when second _dispatch call
-        is treated in _handle_webpage_dispatch, leading to create 2 visitors with exact same properties.
-        To avoid this, we check if, !!! before calling super !!!, we are in a rerouting request. If not, it means that we are
-        handling the original request, in which we should create the visitor. We ignore every other rerouting requests.
-        """
-        is_rerouting = hasattr(request, 'routing_iteration')
+    def _match(cls, path_info):
+        reg = registry(request.db)
+        with reg.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            request.website_routing = env['website'].get_current_website().id
 
-        if request.session.db:
-            reg = registry(request.session.db)
-            with reg.cursor() as cr:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                request.website_routing = env['website'].get_current_website().id
+        try:
+            return super()._match(path_info)
+        except Reroute as exc:
+            exc.req_attrs['website'] = request.website
+            raise
 
-        response = super(Http, cls)._dispatch()
+    @classmethod
+    def _dispatch(cls, endpoint, **params):
+        response = super(Http, cls)._dispatch(endpoint, **params)
 
-        if not is_rerouting:
+        if request.routing_iteration == 1:
             cls._register_website_track(response)
         return response
 
@@ -213,14 +204,14 @@ class Http(models.AbstractModel):
             request.env['website']._force_website(request.httprequest.args.get('fw'))
 
         context = {}
-        if not request.context.get('tz'):
+        if not request.env.context.get('tz'):
             context['tz'] = request.session.get('geoip', {}).get('time_zone')
             try:
                 pytz.timezone(context['tz'] or '')
             except pytz.UnknownTimeZoneError:
                 context.pop('tz')
 
-        request.website = request.env['website'].get_current_website()  # can use `request.env` since auth methods are called
+        request.website = request.env['website'].get_current_website()
         context['website_id'] = request.website.id
         # This is mainly to avoid access errors in website controllers where there is no
         # context (eg: /shop), and it's not going to propagate to the global context of the tab
@@ -233,7 +224,7 @@ class Http(models.AbstractModel):
             context['allowed_company_ids'] = request.env.user.company_id.ids
 
         # modify bound context
-        request.context = dict(request.context, **context)
+        request.update_context(**context)
 
         super(Http, cls)._add_dispatch_parameters(func)
 
@@ -333,13 +324,14 @@ class Http(models.AbstractModel):
         return request.env['website.rewrite'].sudo().search(domain, limit=1)
 
     @classmethod
-    def _serve_fallback(cls, exception):
+    def _serve_fallback(cls):
         # serve attachment before
-        parent = super(Http, cls)._serve_fallback(exception)
+        parent = super(Http, cls)._serve_fallback()
         if parent:  # attachment
             return parent
         if not request.is_frontend:
-            return False
+            return
+
         website_page = cls._serve_page()
         if website_page:
             return website_page
@@ -347,8 +339,6 @@ class Http(models.AbstractModel):
         redirect = cls._serve_redirect()
         if redirect:
             return request.redirect(_build_url_w_params(redirect.url_to, request.params), code=redirect.redirect_type)
-
-        return False
 
     @classmethod
     def _get_exception_code_values(cls, exception):

@@ -16,7 +16,7 @@ from odoo.http import request
 from odoo import registry as registry_get
 
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome as Home
-from odoo.addons.web.controllers.main import db_monodb, ensure_db, set_cookie_and_redirect, login_and_redirect
+from odoo.addons.web.controllers.main import ensure_db, set_cookie_and_redirect, login_and_redirect
 
 
 _logger = logging.getLogger(__name__)
@@ -170,7 +170,9 @@ class OAuthController(http.Controller):
         """login user via Odoo Account provider"""
         dbname = kw.pop('db', None)
         if not dbname:
-            dbname = db_monodb()
+            available_dbs = http.db_list(force=True)
+            if len(available_dbs) == 1:
+                dbname = available_dbs[0]
         if not dbname:
             return BadRequest()
         if not http.db_filter([dbname]):

@@ -19,10 +19,9 @@ class IrHttp(models.AbstractModel):
         attendee = request.env['calendar.attendee'].sudo().search([('access_token', '=', token)], limit=1)
         if not attendee:
             error_message = """Invalid Invitation Token."""
-        elif request.session.uid and request.session.login != 'anonymous':
+        elif request.env.uid and request.session.login != 'anonymous':
             # if valid session but user is not match
-            user = request.env['res.users'].sudo().browse(request.session.uid)
-            if attendee.partner_id != user.partner_id:
+            if attendee.partner_id != request.env.user.partner_id:
                 error_message = """Invitation cannot be forwarded via email. This event/meeting belongs to %s and you are logged in as %s. Please ask organizer to add you.""" % (attendee.email, user.email)
         if error_message:
             raise BadRequest(error_message)

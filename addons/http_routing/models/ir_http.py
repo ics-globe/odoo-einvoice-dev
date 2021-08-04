@@ -8,6 +8,7 @@ import unicodedata
 import werkzeug.exceptions
 import werkzeug.routing
 import werkzeug.urls
+from werkzeug.exceptions import NotFound
 
 # optional python-slugify import (https://github.com/un33k/python-slugify)
 try:
@@ -20,7 +21,7 @@ from odoo import api, models, registry, exceptions, tools
 from odoo.addons.base.models import ir_http
 from odoo.addons.base.models.ir_http import RequestUID
 from odoo.addons.base.models.qweb import QWebException
-from odoo.http import request
+from odoo.http import request, Reroute
 from odoo.osv import expression
 from odoo.tools import config, ustr, pycompat
 
@@ -359,6 +360,19 @@ class IrHttp(models.AbstractModel):
         return short_match
 
     @classmethod
+    def _pre_dispatch(self, rule, args):
+        super()._pre_dispatch(rule, args)
+        cls._geoip_setup_resolver()
+        cls._geoip_resolve()
+
+        # JUC, move to base.ir_http ?
+        try:
+            _, path = rule.build(args)
+            assert path is not None
+        except odoo.exceptions.MissingError:
+            raise werkzeug.exceptions.NotFound()
+
+    @classmethod
     def _geoip_setup_resolver(cls):
         # Lazy init of GeoIP resolver
         if odoo._geoip_resolver is not None:
@@ -382,7 +396,6 @@ class IrHttp(models.AbstractModel):
         Lang = request.env['res.lang']
         # only called for is_frontend request
         if request.routing_iteration == 1:
-            context = dict(request.context)
             path = request.httprequest.path.split('/')
             is_a_bot = cls.is_a_bot()
 
@@ -400,13 +413,10 @@ class IrHttp(models.AbstractModel):
                 lang = preferred_lang or cls._get_default_lang()
 
             request.lang = lang
-            context['lang'] = lang._get_cached('code')
-
-            # bind modified context
-            request.context = context
+            request.update_context(lang=lang._get_cached('code'))
 
     @classmethod
-    def _dispatch(cls):
+    def _match(cls, path_info):
         """ Before executing the endpoint method, add website params on request, such as
                 - current website (record)
                 - multilang support (set on cookies)
@@ -415,19 +425,13 @@ class IrHttp(models.AbstractModel):
             Reminder :  Do not use `request.env` before authentication phase, otherwise the env
                         set on request will be created with uid=None (and it is a lazy property)
         """
-        request.routing_iteration = getattr(request, 'routing_iteration', 0) + 1
 
         func = None
         routing_error = None
 
-        # handle // in url
-        if request.httprequest.method == 'GET' and '//' in request.httprequest.path:
-            new_url = request.httprequest.path.replace('//', '/') + '?' + request.httprequest.query_string.decode('utf-8')
-            return request.redirect(new_url, code=301)
-
         # locate the controller method
         try:
-            rule, arguments = cls._match(request.httprequest.path)
+            rule, arguments = super()._match(request.httprequest.path)
             func = rule.endpoint
             request.is_frontend = func.routing.get('website', False)
         except werkzeug.exceptions.NotFound as e:
@@ -441,18 +445,6 @@ class IrHttp(models.AbstractModel):
             routing_error = e
 
         request.is_frontend_multilang = not func or (func and request.is_frontend and func.routing.get('multilang', func.routing['type'] == 'http'))
-
-        # check authentication level
-        try:
-            if func:
-                cls._authenticate(func)
-            elif request.uid is None and request.is_frontend:
-                cls._auth_method_public()
-        except Exception as e:
-            return cls._handle_exception(e)
-
-        cls._geoip_setup_resolver()
-        cls._geoip_resolve()
 
         # For website routes (only), add website params on `request`
         if request.is_frontend:
@@ -483,7 +475,7 @@ class IrHttp(models.AbstractModel):
                     routing_error = None
                     redirect = request.redirect(path + '?' + request.httprequest.query_string.decode('utf-8'))
                     redirect.set_cookie('frontend_lang', request.lang.code)
-                    return redirect
+                    raise redirect
                 elif url_lg:
                     request.uid = None
                     if request.httprequest.path == '/%s/' % url_lg:
@@ -494,30 +486,25 @@ class IrHttp(models.AbstractModel):
                         return request.redirect(path, code=301)
                     path.pop(1)
                     routing_error = None
-                    return cls.reroute('/'.join(path) or '/')
+                    raise Reroute('/'.join(path) or '/', save_session=True, request_attrs={
+                        'is_website': request.is_website,
+                        'is_frontend_multilang': request.is_frontend_multilang,
+                        'lang': request.lang,
+                    })
                 elif missing_url_lg and is_a_bot:
                     # Ensure that if the URL without lang is not redirected, the
                     # current lang is indeed the default lang, because it is the
                     # lang that bots should index in that case.
                     request.lang = default_lg_id
-                    request.context = dict(request.context, lang=default_lg_id.code)
+                    request.update_context(lang=default_lg_id.code)
 
             if request.lang == default_lg_id:
-                context = dict(request.context)
-                context['edit_translations'] = False
-                request.context = context
+                request.update_context(edit_translations=False)
 
         if routing_error:
-            return cls._handle_exception(routing_error)
+            raise routing_error
 
-        # removed cache for auth public
-        result = super(IrHttp, cls)._dispatch()
-
-        cook_lang = request.httprequest.cookies.get('frontend_lang')
-        if request.is_frontend and cook_lang != request.lang.code and hasattr(result, 'set_cookie'):
-            result.set_cookie('frontend_lang', request.lang.code)
-
-        return result
+        return rule, arguments
 
     @classmethod
     def _redirect(cls, location, code=303):
@@ -526,33 +513,7 @@ class IrHttp(models.AbstractModel):
         return super()._redirect(location, code)
 
     @classmethod
-    def reroute(cls, path):
-        if not hasattr(request, 'rerouting'):
-            request.rerouting = [request.httprequest.path]
-        if path in request.rerouting:
-            raise Exception("Rerouting loop is forbidden")
-        request.rerouting.append(path)
-        if len(request.rerouting) > cls.rerouting_limit:
-            raise Exception("Rerouting limit exceeded")
-        request.httprequest.environ['PATH_INFO'] = path
-        # void werkzeug cached_property. TODO: find a proper way to do this
-        for key in ('path', 'full_path', 'url', 'base_url'):
-            request.httprequest.__dict__.pop(key, None)
-
-        return cls._dispatch()
-
-    @classmethod
-    def _postprocess_args(cls, arguments, rule):
-        super(IrHttp, cls)._postprocess_args(arguments, rule)
-
-        try:
-            _, path = rule.build(arguments)
-            assert path is not None
-        except odoo.exceptions.MissingError:
-            return cls._handle_exception(werkzeug.exceptions.NotFound())
-        except Exception as e:
-            return cls._handle_exception(e)
-
+    def _dispatch(cls, endpoint, **params):
         if getattr(request, 'is_frontend_multilang', False) and request.httprequest.method in ('GET', 'HEAD'):
             generated_path = werkzeug.urls.url_unquote_plus(path)
             current_path = werkzeug.urls.url_unquote_plus(request.httprequest.path)
@@ -561,7 +522,15 @@ class IrHttp(models.AbstractModel):
                     path = '/' + request.lang.url_code + path
                 if request.httprequest.query_string:
                     path += '?' + request.httprequest.query_string.decode('utf-8')
-                return request.redirect(path, code=301)
+                raise werkzeug.utils.redirect(path, code=301)  # JUC, another shitty redirection
+
+        result = super(IrHttp, cls)._dispatch(endpoint, **params)
+
+        cook_lang = request.httprequest.cookies.get('frontend_lang')
+        if request.is_frontend and cook_lang != request.lang.code:
+            request.result.set_cookie('frontend_lang', request.lang.code)
+
+        return result
 
     @classmethod
     def _get_exception_code_values(cls, exception):

@@ -23,8 +23,7 @@ class BusController(Controller):
         # update the user presence
         if request.session.uid and 'bus_inactivity' in options:
             request.env['bus.presence'].update(options.get('bus_inactivity'))
-        request.cr.close()
-        request._cr = None
+        request.env.cr.close()
         return dispatch.poll(dbname, channels, last, options)
 
     @route('/longpolling/poll', type="json", auth="public", cors="*")

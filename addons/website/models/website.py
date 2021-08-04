@@ -1096,7 +1096,7 @@ class Website(models.Model):
             return False
 
         # dont't list routes without argument having no default value or converter
-        sign = inspect.signature(endpoint.method.original_func)
+        sign = inspect.signature(endpoint.original_endpoint)
         params = list(sign.parameters.values())[1:]  # skip self
         supported_kinds = (inspect.Parameter.POSITIONAL_ONLY,
                            inspect.Parameter.POSITIONAL_OR_KEYWORD)

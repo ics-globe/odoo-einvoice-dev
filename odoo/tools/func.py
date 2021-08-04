@@ -4,8 +4,8 @@
 __all__ = ['synchronized', 'lazy_classproperty', 'lazy_property',
            'classproperty', 'conditional', 'lazy']
 
+import inspect
 from functools import wraps
-from inspect import getsourcefile
 from json import JSONEncoder
 
 
@@ -61,6 +61,22 @@ def conditional(condition, decorator):
     else:
         return lambda fn: fn
 
+
+def filter_kwargs(func, kwargs):
+    """ Filter the given keyword arguments to only return the kwargs
+        that bind to the function's signature.
+    """
+    leftovers = set(kwargs)
+    for p in inspect.signature(func).parameters.values():
+        if p.kind == inspect.Parameter.VAR_KEYWORD:  # **kwargs
+            return kwargs
+
+        if p.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY):
+            leftovers.discard(p.name)
+
+    return {keyword: kwargs[keyword] for keyword in set(kwargs) - leftovers}
+
+
 def synchronized(lock_attr='_lock'):
     def decorator(func):
         @wraps(func)
@@ -85,7 +101,7 @@ def frame_codeinfo(fframe, back=0):
         for i in range(back):
             fframe = fframe.f_back
         try:
-            fname = getsourcefile(fframe)
+            fname = inspect.getsourcefile(fframe)
         except TypeError:
             fname = '<builtin>'
         lineno = fframe.f_lineno or ''

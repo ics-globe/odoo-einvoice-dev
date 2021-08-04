@@ -9,5 +9,5 @@ class IrHttp(models.AbstractModel):
         info = super().session_info()
         # because frontend session_info uses this key and is embedded in
         # the view source
-        info["user_id"] = request.session.uid,
+        info["user_id"] = request.env.uid,
         return info
