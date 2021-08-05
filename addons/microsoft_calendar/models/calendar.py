@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import pytz
+import re
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 
@@ -22,6 +23,9 @@ ATTENDEE_CONVERTER_M2O = {
     'accepted': 'accepted',
     'organizer': 'accepted',
 }
+VIDEOCALL_URL_PATTERNS = (
+    r'https://teams.microsoft.com',
+)
 MAX_RECURRENT_EVENT = 720
 
 class Meeting(models.Model):
@@ -100,6 +104,16 @@ class Meeting(models.Model):
             'show_as': 'free' if microsoft_event.showAs == 'free' else 'busy',
             'recurrency': microsoft_event.is_recurrent()
         }
+
+        # if a videocall URL is provided with the Outlook event, use it
+        if microsoft_event.isOnlineMeeting and microsoft_event.onlineMeeting.get("joinUrl"):
+            values['videocall_location'] = microsoft_event.onlineMeeting["joinUrl"]
+        else:
+            # if a location is a URL matching a specific pattern (i.e a URL to access to a videocall),
+            # copy it in the 'videocall_location' instead
+            if values['location'] and any(re.match(p, values['location']) for p in VIDEOCALL_URL_PATTERNS):
+                values['videocall_location'] = values['location']
+                values['location'] = False
 
         values['microsoft_id'] = microsoft_event.id
         if microsoft_event.is_recurrent():
