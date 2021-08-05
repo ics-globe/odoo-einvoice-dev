@@ -88,6 +88,24 @@ class PortalWizardUser(models.TransientModel):
     login_date = fields.Datetime(related='user_id.login_date', string='Latest Authentication')
     is_portal = fields.Boolean('Is Portal', compute='_compute_group_details')
     is_internal = fields.Boolean('Is Internal', compute='_compute_group_details')
+    email_validity_state = fields.Selection([
+        ('valid', 'Valid'),
+        ('invalid', 'Invalid'),
+        ('already_registered', 'Already Registered')],
+        string='Status', compute='_compute_email_validity_state', default='valid')
+
+    @api.depends('email')
+    def _compute_email_validity_state(self):
+        for portal_wizard_user in self:
+            email_normalized = email_normalize(portal_wizard_user.email)
+            if not email_normalized:
+                portal_wizard_user.email_validity_state = 'invalid'
+            else:
+                existing_identical_users_count = self.env['res.users'].sudo().with_context(active_test=False).search_count([
+                    ('id', '!=', portal_wizard_user.user_id.id),
+                    ('login', '=ilike', email_normalized),
+                ])
+                portal_wizard_user.email_validity_state = 'already_registered' if existing_identical_users_count else 'valid'
 
     @api.depends('partner_id')
     def _compute_user_id(self):
@@ -153,17 +171,11 @@ class PortalWizardUser(models.TransientModel):
         If the user was only in the portal group, we archive it.
         """
         self.ensure_one()
-        self._assert_user_email_uniqueness()
-
         if not self.is_portal:
-            raise UserError(_('The partner "%s" has no portal access.', self.partner_id.name))
+            raise UserError(_('The partner "%s" has no portal access or is internal.', self.partner_id.name))
 
         group_portal = self.env.ref('base.group_portal')
         group_public = self.env.ref('base.group_public')
-
-        # update partner email, if a new one was introduced
-        if self.partner_id.email != self.email:
-            self.partner_id.write({'email': self.email})
 
         # Remove the sign up token, so it can not be used
         self.partner_id.sudo().signup_token = False
@@ -178,11 +190,16 @@ class PortalWizardUser(models.TransientModel):
             else:
                 user_sudo.write({'groups_id': [(3, group_portal.id), (4, group_public.id)]})
 
+        # update partner email, if a new one was introduced and is valid
+        if self.email_validity_state == 'valid' and self.partner_id.email != self.email:
+            self.partner_id.write({'email': self.email})
+
         return self.wizard_id._action_open_modal()
 
     def action_invite_again(self):
         """Re-send the invitation email to the partner."""
         self.ensure_one()
+        self._assert_user_email_uniqueness()
 
         if not self.is_portal:
             raise UserError(_('You should first grant the portal access to the partner "%s".', self.partner_id.name))
@@ -229,16 +246,7 @@ class PortalWizardUser(models.TransientModel):
     def _assert_user_email_uniqueness(self):
         """Check that the email can be used to create a new user."""
         self.ensure_one()
-
-        email = email_normalize(self.email)
-
-        if not email:
+        if self.email_validity_state == 'invalid':
             raise UserError(_('The contact "%s" does not have a valid email.', self.partner_id.name))
-
-        user = self.env['res.users'].sudo().with_context(active_test=False).search([
-            ('id', '!=', self.user_id.id),
-            ('login', '=ilike', email),
-        ])
-
-        if user:
-            raise UserError(_('The contact "%s" has the same email has an existing user (%s).', self.partner_id.name, user.name))
+        if self.email_validity_state == 'already_registered':
+            raise UserError(_('The contact "%s" has the same email as an existing user', self.partner_id.name))
