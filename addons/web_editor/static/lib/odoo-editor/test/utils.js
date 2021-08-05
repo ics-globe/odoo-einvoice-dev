@@ -163,8 +163,8 @@ export function renderMultipleTextualSelection() {
     if (anchorNode === focusNode && anchorOffset <= focusOffset) {
         focusOffset++;
     }
-    _insertCharAt('[', ...anchor);
-    _insertCharAt(']', focusNode, focusOffset);
+    insertCharsAt('[', ...anchor);
+    insertCharsAt(']', focusNode, focusOffset);
 }
 
 /**
@@ -182,6 +182,7 @@ export function setSelection(selection, doc = document) {
         domRange.collapse(false);
     }
     const domSelection = selection.anchorNode.ownerDocument.getSelection();
+    console.log("domSelection:", domSelection);
     domSelection.removeAllRanges();
     console.warn('add range5');
     domSelection.addRange(domRange);
@@ -193,24 +194,24 @@ export function setSelection(selection, doc = document) {
 }
 
 /**
- * Inserts the given character at the given offset of the given node.
+ * Inserts the given characters at the given offset of the given node.
  *
- * @param {string} char
+ * @param {string} chars
  * @param {Node} node
  * @param {number} offset
  */
-function _insertCharAt(char, node, offset) {
+export function insertCharsAt(chars, node, offset) {
     if (node.nodeType === Node.TEXT_NODE) {
         const startValue = node.nodeValue;
         if (offset < 0 || offset > startValue.length) {
-            throw new Error(`Invalid ${char} insertion in text node`);
+            throw new Error(`Invalid ${chars} insertion in text node`);
         }
-        node.nodeValue = startValue.slice(0, offset) + char + startValue.slice(offset);
+        node.nodeValue = startValue.slice(0, offset) + chars + startValue.slice(offset);
     } else {
         if (offset < 0 || offset > node.childNodes.length) {
-            throw new Error(`Invalid ${char} insertion in non-text node`);
+            throw new Error(`Invalid ${chars} insertion in non-text node`);
         }
-        const textNode = document.createTextNode(char);
+        const textNode = document.createTextNode(chars);
         if (offset < node.childNodes.length) {
             node.insertBefore(textNode, node.childNodes[offset]);
         } else {
@@ -286,8 +287,8 @@ export function renderTextualSelection() {
     if (anchorNode === focusNode && anchorOffset <= focusOffset) {
         focusOffset++;
     }
-    _insertCharAt('[', ...anchor);
-    _insertCharAt(']', focusNode, focusOffset);
+    insertCharsAt('[', ...anchor);
+    insertCharsAt(']', focusNode, focusOffset);
 }
 
 export async function testEditor(Editor = OdooEditor, spec) {

@@ -1,6 +1,16 @@
-import { OdooEditor } from '../../src/OdooEditor.js';
+import {
+    createDOMPathGenerator,
+    DIRECTIONS,
+    leftDeepFirstInlinePath,
+    OdooEditor,
+} from '../../src/OdooEditor.js';
 import { sanitize } from '../../src/utils/sanitize.js';
-import { parseMultipleTextualSelection, setSelection } from '../utils.js';
+import {
+    insertCharsAt,
+    parseMultipleTextualSelection,
+    setSelection,
+    targetDeepest,
+} from '../utils.js';
 
 const getIncomingStep = (previousStepId, id = '328e7db4-6abf-48e5-88de-2ac505323735') => ({
     cursor: { anchorNode: 1, anchorOffset: 2, focusNode: 1, focusOffset: 2 },
@@ -64,76 +74,168 @@ const testCommandSerialization = (content, commandCb) => {
     window.chai.expect(editable.innerHTML).to.equal(receivingNode.innerHTML);
 };
 
+const overridenDomClass = [
+    'HTMLBRElement',
+    'HTMLHeadingElement',
+    'HTMLParagraphElement',
+    'HTMLPreElement',
+    'HTMLQuoteElement',
+    'HTMLTableCellElement',
+    'Text',
+];
+
 const testFunction = spec => {
-    const testNode = document.createElement('div');
-    document.body.appendChild(testNode);
-
-    // Add the content to edit and remove the "[]" markers *before* initializing
-    // the editor as otherwise those would genererate mutations the editor would
-    // consider and the tests would make no sense.
-    testNode.innerHTML = spec.contentBefore;
-    const selections = parseMultipleTextualSelection(testNode);
-    console.log('selections:', selections);
-    console.log("testNode:", testNode.innerHTML);
-
-    const testInfos = [];
+    const clientInfos = [];
+    // window.clientInfos = clientInfos;
     const clientIds = Object.keys(spec.concurentActions);
     for (const clientId of clientIds) {
-        const testInfo = {};
+        const testInfo = {
+            clientId,
+            historySteps: [],
+        };
         testInfo.iframe = document.createElement('iframe');
-        // avoid firefox to set the content of the iframe
-        testInfo.iframe.setAttribute('src', ' javascript:void(0);');
+        if (navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+            // Firefox reset the page without this hack.
+            // With this hack, chrome does not render content.
+            testInfo.iframe.setAttribute('src', ' javascript:void(0);');
+        }
         document.body.appendChild(testInfo.iframe);
-        const editable = document.createElement('div');
-        editable.setAttribute('contenteditable', 'true');
-        editable.innerHTML = spec.contentBefore;
-        const iframeDocument = testInfo.iframe.contentWindow.document;
-        iframeDocument.body.appendChild(editable);
 
-        const clientTestNode = testNode.cloneNode();
-        testInfo.editor = new OdooEditor(clientTestNode, { toSanitize: false });
-        testInfo.editor.keyboardType = 'PHYSICAL_KEYBOARD';
-        const selection = selections[clientId];
+        testInfo.editable = document.createElement('div');
+        testInfo.editable.setAttribute('contenteditable', 'true');
+        testInfo.editable.innerHTML = spec.contentBefore;
+
+        const iframeWindow = testInfo.iframe.contentWindow;
+
+        for (const overridenClass of overridenDomClass) {
+            const windowClassPrototype = window[overridenClass].prototype;
+            const iframeWindowClassPrototype = iframeWindow[overridenClass].prototype;
+            const iframePrototypeMethodNames = Object.keys(iframeWindowClassPrototype);
+
+            for (const methodName of Object.keys(windowClassPrototype)) {
+                if (!iframePrototypeMethodNames.includes(methodName)) {
+                    iframeWindowClassPrototype[methodName] = windowClassPrototype[methodName];
+                }
+            }
+        }
+
+        // we have to sanitize after having put the cursor
+        // sanitize(editor.editable);
+        clientInfos.push(testInfo);
+    }
+
+    let shouldListenSteps = false;
+
+    // Init the editors
+    for (const clientInfo of clientInfos) {
+        const selections = parseMultipleTextualSelection(clientInfo.editable);
+        const iframeWindow = clientInfo.iframe.contentWindow;
+        const iframeDocument = iframeWindow.document;
+        iframeDocument.body.appendChild(clientInfo.editable);
+
+        // Insure all the client will have the same starting id.
+        let nextId = 1;
+        OdooEditor.prototype._makeNodeId = () => 'fake_id_' + nextId++;
+
+        clientInfo.editor = new OdooEditor(clientInfo.editable, {
+            toSanitize: false,
+            document: iframeDocument,
+            collaborationClientId: clientInfo.clientId,
+            onHistoryStep: step => {
+                if (shouldListenSteps) {
+                    clientInfo.historySteps.push(step);
+                }
+            },
+        });
+        clientInfo.editor.keyboardType = 'PHYSICAL_KEYBOARD';
+        const selection = selections[clientInfo.clientId];
         if (selection) {
             setSelection(selection, iframeDocument);
         } else {
             iframeDocument.getSelection().removeAllRanges();
         }
-
-        // we have to sanitize after having put the cursor
-        sanitize(editor.editable);
+        // Flush the history so that steps generated by the parsing of the
+        // selection and the editor loading are not recorded.
+        clientInfo.editor.observerFlush();
     }
 
-    for (const testInfo of testInfos) {
-        testInfo.editor.destroy();
-        testInfo.iframe.destroy();
+    shouldListenSteps = true;
+
+    // From now, any any step from a client must have a different ID.
+    let concurentNextId = 1;
+    OdooEditor.prototype._makeNodeId = () => 'fake_concurent_id_' + concurentNextId++;
+
+    for (const clientInfo of clientInfos) {
+        console.log('clientInfo:', clientInfo);
+        spec.concurentActions[clientInfo.clientId](clientInfo.editor);
     }
-    // iframes.forEach(x=>x.remove());
 
-    // iframe.contentWindow.document.body.innerHTML = 'foo';
+    for (const clientInfoA of clientInfos) {
+        for (const clientInfoB of clientInfos) {
+            if (clientInfoA === clientInfoB) {
+                continue;
+            }
+            for (const step of clientInfoA.historySteps) {
+                clientInfoB.editor.onExternalHistoryStep(step);
+            }
+        }
+    }
 
-    // const editor = new Editor(testNode, { toSanitize: false });
-    // editor.keyboardType = 'PHYSICAL_KEYBOARD';
-    // if (selection) {
-    //     setSelection(selection);
-    // } else {
-    //     document.getSelection().removeAllRanges();
-    // }
+    shouldListenSteps = false;
 
-    // // we have to sanitize after having put the cursor
-    // sanitize(editor.editable);
-    // await spec.stepFunction(editor);
+    // Render textual selection.
 
-    // // Same as above: disconnect mutation observers and other things, otherwise
-    // // reading the "[]" markers would broke the test.
-    // editor.destroy();
+    const cursorNodes = {};
+    for (const clientInfo of clientInfos) {
+        const iframeDocument = clientInfo.iframe.contentWindow.document;
+        const clientSelection = iframeDocument.getSelection();
 
-    // if (spec.contentAfter) {
-    //     renderTextualSelection();
-    //     const value = testNode.innerHTML;
-    //     window.chai.expect(value).to.be.equal(spec.contentAfter);
-    // }
-    // testNode.remove();
+        const [anchorNode, anchorOffset] = targetDeepest(
+            clientSelection.anchorNode,
+            clientSelection.anchorOffset,
+        );
+        const [focusNode, focusOffset] = targetDeepest(
+            clientSelection.focusNode,
+            clientSelection.focusOffset,
+        );
+
+        const clientId = clientInfo.clientId;
+        cursorNodes[focusNode.oid] = cursorNodes[focusNode.oid] || [];
+        cursorNodes[focusNode.oid].push({ type: 'focus', clientId, offset: focusOffset });
+        cursorNodes[anchorNode.oid] = cursorNodes[anchorNode.oid] || [];
+        cursorNodes[anchorNode.oid].push({ type: 'anchor', clientId, offset: anchorOffset });
+    }
+
+    for (const nodeOid of Object.keys(cursorNodes)) {
+        cursorNodes[nodeOid] = cursorNodes[nodeOid].sort((a, b) => {
+            return b.offset - a.offset || b.clientId.localeCompare(a.clientId);
+        });
+    }
+
+    for (const clientInfo of clientInfos) {
+        clientInfo.editor.observerUnactive();
+        for (const [nodeOid, cursorsData] of Object.entries(cursorNodes)) {
+            const node = clientInfo.editor.idFind(nodeOid);
+            for (const cursorData of cursorsData) {
+                const cursorString =
+                    cursorData.type === 'anchor'
+                        ? `[${cursorData.clientId}}`
+                        : `{${cursorData.clientId}]`;
+                insertCharsAt(cursorString, node, cursorData.offset);
+            }
+        }
+    }
+
+    for (const clientInfo of clientInfos) {
+        const value = clientInfo.editable.innerHTML;
+        window.chai
+            .expect(value)
+            .to.be.equal(spec.contentAfter, `error with client ${clientInfo.clientId}`);
+    }
+    for (const clientInfo of clientInfos) {
+        clientInfo.editor.destroy();
+        clientInfo.iframe.remove();
+    }
 };
 
 describe('Collaboration', () => {
@@ -611,17 +713,81 @@ describe('Collaboration', () => {
         });
     });
     describe.only('Conflict resolution', () => {
-        testFunction({
-            contentBefore: 'ab[c1}{c1][c2}{c2]c',
-            concurentActions: {
-                c1: editor => {
-                    editor.execCommand('insertText', 'd');
+
+        it('should 2 client insertText in 2 different paragraph', () => {
+            testFunction({
+                contentBefore: '<p>ab[c1}{c1]</p><p>cd[c2}{c2]</p>',
+                concurentActions: {
+                    c1: editor => {
+                        editor.execCommand('insertText', 'e');
+                    },
+                    c2: editor => {
+                        editor.execCommand('insertText', 'f');
+                    },
                 },
-                c2: editor => {
-                    editor.execCommand('removeBackward');
+                contentAfter: '<p>abe[c1}{c1]</p><p>cdf[c2}{c2]</p>',
+            });
+        });
+        it('should 2 client insertText twice in 2 different paragraph', () => {
+            testFunction({
+                contentBefore: '<p>ab[c1}{c1]</p><p>cd[c2}{c2]</p>',
+                concurentActions: {
+                    c1: editor => {
+                        editor.execCommand('insertText', 'e');
+                        editor.execCommand('insertText', 'f');
+                    },
+                    c2: editor => {
+                        editor.execCommand('insertText', 'g');
+                        editor.execCommand('insertText', 'h');
+                    },
                 },
-            },
-            contentAfter: 'a[c2}{c2]d[c1}{c1]c',
+                contentAfter: '<p>abef[c1}{c1]</p><p>cdgh[c2}{c2]</p>',
+            });
+        });
+        it('should properly change the selection of other clients', () => {
+            testFunction({
+                contentBefore: 'ab[c1}{c1][c2}{c2]c',
+                concurentActions: {
+                    c1: editor => {
+                        console.log('inserttext');
+                        editor.execCommand('insertText', 'd');
+                    },
+                    c2: editor => {
+                        console.log('oDeleteBackward');
+                    },
+                },
+                contentAfter: 'abd[c1}{c1][c2}{c2]c',
+            });
+        });
+        it('should insertText with client 1 and deleteBackward with client 2', () => {
+            testFunction({
+                contentBefore: 'ab[c1}{c1][c2}{c2]c',
+                concurentActions: {
+                    c1: editor => {
+                        editor.execCommand('insertText', 'd');
+                    },
+                    c2: editor => {
+                        editor.execCommand('oDeleteBackward');
+                    },
+                },
+                contentAfter: 'a[c2}{c2]cd[c1}{c1]c',
+            });
+        });
+        it('should insertText twice with client 1 and deleteBackward twice with client 2', () => {
+            testFunction({
+                contentBefore: 'ab[c1}{c1][c2}{c2]c',
+                concurentActions: {
+                    c1: editor => {
+                        editor.execCommand('insertText', 'd');
+                        editor.execCommand('insertText', 'e');
+                    },
+                    c2: editor => {
+                        editor.execCommand('oDeleteBackward');
+                        editor.execCommand('oDeleteBackward');
+                    },
+                },
+                contentAfter: 'ab[c1}{c1][c2}{c2]c',
+            });
         });
     });
 });

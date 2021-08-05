@@ -206,8 +206,8 @@ export class OdooEditor extends EventTarget {
             editable.innerHTML = '<p><br></p>';
         }
 
-        // Convention: root node is ID 1.
-        editable.oid = 1;
+        // Convention: root node is ID root.
+        editable.oid = 'root';
         this._idToNodeMap.set(1, editable);
         this.editable = this.options.toSanitize ? sanitize(editable) : editable;
 
@@ -345,10 +345,14 @@ export class OdooEditor extends EventTarget {
         element.addEventListener(eventName, boundCallback);
     }
 
+    _makeNodeId() {
+        return uuidV4();
+    }
+
     // Assign IDs to src, and dest if defined
     idSet(node, testunbreak = false) {
         if (!node.oid) {
-            node.oid = uuidV4();
+            node.oid = this._makeNodeId();
         }
         // Always add to _idToNodeMap for nodes whose ids are created through by
         // another client (in a collaboration setting)
@@ -583,7 +587,7 @@ export class OdooEditor extends EventTarget {
             return false;
         }
 
-        current.id = uuidV4();
+        current.id = this._makeNodeId();
         const latest = peek(this._historySteps);
         current.clientId = latest ? this._clientId : FIRST_STEP_USER_ID;
         current.previousStepId = (latest && latest.id) || FIRST_STEP_PREVIOUS_ID;
@@ -646,7 +650,7 @@ export class OdooEditor extends EventTarget {
                 id: n.oid,
                 node: this.serialize(n),
             })),
-            id: latestStep ? latestStep.id : uuidV4(),
+            id: latestStep ? latestStep.id : this._makeNodeId(),
             clientId: FIRST_STEP_USER_ID,
             previousStepId: FIRST_STEP_PREVIOUS_ID,
         };
@@ -853,9 +857,11 @@ export class OdooEditor extends EventTarget {
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
+            console.log('easy case');
             this.historyApply(newStep.mutations);
             this._historySteps.push(newStep);
         } else if (previousStep) {
+            console.log('merge case');
             this._computeHistoryCursor();
             const currentStep = this._currentStep;
             if (currentStep.mutations && currentStep.mutations.length) {
@@ -901,6 +907,7 @@ export class OdooEditor extends EventTarget {
             }
             this.historySetCursor(currentStep);
         } else {
+            console.log('reset case');
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
         this.observerActive();
@@ -1244,6 +1251,9 @@ export class OdooEditor extends EventTarget {
             const mode = method.split('justify').join('').toLocaleLowerCase();
             return this._align(mode === 'full' ? 'justify' : mode);
         }
+        console.log("sel.anchorNode:", sel.anchorNode);
+        console.log("method:", method);
+        console.log("sel.anchorNode[method]:", sel.anchorNode[method]);
         return sel.anchorNode[method](sel.anchorOffset, ...args);
     }
 

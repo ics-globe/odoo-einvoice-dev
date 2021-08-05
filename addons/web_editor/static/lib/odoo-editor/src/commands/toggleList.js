@@ -24,7 +24,7 @@ HTMLElement.prototype.oToggleList = function (offset, mode = 'UL') {
     }
     const restoreCursor = preserveCursor(this.ownerDocument);
     // if `this` is the root editable
-    if (this.oid === 1) {
+    if (this.oid === 'root') {
         const callingNode = this.childNodes[offset];
         const group = getAdjacents(callingNode, n => !isBlock(n));
         insertListAfter(callingNode, mode, [group]);
