@@ -713,7 +713,6 @@ describe('Collaboration', () => {
         });
     });
     describe.only('Conflict resolution', () => {
-
         it('should 2 client insertText in 2 different paragraph', () => {
             testFunction({
                 contentBefore: '<p>ab[c1}{c1]</p><p>cd[c2}{c2]</p>',
