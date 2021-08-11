@@ -43,9 +43,11 @@ var CrossTabBus = Longpolling.extend({
      */
     init: function () {
         this._super.apply(this, arguments);
+        window.crosstab = this;
         var now = new Date().getTime();
         // used to prefix localStorage keys
         this._sanitizedOrigin = session.origin.replace(/:\/{0,2}/g, '_');
+        this._currentTabChannels = new Set();
         // prevents collisions between different tabs and in tests
         this._id = _.uniqueId(this.LOCAL_STORAGE_PREFIX) + ':' + now;
         if (this._callLocalStorage('getItem', 'last_ts', 0) + 50000 < now) {
@@ -66,18 +68,20 @@ var CrossTabBus = Longpolling.extend({
      *
      * @override
      */
-    addChannel: function () {
+    addChannel: function (channel) {
+        this._currentTabChannels.add(channel);
         this._super.apply(this, arguments);
-        this._callLocalStorage('setItem', 'channels', this._channels);
+        this._updateChannels();
     },
     /**
      * Share the bus channels with the others tab by the local storage
      *
      * @override
      */
-    deleteChannel: function () {
+    deleteChannel: function (channel) {
+        this._currentTabChannels.delete(channel);
         this._super.apply(this, arguments);
-        this._callLocalStorage('setItem', 'channels', this._channels);
+        this._updateChannels();
     },
     /**
      * @return {string}
@@ -118,12 +122,11 @@ var CrossTabBus = Longpolling.extend({
             this._heartbeat();
 
             if (this._isMasterTab) {
-                this._callLocalStorage('setItem', 'channels', this._channels);
                 this._callLocalStorage('setItem', 'options', this._options);
             } else {
-                this._channels = this._callLocalStorage('getItem', 'channels', this._channels);
                 this._options = this._callLocalStorage('getItem', 'options', this._options);
             }
+            this._updateChannels();
             return;  // startPolling will be called again on tab registration
         }
 
@@ -274,6 +277,39 @@ var CrossTabBus = Longpolling.extend({
             this._callLocalStorage('setItem', 'peers', peers);
         }
     },
+    /**
+     * Update localstorage channels of with the channels of this tab.
+     *
+     * @private
+     */
+    _updateChannels: function () {
+        const currentPeerIds = new Set(Object.keys(this._callLocalStorage('getItem', 'peers', {})));
+        const peerChannels = this._callLocalStorage('getItem', 'channels', {});
+        peerChannels[this._id] = Array.from(this._currentTabChannels);
+        this._callLocalStorage('setItem', 'channels', peerChannels);
+
+        // Clean outdated channels.
+        for (const channelPeerId of Object.keys(peerChannels)) {
+            if (!currentPeerIds.has(channelPeerId)) {
+                delete peerChannels[channelPeerId]
+            }
+        }
+
+        const allChannels = new Set();
+        for (const channels of Object.values(peerChannels)) {
+            for (const channel of channels) {
+                allChannels.add(channel);
+            }
+        }
+        // Insure the current tab channels are always in the aggregated channels
+        // in case this tab is not in the currentPeerIds nor peerChannels.
+        for (const channel of this._currentTabChannels) {
+            allChannels.add(channel);
+        }
+        this._channels = Array.from(allChannels);
+        console.log('this._isMasterTab', this._isMasterTab);
+        console.log('updateChannels', this._channels);
+    },
     //--------------------------------------------------------------------------
     // Handlers
     //--------------------------------------------------------------------------
@@ -327,7 +363,8 @@ var CrossTabBus = Longpolling.extend({
         }
         // update channels
         else if (key === this._generateKey('channels')) {
-            this._channels = value;
+            this._updateChannels();
+            this._restartPooling();
         }
         // update options
         else if (key === this._generateKey('options')) {
