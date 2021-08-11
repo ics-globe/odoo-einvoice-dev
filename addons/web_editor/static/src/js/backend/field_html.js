@@ -184,6 +184,11 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
                 res_model: this.model,
                 res_id: this.res_id,
             },
+            collaborationChannel: {
+                collaborationModelName: this.model,
+                collaborationFieldName: this.name,
+                collaborationResId: parseInt(this.res_id),
+            },
             noAttachment: this.nodeOptions['no-attachment'],
             inIframe: !!this.nodeOptions.cssEdit,
             iframeCssAssets: this.nodeOptions.cssEdit,

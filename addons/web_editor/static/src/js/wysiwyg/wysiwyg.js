@@ -74,105 +74,14 @@ const Wysiwyg = Widget.extend({
         this.toolbar = new Toolbar(this, this.options.toolbarTemplate);
         await this.toolbar.appendTo(document.createElement('void'));
         const commands = this._getCommands();
-        const {user_id: userId, name} = this.getSession();
-        const documentId =
-            options.recordInfo.res_id || options.recordInfo.data_res_id;
-        const model =
-            options.recordInfo.res_model || options.recordInfo.data_res_model;
 
-        const channelName = `editor_collaboration_${model}:${documentId}`;
-        this.call('bus_service', 'onNotification', this, (notifications) => {
-            for (const [busChannelName, busData] of notifications) {
-                if (busChannelName !== channelName) continue;
-                this.rtc.handleNotification(busData);
-            }
-        });
-        this.call('bus_service', 'addChannel', channelName);
-        this.call('bus_service', 'startPolling');
+        let editorCollaborationOptions;
 
-        const currentClientId = '' + new Date().getTime();
-
-        let firstHistoryRequested = false;
-        const requestNewHistory = () => {
-            this.rtc.notifyAllClients(
-                'oe_history_request',
-                { transport: 'rtc' }
-            );
+        if (options.collaborationChannel) {
+            editorCollaborationOptions = this.setupCollaboration(options.collaborationChannel);
         }
-        this.rtc = new RTC({
-            peerConnectionConfig: {
-                iceServers: [
-                    {
-                        urls: [
-                            'stun:stun1.l.google.com:19302',
-                            'stun:stun2.l.google.com:19302',
-                        ],
-                    }
-                ],
-            },
-            currentClientId: currentClientId,
-            broadcastAll: (rpcData) => {
-                return this._rpc({
-                    route: '/web_editor/bus_broadcast',
-                    params: {
-                        bus_channel_name: channelName,
-                        bus_data: rpcData,
-                    },
-                });
-            },
-            onNotification: ({ fromClientId, notificationName, notificationPayload }) => {
-                switch (notificationName) {
-                    case 'rtc_remove_client':
-                        this.odooEditor.multiselectionRemove(notificationPayload);
-                        break;
-                    case 'rtc_close':
-                        // Set shouldNotify to false as we know that the client
-                        // will remove us by receiving this notification.
-                        this.rtc.removeClient(fromClientId, { shouldNotify: false });
-                        this.odooEditor.multiselectionRemove(fromClientId);
-                        break;
-                    case 'rtc_connection_statechange':
-                        if (!firstHistoryRequested && notificationPayload.connectionState === 'connected') {
-                            firstHistoryRequested = true;
-                            console.log('requesting first history');
-                            requestNewHistory();
-                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_cursor');
-                        }
-                        break;
-                    case 'oe_history_request':
-                        this.rtc.notifyAllClients(
-                            'oe_history_reset',
-                            this.odooEditor.historyGetSnapshot(),
-                            { transport: 'rtc' }
-                        )
-                        break;
-                    case 'oe_history_reset':
-                        this.odooEditor.historyResetAndSync(notificationPayload);
-                        break;
-                    case 'oe_history_step':
-                        this.odooEditor.onExternalHistoryStep(notificationPayload);
-                        break;
-                    case 'oe_history_request_cursor':
-                        const selection = this.odooEditor.getCurrentCollaborativeCursor();
-                        if (selection) {
-                            this.rtc.notifyClient(
-                                fromClientId,
-                                'oe_history_set_selection',
-                                this.odooEditor.getCurrentCollaborativeCursor(),
-                                { transport: 'rtc' }
-                            );
-                        }
-                        break;
-                    case 'oe_history_set_selection':
-                        this.odooEditor.onExternalMultiselectionUpdate(notificationPayload);
-                        break;
-                    default:
-                        throw new Error(`No method exists to process notification "${notificationName}".`);
-                }
-            }
-        });
 
-        this.odooEditor = new OdooEditor(this.$editable[0], {
+        this.odooEditor = new OdooEditor(this.$editable[0], Object.assign({
             _t: _t,
             toolbar: this.toolbar.$el[0],
             document: this.options.document,
@@ -184,18 +93,7 @@ const Wysiwyg = Widget.extend({
             getContextFromParentRect: options.getContextFromParentRect,
             noScrollSelector: 'body, .note-editable, .o_content, #wrapwrap',
             commands: commands,
-            collaborationClientId: currentClientId,
-            onHistoryStep: (historyStep) => {
-                console.log("this:", this);
-                this.rtc.notifyAllClients('oe_history_step', historyStep, { transport: 'rtc' });
-            },
-            onCollaborativeSelectionChange: (collaborativeSelection) => {
-                this.rtc.notifyAllClients('oe_history_set_selection', collaborativeSelection, { transport: 'rtc' });
-            },
-            onHistoryNeedReset: () => {
-                requestNewHistory();
-            },
-        });
+        }, editorCollaborationOptions));
 
         const $wrapwrap = $('#wrapwrap');
         if ($wrapwrap.length) {
@@ -204,7 +102,9 @@ const Wysiwyg = Widget.extend({
 
         // todo: remove method when finish debugging
         this.join = () => this.rtc.notifyAllClients('rtc_join');
-        this.rtc.notifyAllClients('rtc_join');
+        if (this.rtc) {
+            this.rtc.notifyAllClients('rtc_join');
+        }
 
         this._observeOdooFieldChanges();
         this.$editable.on(
@@ -294,6 +194,135 @@ const Wysiwyg = Widget.extend({
             }
         });
     },
+
+    setupCollaboration(collaborationChannel) {
+        // todo: use user_id for the collaborator cursor
+        const { user_id: userId, name } = this.getSession();
+
+        const modelName = collaborationChannel.collaborationModelName;
+        const fieldName = collaborationChannel.collaborationFieldName;
+        const resId = collaborationChannel.collaborationResId;
+
+        if (!(modelName && fieldName && resId)) {
+            return;
+        }
+
+        const currentClientId = '' + new Date().getTime();
+
+        const channelName = `editor_collaboration:${modelName}:${fieldName}:${resId}`;
+
+        console.log('start listening channel' , channelName);
+        this.call('bus_service', 'onNotification', this, (notifications) => {
+            for (const [channel, busData] of notifications) {
+                if (
+                    channel[1] == 'editor_collaboration' &&
+                    channel[2] === modelName &&
+                    channel[3] === fieldName &&
+                    channel[4] === resId
+                ) {
+                    this.rtc.handleNotification(busData);
+                }
+            }
+        });
+        this.call('bus_service', 'addChannel', channelName);
+        this.call('bus_service', 'startPolling');
+
+        let firstHistoryRequested = false;
+        const requestNewHistory = () => {
+            this.rtc.notifyAllClients(
+                'oe_history_request',
+                { transport: 'rtc' }
+            );
+        }
+        this.rtc = new RTC({
+            peerConnectionConfig: {
+                iceServers: [
+                    {
+                        urls: [
+                            'stun:stun1.l.google.com:19302',
+                            'stun:stun2.l.google.com:19302',
+                        ],
+                    }
+                ],
+            },
+            currentClientId: currentClientId,
+            broadcastAll: (rpcData) => {
+                return this._rpc({
+                    route: '/web_editor/bus_broadcast',
+                    params: {
+                        model_name: modelName,
+                        field_name: fieldName,
+                        res_id: resId,
+                        bus_data: rpcData,
+                    },
+                });
+            },
+            onNotification: ({ fromClientId, notificationName, notificationPayload }) => {
+                switch (notificationName) {
+                    case 'rtc_remove_client':
+                        this.odooEditor.multiselectionRemove(notificationPayload);
+                        break;
+                    case 'rtc_close':
+                        // Set shouldNotify to false as we know that the client
+                        // will remove us by receiving this notification.
+                        this.rtc.removeClient(fromClientId, { shouldNotify: false });
+                        this.odooEditor.multiselectionRemove(fromClientId);
+                        break;
+                    case 'rtc_connection_statechange':
+                        if (!firstHistoryRequested && notificationPayload.connectionState === 'connected') {
+                            firstHistoryRequested = true;
+                            console.log('requesting first history');
+                            requestNewHistory();
+                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_cursor');
+                        }
+                        break;
+                    case 'oe_history_request':
+                        this.rtc.notifyAllClients(
+                            'oe_history_reset',
+                            this.odooEditor.historyGetSnapshot(),
+                            { transport: 'rtc' }
+                        )
+                        break;
+                    case 'oe_history_reset':
+                        this.odooEditor.historyResetAndSync(notificationPayload);
+                        break;
+                    case 'oe_history_step':
+                        this.odooEditor.onExternalHistoryStep(notificationPayload);
+                        break;
+                    case 'oe_history_request_cursor':
+                        const selection = this.odooEditor.getCurrentCollaborativeCursor();
+                        if (selection) {
+                            this.rtc.notifyClient(
+                                fromClientId,
+                                'oe_history_set_selection',
+                                this.odooEditor.getCurrentCollaborativeCursor(),
+                                { transport: 'rtc' }
+                            );
+                        }
+                        break;
+                    case 'oe_history_set_selection':
+                        this.odooEditor.onExternalMultiselectionUpdate(notificationPayload);
+                        break;
+                    default:
+                        throw new Error(`No method exists to process notification "${notificationName}".`);
+                }
+            }
+        });
+
+        const editorCollaborationOptions = {
+            collaborationClientId: currentClientId,
+            onHistoryStep: (historyStep) => {
+                this.rtc.notifyAllClients('oe_history_step', historyStep, { transport: 'rtc' });
+            },
+            onCollaborativeSelectionChange: (collaborativeSelection) => {
+                this.rtc.notifyAllClients('oe_history_set_selection', collaborativeSelection, { transport: 'rtc' });
+            },
+            onHistoryNeedReset: () => {
+                requestNewHistory();
+            },
+        }
+        return editorCollaborationOptions;
+    },
     /**
      * @override
      */
@@ -301,7 +330,9 @@ const Wysiwyg = Widget.extend({
         if (this.odooEditor) {
             this.odooEditor.destroy();
         }
-        this.rtc.closeAllConnections();
+        if (this.rtc) {
+            this.rtc.closeAllConnections();
+        }
         this.$editable && this.$editable.off('blur', this._onBlur);
         document.removeEventListener('mousedown', this._onDocumentMousedown, true);
         const $body = $(document.body);
