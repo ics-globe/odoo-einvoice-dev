@@ -205,13 +205,13 @@ export class RTC {
     }
 
     handleNotification(notification) {
-        console.log(`HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
         const isInternalNotification = typeof notification.fromClientId === 'undefined' && typeof notification.toClientId === 'undefined';
         if (
              isInternalNotification ||
                 (notification.fromClientId !== this._currentClientId &&
                 !notification.toClientId || notification.toClientId === this._currentClientId)
         ) {
+            console.log(`HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
             const baseMethod = this._notificationMethods[notification.notificationName];
             if (baseMethod) {
                 return baseMethod.call(this, notification);

@@ -299,7 +299,7 @@ i.oe-commandbar-commandImg {
 }
 
 /* Collaboration cursor */
-.oe-collaboration-cursor-container {
+.oe-collaboration-selections-container {
     isolation: isolate;
     height: 0;
     width: 0;

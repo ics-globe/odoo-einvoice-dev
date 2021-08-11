@@ -221,11 +221,11 @@ export class OdooEditor extends EventTarget {
         this._clientId = this.options.collaborationClientId;
 
         // Colaborator selection and caret display.
-        this._cursorInfos = new Map();
-        this._cursorColor = `hsl(${(Math.random() * 360).toFixed(0)},75%,50%)`;
-        this._collaboratorIndicatorContainer = this.document.createElement('div');
-        this._collaboratorIndicatorContainer.classList.add('oe-collaboration-cursor-container');
-        this.editable.before(this._collaboratorIndicatorContainer);
+        this._collabCursorInfos = new Map();
+        this._collabCursorColor = `hsl(${(Math.random() * 360).toFixed(0)},75%,50%)`;
+        this._collabSelectionsContainer = this.document.createElement('div');
+        this._collabSelectionsContainer.classList.add('oe-collaboration-selections-container');
+        this.editable.before(this._collabSelectionsContainer);
 
         // Create a first step containing all of the document, with a different
         // clientId so that it can not be undone.
@@ -318,7 +318,7 @@ export class OdooEditor extends EventTarget {
         this.commandBar.destroy();
         this.commandbarTablePicker.el.remove();
         this.document.defaultView.removeEventListener('resize', this.multiselectionRefresh);
-        this._collaboratorIndicatorContainer.remove();
+        this._collabSelectionsContainer.remove();
         this.resizeObserver.disconnect();
     }
 
@@ -600,7 +600,7 @@ export class OdooEditor extends EventTarget {
             mutations: [],
         };
         this._checkStepUnbreakable = true;
-        this._recordHistoryCursor();
+        this._recordHistorySelection();
         this.dispatchEvent(new Event('historyStep'));
         this.multiselectionRefresh();
     }
@@ -642,7 +642,7 @@ export class OdooEditor extends EventTarget {
     }
     historyGetSnapshotStep() {
         return {
-            cursor: {
+            selection: {
                 anchorNode: undefined,
                 anchorOffset: undefined,
                 focusNode: undefined,
@@ -786,11 +786,12 @@ export class OdooEditor extends EventTarget {
         this.dispatchEvent(new Event('historyRevert'));
     }
     /**
-     * Place the cursor on the last known cursor position from the history steps.
+     * Place the selection on the last known selection position from the history
+     * steps.
      *
      * @returns {boolean}
      */
-    resetCursorOnLastHistoryCursor() {
+    resetCursorOnLastHistorySelection() {
         const lastHistoryStep = this._currentStep;
         if (lastHistoryStep && lastHistoryStep.selection && lastHistoryStep.selection.anchorNodeOid) {
             this.historySetSelection(lastHistoryStep);
@@ -922,16 +923,16 @@ export class OdooEditor extends EventTarget {
     onExternalMultiselectionUpdate(selection) {
         this._multiselectionDisplayClient(selection);
         const { clientId } = selection;
-        if (this._cursorInfos.has(clientId)) {
-            this._cursorInfos.get(clientId).selection = selection;
+        if (this._collabCursorInfos.has(clientId)) {
+            this._collabCursorInfos.get(clientId).selection = selection;
         } else {
-            this._cursorInfos.set(clientId, { selection });
+            this._collabCursorInfos.set(clientId, { selection });
         }
     }
 
     multiselectionRefresh() {
-        this._collaboratorIndicatorContainer.innerHTML = '';
-        for (const { selection } of this._cursorInfos.values()) {
+        this._collabSelectionsContainer.innerHTML = '';
+        for (const { selection } of this._collabCursorInfos.values()) {
             this._multiselectionDisplayClient(selection);
         }
     }
@@ -969,7 +970,7 @@ export class OdooEditor extends EventTarget {
         }
 
         // Draw rects (in case the selection is not collapsed).
-        const containerRect = this._collaboratorIndicatorContainer.getBoundingClientRect();
+        const containerRect = this._collabSelectionsContainer.getBoundingClientRect();
         const indicators = clientRects.map(({ x, y, width, height }) => {
             const rectElement = this.document.createElement('div');
             rectElement.style = `
@@ -1012,16 +1013,16 @@ export class OdooEditor extends EventTarget {
             }
         }
         this._multiselectionRemoveClient(clientId);
-        this._collaboratorIndicatorContainer.append(caretElement, ...indicators);
+        this._collabSelectionsContainer.append(caretElement, ...indicators);
     }
 
     multiselectionRemove(clientId) {
-        this._cursorInfos.delete(clientId);
+        this._collabCursorInfos.delete(clientId);
         this._multiselectionRemoveClient(clientId);
     }
 
     _multiselectionRemoveClient(clientId) {
-        const elements = this._collaboratorIndicatorContainer.querySelectorAll(
+        const elements = this._collabSelectionsContainer.querySelectorAll(
             `[data-selection-client-id="${clientId}"]`,
         );
         for (const element of elements) {
@@ -1253,7 +1254,7 @@ export class OdooEditor extends EventTarget {
      * @returns {?}
      */
     _applyCommand(...args) {
-        this._recordHistoryCursor(true);
+        this._recordHistorySelection(true);
         const result = this._protect(() => this._applyRawCommand(...args));
         this.sanitize();
         this.historyStep();
@@ -1342,7 +1343,7 @@ export class OdooEditor extends EventTarget {
      * @private
      * @param {boolean} [useCache=false]
      */
-    _recordHistoryCursor(useCache = false) {
+    _recordHistorySelection(useCache = false) {
         this._currentStep.selection =
             serializeSelection(
                 useCache ? this._latestComputedSelection : this._computeHistorySelection(),
@@ -1840,9 +1841,9 @@ export class OdooEditor extends EventTarget {
      * @private
      */
     _onInput(ev) {
-        // Record the cursor position that was computed on keydown or before
+        // Record the selection position that was computed on keydown or before
         // contentEditable execCommand (whatever preceded the 'input' event)
-        this._recordHistoryCursor(true);
+        this._recordHistorySelection(true);
         const selection = this._currentStep.selection;
         const { anchorNodeOid, anchorOffset, focusNodeOid, focusOffset} = selection || {};
         const wasCollapsed =
@@ -1929,7 +1930,7 @@ export class OdooEditor extends EventTarget {
         if (ev.key === 'Backspace' && !ev.ctrlKey && !ev.metaKey) {
             // backspace
             // We need to hijack it because firefox doesn't trigger a
-            // deleteBackward input event with a collapsed cursor in front of a
+            // deleteBackward input event with a collapsed selection in front of a
             // contentEditable="false" (eg: font awesome)
             const selection = this.document.getSelection();
             if (selection.isCollapsed) {
@@ -1971,7 +1972,7 @@ export class OdooEditor extends EventTarget {
      * @private
      */
     _onSelectionChange() {
-        // Compute the current cursor on selectionchange but do not record it. Leave
+        // Compute the current selection on selectionchange but do not record it. Leave
         // that to the command execution or the 'input' event handler.
         this._computeHistorySelection();
 
@@ -1999,7 +2000,7 @@ export class OdooEditor extends EventTarget {
         if (!selection) return;
         return Object.assign({
             selection: serializeSelection(selection),
-            color: this._cursorColor,
+            color: this._collabCursorColor,
             clientId: this._clientId,
         });
     }

@@ -576,7 +576,7 @@ const Wysiwyg = Widget.extend({
      * Set cursor to the editor latest position before blur or to the last editable node, ready to type.
      */
     focus: function () {
-        if(!this.odooEditor.resetCursorOnLastHistoryCursor()) {
+        if(!this.odooEditor.resetCursorOnLastHistorySelection()) {
             // If the editor don't have an history step to focus to,
             // We place the cursor after the end of the editor exiting content.
             const range = document.createRange();
