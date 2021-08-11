@@ -180,6 +180,8 @@ export class RTC {
             this.options.broadcastAll(transportPayload);
         } else if (transport === 'rtc') {
             this._channelNotify(clientId, transportPayload);
+        } else {
+            throw new Error(`Transport "${transport}" is not supported. Use "server" or "rtc" transport.`);
         }
     }
 
