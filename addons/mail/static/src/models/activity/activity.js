@@ -213,6 +213,27 @@ function factory(dependencies) {
             this.markAsDone({ attachments: [ev.detail.attachment] });
         }
 
+        async onClickDone() {
+            await this.markAsDone({
+                feedback: this.feedbackTextareaRef.el.value,
+            });
+            this.componentPopOver.trigger('reload', { keepChanges: true });
+        }
+
+        onClickDoneAndScheduleNext() {
+            this.markAsDoneAndScheduleNext({
+                feedback: this.feedbackTextareaRef.el.value,
+            });
+        }
+        /**
+         * @private
+         */
+        onBlur() {
+            this.update({
+                feedbackBackup: this.feedbackTextareaRef.el.value,
+            });
+        }
+
         /**
          * Handles click on the done bottom of the attachment popover.
          */
@@ -330,6 +351,13 @@ function factory(dependencies) {
         //----------------------------------------------------------------------
         // Private
         //----------------------------------------------------------------------
+
+        /**
+         * @private
+         */
+        _closePopOver() {
+            this.componentPopOver.trigger('o-popover-close');
+        }
 
         /**
          * @private
