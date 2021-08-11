@@ -1872,19 +1872,19 @@ export const rightDeepOnlyInlineInScopePath = createDOMPathGenerator(
  * @returns a throttled function
  */
 export function throttle(func, wait) {
-    let ref = null;
+    let nextArgs = null;
     let shouldWait = false;
     return (...args) => {
         if (shouldWait) {
-            ref = args;
+            nextArgs = args;
         } else {
             func(...args);
             shouldWait = true;
             setTimeout(() => {
-                if (ref) {
-                    func(...ref);
+                if (nextArgs) {
+                    func(...nextArgs);
                 }
-                ref = null;
+                nextArgs = null;
                 shouldWait = false;
             }, wait);
         }
