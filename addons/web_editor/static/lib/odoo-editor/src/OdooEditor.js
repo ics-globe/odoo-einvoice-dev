@@ -11,11 +11,7 @@ import './commands/toggleList.js';
 import './commands/align.js';
 
 import { sanitize } from './utils/sanitize.js';
-import {
-    serializeNode,
-    unserializeNode,
-    serializeSelection,
-} from './utils/serialize.js';
+import { serializeNode, unserializeNode, serializeSelection } from './utils/serialize.js';
 import {
     closestBlock,
     commonParentGet,
@@ -181,9 +177,6 @@ export class OdooEditor extends EventTarget {
         // All dom listeners currently active.
         this._domListeners = [];
 
-        this.resetHistory();
-        this._historyStepsActive = true;
-
         // Set of labels that which prevent the automatic step mechanism if
         // it contains at least one element.
         this._observerTimeoutUnactive = new Set();
@@ -230,7 +223,9 @@ export class OdooEditor extends EventTarget {
         // Create a first step containing all of the document, with a different
         // clientId so that it can not be undone.
         this.idSet(editable);
-        this._historySteps = [];
+        this.historyReset();
+        this._historyStepsActive = true;
+        this._historySteps.push(this._historyGetSnapshotStep());
 
         this._createCommandBar();
 
@@ -543,7 +538,7 @@ export class OdooEditor extends EventTarget {
     // History
     // -------------------------------------------------------------------------
 
-    resetHistory() {
+    historyReset() {
         this._historySteps = [];
         this._currentStep = {
             selection: {
@@ -558,13 +553,15 @@ export class OdooEditor extends EventTarget {
         };
         this._historyStepsStates = new Map();
     }
-    historyResetFromStep(step) {
+    historyResetFromSteps(steps) {
         this.observerUnactive();
         for (const node of [...this.editable.childNodes]) {
             node.remove();
         }
-        this.resetHistory();
-        this.onExternalHistoryStep(step);
+        this.historyReset();
+        for (const step of steps) {
+            this.onExternalHistoryStep(step);
+        }
         this.observerActive();
     }
 
@@ -639,25 +636,6 @@ export class OdooEditor extends EventTarget {
                 }
             }
         }
-    }
-    historyGetSnapshotStep() {
-        return {
-            selection: {
-                anchorNode: undefined,
-                anchorOffset: undefined,
-                focusNode: undefined,
-                focusOffset: undefined,
-            },
-            mutations: Array.from(this.editable.childNodes).map(node => ({
-                type: 'add',
-                append: 1,
-                id: node.oid,
-                node: serializeNode(node),
-            })),
-            id: this._generateId(),
-            clientId: this.clientId,
-            previousStepId: undefined,
-        };
     }
     historyRollback(until = 0) {
         const step = this._currentStep;
@@ -785,16 +763,22 @@ export class OdooEditor extends EventTarget {
         this.historySetSelection(step);
         this.dispatchEvent(new Event('historyRevert'));
     }
+    historyGetSteps() {
+        this._historySteps();
+    }
     /**
      * Place the selection on the last known selection position from the history
      * steps.
      *
      * @returns {boolean}
      */
-    resetCursorOnLastHistorySelection() {
-        const lastHistoryStep = this._currentStep;
-        if (lastHistoryStep && lastHistoryStep.selection && lastHistoryStep.selection.anchorNodeOid) {
-            this.historySetSelection(lastHistoryStep);
+    historyResetCurrentStepSelection() {
+        if (
+            this._currentStep &&
+            this._currentStep.selection &&
+            this._currentStep.selection.anchorNodeOid
+        ) {
+            this.historySetSelection(this._currentStep);
             return true;
         }
         return false;
@@ -827,7 +811,25 @@ export class OdooEditor extends EventTarget {
     historyUnpauseSteps() {
         this._historyStepsActive = true;
     }
-
+    _historyGetSnapshotStep() {
+        return {
+            selection: {
+                anchorNode: undefined,
+                anchorOffset: undefined,
+                focusNode: undefined,
+                focusOffset: undefined,
+            },
+            mutations: Array.from(this.editable.childNodes).map(node => ({
+                type: 'add',
+                append: 1,
+                id: node.oid,
+                node: serializeNode(node),
+            })),
+            id: this._generateId(),
+            clientId: this.clientId,
+            previousStepId: undefined,
+        };
+    }
     /**
      * on external history step algorithm:
      *  Steps are conceptually a linked list where each step remembers the step
@@ -909,7 +911,7 @@ export class OdooEditor extends EventTarget {
             }
             this.historySetSelection(currentStep);
         } else {
-            console.log('reset case');
+            console.log('%s reset case', 'background: maroon;');
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
         this.observerActive();
@@ -1845,7 +1847,7 @@ export class OdooEditor extends EventTarget {
         // contentEditable execCommand (whatever preceded the 'input' event)
         this._recordHistorySelection(true);
         const selection = this._currentStep.selection;
-        const { anchorNodeOid, anchorOffset, focusNodeOid, focusOffset} = selection || {};
+        const { anchorNodeOid, anchorOffset, focusNodeOid, focusOffset } = selection || {};
         const wasCollapsed =
             !selection || (focusNodeOid === anchorNodeOid && focusOffset === anchorOffset);
 

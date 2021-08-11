@@ -214,10 +214,10 @@ export class RTC {
             console.log(`HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
             const baseMethod = this._notificationMethods[notification.notificationName];
             if (baseMethod) {
-                return baseMethod.call(this, notification);
+                baseMethod.call(this, notification);
             }
             if (this.options.onNotification) {
-                return this.options.onNotification(notification);
+                this.options.onNotification(notification);
             }
         }
     }

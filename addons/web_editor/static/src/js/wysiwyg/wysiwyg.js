@@ -227,7 +227,8 @@ const Wysiwyg = Widget.extend({
         this.call('bus_service', 'addChannel', channelName);
         this.call('bus_service', 'startPolling');
 
-        let firstHistoryRequested = false;
+        let historySyncedOnce = false;
+        let receivedOffer = false;
         const requestNewHistory = () => {
             this.rtc.notifyAllClients(
                 'oe_history_request',
@@ -268,23 +269,36 @@ const Wysiwyg = Widget.extend({
                         this.rtc.removeClient(fromClientId, { shouldNotify: false });
                         this.odooEditor.multiselectionRemove(fromClientId);
                         break;
+                    case 'rtc_signal_offer':
+                        receivedOffer = true;
+                        break;
                     case 'rtc_connection_statechange':
-                        if (!firstHistoryRequested && notificationPayload.connectionState === 'connected') {
-                            firstHistoryRequested = true;
-                            console.log('requesting first history');
-                            requestNewHistory();
-                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_selection');
+                        const { connectionState, connectionClientId } = notificationPayload;
+                        if (!historySyncedOnce && receivedOffer && connectionState === 'connected') {
+                            historySyncedOnce = true;
+                            console.log('%c requesting first history', 'background: brown;');
+                            this.rtc.notifyClient(
+                                connectionClientId,
+                                'oe_history_request',
+                                { transport: 'rtc' }
+                            );
+                            this.rtc.notifyClient(
+                                connectionClientId,
+                                'oe_history_request_selection',
+                                { transport: 'rtc' }
+                            );
                         }
                         break;
                     case 'oe_history_request':
-                        this.rtc.notifyAllClients(
-                            'oe_history_reset_step',
-                            this.odooEditor.historyGetSnapshotStep(),
+                        this.rtc.notifyClient(
+                            fromClientId,
+                            'oe_history_reset_steps',
+                            this.odooEditor._historySteps,
                             { transport: 'rtc' }
                         )
                         break;
-                    case 'oe_history_reset_step':
-                        this.odooEditor.historyResetFromStep(notificationPayload);
+                    case 'oe_history_reset_steps':
+                        this.odooEditor.historyResetFromSteps(notificationPayload);
                         break;
                     case 'oe_history_step':
                         this.odooEditor.onExternalHistoryStep(notificationPayload);
@@ -303,8 +317,6 @@ const Wysiwyg = Widget.extend({
                     case 'oe_history_set_selection':
                         this.odooEditor.onExternalMultiselectionUpdate(notificationPayload);
                         break;
-                    default:
-                        throw new Error(`No method exists to process notification "${notificationName}".`);
                 }
             }
         });

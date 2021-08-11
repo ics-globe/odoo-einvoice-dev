@@ -69,7 +69,7 @@ const testCommandSerialization = (content, commandCb) => {
         },
     });
     editor.keyboardType = 'PHYSICAL_KEYBOARD';
-    receivingEditor.historyResetFromStep(editor.historyGetSnapshotStep());
+    receivingEditor.historyResetFromSteps(editor.historyGetSnapshotStep());
     commandCb(editor);
     window.chai.expect(editable.innerHTML).to.equal(receivingNode.innerHTML);
 };
@@ -445,7 +445,7 @@ describe('Collaboration', () => {
                     requestSynchronization: () => {},
                 },
             });
-            secondEditor.historyResetFromStep(snap);
+            secondEditor.historyResetFromSteps(snap);
             var origIt = document.createNodeIterator(testNode);
             var destIt = document.createNodeIterator(virtualNode);
             var res;
