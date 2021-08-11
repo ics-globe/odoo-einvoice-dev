@@ -297,3 +297,25 @@ i.oe-commandbar-commandImg {
     display: block;
     color: rgba(55, 53, 47, 0.4);
 }
+
+/* Collaboration cursor */
+.oe-collaboration-cursor-container {
+    isolation: isolate;
+    height: 0;
+    width: 0;
+    z-index: 1;
+}
+.oe-collaboration-caret-top-square {
+    min-height: 5px;
+    min-width: 5px;
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+    position: absolute;
+    bottom: 100%;
+    left: -4px;
+    white-space: nowrap;
+}
+.oe-collaboration-caret-top-square:hover {
+    border-radius: 2px;
+    padding: 0.3em 0.6em;
+}
