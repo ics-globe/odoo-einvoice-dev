@@ -273,23 +273,23 @@ const Wysiwyg = Widget.extend({
                             firstHistoryRequested = true;
                             console.log('requesting first history');
                             requestNewHistory();
-                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_cursor');
+                            this.rtc.notifyClient(notificationPayload.connectionClientId, 'oe_history_request_selection');
                         }
                         break;
                     case 'oe_history_request':
                         this.rtc.notifyAllClients(
-                            'oe_history_reset',
-                            this.odooEditor.historyGetSnapshot(),
+                            'oe_history_reset_step',
+                            this.odooEditor.historyGetSnapshotStep(),
                             { transport: 'rtc' }
                         )
                         break;
-                    case 'oe_history_reset':
-                        this.odooEditor.historyResetAndSync(notificationPayload);
+                    case 'oe_history_reset_step':
+                        this.odooEditor.historyResetFromStep(notificationPayload);
                         break;
                     case 'oe_history_step':
                         this.odooEditor.onExternalHistoryStep(notificationPayload);
                         break;
-                    case 'oe_history_request_cursor':
+                    case 'oe_history_request_selection':
                         const selection = this.odooEditor.getCurrentCollaborativeCursor();
                         if (selection) {
                             this.rtc.notifyClient(

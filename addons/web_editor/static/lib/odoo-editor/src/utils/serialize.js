@@ -3,7 +3,7 @@
 import { getCursorDirection } from './utils.js';
 
 // TODO: avoid empty keys when not necessary to reduce request size
-export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
+export function serializeNode(node, nodesToStripFromChildren = new Set()) {
     let result = {
         nodeType: node.nodeType,
         oid: node.oid,
@@ -23,7 +23,7 @@ export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
         let child = node.firstChild;
         while (child) {
             if (!nodesToStripFromChildren.has(child.oid)) {
-                result.children.push(nodeToObject(child, nodesToStripFromChildren));
+                result.children.push(serializeNode(child, nodesToStripFromChildren));
             }
             child = child.nextSibling;
         }
@@ -31,7 +31,7 @@ export function nodeToObject(node, nodesToStripFromChildren = new Set()) {
     return result;
 }
 
-export function objectToNode(obj) {
+export function unserializeNode(obj) {
     let result = undefined;
     if (obj.nodeType === Node.TEXT_NODE) {
         result = document.createTextNode(obj.textValue);
@@ -40,7 +40,7 @@ export function objectToNode(obj) {
         for (const key in obj.attributes) {
             result.setAttribute(key, obj.attributes[key]);
         }
-        obj.children.forEach(child => result.append(objectToNode(child)));
+        obj.children.forEach(child => result.append(unserializeNode(child)));
     } else {
         console.warn('unknown node type');
     }
@@ -48,18 +48,35 @@ export function objectToNode(obj) {
     return result;
 }
 
-export function selectionToObject(selection) {
-    return {
-        anchorNode: selection.anchorNode.oid,
-        anchorOffset: selection.anchorOffset,
-        focusNode: selection.focusNode.oid,
-        focusOffset: selection.focusOffset,
-    };
+export function serializeSelection(selection) {
+    if (
+        selection &&
+        selection.anchorNode &&
+        selection.anchorNode.oid &&
+        selection.anchorOffset &&
+        selection.focusNode &&
+        selection.anchorNode.oid &&
+        selection.focusOffset
+    ) {
+        return {
+            anchorNodeOid: selection.anchorNode.oid,
+            anchorOffset: selection.anchorOffset,
+            focusNodeOid: selection.focusNode.oid,
+            focusOffset: selection.focusOffset,
+        };
+    } else {
+        return {
+            anchorNodeOid: undefined,
+            anchorOffset: undefined,
+            focusNodeOid: undefined,
+            focusOffset: undefined,
+        };
+    }
 }
 
-export function objectToRange(obj, idFind, doc = document) {
-    const range = doc.createRange();
-    range.setStart(idFind(obj.startContainer), obj.startOffset);
-    range.setEnd(idFind(obj.endContainer), obj.endOffset);
-    return range;
-}
+// export function objectToRange(obj, idFind, doc = document) {
+//     const range = doc.createRange();
+//     range.setStart(idFind(obj.startContainer), obj.startOffset);
+//     range.setEnd(idFind(obj.endContainer), obj.endOffset);
+//     return range;
+// }

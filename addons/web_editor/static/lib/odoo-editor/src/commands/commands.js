@@ -25,7 +25,7 @@ import {
     nodeSize,
     preserveCursor,
     rightPos,
-    setCursor,
+    setSelection,
     setCursorStart,
     setTagName,
     splitElement,
@@ -221,9 +221,9 @@ function applyInlineStyle(editor, applyStyle) {
         }
     }
     if (direction === DIRECTIONS.RIGHT) {
-        setCursor(startContainer, 0, endContainer, endOffset);
+        setSelection(startContainer, 0, endContainer, endOffset);
     } else {
-        setCursor(endContainer, endOffset, startContainer, 0);
+        setSelection(endContainer, endOffset, startContainer, 0);
     }
 }
 function addColumn(editor, beforeOrAfter) {
@@ -250,7 +250,7 @@ function deleteTable(editor, table) {
     p.appendChild(document.createElement('br'));
     table.before(p);
     table.remove();
-    setCursor(p, 0);
+    setSelection(p, 0);
 }
 
 // This is a whitelist of the commands that are implemented by the
@@ -272,7 +272,7 @@ export const editorCommands = {
         const insertedNode = editorCommands.insertHTML(editor, '<i></i>')[0];
         insertedNode.className = faClass;
         const position = rightPos(insertedNode);
-        setCursor(...position, ...position, false);
+        setSelection(...position, ...position, false);
     },
 
     // History
@@ -289,7 +289,7 @@ export const editorCommands = {
                     block.nodeName,
                 )
             ) {
-                setCursor(block, 0, block, nodeSize(block));
+                setSelection(block, 0, block, nodeSize(block));
                 editor.historyPauseSteps();
                 editor.document.execCommand('removeFormat');
                 editor.historyUnpauseSteps();
@@ -359,13 +359,13 @@ export const editorCommands = {
         link = link || prompt('URL or Email', (currentLink && currentLink.href) || 'http://');
         const res = editor.document.execCommand('createLink', false, link);
         if (res) {
-            setCursor(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset);
+            setSelection(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset);
             const node = findNode(closestPath(sel.focusNode), node => node.tagName === 'A');
             for (const [param, value] of Object.entries(editor.options.defaultLinkAttributes)) {
                 node.setAttribute(param, `${value}`);
             }
             const pos = [node.parentElement, childNodeIndex(node) + 1];
-            setCursor(...pos, ...pos, false);
+            setSelection(...pos, ...pos, false);
         }
     },
     unlink: editor => {
@@ -380,12 +380,12 @@ export const editorCommands = {
         if (sel.isCollapsed) {
             const cr = preserveCursor(editor.document);
             const node = closestElement(sel.focusNode, 'a');
-            setCursor(node, 0, node, node.childNodes.length, false);
+            setSelection(node, 0, node, node.childNodes.length, false);
             editor.document.execCommand('unlink');
             cr();
         } else {
             editor.document.execCommand('unlink');
-            setCursor(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset);
+            setSelection(sel.anchorNode, sel.anchorOffset, sel.focusNode, sel.focusOffset);
         }
     },
 
@@ -526,7 +526,7 @@ export const editorCommands = {
                 ? splitTextNode(anchorNode, sel.anchorOffset, DIRECTIONS.LEFT) + 1 && anchorNode
                 : splitElement(anchorNode, sel.anchorOffset).shift();
             const newPosition = rightPos(newAnchorNode);
-            setCursor(...newPosition, ...newPosition, false);
+            setSelection(...newPosition, ...newPosition, false);
         }
         const [table] = editorCommands.insertHTML(editor, tableHtml);
         setCursorStart(table.querySelector('td'));
@@ -552,7 +552,7 @@ export const editorCommands = {
         const index = cells.findIndex(td => td === cell);
         const siblingCell = cells[index - 1] || cells[index + 1];
         table.querySelectorAll(`tr td:nth-of-type(${index + 1})`).forEach(td => td.remove());
-        siblingCell ? setCursor(...startPos(siblingCell)) : deleteTable(editor, table);
+        siblingCell ? setSelection(...startPos(siblingCell)) : deleteTable(editor, table);
     },
     removeRow: editor => {
         getDeepRange(editor.editable, { select: true }); // Ensure deep range for finding tr.
@@ -563,7 +563,7 @@ export const editorCommands = {
         const rowIndex = rows.findIndex(tr => tr === row);
         const siblingRow = rows[rowIndex - 1] || rows[rowIndex + 1];
         row.remove();
-        siblingRow ? setCursor(...startPos(siblingRow)) : deleteTable(editor, table);
+        siblingRow ? setSelection(...startPos(siblingRow)) : deleteTable(editor, table);
     },
     deleteTable: (editor, table) => deleteTable(editor, table),
     insertHorizontalRule(editor) {

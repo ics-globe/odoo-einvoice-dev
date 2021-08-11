@@ -443,7 +443,7 @@ export function getNormalizedCursorPosition(node, offset, full = true) {
  * @param {boolean} [normalize=true]
  * @returns {?Array.<Node, number}
  */
-export function setCursor(
+export function setSelection(
     anchorNode,
     anchorOffset,
     focusNode = anchorNode,
@@ -495,7 +495,7 @@ export function setCursor(
  */
 export function setCursorStart(node, normalize = true) {
     const pos = startPos(node);
-    return setCursor(...pos, ...pos, normalize);
+    return setSelection(...pos, ...pos, normalize);
 }
 /**
  * @param {Node} node
@@ -504,7 +504,7 @@ export function setCursorStart(node, normalize = true) {
  */
 export function setCursorEnd(node, normalize = true) {
     const pos = endPos(node);
-    return setCursor(...pos, ...pos, normalize);
+    return setSelection(...pos, ...pos, normalize);
 }
 /**
  * From selection position, checks if it is left-to-right or right-to-left.
@@ -726,7 +726,7 @@ export function preserveCursor(document) {
         replace = replace || new Map();
         cursorPos[0] = replace.get(cursorPos[0]) || cursorPos[0];
         cursorPos[2] = replace.get(cursorPos[2]) || cursorPos[2];
-        setCursor(...cursorPos);
+        setSelection(...cursorPos);
     };
 }
 
@@ -1230,13 +1230,13 @@ export function splitElement(element, offset) {
 export function insertText(sel, content) {
     if (sel.anchorNode.nodeType == Node.TEXT_NODE) {
         const pos = [sel.anchorNode.parentElement, splitTextNode(sel.anchorNode, sel.anchorOffset)];
-        setCursor(...pos, ...pos, false);
+        setSelection(...pos, ...pos, false);
     }
     const txt = document.createTextNode(content || '#');
     const restore = prepareUpdate(sel.anchorNode, sel.anchorOffset);
     sel.getRangeAt(0).insertNode(txt);
     restore();
-    setCursor(...boundariesOut(txt), false);
+    setSelection(...boundariesOut(txt), false);
 }
 
 /**

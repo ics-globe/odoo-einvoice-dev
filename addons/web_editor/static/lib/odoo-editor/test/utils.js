@@ -172,7 +172,7 @@ export function renderMultipleTextualSelection() {
  *
  * @param selection
  */
-export function setSelection(selection, doc = document) {
+export function setTestSelection(selection, doc = document) {
     const domRange = doc.createRange();
     if (selection.direction === Direction.FORWARD) {
         domRange.setStart(selection.anchorNode, selection.anchorOffset);
@@ -304,7 +304,7 @@ export async function testEditor(Editor = OdooEditor, spec) {
     const editor = new Editor(testNode, { toSanitize: false });
     editor.keyboardType = 'PHYSICAL_KEYBOARD';
     if (selection) {
-        setSelection(selection);
+        setTestSelection(selection);
     } else {
         document.getSelection().removeAllRanges();
     }

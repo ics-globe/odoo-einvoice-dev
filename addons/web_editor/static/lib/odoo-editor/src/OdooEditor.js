@@ -11,7 +11,11 @@ import './commands/toggleList.js';
 import './commands/align.js';
 
 import { sanitize } from './utils/sanitize.js';
-import { nodeToObject, objectToNode, objectToRange, selectionToObject } from './utils/serialize.js';
+import {
+    serializeNode,
+    unserializeNode,
+    serializeSelection,
+} from './utils/serialize.js';
 import {
     closestBlock,
     commonParentGet,
@@ -24,7 +28,7 @@ import {
     insertText,
     nodeSize,
     preserveCursor,
-    setCursor,
+    setSelection,
     startPos,
     toggleClass,
     closestElement,
@@ -226,7 +230,7 @@ export class OdooEditor extends EventTarget {
         // Create a first step containing all of the document, with a different
         // clientId so that it can not be undone.
         this.idSet(editable);
-        this._historySteps = this.historyGetSnapshot();
+        this._historySteps = [];
 
         this._createCommandBar();
 
@@ -260,12 +264,10 @@ export class OdooEditor extends EventTarget {
         this.addDomListener(this.document, 'mouseup', this._onDoumentMouseup);
 
         this.multiselectionRefresh = this.multiselectionRefresh.bind(this);
-        // this.addDomListener(this.document.body, 'scroll', this.multiselectionRefresh);
-        // this.document.defaultView.addEventListener('resize', this.multiselectionRefresh);
-
         this.resizeObserver = new ResizeObserver(this.multiselectionRefresh);
         this.resizeObserver.observe(this.document.body);
         this.resizeObserver.observe(this.editable);
+
         // -------
         // Toolbar
         // -------
@@ -305,7 +307,6 @@ export class OdooEditor extends EventTarget {
             }
         }
     }
-
     /**
      * Releases anything that was initialized.
      *
@@ -345,17 +346,16 @@ export class OdooEditor extends EventTarget {
         element.addEventListener(eventName, boundCallback);
     }
 
-    _makeNodeId() {
+    _generateId() {
         return uuidV4();
     }
 
     // Assign IDs to src, and dest if defined
     idSet(node, testunbreak = false) {
         if (!node.oid) {
-            node.oid = this._makeNodeId();
+            node.oid = this._generateId();
         }
-        // Always add to _idToNodeMap for nodes whose ids are created through by
-        // another client (in a collaboration setting)
+        // In case the id was created by another collaboration client.
         this._idToNodeMap.set(node.oid, node);
         // Rollback if node.ouid changed. This ensures that nodes never change
         // unbreakable ancestors.
@@ -378,11 +378,8 @@ export class OdooEditor extends EventTarget {
         return this._idToNodeMap.get(id);
     }
 
-    serialize(node, nodesToStripFromChildren) {
-        return nodeToObject(node, nodesToStripFromChildren);
-    }
     unserialize(obj) {
-        return objectToNode(obj);
+        return unserializeNode(obj);
     }
 
     automaticStepActive(label) {
@@ -432,6 +429,11 @@ export class OdooEditor extends EventTarget {
     }
 
     observerApply(records) {
+        // There is a case where node A is added and node B is a descendant of
+        // node A where node B was not in the observed tree) then node B is
+        // added into another node. In that case, we need to keep track of node
+        // B so when serializing node A, we strip node B from the node A tree to
+        // avoid the duplication of node A.
         const mutatedNodes = new Set();
         for (const record of records) {
             if (record.type === 'childList') {
@@ -486,7 +488,7 @@ export class OdooEditor extends EventTarget {
                             return false;
                         }
                         mutation.id = added.oid;
-                        mutation.node = this.serialize(added, mutatedNodes);
+                        mutation.node = serializeNode(added, mutatedNodes);
                         this._currentStep.mutations.push(mutation);
                     });
                     record.removedNodes.forEach(removed => {
@@ -497,7 +499,7 @@ export class OdooEditor extends EventTarget {
                             'type': 'remove',
                             'id': removed.oid,
                             'parentId': record.target.oid,
-                            'node': this.serialize(removed),
+                            'node': serializeNode(removed),
                             'nextId': record.nextSibling ? record.nextSibling.oid : undefined,
                             'previousId': record.previousSibling
                                 ? record.previousSibling.oid
@@ -544,29 +546,26 @@ export class OdooEditor extends EventTarget {
     resetHistory() {
         this._historySteps = [];
         this._currentStep = {
-            cursor: {
-                // cursor at beginning of step
-                anchorNode: undefined,
+            selection: {
+                anchorNodeOid: undefined,
                 anchorOffset: undefined,
-                focusNode: undefined,
+                focusNodeOid: undefined,
                 focusOffset: undefined,
             },
             mutations: [],
             id: undefined,
+            clientId: undefined,
         };
         this._historyStepsStates = new Map();
     }
-    historyResetAndSync(steps) {
-        console.log('historyResetAndSync', steps);
+    historyResetFromStep(step) {
         this.observerUnactive();
         for (const node of [...this.editable.childNodes]) {
             node.remove();
         }
         this.resetHistory();
+        this.onExternalHistoryStep(step);
         this.observerActive();
-        for (const step of steps) {
-            this.onExternalHistoryStep(step);
-        }
     }
 
     // One step completed: apply to vDOM, setup next history step
@@ -582,21 +581,22 @@ export class OdooEditor extends EventTarget {
         }
 
         // push history
-        const current = this._currentStep;
-        if (!current.mutations.length) {
+        const currentStep = this._currentStep;
+        if (!currentStep.mutations.length) {
             return false;
         }
 
-        current.id = this._makeNodeId();
-        const latest = peek(this._historySteps);
-        current.clientId = latest ? this._clientId : FIRST_STEP_USER_ID;
-        current.previousStepId = (latest && latest.id) || FIRST_STEP_PREVIOUS_ID;
-        this._historySteps.push(current);
+        currentStep.id = this._generateId();
+        const previousStep = peek(this._historySteps);
+        currentStep.clientId = previousStep ? this._clientId : FIRST_STEP_USER_ID;
+        currentStep.previousStepId = (previousStep && previousStep.id) || FIRST_STEP_PREVIOUS_ID;
+
+        this._historySteps.push(currentStep);
         if (this.options.onHistoryStep) {
-            this.options.onHistoryStep(current);
+            this.options.onHistoryStep(currentStep);
         }
         this._currentStep = {
-            cursor: {},
+            selection: {},
             mutations: [],
         };
         this._checkStepUnbreakable = true;
@@ -612,7 +612,7 @@ export class OdooEditor extends EventTarget {
                 if (node) {
                     node.textContent = record.text;
                 } else {
-                    throw new Error('no node was found');
+                    throw new Error('No node was found.');
                 }
             } else if (record.type === 'attributes') {
                 const node = this.idFind(record.id);
@@ -625,7 +625,7 @@ export class OdooEditor extends EventTarget {
                     toremove.remove();
                 }
             } else if (record.type === 'add') {
-                const node = this.idFind(record.oid) || this.unserialize(record.node);
+                const node = this.idFind(record.oid) || unserializeNode(record.node);
                 this.idSet(node, true);
 
                 if (record.append && this.idFind(record.append)) {
@@ -640,21 +640,24 @@ export class OdooEditor extends EventTarget {
             }
         }
     }
-    historyGetSnapshot() {
-        const latestStep = peek(this._historySteps);
-        const snapshot = {
-            cursor: { 'anchorNode': 1, 'anchorOffset': 2, 'focusNode': 1, 'focusOffset': 2 },
-            mutations: Array.from(this.editable.childNodes).map(n => ({
+    historyGetSnapshotStep() {
+        return {
+            cursor: {
+                anchorNode: undefined,
+                anchorOffset: undefined,
+                focusNode: undefined,
+                focusOffset: undefined,
+            },
+            mutations: Array.from(this.editable.childNodes).map(node => ({
                 type: 'add',
                 append: 1,
-                id: n.oid,
-                node: this.serialize(n),
+                id: node.oid,
+                node: serializeNode(node),
             })),
-            id: latestStep ? latestStep.id : this._makeNodeId(),
-            clientId: FIRST_STEP_USER_ID,
-            previousStepId: FIRST_STEP_PREVIOUS_ID,
+            id: this._generateId(),
+            clientId: this.clientId,
+            previousStepId: undefined,
         };
-        return [snapshot];
     }
     historyRollback(until = 0) {
         const step = this._currentStep;
@@ -705,7 +708,7 @@ export class OdooEditor extends EventTarget {
         if (pos >= 0) {
             this._historyStepsStates.set(this._historySteps[pos].id, 'consumed');
             this.historyRevert(this._historySteps[pos]);
-            this.historySetCursor(this._historySteps[pos]);
+            this.historySetSelection(this._historySteps[pos]);
             this.historyStep(true);
             const lastStep = this._historySteps[this._historySteps.length - 1];
             this._historyStepsStates.set(lastStep.id, 'redo');
@@ -755,7 +758,7 @@ export class OdooEditor extends EventTarget {
                 case 'remove': {
                     let nodeToRemove = this.idFind(mutation.id);
                     if (!nodeToRemove) {
-                        nodeToRemove = this.unserialize(mutation.node);
+                        nodeToRemove = unserializeNode(mutation.node);
                         this.idSet(nodeToRemove);
                     }
                     if (mutation.nextId && this.idFind(mutation.nextId)) {
@@ -779,7 +782,7 @@ export class OdooEditor extends EventTarget {
             }
         }
         this._activateContenteditable();
-        this.historySetCursor(step);
+        this.historySetSelection(step);
         this.dispatchEvent(new Event('historyRevert'));
     }
     /**
@@ -789,26 +792,24 @@ export class OdooEditor extends EventTarget {
      */
     resetCursorOnLastHistoryCursor() {
         const lastHistoryStep = this._currentStep;
-        if (lastHistoryStep && lastHistoryStep.cursor && lastHistoryStep.cursor.anchorNode) {
-            this.historySetCursor(lastHistoryStep);
+        if (lastHistoryStep && lastHistoryStep.selection && lastHistoryStep.selection.anchorNodeOid) {
+            this.historySetSelection(lastHistoryStep);
             return true;
         }
         return false;
     }
-    historySetCursor(step) {
-        if (step.cursor && step.cursor.anchorNode) {
-            const anchorNode = this.idFind(step.cursor.anchorNode);
-            const focusNode = step.cursor.focusNode
-                ? this.idFind(step.cursor.focusNode)
-                : anchorNode;
+    historySetSelection(step) {
+        if (step.selection && step.selection.anchorNodeOid) {
+            const anchorNode = this.idFind(step.selection.anchorNodeOid);
+            const focusNode = this.idFind(step.selection.focusNodeOid) || anchorNode;
             if (anchorNode) {
-                setCursor(
+                setSelection(
                     anchorNode,
-                    step.cursor.anchorOffset,
+                    step.selection.anchorOffset,
                     focusNode,
-                    step.cursor.focusOffset !== undefined
-                        ? step.cursor.focusOffset
-                        : step.cursor.anchorOffset,
+                    step.selection.focusOffset !== undefined
+                        ? step.selection.focusOffset
+                        : step.selection.anchorOffset,
                     false,
                 );
             }
@@ -862,7 +863,7 @@ export class OdooEditor extends EventTarget {
             this._historySteps.push(newStep);
         } else if (previousStep) {
             console.log('merge case');
-            this._computeHistoryCursor();
+            this._computeHistorySelection();
             const currentStep = this._currentStep;
             if (currentStep.mutations && currentStep.mutations.length) {
                 this.historyRevert(currentStep);
@@ -905,12 +906,13 @@ export class OdooEditor extends EventTarget {
             if (currentStep.mutations && currentStep.mutations.length) {
                 this.historyApply(currentStep.mutations);
             }
-            this.historySetCursor(currentStep);
+            this.historySetSelection(currentStep);
         } else {
             console.log('reset case');
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
         this.observerActive();
+        this._handleCommandHint();
         this.multiselectionRefresh();
     }
 
@@ -1042,7 +1044,7 @@ export class OdooEditor extends EventTarget {
      * @returns {?}
      */
     execCommand(...args) {
-        this._computeHistoryCursor();
+        this._computeHistorySelection();
         return this._applyCommand(...args);
     }
 
@@ -1075,7 +1077,7 @@ export class OdooEditor extends EventTarget {
         let next = nextLeaf(end, this.editable);
         const splitEndTd = closestElement(end, 'td') && end.nextSibling;
         const contents = range.extractContents();
-        setCursor(start, nodeSize(start));
+        setSelection(start, nodeSize(start));
         range = getDeepRange(this.editable, { sel });
         // Restore unremovables removed by extractContents.
         [...contents.querySelectorAll('*')].filter(isUnremovable).forEach(n => {
@@ -1135,7 +1137,7 @@ export class OdooEditor extends EventTarget {
         const shouldPreserveSpace = (doJoin || hasSpaceAfter) && joinWith && oldText.endsWith(' ');
         if (shouldPreserveSpace) {
             joinWith.textContent = oldText.replace(/ $/, '\u00A0');
-            setCursor(joinWith, nodeSize(joinWith));
+            setSelection(joinWith, nodeSize(joinWith));
         }
         // Rejoin blocks that extractContents may have split in two.
         while (
@@ -1166,13 +1168,13 @@ export class OdooEditor extends EventTarget {
         ) {
             // Restore the text we modified in order to preserve trailing space.
             joinWith.textContent = oldText;
-            setCursor(joinWith, nodeSize(joinWith));
+            setSelection(joinWith, nodeSize(joinWith));
         }
         if (joinWith) {
             const el = closestElement(joinWith);
             const { zws } = fillEmpty(el);
             if (zws) {
-                setCursor(zws, 0, zws, nodeSize(zws));
+                setSelection(zws, 0, zws, nodeSize(zws));
             }
         }
     }
@@ -1323,28 +1325,27 @@ export class OdooEditor extends EventTarget {
      * @private
      * @returns {Object}
      */
-    _computeHistoryCursor() {
+    _computeHistorySelection() {
         const sel = this.document.getSelection();
         if (!sel.anchorNode) {
-            return this._latestComputedCursor;
+            return this._latestComputedSelection;
         }
-        this._latestComputedCursor = {
+        this._latestComputedSelection = {
             anchorNode: sel.anchorNode,
             anchorOffset: sel.anchorOffset,
             focusNode: sel.focusNode,
             focusOffset: sel.focusOffset,
         };
-        return this._latestComputedCursor;
+        return this._latestComputedSelection;
     }
     /**
      * @private
      * @param {boolean} [useCache=false]
      */
     _recordHistoryCursor(useCache = false) {
-        const latest = this._currentStep;
-        latest.cursor =
-            selectionToObject(
-                useCache ? this._latestComputedCursor : this._computeHistoryCursor(),
+        this._currentStep.selection =
+            serializeSelection(
+                useCache ? this._latestComputedSelection : this._computeHistorySelection(),
             ) || {};
     }
     /**
@@ -1842,9 +1843,10 @@ export class OdooEditor extends EventTarget {
         // Record the cursor position that was computed on keydown or before
         // contentEditable execCommand (whatever preceded the 'input' event)
         this._recordHistoryCursor(true);
-        const cursor = this._currentStep.cursor;
-        const { focusOffset, focusNode, anchorNode, anchorOffset } = cursor || {};
-        const wasCollapsed = !cursor || (focusNode === anchorNode && focusOffset === anchorOffset);
+        const selection = this._currentStep.selection;
+        const { anchorNodeOid, anchorOffset, focusNodeOid, focusOffset} = selection || {};
+        const wasCollapsed =
+            !selection || (focusNodeOid === anchorNodeOid && focusOffset === anchorOffset);
 
         // Sometimes google chrome wrongly triggers an input event with `data`
         // being `null` on `deleteContentForward` `insertParagraph`. Luckily,
@@ -1877,12 +1879,12 @@ export class OdooEditor extends EventTarget {
                 const selection = this.document.getSelection();
                 // Detect that text was selected and change behavior only if it is the case,
                 // since it is the only text insertion case that may cause problems.
-                if (anchorNode !== focusNode || anchorOffset !== focusOffset) {
+                if (anchorNodeOid !== focusNodeOid || anchorOffset !== focusOffset) {
                     ev.preventDefault();
                     this._applyRawCommand('oDeleteBackward');
                     insertText(selection, ev.data);
                     const range = selection.getRangeAt(0);
-                    setCursor(range.endContainer, range.endOffset);
+                    setSelection(range.endContainer, range.endOffset);
                 }
                 // Check for url after user insert a space so we won't transform an incomplete url.
                 if (
@@ -1971,7 +1973,7 @@ export class OdooEditor extends EventTarget {
     _onSelectionChange() {
         // Compute the current cursor on selectionchange but do not record it. Leave
         // that to the command execution or the 'input' event handler.
-        this._computeHistoryCursor();
+        this._computeHistorySelection();
 
         const selection = this.document.getSelection();
         const isSelectionInEditable =
@@ -1993,10 +1995,10 @@ export class OdooEditor extends EventTarget {
     }
 
     getCurrentCollaborativeCursor() {
-        const selection = this._latestComputedCursor || this._computeHistoryCursor();
+        const selection = this._latestComputedSelection || this._computeHistorySelection();
         if (!selection) return;
         return Object.assign({
-            selection: selectionToObject(selection),
+            selection: serializeSelection(selection),
             color: this._cursorColor,
             clientId: this._clientId,
         });
@@ -2316,7 +2318,7 @@ export class OdooEditor extends EventTarget {
      * @param {int} length
      */
     _createLinkWithUrlInTextNode(textNode, url, index, length) {
-        setCursor(textNode, index, textNode, index + length);
+        setSelection(textNode, index, textNode, index + length);
         this.document.execCommand('createLink', false, url);
         const sel = this.document.getSelection();
         const link = closestElement(sel.anchorNode, 'a');
@@ -2484,10 +2486,10 @@ export class OdooEditor extends EventTarget {
                 }
                 if (this.document.caretPositionFromPoint) {
                     const range = this.document.caretPositionFromPoint(ev.clientX, ev.clientY);
-                    setCursor(range.offsetNode, range.offset);
+                    setSelection(range.offsetNode, range.offset);
                 } else if (this.document.caretRangeFromPoint) {
                     const range = this.document.caretRangeFromPoint(ev.clientX, ev.clientY);
-                    setCursor(range.startContainer, range.startOffset);
+                    setSelection(range.startContainer, range.startOffset);
                 }
                 this.execCommand('insertHTML', this._prepareClipboardData(pastedText));
             });
@@ -2520,7 +2522,7 @@ export class OdooEditor extends EventTarget {
         const cursorDestination =
             tds[tds.findIndex(td => closestTd === td) + (direction === DIRECTIONS.LEFT ? -1 : 1)];
         if (cursorDestination) {
-            setCursor(...startPos(cursorDestination), ...endPos(cursorDestination), true);
+            setSelection(...startPos(cursorDestination), ...endPos(cursorDestination), true);
         } else if (direction === DIRECTIONS.RIGHT) {
             this._addRowBelow();
             this._onTabulationInTable(ev);
@@ -2584,7 +2586,7 @@ export class OdooEditor extends EventTarget {
             }
         }
         if (shouldUpdateSelection) {
-            setCursor(
+            setSelection(
                 fixedSelection.anchorNode,
                 fixedSelection.anchorOffset,
                 fixedSelection.focusNode,
