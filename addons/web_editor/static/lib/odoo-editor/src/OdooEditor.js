@@ -220,7 +220,7 @@ export class OdooEditor extends EventTarget {
         this._cursorInfos = new Map();
         this._cursorColor = `hsl(${(Math.random() * 360).toFixed(0)},75%,50%)`;
         this._collaboratorIndicatorContainer = this.document.createElement('div');
-        this._collaboratorIndicatorContainer.style = 'height: 0; width: 0; z-index: 1;';
+        this._collaboratorIndicatorContainer.classList.add('oe-collaboration-cursor-container');
         this.editable.before(this._collaboratorIndicatorContainer);
 
         // Create a first step containing all of the document, with a different
@@ -918,7 +918,7 @@ export class OdooEditor extends EventTarget {
     // -------------------------------------------------------------------------
 
     onExternalMultiselectionUpdate(selection) {
-        this._multiselectionDisplay(selection);
+        this._multiselectionDisplayClient(selection);
         const { clientId } = selection;
         if (this._cursorInfos.has(clientId)) {
             this._cursorInfos.get(clientId).selection = selection;
@@ -930,12 +930,11 @@ export class OdooEditor extends EventTarget {
     multiselectionRefresh() {
         this._collaboratorIndicatorContainer.innerHTML = '';
         for (const { selection } of this._cursorInfos.values()) {
-            this._multiselectionDisplay(selection);
+            this._multiselectionDisplayClient(selection);
         }
     }
 
-    _multiselectionDisplay({ selection, color, clientId, name = 'Anonyme' }) {
-        const className = `oe-collaboration-caret`;
+    _multiselectionDisplayClient({ selection, color, clientId, name = 'Anonyme' }) {
         let clientRects;
 
         const anchorNode = this.idFind(selection.anchorNode);
@@ -966,12 +965,15 @@ export class OdooEditor extends EventTarget {
         if (!clientRects.length) {
             return;
         }
+
+        // Draw rects (in case the selection is not collapsed).
+        const containerRect = this._collaboratorIndicatorContainer.getBoundingClientRect();
         const indicators = clientRects.map(({ x, y, width, height }) => {
             const rectElement = this.document.createElement('div');
             rectElement.style = `
                 position: absolute;
-                top: ${this.document.documentElement.scrollTop + y}px;
-                left: ${x}px;
+                top: ${y - containerRect.y}px;
+                left: ${x - containerRect.x}px;
                 width: ${width}px;
                 height: ${height}px;
                 background-color: ${color};
@@ -981,59 +983,45 @@ export class OdooEditor extends EventTarget {
             rectElement.setAttribute('data-selection-client-id', clientId);
             return rectElement;
         });
+
+        // Draw carret.
         const caretElement = this.document.createElement('div');
         caretElement.style = `border-left: 2px solid ${color}; position: absolute;`;
         caretElement.setAttribute('data-selection-client-id', clientId);
-        caretElement.className = className;
-        // Unrelated to the comedian.
-        const caretTop = this.document.createElement('div');
-        const baseCaretTopStyle = `
-            min-height: 5px;
-            min-width: 5px;
-            color: #fff;
-            text-shadow: 0 0 5px #000;
-            background-color: ${color};
-            position: absolute;
-            bottom: 100%;
-            left: -4px;
-            white-space: nowrap
-        `;
-        caretTop.style = baseCaretTopStyle;
-        caretTop.addEventListener('mouseenter', () => {
-            caretTop.innerText = name;
-            caretTop.style = baseCaretTopStyle + 'border-radius: 2px; padding: 0.3em 0.6em;';
-        });
-        caretTop.addEventListener('mouseleave', () => {
-            caretTop.innerText = '';
-            caretTop.style = baseCaretTopStyle;
-        });
-        caretElement.append(caretTop);
+        caretElement.className = 'oe-collaboration-caret';
+
+        // Draw carret top square.
+        const caretTopSquare = this.document.createElement('div');
+        caretTopSquare.className = 'oe-collaboration-caret-top-square';
+        caretTopSquare.style['background-color'] = color;
+        caretElement.append(caretTopSquare);
+
         if (clientRects.length) {
             if (direction === DIRECTIONS.LEFT) {
                 const rect = clientRects[0];
                 caretElement.style.height = `${rect.height * 1.2}px`;
-                caretElement.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caretElement.style.left = `${rect.x}px`;
+                caretElement.style.top = `${rect.y - containerRect.y}px`;
+                caretElement.style.left = `${rect.x - containerRect.x}px`;
             } else {
                 const rect = peek(clientRects);
                 caretElement.style.height = `${rect.height * 1.2}px`;
-                caretElement.style.top = `${this.document.documentElement.scrollTop + rect.y}px`;
-                caretElement.style.left = `${rect.x + rect.width}px`;
+                caretElement.style.top = `${rect.y - containerRect.y}px`;
+                caretElement.style.left = `${rect.right - containerRect.x}px`;
             }
         }
-        this._multiselectionRemoveElements(clientId);
+        this._multiselectionRemoveClient(clientId);
         this._collaboratorIndicatorContainer.append(caretElement, ...indicators);
     }
 
     multiselectionRemove(clientId) {
         this._cursorInfos.delete(clientId);
-        this._multiselectionRemoveElements(clientId);
+        this._multiselectionRemoveClient(clientId);
     }
 
-    _multiselectionRemoveElements(clientId) {
+    _multiselectionRemoveClient(clientId) {
         const elements = this._collaboratorIndicatorContainer.querySelectorAll(
-                `[data-selection-client-id="${clientId}"]`,
-            );
+            `[data-selection-client-id="${clientId}"]`,
+        );
         for (const element of elements) {
             element.remove();
         }
@@ -1251,9 +1239,6 @@ export class OdooEditor extends EventTarget {
             const mode = method.split('justify').join('').toLocaleLowerCase();
             return this._align(mode === 'full' ? 'justify' : mode);
         }
-        console.log("sel.anchorNode:", sel.anchorNode);
-        console.log("method:", method);
-        console.log("sel.anchorNode[method]:", sel.anchorNode[method]);
         return sel.anchorNode[method](sel.anchorOffset, ...args);
     }
 
@@ -1998,7 +1983,11 @@ export class OdooEditor extends EventTarget {
         if (this._currentMouseState === 'mouseup') {
             this._fixFontAwesomeSelection();
         }
-        if (selection.getRangeAt(0) && this.options.onCollaborativeSelectionChange) {
+        if (
+            selection.rangeCount &&
+            selection.getRangeAt(0) &&
+            this.options.onCollaborativeSelectionChange
+        ) {
             this.options.onCollaborativeSelectionChange(this.getCurrentCollaborativeCursor());
         }
     }
