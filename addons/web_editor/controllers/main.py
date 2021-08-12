@@ -693,5 +693,15 @@ class Web_Editor(http.Controller):
             str(bus_data.get('fromClientId', '_')) + ':' +
             str(bus_data.get('toClientId', '_'))
         )
+
+        document = request.env[model_name].browse([res_id])
+
+        document.check_access_rights('read')
+        document.check_field_access_rights('read', [field_name])
+        document.check_access_rule('read')
+        document.check_access_rights('write')
+        document.check_field_access_rights('write', [field_name])
+        document.check_access_rule('write')
+
         channel = (request.db, 'editor_collaboration', model_name, field_name, int(res_id))
         request.env['bus.bus'].sendone(channel, bus_data)
