@@ -857,15 +857,13 @@ export class OdooEditor extends EventTarget {
         //     return;
         // }
         this.observerUnactive();
-        console.log('newStep:', newStep);
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
-            console.log('easy case');
             this.historyApply(newStep.mutations);
             this._historySteps.push(newStep);
         } else if (previousStep) {
-            console.log('merge case');
+            console.log('%c merge case', 'background: tomato;');
             this._computeHistorySelection();
             const currentStep = this._currentStep;
             if (currentStep.mutations && currentStep.mutations.length) {
@@ -911,7 +909,7 @@ export class OdooEditor extends EventTarget {
             }
             this.historySetSelection(currentStep);
         } else {
-            console.log('%s reset case', 'background: maroon;');
+            console.log('%c reset case', 'background: maroon;');
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
         this.observerActive();
@@ -942,8 +940,12 @@ export class OdooEditor extends EventTarget {
     _multiselectionDisplayClient({ selection, color, clientId, name = 'Anonyme' }) {
         let clientRects;
 
-        const anchorNode = this.idFind(selection.anchorNode);
-        const focusNode = this.idFind(selection.focusNode);
+        const anchorNode = this.idFind(selection.anchorNodeOid);
+        const focusNode = this.idFind(selection.focusNodeOid);
+        if (!anchorNode || !focusNode) {
+            return;
+        }
+
         const direction = getCursorDirection(
             anchorNode,
             selection.anchorOffset,
@@ -2167,7 +2169,6 @@ export class OdooEditor extends EventTarget {
         }
         if (startContainerNotEditable || endContainerNotEditable) {
             selection.removeAllRanges();
-            console.warn('add range1');
             selection.addRange(newRange);
         }
     }

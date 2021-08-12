@@ -105,7 +105,6 @@ function insert(editor, data, isText = true) {
     const lastPosition = rightPos(startNode);
     newRange.setStart(lastPosition[0], lastPosition[1]);
     newRange.setEnd(lastPosition[0], lastPosition[1]);
-    console.warn('add range2');
     selection.addRange(newRange);
     return insertedNodes;
 }

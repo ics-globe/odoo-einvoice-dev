@@ -184,7 +184,6 @@ export function setTestSelection(selection, doc = document) {
     const domSelection = selection.anchorNode.ownerDocument.getSelection();
     console.log("domSelection:", domSelection);
     domSelection.removeAllRanges();
-    console.warn('add range5');
     domSelection.addRange(domRange);
     try {
         domSelection.extend(selection.focusNode, selection.focusOffset);
