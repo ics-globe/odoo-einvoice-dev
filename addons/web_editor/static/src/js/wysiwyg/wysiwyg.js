@@ -207,7 +207,10 @@ const Wysiwyg = Widget.extend({
             return;
         }
 
+        const startCollaborationTime = new Date().getTime();
+
         const currentClientId = '' + new Date().getTime();
+        console.log(`%c currentClientId:${currentClientId}`, 'background: blue; color: white;');
 
         const channelName = `editor_collaboration:${modelName}:${fieldName}:${resId}`;
 
@@ -227,8 +230,8 @@ const Wysiwyg = Widget.extend({
         this.call('bus_service', 'addChannel', channelName);
         this.call('bus_service', 'startPolling');
 
-        let historySyncedOnce = false;
-        let receivedOffer = false;
+        // Wether or not the history has been sent or received at least once.
+        let historySyncAtLeastOnce = false;
         const requestNewHistory = () => {
             this.rtc.notifyAllClients(
                 'oe_history_request',
@@ -269,36 +272,44 @@ const Wysiwyg = Widget.extend({
                         this.rtc.removeClient(fromClientId, { shouldNotify: false });
                         this.odooEditor.multiselectionRemove(fromClientId);
                         break;
-                    case 'rtc_signal_offer':
-                        receivedOffer = true;
-                        break;
-                    case 'rtc_connection_statechange':
-                        const { connectionState, connectionClientId } = notificationPayload;
-                        if (!historySyncedOnce && receivedOffer && connectionState === 'connected') {
-                            historySyncedOnce = true;
-                            console.log('%c requesting first history', 'background: brown;');
+                    case 'rtc_data_channel_open':
+                        if (!historySyncAtLeastOnce) {
+                            // It might be that 2 clients start a channel at the
+                            // same time (concurency issue). In that case, only
+                            // the newest client must request a new history.
                             this.rtc.notifyClient(
-                                connectionClientId,
-                                'oe_history_request',
-                                { transport: 'rtc' }
-                            );
-                            this.rtc.notifyClient(
-                                connectionClientId,
-                                'oe_history_request_selection',
+                                notificationPayload.connectionClientId,
+                                'oe_history_request_if_oldest',
+                                startCollaborationTime,
                                 { transport: 'rtc' }
                             );
                         }
+                        this.rtc.notifyClient(
+                            notificationPayload.connectionClientId,
+                            'oe_history_request_selection',
+                            { transport: 'rtc' }
+                        );
                         break;
-                    case 'oe_history_request':
+                    case 'oe_history_request_if_oldest':
+                        historySyncAtLeastOnce = true;
+                        if (startCollaborationTime < notificationPayload) {
+                            this.rtc.notifyClient(
+                                fromClientId,
+                                'oe_history_reset_steps',
+                                this.odooEditor._historySteps,
+                                { transport: 'rtc' }
+                            )
+                        }
+                        break;
+                    case 'oe_history_reset_steps':
+                        historySyncAtLeastOnce = true;
+                        this.odooEditor.historyResetFromSteps(notificationPayload);
                         this.rtc.notifyClient(
                             fromClientId,
-                            'oe_history_reset_steps',
+                            'oe_history_request_selection',
                             this.odooEditor._historySteps,
                             { transport: 'rtc' }
                         )
-                        break;
-                    case 'oe_history_reset_steps':
-                        this.odooEditor.historyResetFromSteps(notificationPayload);
                         break;
                     case 'oe_history_step':
                         this.odooEditor.onExternalHistoryStep(notificationPayload);
@@ -309,7 +320,7 @@ const Wysiwyg = Widget.extend({
                             this.rtc.notifyClient(
                                 fromClientId,
                                 'oe_history_set_selection',
-                                this.odooEditor.getCurrentCollaborativeCursor(),
+                                selection,
                                 { transport: 'rtc' }
                             );
                         }
@@ -326,9 +337,9 @@ const Wysiwyg = Widget.extend({
             onHistoryStep: (historyStep) => {
                 this.rtc.notifyAllClients('oe_history_step', historyStep, { transport: 'rtc' });
             },
-            onCollaborativeSelectionChange: (collaborativeSelection) => {
+            onCollaborativeSelectionChange: _.throttle((collaborativeSelection) => {
                 this.rtc.notifyAllClients('oe_history_set_selection', collaborativeSelection, { transport: 'rtc' });
-            },
+            }, 50),
             onHistoryNeedReset: () => {
                 requestNewHistory();
             },

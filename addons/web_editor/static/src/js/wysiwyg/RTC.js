@@ -17,67 +17,94 @@ export class RTC {
     }
 
     _createClient(clientId) {
-        console.warn("CREATE CONNECTION with client id:", clientId);
-        const peerConnection = new RTCPeerConnection(this.options.peerConnectionConfig);
-
-        peerConnection.onnegotiationneeded = async () => {
-            console.log('NEGONATION NEEDED:' + peerConnection.connectionState);
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            this.notifyClient(clientId, 'rtc_signal_offer', peerConnection.localDescription);
+        console.warn('CREATE CONNECTION with client id:', clientId);
+        this.clientsInfos[clientId] = {
+            makingOffer: false,
         };
-        peerConnection.onicecandidate = async (event) => {
+        const pc = new RTCPeerConnection(this.options.peerConnectionConfig);
+
+        pc.onnegotiationneeded = async () => {
+            console.log(`%c NEGONATION NEEDED: ${pc.connectionState}`, 'background: deeppink;');
+            try {
+                this.clientsInfos[clientId].makingOffer = true;
+                const offer = await pc.createOffer();
+                // Avoid race condition.
+                if (pc.signalingState !== 'stable') {
+                    return;
+                }
+                console.log('try to setLocalDescription');
+                await pc.setLocalDescription(offer);
+                console.log('pc.localDescription:', pc.localDescription);
+                this.notifyClient(clientId, 'rtc_signal_description', pc.localDescription);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                this.clientsInfos[clientId].makingOffer = false;
+            }
+        };
+        pc.onicecandidate = async event => {
             console.log('ON ICE CANDIDATE with client id', clientId);
-            if (!event.candidate) return;
-            await this.notifyAllClients('rtc_signal_icecandidate', event.candidate);
+            if (event.candidate) {
+                this.notifyClient(clientId, 'rtc_signal_icecandidate', event.candidate);
+            }
         };
-        peerConnection.oniceconnectionstatechange = async () => {
-            console.log('ICE STATE UPDATE: ' + peerConnection.iceConnectionState);
+        pc.oniceconnectionstatechange = async () => {
+            console.log('ICE STATE UPDATE: ' + pc.iceConnectionState);
 
-            switch (peerConnection.iceConnectionState) {
-                case "failed":
-                case "closed":
+            switch (pc.iceConnectionState) {
+                case 'failed':
+                case 'closed':
                     this.removeClient(clientId);
                     break;
-                case "disconnected":
-                    await this._recoverConnection(clientId, { delay: 1000, reason: 'ice connection disconnected' });
+                case 'disconnected':
+                    await this._recoverConnection(clientId, {
+                        delay: 1000,
+                        reason: 'ice connection disconnected',
+                    });
                     break;
             }
         };
-        peerConnection.onconnectionstatechange =  async () => {
-            console.log('CONNECTION STATE UPDATE:' + peerConnection.connectionState);
+        // This event does not work in FF. Let's try with oniceconnectionstatechange if it is sufficient.
+        pc.onconnectionstatechange = async () => {
+            console.log('CONNECTION STATE UPDATE:' + pc.connectionState);
 
-            switch (peerConnection.connectionState) {
-                case "failed":
-                case "closed":
+            switch (pc.connectionState) {
+                case 'failed':
+                case 'closed':
                     this.removeClient(clientId);
                     break;
-                case "disconnected":
-                    await this._recoverConnection(clientId, { delay: 500, reason: 'connection disconnected' });
+                case 'disconnected':
+                    await this._recoverConnection(clientId, {
+                        delay: 500,
+                        reason: 'connection disconnected',
+                    });
                     break;
             }
-
-            this.notifySelf('rtc_connection_statechange', {
-                connectionState: peerConnection.connectionState,
-                connectionClientId: clientId,
-            });
         };
-        peerConnection.onicecandidateerror = async (error) => {
+        pc.onicecandidateerror = async error => {
             console.groupCollapsed('=== ERROR: onIceCandidate ===');
-            console.log('connectionState: ' + peerConnection.connectionState + ' - iceState: ' + peerConnection.iceConnectionState);
+            console.log(
+                'connectionState: ' + pc.connectionState + ' - iceState: ' + pc.iceConnectionState,
+            );
             console.trace(error);
             console.groupEnd();
             this._recoverConnection(token, { delay: 15000, reason: 'ice candidate error' });
         };
-        const dataChannel = peerConnection.createDataChannel("notifications", { negotiated: true, id: 1 });
-        dataChannel.onmessage = (event) => {
+        const dataChannel = pc.createDataChannel('notifications', { negotiated: true, id: 1 });
+        dataChannel.onmessage = event => {
             this.handleNotification(JSON.parse(event.data));
         };
-
-        this.clientsInfos[clientId] = {
-            peerConnection,
-            dataChannel,
+        dataChannel.onopen = event => {
+            console.log('channel open');
+            this.notifySelf('rtc_data_channel_open', {
+                connectionClientId: clientId,
+            });
         };
+        // todo: how to handle datachannel states: bufferedamountlow, error, closing, close
+
+        this.clientsInfos[clientId].peerConnection = pc;
+        this.clientsInfos[clientId].dataChannel = dataChannel;
+
         return this.clientsInfos[clientId];
     }
 
@@ -90,39 +117,45 @@ export class RTC {
      * @param {number} [param1.delay] in ms
      * @param {string} [param1.reason]
      */
-    _recoverConnection(clientId, { delay=0, reason='' } = {}) {
+    _recoverConnection(clientId, { delay = 0, reason = '' } = {}) {
         const clientInfos = this.clientsInfos[clientId];
-        if (clientInfos.fallbackTimeout) return;
+        if (!clientInfos || clientInfos.fallbackTimeout) return;
 
         clientInfos.fallbackTimeout = setTimeout(async () => {
             clientInfos.fallbackTimeout = undefined;
-            if (!clientInfos.peerConnection) {
+            const pc = clientInfos.peerConnection;
+            if (!pc || pc.iceConnectionState === 'connected') {
                 return;
             }
-            if (clientInfos.peerConnection.iceConnectionState === 'connected') {
-                return;
-            }
-            if (['connected', 'closed'].includes(clientInfos.peerConnection.connectionState)) {
+            if (['connected', 'closed'].includes(pc.connectionState)) {
                 return;
             }
             // hard reset: recreating a RTCPeerConnection
-            console.log(`RTC RECOVERY: calling back client ${clientId} to salvage the connection ${clientInfos.peerConnection.iceConnectionState}, reason: ${reason}`);
-            await this.notifyClient(clientId, 'rtc_signal_disconnect');
+            console.log(
+                `%c RTC RECOVERY: calling back client ${clientId} to salvage the connection ${pc.iceConnectionState}, reason: ${reason}`,
+                'background: darkorange; color: white;',
+            );
+            // await this.notifyClient(clientId, 'rtc_signal_disconnect');
             this.removeClient(clientId);
             await this._createClient(clientId);
-            this._killPotentialZombie(clientId);
         }, delay);
     }
 
+     // todo: do we try to salvage the connection after killing the zombie ?
+     // Maybe the salvage should be done when the connection is dropped.
     _killPotentialZombie(clientId) {
         const clientInfos = this.clientsInfos[clientId];
-        if (!clientInfos || clientInfos.zombieTimeout) return;
+        if (!clientInfos || clientInfos.zombieTimeout) {
+            return;
+        }
 
-        // If there is no connection after 10 seconds, terminate
+        // If there is no connection after 10 seconds, terminate.
         clientInfos.zombieTimeout = setTimeout(() => {
-            if (clientInfos && clientInfos.peerConnection.connectionState === 'new') {
-                console.log('KILL ZOMBIE' , clientId);
+            if (clientInfos && clientInfos.dataChannel.readyState !== 'open') {
+                console.log(`%c KILL ZOMBIE ${clientId}`, 'background: red;');
                 this.removeClient(clientId);
+            } else {
+                console.log(`%c NOT A ZOMBIE ${clientId}`, 'background: green;');
             }
         }, 10000);
     }
@@ -130,11 +163,15 @@ export class RTC {
     removeClient(clientId, { shouldNotify = true } = {}) {
         // todo: insure the client properly received the rtc_close if the
         // peerConnection.connectionState is "connected".
-        if (shouldNotify) this.notifyClient(clientId, 'rtc_close');
+        // todo: is it possible to have concurency issue where we will close a
+        // connection that has been recovered ?
+        // if (shouldNotify) this.notifyClient(clientId, 'rtc_close');
+        console.log(`%c REMOVE CLIENT ${clientId}`, 'background: chocolate;');
         this.notifySelf('rtc_remove_client', clientId);
         const clientInfos = this.clientsInfos[clientId];
         if (!clientInfos) return;
         clearTimeout(clientInfos.fallbackTimeout);
+        clearTimeout(clientInfos.zombieTimeout);
         clientInfos.dataChannel.close();
         if (clientInfos.peerConnection) {
             clientInfos.peerConnection.close();
@@ -148,41 +185,54 @@ export class RTC {
         }
     }
 
+    _simulateLatency(cb) {
+        setTimeout(cb.bind(this), window.latency || 0);
+    }
+
     notifyAllClients(notificationName, notificationPayload, { transport = 'server' } = {}) {
-        console.log(`notifyAllClients ${transport}:${notificationName}:${this._currentClientId}:_`, notificationPayload);
         const transportPayload = {
             fromClientId: this._currentClientId,
             notificationName,
             notificationPayload,
         };
-        if (transport === 'server') {
-            this.options.broadcastAll(transportPayload);
-        } else if (transport === 'rtc') {
-            for (const cliendId of Object.keys(this.clientsInfos)) {
-                // todo: Handle error if it happens.
-                this._channelNotify(cliendId, transportPayload);
+        this._simulateLatency(() => {
+            if (transport === 'server') {
+                this.options.broadcastAll(transportPayload);
+            } else if (transport === 'rtc') {
+                for (const cliendId of Object.keys(this.clientsInfos)) {
+                    // todo: Handle error if it happens.
+                    this._channelNotify(cliendId, transportPayload);
+                }
+            } else {
+                throw new Error(
+                    `Transport "${transport}" is not supported. Use "server" or "rtc" transport.`,
+                );
             }
-        } else {
-            throw new Error(`Transport "${transport}" is not supported. Use "server" or "rtc" transport.`);
-        }
+        });
     }
 
     notifyClient(clientId, notificationName, notificationPayload, { transport = 'server' } = {}) {
-        console.log(`notifyClient ${transport}:${notificationName}:${this._currentClientId}:${clientId}`);
+        console.log(
+            `notifyClient ${transport}:${notificationName}:${this._currentClientId}:${clientId}`,
+        );
         const transportPayload = {
             fromClientId: this._currentClientId,
             toClientId: clientId,
             notificationName,
             notificationPayload,
-        }
-        if (transport === 'server') {
-            // Todo: allow to broadcast to only one client rather than all of them
-            this.options.broadcastAll(transportPayload);
-        } else if (transport === 'rtc') {
-            this._channelNotify(clientId, transportPayload);
-        } else {
-            throw new Error(`Transport "${transport}" is not supported. Use "server" or "rtc" transport.`);
-        }
+        };
+        this._simulateLatency(() => {
+            if (transport === 'server') {
+                // Todo: allow to broadcast to only one client rather than all of them
+                this.options.broadcastAll(transportPayload);
+            } else if (transport === 'rtc') {
+                this._channelNotify(clientId, transportPayload);
+            } else {
+                throw new Error(
+                    `Transport "${transport}" is not supported. Use "server" or "rtc" transport.`,
+                );
+            }
+        });
     }
 
     notifySelf(notificationName, notificationPayload) {
@@ -191,15 +241,12 @@ export class RTC {
 
     _channelNotify(clientId, transportPayload) {
         const clientInfo = this.clientsInfos[clientId];
-        if (!clientInfo) {
-            throw new Error(`Client ${clientId} has no connection.`);
-        }
-        const dataChannel = clientInfo.dataChannel;
-        if (!dataChannel) {
-            throw new Error(`Client ${clientId} has no dataChannel.`);
-        }
-        if (dataChannel.readyState !== 'open') {
-            console.warn(`Client ${clientId} dataChannel.readyState is not open, it will be killed in 10 seconds if the stated has not changed.`);
+        const dataChannel = clientInfo && clientInfo.dataChannel;
+
+        if (!dataChannel || dataChannel.readyState !== 'open') {
+            console.warn(
+                `Impossible to communicate with client ${clientId}. The connection be killed in 10 seconds if the datachannel state has not changed.`,
+            );
             this._killPotentialZombie(clientId);
         } else {
             dataChannel.send(JSON.stringify(transportPayload));
@@ -207,13 +254,17 @@ export class RTC {
     }
 
     handleNotification(notification) {
-        const isInternalNotification = typeof notification.fromClientId === 'undefined' && typeof notification.toClientId === 'undefined';
+        const isInternalNotification =
+            typeof notification.fromClientId === 'undefined' &&
+            typeof notification.toClientId === 'undefined';
         if (
-             isInternalNotification ||
-                (notification.fromClientId !== this._currentClientId &&
-                !notification.toClientId || notification.toClientId === this._currentClientId)
+            isInternalNotification ||
+            (notification.fromClientId !== this._currentClientId && !notification.toClientId) ||
+            notification.toClientId === this._currentClientId
         ) {
-            console.log(`HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`);
+            console.log(
+                `HANDLE NOTIFICATION: ${notification.notificationName}:${notification.fromClientId}:${notification.toClientId}`,
+            );
             const baseMethod = this._notificationMethods[notification.notificationName];
             if (baseMethod) {
                 baseMethod.call(this, notification);
@@ -224,58 +275,78 @@ export class RTC {
         }
     }
 
-
     _notificationMethods = {
-        rtc_join: async (notification) => {
+        rtc_join: async notification => {
             this._createClient(notification.fromClientId);
         },
-        rtc_signal_offer: async (notification) => {
+        rtc_signal_description: async notification => {
+            const description = notification.notificationPayload;
+            console.log('notification:', notification);
+
             const clientInfos =
                 this.clientsInfos[notification.fromClientId] ||
                 this._createClient(notification.fromClientId);
-            const { peerConnection } = clientInfos;
+            const pc = clientInfos.peerConnection;
 
-            if (!peerConnection || peerConnection.connectionState === 'closed') {
+            if (!pc || pc.connectionState === 'closed') {
                 console.groupCollapsed('=== ERROR: handle offer ===');
-                console.log('An offer has been received for a non-existent peer connection - client: ' + notification.fromClientId);
-                console.trace(peerConnection.connectionState);
+                console.log(
+                    'An offer has been received for a non-existent peer connection - client: ' +
+                        notification.fromClientId,
+                );
+                console.trace(pc.connectionState);
                 console.groupEnd();
                 return;
             }
 
             // Skip if we already have an offer.
-            if (peerConnection.signalingState === 'have-remote-offer') return;
+            if (pc.signalingState === 'have-remote-offer') {
+                return;
+            }
 
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(notification.notificationPayload));
+            // If there is a racing conditing with the signaling offer (two
+            // being sent at the same time). We need one client that abort by
+            // rollbacking to a stable signaling state where the other is
+            // continuing the process. The client that is polite is the one that
+            // will rollback.
+            const isPolite =
+                ('' + notification.fromClientId).localeCompare('' + notification.toClientId) === 1;
 
-            const description = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(description);
+            const isOfferRacing = description.type === 'offer' && pc.signalingState !== 'stable';
+            // If there is a racing conditing with the signaling offer and the
+            // client is impolite, we must not process this offer and wait for
+            // the answer for the signaling process to continue.
+            if (isOfferRacing && !isPolite) {
+                return;
+            }
 
-            this.notifyClient(notification.fromClientId, 'rtc_signal_answer', peerConnection.localDescription);
+            if (isOfferRacing) {
+                await pc.setLocalDescription({ type: 'rollback' });
+                await pc.setRemoteDescription(description);
+                // await Promise.all([
+                //     pc.setLocalDescription({type: "rollback"}),
+                //     pc.setRemoteDescription(description),
+                // ]);
+            } else {
+                await pc.setRemoteDescription(description);
+            }
+            if (description.type === 'offer') {
+                const answerDescription = await pc.createAnswer();
+                await pc.setLocalDescription(answerDescription);
+                this.notifyClient(
+                    notification.fromClientId,
+                    'rtc_signal_description',
+                    pc.localDescription,
+                );
+            }
         },
-        rtc_signal_answer: async (notification) => {
+        rtc_signal_icecandidate: async notification => {
             const clientInfos = this.clientsInfos[notification.fromClientId];
-            const { peerConnection } = clientInfos;
-
             if (
-                !peerConnection ||
-                peerConnection.connectionState === 'closed' ||
-                peerConnection.signalingState === 'stable'
+                !clientInfos ||
+                !clientInfos.peerConnection ||
+                clientInfos.peerConnection.connectionState === 'closed'
             ) {
-                console.groupCollapsed('=== ERROR: Handle Answer from undefined|closed|stable === ');
-                console.trace(peerConnection);
-                console.groupEnd();
-                return;
-            }
-
-            // Skip if we already have an offer.
-            if (peerConnection.signalingState === 'have-remote-offer') return;
-
-            peerConnection.setRemoteDescription(new RTCSessionDescription(notification.notificationPayload));
-        },
-        rtc_signal_icecandidate: async (notification) => {
-            const clientInfos = this.clientsInfos[notification.fromClientId];
-            if (!clientInfos || !clientInfos.peerConnection || clientInfos.peerConnection.connectionState === 'closed') {
                 console.groupCollapsed('=== ERROR: Handle Ice Candidate from undefined|closed ===');
                 console.trace(clientInfos);
                 console.groupEnd();
@@ -286,13 +357,13 @@ export class RTC {
                 await clientInfos.peerConnection.addIceCandidate(rtcIceCandidate);
             } catch (error) {
                 // Ignored.
-                console.groupCollapsed("=== ERROR: ADD ICE CANDIDATE ===");
+                console.groupCollapsed('=== ERROR: ADD ICE CANDIDATE ===');
                 console.trace(error);
                 console.groupEnd();
             }
         },
-        rtc_signal_disconnect: (notification) => {
-            this.removeClient(notification.from_rtc_client_id)
-        }
-    }
+        rtc_signal_disconnect: notification => {
+            this.removeClient(notification.from_rtc_client_id);
+        },
+    };
 }
