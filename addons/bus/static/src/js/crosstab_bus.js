@@ -291,7 +291,7 @@ var CrossTabBus = Longpolling.extend({
         // Clean outdated channels.
         for (const channelPeerId of Object.keys(peerChannels)) {
             if (!currentPeerIds.has(channelPeerId)) {
-                delete peerChannels[channelPeerId]
+                delete peerChannels[channelPeerId];
             }
         }
 
@@ -386,6 +386,8 @@ var CrossTabBus = Longpolling.extend({
         var peers = this._callLocalStorage('getItem', 'peers') || {};
         delete peers[this._id];
         this._callLocalStorage('setItem', 'peers', peers);
+        this._currentTabChannels.clear();
+        this._updateChannels();
 
         // unload master
         if (this._isMasterTab) {
