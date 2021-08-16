@@ -212,9 +212,8 @@ const Wysiwyg = Widget.extend({
         const currentClientId = '' + new Date().getTime();
         console.log(`%c currentClientId:${currentClientId}`, 'background: blue; color: white;');
 
-        const channelName = `editor_collaboration:${modelName}:${fieldName}:${resId}`;
+        this._collaborationChannelName = `editor_collaboration:${modelName}:${fieldName}:${resId}`;
 
-        console.log('start listening channel' , channelName);
         this.call('bus_service', 'onNotification', this, (notifications) => {
             for (const [channel, busData] of notifications) {
                 if (
@@ -227,7 +226,7 @@ const Wysiwyg = Widget.extend({
                 }
             }
         });
-        this.call('bus_service', 'addChannel', channelName);
+        this.call('bus_service', 'addChannel', this._collaborationChannelName);
         this.call('bus_service', 'startPolling');
 
         // Wether or not the history has been sent or received at least once.
@@ -354,6 +353,7 @@ const Wysiwyg = Widget.extend({
             this.odooEditor.destroy();
         }
         if (this.rtc) {
+            this.call('bus_service', 'deleteChannel', this._collaborationChannelName);
             this.rtc.closeAllConnections();
         }
         this.$editable && this.$editable.off('blur', this._onBlur);
