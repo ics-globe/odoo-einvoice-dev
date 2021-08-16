@@ -1413,15 +1413,17 @@ export class OdooEditor extends EventTarget {
             const lastStep = this._currentStep;
             this.historyRevert(lastStep);
             let stepIndex = this._historySteps.length - 1;
+            this.observerUnactive();
             while (stepIndex > this._beforeCommandbarStepIndex) {
-                const stepState = this._historyStepsStates.get(stepIndex);
-                if (stepState !== 2) {
+                const step = this._historySteps[stepIndex];
+                const stepState = this._historyStepsStates.get(step.id);
+                if (stepState !== 'consumed') {
                     this.historyRevert(this._historySteps[stepIndex]);
+                    this._historyStepsStates.set(step.id, 'consumed');
                 }
-                this._historyStepsStates.set(stepIndex, 2);
                 stepIndex--;
             }
-            this._historyStepsStates.set(this._historySteps.length - 1, 1);
+            this.observerActive();
             this.historyStep(true);
             setTimeout(() => {
                 this.editable.focus();
