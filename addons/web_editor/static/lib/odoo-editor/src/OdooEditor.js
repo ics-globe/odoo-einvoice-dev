@@ -1410,8 +1410,10 @@ export class OdooEditor extends EventTarget {
         this.options.noScrollSelector = this.options.noScrollSelector || 'body';
 
         const revertHistoryBeforeCommandbar = () => {
+            const lastStep = this._currentStep;
+            this.historyRevert(lastStep);
             let stepIndex = this._historySteps.length - 1;
-            while (stepIndex >= this._beforeCommandbarStepIndex) {
+            while (stepIndex > this._beforeCommandbarStepIndex) {
                 const stepState = this._historyStepsStates.get(stepIndex);
                 if (stepState !== 2) {
                     this.historyRevert(this._historySteps[stepIndex]);

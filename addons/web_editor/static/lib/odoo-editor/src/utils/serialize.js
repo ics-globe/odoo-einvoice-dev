@@ -53,10 +53,10 @@ export function serializeSelection(selection) {
         selection &&
         selection.anchorNode &&
         selection.anchorNode.oid &&
-        selection.anchorOffset &&
+        typeof selection.anchorOffset !==  'undefined' &&
         selection.focusNode &&
         selection.anchorNode.oid &&
-        selection.focusOffset
+        typeof selection.focusOffset !==  'undefined'
     ) {
         return {
             anchorNodeOid: selection.anchorNode.oid,
