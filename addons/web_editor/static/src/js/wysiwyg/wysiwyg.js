@@ -238,7 +238,7 @@ const Wysiwyg = Widget.extend({
             );
         }
         this.rtc = new RTC({
-            peerConnectionConfig: {
+            peerConnectionConfig: window.peerConfig || {
                 iceServers: [
                     {
                         urls: [
