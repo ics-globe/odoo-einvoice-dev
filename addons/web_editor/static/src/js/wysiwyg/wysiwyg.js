@@ -314,7 +314,7 @@ const Wysiwyg = Widget.extend({
                         this.odooEditor.onExternalHistoryStep(notificationPayload);
                         break;
                     case 'oe_history_request_selection':
-                        const selection = this.odooEditor.getCurrentCollaborativeCursor();
+                        const selection = this.odooEditor.getCurrentCollaborativeSelection();
                         if (selection) {
                             this.rtc.notifyClient(
                                 fromClientId,
