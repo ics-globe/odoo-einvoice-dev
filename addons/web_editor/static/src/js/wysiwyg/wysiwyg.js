@@ -241,12 +241,36 @@ const Wysiwyg = Widget.extend({
             peerConnectionConfig: window.peerConfig || {
                 iceServers: [
                     {
-                        urls: [
-                            'stun:stun1.l.google.com:19302',
-                            'stun:stun2.l.google.com:19302',
-                        ],
-                    }
+                        'url': 'stun:global.stun.twilio.com:3478?transport=udp',
+                        'urls': 'stun:global.stun.twilio.com:3478?transport=udp',
+                    },
+                    {
+                        'url': 'turn:global.turn.twilio.com:3478?transport=udp',
+                        'username': '5f2117acd1646d64312b202c87d9ae2401d20a097e292a6cb3ffbbc6b0f41b2d',
+                        'urls': 'turn:global.turn.twilio.com:3478?transport=udp',
+                        'credential': 'ovhpgAPhtqZCWvkX6LOwC8L8qk3zmCosKxy9EJUvwSA=',
+                    },
+                    {
+                        'url': 'turn:global.turn.twilio.com:3478?transport=tcp',
+                        'username': '5f2117acd1646d64312b202c87d9ae2401d20a097e292a6cb3ffbbc6b0f41b2d',
+                        'urls': 'turn:global.turn.twilio.com:3478?transport=tcp',
+                        'credential': 'ovhpgAPhtqZCWvkX6LOwC8L8qk3zmCosKxy9EJUvwSA=',
+                    },
+                    {
+                        'url': 'turn:global.turn.twilio.com:443?transport=tcp',
+                        'username': '5f2117acd1646d64312b202c87d9ae2401d20a097e292a6cb3ffbbc6b0f41b2d',
+                        'urls': 'turn:global.turn.twilio.com:443?transport=tcp',
+                        'credential': 'ovhpgAPhtqZCWvkX6LOwC8L8qk3zmCosKxy9EJUvwSA=',
+                    },
                 ],
+                // [
+                //     {
+                //         urls: [
+                //             'stun:stun1.l.google.com:19302',
+                //             'stun:stun2.l.google.com:19302',
+                //         ],
+                //     }
+                // ],
             },
             currentClientId: currentClientId,
             broadcastAll: (rpcData) => {
