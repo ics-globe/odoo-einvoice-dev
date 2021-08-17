@@ -554,8 +554,11 @@ export class OdooEditor extends EventTarget {
         }
         this.historyReset();
         for (const step of steps) {
-            this.onExternalHistoryStep(step);
+            this._historyAddExternalStep(step);
         }
+
+        this._handleCommandHint();
+        this.multiselectionRefresh();
         this.observerActive();
     }
 
@@ -846,11 +849,7 @@ export class OdooEditor extends EventTarget {
      *         reapplied has the correct previous step)
      *
      */
-    onExternalHistoryStep(newStep) {
-        // if (!this._isCollaborativeActive) {
-        //     return;
-        // }
-        this.observerUnactive();
+    _historyAddExternalStep(newStep) {
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
@@ -906,6 +905,13 @@ export class OdooEditor extends EventTarget {
             console.log('%c reset case', 'background: maroon;');
             if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
         }
+    }
+
+    onExternalHistoryStep(newStep) {
+        this.observerUnactive();
+
+        this._historyAddExternalStep(newStep);
+
         this.observerActive();
         this._handleCommandHint();
         this.multiselectionRefresh();
