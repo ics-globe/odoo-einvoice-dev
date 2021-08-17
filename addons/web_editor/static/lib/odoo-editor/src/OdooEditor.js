@@ -257,6 +257,8 @@ export class OdooEditor extends EventTarget {
         this._resizeObserver = new ResizeObserver(this.multiselectionRefresh);
         this._resizeObserver.observe(this.document.body);
         this._resizeObserver.observe(this.editable);
+        this.addDomListener(this.editable, 'scroll', this.multiselectionRefresh);
+
 
         // -------
         // Toolbar
