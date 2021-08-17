@@ -91,8 +91,14 @@ export class RTC {
             this._recoverConnection(token, { delay: 15000, reason: 'ice candidate error' });
         };
         const dataChannel = pc.createDataChannel('notifications', { negotiated: true, id: 1 });
+        let message = [];
         dataChannel.onmessage = event => {
-            this.handleNotification(JSON.parse(event.data));
+            if (event.data !== '-') {
+                message.push(event.data);
+            } else {
+                this.handleNotification(JSON.parse(message.join('')));
+                message = [];
+            }
         };
         dataChannel.onopen = event => {
             console.log('channel open');
