@@ -300,6 +300,7 @@ i.oe-commandbar-commandImg {
 
 /* Collaboration cursor */
 .oe-collaboration-selections-container {
+    position: absolute;
     isolation: isolate;
     height: 0;
     width: 0;
