@@ -88,7 +88,7 @@ export class RTC {
             );
             console.trace(error);
             console.groupEnd();
-            this._recoverConnection(token, { delay: 15000, reason: 'ice candidate error' });
+            this._recoverConnection(clientId, { delay: 15000, reason: 'ice candidate error' });
         };
         const dataChannel = pc.createDataChannel('notifications', { negotiated: true, id: 1 });
         let message = [];
