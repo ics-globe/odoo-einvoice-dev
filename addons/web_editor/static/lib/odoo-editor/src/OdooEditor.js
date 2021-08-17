@@ -41,10 +41,10 @@ import {
     isEmptyBlock,
     getUrlsInfosInString,
     URL_REGEX,
-    throttle,
     isBold,
     YOUTUBE_URL_GET_VIDEO_ID,
     unwrapContents,
+    peek,
 } from './utils/utils.js';
 import { editorCommands } from './commands/commands.js';
 import { Powerbox } from './powerbox/Powerbox.js';
@@ -62,11 +62,6 @@ const KEYBOARD_TYPES = { VIRTUAL: 'VIRTUAL', PHYSICAL: 'PHYSICAL', UNKNOWN: 'UKN
 const IS_KEYBOARD_EVENT_UNDO = ev => ev.key === 'z' && (ev.ctrlKey || ev.metaKey);
 const IS_KEYBOARD_EVENT_REDO = ev => ev.key === 'y' && (ev.ctrlKey || ev.metaKey);
 const IS_KEYBOARD_EVENT_BOLD = ev => ev.key === 'b' && (ev.ctrlKey || ev.metaKey);
-
-const FIRST_STEP_PREVIOUS_ID = 'FIRST_STEP_PREVIOUS_ID';
-const FIRST_STEP_USER_ID = 'FIRST_STEP_USER_ID';
-
-const peek = arr => arr[arr.length - 1];
 
 const CLIPBOARD_BLACKLISTS = {
     unwrap: ['.Apple-interchange-newline', 'DIV'], // These elements' children will be unwrapped.
@@ -259,9 +254,9 @@ export class OdooEditor extends EventTarget {
         this.addDomListener(this.document, 'mouseup', this._onDoumentMouseup);
 
         this.multiselectionRefresh = this.multiselectionRefresh.bind(this);
-        this.resizeObserver = new ResizeObserver(this.multiselectionRefresh);
-        this.resizeObserver.observe(this.document.body);
-        this.resizeObserver.observe(this.editable);
+        this._resizeObserver = new ResizeObserver(this.multiselectionRefresh);
+        this._resizeObserver.observe(this.document.body);
+        this._resizeObserver.observe(this.editable);
 
         // -------
         // Toolbar
@@ -312,9 +307,8 @@ export class OdooEditor extends EventTarget {
         this._removeDomListener();
         this.commandBar.destroy();
         this.commandbarTablePicker.el.remove();
-        this.document.defaultView.removeEventListener('resize', this.multiselectionRefresh);
         this._collabSelectionsContainer.remove();
-        this.resizeObserver.disconnect();
+        this._resizeObserver.disconnect();
     }
 
     sanitize() {
@@ -585,8 +579,8 @@ export class OdooEditor extends EventTarget {
 
         currentStep.id = this._generateId();
         const previousStep = peek(this._historySteps);
-        currentStep.clientId = previousStep ? this._clientId : FIRST_STEP_USER_ID;
-        currentStep.previousStepId = (previousStep && previousStep.id) || FIRST_STEP_PREVIOUS_ID;
+        currentStep.clientId = this._clientId;
+        currentStep.previousStepId = previousStep.id;
 
         this._historySteps.push(currentStep);
         if (this.options.onHistoryStep) {
@@ -1358,12 +1352,12 @@ export class OdooEditor extends EventTarget {
      * Return -1 if no undo index can be found.
      */
     _getNextUndoIndex() {
-        // go back to first step that can be undone ("redo" or undefined)
-        for (let i = this._historySteps.length - 1; i >= 0; i--) {
-            if (this._historySteps[i] && this._historySteps[i].clientId === this._clientId) {
-                const state = this._historyStepsStates.get(this._historySteps[i].id);
+        // Go back to first step that can be undone ("redo" or undefined).
+        for (let index = this._historySteps.length - 1; index >= 0; index--) {
+            if (this._historySteps[index] && this._historySteps[index].clientId === this._clientId) {
+                const state = this._historyStepsStates.get(this._historySteps[index].id);
                 if (state === 'redo' || !state) {
-                    return i;
+                    return index;
                 }
             }
         }
@@ -1938,8 +1932,8 @@ export class OdooEditor extends EventTarget {
         if (ev.key === 'Backspace' && !ev.ctrlKey && !ev.metaKey) {
             // backspace
             // We need to hijack it because firefox doesn't trigger a
-            // deleteBackward input event with a collapsed selection in front of a
-            // contentEditable="false" (eg: font awesome)
+            // deleteBackward input event with a collapsed selection in front of
+            // a contentEditable="false" (eg: font awesome).
             const selection = this.document.getSelection();
             if (selection.isCollapsed) {
                 ev.preventDefault();
@@ -1999,11 +1993,11 @@ export class OdooEditor extends EventTarget {
             selection.getRangeAt(0) &&
             this.options.onCollaborativeSelectionChange
         ) {
-            this.options.onCollaborativeSelectionChange(this.getCurrentCollaborativeCursor());
+            this.options.onCollaborativeSelectionChange(this.getCurrentCollaborativeSelection());
         }
     }
 
-    getCurrentCollaborativeCursor() {
+    getCurrentCollaborativeSelection() {
         const selection = this._latestComputedSelection || this._computeHistorySelection();
         if (!selection) return;
         return Object.assign({

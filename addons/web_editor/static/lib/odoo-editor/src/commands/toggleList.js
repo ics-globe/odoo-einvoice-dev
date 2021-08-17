@@ -23,7 +23,6 @@ HTMLElement.prototype.oToggleList = function (offset, mode = 'UL') {
         return inLI.oToggleList(0, mode);
     }
     const restoreCursor = preserveCursor(this.ownerDocument);
-    // if `this` is the root editable
     if (this.oid === 'root') {
         const callingNode = this.childNodes[offset];
         const group = getAdjacents(callingNode, n => !isBlock(n));

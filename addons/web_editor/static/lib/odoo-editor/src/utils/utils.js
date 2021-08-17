@@ -1888,3 +1888,6 @@ export function throttle(func, wait) {
         }
     };
 }
+export function peek() {
+    return arr => arr[arr.length - 1];
+}

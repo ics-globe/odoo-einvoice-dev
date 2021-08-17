@@ -1,7 +1,4 @@
 /** @odoo-module **/
-
-import { getCursorDirection } from './utils.js';
-
 // TODO: avoid empty keys when not necessary to reduce request size
 export function serializeNode(node, nodesToStripFromChildren = new Set()) {
     let result = {
@@ -73,10 +70,3 @@ export function serializeSelection(selection) {
         };
     }
 }
-
-// export function objectToRange(obj, idFind, doc = document) {
-//     const range = doc.createRange();
-//     range.setStart(idFind(obj.startContainer), obj.startOffset);
-//     range.setEnd(idFind(obj.endContainer), obj.endOffset);
-//     return range;
-// }
