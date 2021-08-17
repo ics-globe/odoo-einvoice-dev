@@ -106,6 +106,18 @@ export class RTC {
                 connectionClientId: clientId,
             });
         };
+        dataChannel.closing = event => {
+            console.log('channel closing');
+        };
+        dataChannel.closing = error => {
+            console.log('channel error');
+        };
+        dataChannel.closing = close => {
+            console.log('channel close');
+        };
+        dataChannel.closing = bufferedamountlow => {
+            console.log('channel bufferedamountlow');
+        };
         // todo: how to handle datachannel states: bufferedamountlow, error, closing, close
 
         this.clientsInfos[clientId].peerConnection = pc;
@@ -255,7 +267,21 @@ export class RTC {
             );
             this._killPotentialZombie(clientId);
         } else {
-            dataChannel.send(JSON.stringify(transportPayload));
+            const str = JSON.stringify(transportPayload);
+            const size = str.length;
+            const cutByteSize = 5000;
+            let from = 0;
+            let to = cutByteSize;
+            const blobSize = new Blob([str]).size;
+            console.log('sending blobSize:', blobSize);
+            while (from < size) {
+                dataChannel.send(str.slice(from, to));
+                from = to;
+                to = to += cutByteSize;
+            }
+            dataChannel.send('-');
+            // console.log(`%c sending payload size: ${new Blob([str]).size / 8}`, 'background: chocolate; color: white');
+            // dataChannel.send(new Blob([str]));
         }
     }
 
