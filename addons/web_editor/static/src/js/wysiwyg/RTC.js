@@ -159,8 +159,8 @@ export class RTC {
         }, delay);
     }
 
-     // todo: do we try to salvage the connection after killing the zombie ?
-     // Maybe the salvage should be done when the connection is dropped.
+    // todo: do we try to salvage the connection after killing the zombie ?
+    // Maybe the salvage should be done when the connection is dropped.
     _killPotentialZombie(clientId) {
         const clientInfos = this.clientsInfos[clientId];
         if (!clientInfos || clientInfos.zombieTimeout) {

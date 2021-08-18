@@ -259,7 +259,6 @@ export class OdooEditor extends EventTarget {
         this._resizeObserver.observe(this.editable);
         this.addDomListener(this.editable, 'scroll', this.multiselectionRefresh);
 
-
         // -------
         // Toolbar
         // -------
@@ -866,13 +865,10 @@ export class OdooEditor extends EventTarget {
             }
             // rollback right until the new step's previous step (not included)
             const stepsToReapply = [];
-            let i = 0;
             while (
                 this._historySteps.length &&
                 this._historySteps[this._historySteps.length - 1] !== previousStep
             ) {
-                if (i > 1000) throw new Error('loop error');
-                i++;
                 // Put the step at the beginning of the array, so that the first
                 // reverted step is the last reapplied
                 stepsToReapply.unshift(this._historySteps.pop());
@@ -1362,7 +1358,10 @@ export class OdooEditor extends EventTarget {
     _getNextUndoIndex() {
         // Go back to first step that can be undone ("redo" or undefined).
         for (let index = this._historySteps.length - 1; index >= 0; index--) {
-            if (this._historySteps[index] && this._historySteps[index].clientId === this._clientId) {
+            if (
+                this._historySteps[index] &&
+                this._historySteps[index].clientId === this._clientId
+            ) {
                 const state = this._historyStepsStates.get(this._historySteps[index].id);
                 if (state === 'redo' || !state) {
                     return index;
