@@ -284,7 +284,7 @@ const Wysiwyg = Widget.extend({
             },
             currentClientId: currentClientId,
             broadcastAll: (rpcData) => {
-                rpcMutex.exec(async () => {
+                return rpcMutex.exec(async () => {
                     return this._rpc({
                         route: '/web_editor/bus_broadcast',
                         params: {
@@ -303,11 +303,14 @@ const Wysiwyg = Widget.extend({
             },
             onNotification: async ({ fromClientId, notificationName, notificationPayload }) => {
                 switch (notificationName) {
-                    case 'ptp_inactive_client':
+                    case 'ptp_remove':
                         this.odooEditor.multiselectionRemove(notificationPayload);
                         break;
+                    case 'ptp_disconnect':
+                        this.odooEditor.multiselectionRemove(fromClientId);
+                        break;
                     case 'rtc_data_channel_open':
-                        const fromClientId = notificationPayload.connectionClientId;
+                        fromClientId = notificationPayload.connectionClientId;
                         const remoteStartTime = await this.ptp.requestClient(fromClientId, 'get_start_time');
                         this.ptp.clientsInfos[fromClientId].startTime = remoteStartTime;
                         editorCollaborationOptions.onHistoryNeedSync();

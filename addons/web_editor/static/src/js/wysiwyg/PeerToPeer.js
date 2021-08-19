@@ -26,7 +26,7 @@ export class PeerToPeer {
 
     removeClient(clientId, { shouldNotify = true } = {}) {
         console.log(`%c REMOVE CLIENT ${clientId}`, 'background: chocolate;');
-        this.notifySelf('ptp_inactive_client', clientId);
+        this.notifySelf('ptp_remove', clientId);
         const clientInfos = this.clientsInfos[clientId];
         if (!clientInfos) return;
         clearTimeout(clientInfos.fallbackTimeout);
@@ -38,22 +38,22 @@ export class PeerToPeer {
         delete this.clientsInfos[clientId];
     }
 
-    closeAllConnections() {
+    async closeAllConnections() {
         for (const clientId of Object.keys(this.clientsInfos)) {
-            this.notifyAllClients('ptp_disconnect');
+            await this.notifyAllClients('ptp_disconnect');
             this.removeClient(clientId);
         }
     }
 
-    notifyAllClients(notificationName, notificationPayload, { transport = 'server' } = {}) {
+    async notifyAllClients(notificationName, notificationPayload, { transport = 'server' } = {}) {
         const transportPayload = {
             fromClientId: this._currentClientId,
             notificationName,
             notificationPayload,
         };
-        this._simulateLatency(() => {
+        await this._simulateLatency(async () => {
             if (transport === 'server') {
-                this.options.broadcastAll(transportPayload);
+                await this.options.broadcastAll(transportPayload);
             } else if (transport === 'rtc') {
                 for (const cliendId of Object.keys(this.clientsInfos)) {
                     // todo: Handle error if it happens.
@@ -199,7 +199,6 @@ export class PeerToPeer {
         this.clientsInfos[clientId] = {
             makingOffer: false,
             iceCandidateBuffer: [],
-            // clientMutex: new Mutex(),
         };
         const pc = new RTCPeerConnection(this.options.peerConnectionConfig);
 
@@ -419,7 +418,9 @@ export class PeerToPeer {
         }, 10000);
     }
     _simulateLatency(cb) {
-        setTimeout(cb.bind(this), window.latency || 0);
+        return new Promise((resolve) => {
+            setTimeout(async () => resolve(await cb()), window.latency || 0);
+        });
     }
 
     _notificationMethods = {
@@ -439,9 +440,6 @@ export class PeerToPeer {
 
         ptp_join: async notification => {
             this._createClient(notification.fromClientId);
-        },
-        ptp_disconnect: notification => {
-            this.removeClient(notification.fromClientId);
         },
 
         rtc_signal_icecandidate: async notification => {
