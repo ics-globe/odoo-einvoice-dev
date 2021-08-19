@@ -84,7 +84,7 @@ function rng() {
   return getRandomValues(rnds8)
 }
 
-function v4(options, buf, offset) {
+export function uuidV4(options, buf, offset) {
   options = options || {}
 
   const rnds = options.random || (options.rng || rng)()
@@ -106,5 +106,3 @@ function v4(options, buf, offset) {
 
   return stringify(rnds)
 }
-
-export default v4

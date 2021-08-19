@@ -49,8 +49,9 @@ import {
 import { editorCommands } from './commands/commands.js';
 import { Powerbox } from './powerbox/Powerbox.js';
 import { TablePicker } from './tablepicker/TablePicker.js';
-import uuidV4 from './utils/uuidV4.js';
+import { uuidV4 } from './utils/uuidV4.js';
 
+export { uuidV4 } from './utils/uuidV4.js';
 export * from './utils/utils.js';
 import { UNBREAKABLE_ROLLBACK_CODE, UNREMOVABLE_ROLLBACK_CODE } from './utils/constants.js';
 
