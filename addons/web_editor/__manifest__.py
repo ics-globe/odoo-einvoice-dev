@@ -58,7 +58,7 @@ Odoo Web Editor widget.
 
             # utils
             'web_editor/static/src/js/wysiwyg/wysiwyg_utils.js',
-            'web_editor/static/src/js/wysiwyg/RTC.js',
+            'web_editor/static/src/js/wysiwyg/PeerToPeer.js',
 
             # odoo utils
             ('include', 'web._assets_helpers'),

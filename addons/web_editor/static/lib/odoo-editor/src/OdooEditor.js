@@ -859,6 +859,9 @@ export class OdooEditor extends EventTarget {
             this._historySteps.push(newStep);
         } else if (previousStep) {
             console.log('%c merge case', 'background: tomato;');
+            console.log('newStep: ', newStep);
+            const index = this._historySteps.indexOf(previousStep);
+            console.log('newstep parent index in this._historySteps:', index);
             this._computeHistorySelection();
             const currentStep = this._currentStep;
             if (currentStep.mutations && currentStep.mutations.length) {
@@ -901,8 +904,8 @@ export class OdooEditor extends EventTarget {
             }
             this.historySetSelection(currentStep);
         } else {
-            console.log('%c reset case', 'background: maroon;');
-            if (this.options.onHistoryNeedReset) this.options.onHistoryNeedReset();
+            console.warn('%c reset case', 'background: maroon;');
+            if (this.options.onHistoryNeedSync) this.options.onHistoryNeedSync();
         }
     }
 
