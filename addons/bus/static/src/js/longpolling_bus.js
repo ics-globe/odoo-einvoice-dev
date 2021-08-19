@@ -75,7 +75,7 @@ var LongpollingBus = Bus.extend(ServicesMixin, {
     addChannel: function (channel) {
         if (this._channels.indexOf(channel) === -1) {
             this._channels.push(channel);
-            this._restartPooling();
+            this._restartPolling();
         }
     },
     /**
@@ -256,7 +256,7 @@ var LongpollingBus = Bus.extend(ServicesMixin, {
      *
      * @private
      */
-    _restartPooling() {
+    _restartPolling() {
         if (this._pollRpc) {
             this._pollRpc.abort();
         } else {
