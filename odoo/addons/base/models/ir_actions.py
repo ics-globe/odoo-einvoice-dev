@@ -16,7 +16,29 @@ import logging
 from pytz import timezone
 
 _logger = logging.getLogger(__name__)
+_server_action_logger = _logger.getChild("server_action_safe_eval")
 
+
+class LoggerProxy:
+    @staticmethod
+    def log(level, message, *args, stack_info=False, exc_info=False):
+        _server_action_logger.log(level, message, *args, stack_info=stack_info, exc_info=exc_info)
+
+    @staticmethod
+    def info(message, *args, stack_info=False, exc_info=False):
+        _server_action_logger.info(message, *args, stack_info=stack_info, exc_info=exc_info)
+
+    @staticmethod
+    def warning(message, *args, stack_info=False, exc_info=False):
+        _server_action_logger.warning(message, *args, stack_info=stack_info, exc_info=exc_info)
+
+    @staticmethod
+    def error(message, *args, stack_info=False, exc_info=False):
+        _server_action_logger.error(message, args, stack_info=stack_info, exc_info=exc_info)
+
+    @staticmethod
+    def exception(message, *args, stack_info=False, exc_info=True):
+        _server_action_logger.exception(message, args, stack_info=stack_info, exc_info=exc_info)
 
 class IrActions(models.Model):
     _name = 'ir.actions.actions'
@@ -389,6 +411,7 @@ class IrActionsServer(models.Model):
 #  - time, datetime, dateutil, timezone: useful Python libraries
 #  - float_compare: Odoo function to compare floats based on specific precisions
 #  - log: log(message, level='info'): logging function to record debug information in ir.logging table
+#  - _logger: _logger.info(message): logging class to record debug information in Odoo's log
 #  - UserError: Warning Exception to use with raise
 #  - Command: x2Many commands namespace
 # To return an action, assign: action = {...}\n\n\n\n"""
@@ -573,6 +596,7 @@ class IrActionsServer(models.Model):
             'records': records,
             # helpers
             'log': log,
+            '_logger': LoggerProxy,
         })
         return eval_context
 
