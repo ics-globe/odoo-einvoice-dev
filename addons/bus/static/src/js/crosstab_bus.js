@@ -363,8 +363,11 @@ var CrossTabBus = Longpolling.extend({
         }
         // update channels
         else if (key === this._generateKey('channels')) {
+            // todo: there is a currently undetermined issue where _onStorage is
+            // called constantly which restart pooling constantly.
+            window.ix = window.ix || 1; if (ix++ > 1000) throw new Error('ix too big');
             this._updateChannels();
-            this._restartPooling();
+            this._restartPolling();
         }
         // update options
         else if (key === this._generateKey('options')) {
