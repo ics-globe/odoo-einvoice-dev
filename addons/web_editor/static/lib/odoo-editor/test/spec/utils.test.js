@@ -23,7 +23,7 @@ import {
     previousLeaf,
     rightPos,
     startPos,
-    setCursor,
+    setSelection,
     setCursorStart,
     setCursorEnd,
     getCursorDirection,
@@ -716,7 +716,7 @@ describe('Utils', () => {
         describe('collapsed', () => {
             it('should collapse the cursor at the beginning of an element', () => {
                 const [p] = insertTestHtml('<p>abc</p>');
-                const result = setCursor(p.firstChild, 0);
+                const result = setSelection(p.firstChild, 0);
                 window.chai.expect(result).to.eql([p.firstChild, 0, p.firstChild, 0]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -726,7 +726,7 @@ describe('Utils', () => {
             });
             it('should collapse the cursor within an element', () => {
                 const [p] = insertTestHtml('<p>abcd</p>');
-                const result = setCursor(p.firstChild, 2);
+                const result = setSelection(p.firstChild, 2);
                 window.chai.expect(result).to.eql([p.firstChild, 2, p.firstChild, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -736,7 +736,7 @@ describe('Utils', () => {
             });
             it('should collapse the cursor at the end of an element', () => {
                 const [p] = insertTestHtml('<p>abc</p>');
-                const result = setCursor(p.firstChild, 3);
+                const result = setSelection(p.firstChild, 3);
                 window.chai.expect(result).to.eql([p.firstChild, 3, p.firstChild, 3]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -747,7 +747,7 @@ describe('Utils', () => {
             it('should collapse the cursor before a nested inline element', () => {
                 const [p] = insertTestHtml('<p>ab<span>cd<b>ef</b>gh</span>ij</p>');
                 const cd = p.childNodes[1].firstChild;
-                const result = setCursor(cd, 2);
+                const result = setSelection(cd, 2);
                 window.chai.expect(result).to.eql([cd, 2, cd, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -758,7 +758,7 @@ describe('Utils', () => {
             it('should collapse the cursor at the beginning of a nested inline element', () => {
                 const [p] = insertTestHtml('<p>ab<span>cd<b>ef</b>gh</span>ij</p>');
                 const ef = p.childNodes[1].childNodes[1].firstChild;
-                const result = setCursor(ef, 0);
+                const result = setSelection(ef, 0);
                 window.chai.expect(result).to.eql([ef, 0, ef, 0]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -769,7 +769,7 @@ describe('Utils', () => {
             it('should collapse the cursor within a nested inline element', () => {
                 const [p] = insertTestHtml('<p>ab<span>cd<b>efgh</b>ij</span>kl</p>');
                 const efgh = p.childNodes[1].childNodes[1].firstChild;
-                const result = setCursor(efgh, 2);
+                const result = setSelection(efgh, 2);
                 window.chai.expect(result).to.eql([efgh, 2, efgh, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -780,7 +780,7 @@ describe('Utils', () => {
             it('should collapse the cursor at the end of a nested inline element', () => {
                 const [p] = insertTestHtml('<p>ab<span>cd<b>ef</b>gh</span>ij</p>');
                 const ef = p.childNodes[1].childNodes[1].firstChild;
-                const result = setCursor(ef, 2);
+                const result = setSelection(ef, 2);
                 window.chai.expect(result).to.eql([ef, 2, ef, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -792,7 +792,7 @@ describe('Utils', () => {
                 const [p] = insertTestHtml('<p>ab<span>cd<b>ef</b>gh</span>ij</p>');
                 const ef = p.childNodes[1].childNodes[1].firstChild;
                 const gh = p.childNodes[1].lastChild;
-                const result = setCursor(gh, 0);
+                const result = setSelection(gh, 0);
                 window.chai.expect(result).to.eql([ef, 2, ef, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -800,7 +800,7 @@ describe('Utils', () => {
                     .expect([anchorNode, anchorOffset, focusNode, focusOffset])
                     .to.eql([ef, 2, ef, 2]);
 
-                const nonNormalizedResult = setCursor(gh, 0, gh, 0, false);
+                const nonNormalizedResult = setSelection(gh, 0, gh, 0, false);
                 window.chai.expect(nonNormalizedResult).to.eql([gh, 0, gh, 0]);
                 const sel = document.getSelection();
                 window.chai
@@ -811,7 +811,7 @@ describe('Utils', () => {
         describe('forward', () => {
             it('should select the contents of an element', () => {
                 const [p] = insertTestHtml('<p>abc</p>');
-                const result = setCursor(p.firstChild, 0, p.firstChild, 3);
+                const result = setSelection(p.firstChild, 0, p.firstChild, 3);
                 window.chai.expect(result).to.eql([p.firstChild, 0, p.firstChild, 3]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -826,7 +826,7 @@ describe('Utils', () => {
                 const ef = p1.childNodes[1].childNodes[1].firstChild;
                 const qr = p2.childNodes[1].childNodes[2];
                 const st = p2.childNodes[2];
-                const result = setCursor(ef, 1, st, 0);
+                const result = setSelection(ef, 1, st, 0);
                 window.chai.expect(result).to.eql([ef, 1, qr, 2]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -834,7 +834,7 @@ describe('Utils', () => {
                     .expect([anchorNode, anchorOffset, focusNode, focusOffset])
                     .to.eql([ef, 1, qr, 2]);
 
-                const nonNormalizedResult = setCursor(ef, 1, st, 0, false);
+                const nonNormalizedResult = setSelection(ef, 1, st, 0, false);
                 window.chai.expect(nonNormalizedResult).to.eql([ef, 1, st, 0]);
                 const sel = document.getSelection();
                 window.chai
@@ -845,7 +845,7 @@ describe('Utils', () => {
         describe('backward', () => {
             it('should select the contents of an element', () => {
                 const [p] = insertTestHtml('<p>abc</p>');
-                const result = setCursor(p.firstChild, 3, p.firstChild, 0);
+                const result = setSelection(p.firstChild, 3, p.firstChild, 0);
                 window.chai.expect(result).to.eql([p.firstChild, 3, p.firstChild, 0]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -860,7 +860,7 @@ describe('Utils', () => {
                 const ef = p1.childNodes[1].childNodes[1].firstChild;
                 const qr = p2.childNodes[1].childNodes[2];
                 const st = p2.childNodes[2];
-                const result = setCursor(st, 0, ef, 1);
+                const result = setSelection(st, 0, ef, 1);
                 window.chai.expect(result).to.eql([qr, 2, ef, 1]);
                 const { anchorNode, anchorOffset, focusNode, focusOffset } =
                     document.getSelection();
@@ -868,7 +868,7 @@ describe('Utils', () => {
                     .expect([anchorNode, anchorOffset, focusNode, focusOffset])
                     .to.eql([qr, 2, ef, 1]);
 
-                const nonNormalizedResult = setCursor(st, 0, ef, 1, false);
+                const nonNormalizedResult = setSelection(st, 0, ef, 1, false);
                 window.chai.expect(nonNormalizedResult).to.eql([st, 0, ef, 1]);
                 const sel = document.getSelection();
                 window.chai
@@ -1226,7 +1226,7 @@ describe('Utils', () => {
                     </p>`,
                 );
                 const abc = p.childNodes[1].firstChild.firstChild.firstChild.firstChild;
-                setCursor(p, 2, p, 0, false);
+                setSelection(p, 2, p, 0, false);
                 const result = getDeepRange(p.parentElement, { select: true });
                 const { startContainer, startOffset, endContainer, endOffset } = result;
                 window.chai
@@ -1249,7 +1249,7 @@ describe('Utils', () => {
                 const span1 = p1.childNodes[1];
                 const ef = span1.childNodes[1].firstChild;
                 const st = p2.childNodes[2];
-                setCursor(p2, 2, span1, 1, false);
+                setSelection(p2, 2, span1, 1, false);
                 const result = getDeepRange(p1.parentElement, { select: true });
                 const { startContainer, startOffset, endContainer, endOffset } = result;
                 window.chai
