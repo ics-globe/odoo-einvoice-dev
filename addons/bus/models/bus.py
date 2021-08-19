@@ -80,7 +80,8 @@ class ImBus(models.Model):
         else:  # else returns the unread notifications
             domain = [('id', '>', last)]
         channels = [json_dump(c) for c in channels]
-        import pprint; print('send to channels: ',end=''); pprint.pprint(channels)
+        print('bus poll called')
+        # import pprint; print('send to channels: ',end=''); pprint.pprint(channels)
         domain.append(('channel', 'in', channels))
         notifications = self.sudo().search_read(domain)
         # list of notification to return
