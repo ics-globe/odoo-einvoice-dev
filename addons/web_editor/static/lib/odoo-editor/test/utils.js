@@ -182,7 +182,6 @@ export function setTestSelection(selection, doc = document) {
         domRange.collapse(false);
     }
     const domSelection = selection.anchorNode.ownerDocument.getSelection();
-    console.log("domSelection:", domSelection);
     domSelection.removeAllRanges();
     domSelection.addRange(domRange);
     try {

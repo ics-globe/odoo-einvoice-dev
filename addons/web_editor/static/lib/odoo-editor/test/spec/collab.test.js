@@ -135,7 +135,7 @@ const testFunction = spec => {
 
         // Insure all the client will have the same starting id.
         let nextId = 1;
-        OdooEditor.prototype._makeNodeId = () => 'fake_id_' + nextId++;
+        OdooEditor.prototype._generateId = () => 'fake_id_' + nextId++;
 
         clientInfo.editor = new OdooEditor(clientInfo.editable, {
             toSanitize: false,
@@ -163,7 +163,7 @@ const testFunction = spec => {
 
     // From now, any any step from a client must have a different ID.
     let concurentNextId = 1;
-    OdooEditor.prototype._makeNodeId = () => 'fake_concurent_id_' + concurentNextId++;
+    OdooEditor.prototype._generateId = () => 'fake_concurent_id_' + concurentNextId++;
 
     for (const clientInfo of clientInfos) {
         console.log('clientInfo:', clientInfo);
@@ -712,7 +712,7 @@ describe('Collaboration', () => {
             });
         });
     });
-    describe.only('Conflict resolution', () => {
+    describe('Conflict resolution', () => {
         it('should 2 client insertText in 2 different paragraph', () => {
             testFunction({
                 contentBefore: '<p>ab[c1}{c1]</p><p>cd[c2}{c2]</p>',
@@ -743,7 +743,7 @@ describe('Collaboration', () => {
                 contentAfter: '<p>abef[c1}{c1]</p><p>cdgh[c2}{c2]</p>',
             });
         });
-        it('should properly change the selection of other clients', () => {
+        it('should change the selection of other clients', () => {
             testFunction({
                 contentBefore: 'ab[c1}{c1][c2}{c2]c',
                 concurentActions: {
@@ -755,7 +755,7 @@ describe('Collaboration', () => {
                         console.log('oDeleteBackward');
                     },
                 },
-                contentAfter: 'abd[c1}{c1][c2}{c2]c',
+                contentAfter: 'ab[c2}{c2]d[c1}{c1]c',
             });
         });
         it('should insertText with client 1 and deleteBackward with client 2', () => {
@@ -769,7 +769,7 @@ describe('Collaboration', () => {
                         editor.execCommand('oDeleteBackward');
                     },
                 },
-                contentAfter: 'a[c2}{c2]cd[c1}{c1]c',
+                contentAfter: 'a[c2}{c2]c[c1}{c1]dc',
             });
         });
         it('should insertText twice with client 1 and deleteBackward twice with client 2', () => {
@@ -785,7 +785,7 @@ describe('Collaboration', () => {
                         editor.execCommand('oDeleteBackward');
                     },
                 },
-                contentAfter: 'ab[c1}{c1][c2}{c2]c',
+                contentAfter: '[c2}{c2]cde[c1}{c1]c',
             });
         });
     });

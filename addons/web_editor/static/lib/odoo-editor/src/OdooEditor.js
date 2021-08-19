@@ -855,14 +855,16 @@ export class OdooEditor extends EventTarget {
         const previousStep = this._historySteps.find(step => step.id === newStep.previousStepId);
         // newStep has the correct previous id so we simply apply it.
         if (previousStep === peek(this._historySteps)) {
+            this._recordHistorySelection();
             this.historyApply(newStep.mutations);
             this._historySteps.push(newStep);
+            this.historySetSelection(this._currentStep);
         } else if (previousStep) {
             console.log('%c merge case', 'background: tomato;');
             console.log('newStep: ', newStep);
             const index = this._historySteps.indexOf(previousStep);
             console.log('newstep parent index in this._historySteps:', index);
-            this._computeHistorySelection();
+            this._recordHistorySelection();
             const currentStep = this._currentStep;
             if (currentStep.mutations && currentStep.mutations.length) {
                 this.historyRevert(currentStep);

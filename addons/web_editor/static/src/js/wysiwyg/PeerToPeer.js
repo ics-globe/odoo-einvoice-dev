@@ -417,7 +417,9 @@ export class PeerToPeer {
             }
         }, 10000);
     }
-    _simulateLatency(cb) {
+    async _simulateLatency(cb) {
+        if (window.latencyPromise) await window.latencyPromise;
+        window.latencyPromise = undefined;
         return new Promise((resolve) => {
             setTimeout(async () => resolve(await cb()), window.latency || 0);
         });
