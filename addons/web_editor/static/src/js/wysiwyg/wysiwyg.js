@@ -347,14 +347,14 @@ const Wysiwyg = Widget.extend({
                             id: clientId,
                         },
                         {
-                            startTime: startCollaborationTime,
+                            startTime: firstClientStartTime,
                             id: firstClientId,
                         }
                     );
 
                     if (isCurrentClientFirst) {
-                        firstClientId = clientId;
                         firstClientStartTime = clientInfo.startTime;
+                        firstClientId = clientId;
                     }
                 }
                 console.log("firstClientId:", firstClientId);
