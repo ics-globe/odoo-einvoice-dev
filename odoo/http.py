@@ -523,7 +523,7 @@ def route(route=None, **routing):
         fname = f"<function {endpoint.__module__}.{endpoint.__name__}>"
 
         # Sanitize the routing
-        assert routing.get('type', 'http') in _dispatchers.keys()
+        assert routing.get('type', 'http') in _dispatchers.keys() or routing.get('type') == 'websocket'
         if route:
             routing['routes'] = route if isinstance(route, list) else [route]
         wrong = routing.pop('method', None)
