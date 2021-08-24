@@ -10,6 +10,7 @@ import { prepareRegistriesWithCleanup } from "./helpers/mock_env";
 import { session as sessionInfo } from "@web/session";
 import { prepareLegacyRegistriesWithCleanup } from "./helpers/legacy_env_utils";
 import { config as transitionConfig } from "@web/core/transition";
+import { patchWebsocketWithCleanup } from "@web/../tests/helpers/mock_websocket";
 
 transitionConfig.disabled = true;
 
@@ -209,6 +210,7 @@ function patchSessionInfo() {
 export async function setupTests() {
     QUnit.testStart(() => {
         checkGlobalObjectsIntegrity();
+        patchWebsocketWithCleanup();
         prepareRegistriesWithCleanup();
         prepareLegacyRegistriesWithCleanup();
         forceLocaleAndTimezoneWithCleanup();

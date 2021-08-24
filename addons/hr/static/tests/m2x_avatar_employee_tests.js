@@ -11,6 +11,7 @@ import KanbanView from 'web.KanbanView';
 import ListView from 'web.ListView';
 import { Many2OneAvatarEmployee } from '@hr/js/m2x_avatar_employee';
 import { dom, mock } from 'web.test_utils';
+import { makeFakeNotificationService } from '@web/../tests/helpers/mock_services';
 
 QUnit.module('hr', {}, function () {
     QUnit.module('M2XAvatarEmployee', {
@@ -164,19 +165,17 @@ QUnit.module('hr', {}, function () {
             },
             res_id: m2xHrAvatarUserId1,
             services: {
-                notification: {
-                    notify(notification) {
+                notification: makeFakeNotificationService(notification => {
                         assert.ok(
                             true,
                             "should display a toast notification after failing to open chat"
                         );
                         assert.strictEqual(
-                            notification.message,
+                            notification,
                             "You can only chat with employees that have a dedicated user.",
                             "should display the correct information in the notification"
                         );
-                    },
-                },
+                }),
             },
         });
 
@@ -414,19 +413,17 @@ QUnit.module('hr', {}, function () {
             },
             res_id: m2xAvatarEmployeeId1,
             services: {
-                notification: {
-                    notify(notification) {
+                notification: makeFakeNotificationService(notification => {
                         assert.ok(
                             true,
                             "should display a toast notification after failing to open chat"
                         );
                         assert.strictEqual(
-                            notification.message,
+                            notification,
                             "You can only chat with employees that have a dedicated user.",
                             "should display the correct information in the notification"
                         );
-                    },
-                },
+                }),
             },
         });
 

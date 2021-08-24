@@ -7,6 +7,7 @@ import {
 } from '@mail/../tests/helpers/test_utils';
 
 import { makeTestPromise } from 'web.test_utils';
+import { makeFakeNotificationService } from '@web/../tests/helpers/mock_services';
 
 QUnit.module('mail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -910,15 +911,13 @@ QUnit.test('respond to notification prompt (denied)', async function (assert) {
                     },
                 },
             },
-            services: {
-                notification: {
-                    notify() {
-                        assert.step(
-                            "should display a toast notification with the deny confirmation"
-                        );
-                    }
-                }
-            }
+        },
+        services: {
+            notification: makeFakeNotificationService(() => {
+                assert.step(
+                    "should display a toast notification with the deny confirmation"
+                );
+            }),
         },
     });
     await createMessagingMenuComponent();

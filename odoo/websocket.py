@@ -492,9 +492,6 @@ class WebsocketRequest:
             self._authenticate(endpoint)
             return service_model.retrying(functools.partial(endpoint, **self.kwargs), self.env)
 
-    def update_env(self, user=None, context=None, su=None):
-        self.env = self.env(None, user, context, su)
-
     def _process_message(self):
         """ Extract required information from an incoming websocket message """
         self.message = json.loads(self.message)
@@ -503,6 +500,10 @@ class WebsocketRequest:
         self.client_uid = self.message.get('client_uid')
         if self.path is None:
             raise InvalidWebsocketRequest('Path key is missing from request')
+
+
+    def update_env(self, user=None, context=None, su=None):
+        self.env = self.env(None, user, context, su)
 
     def _authenticate(self, endpoint):
         if self.session.uid is not None:

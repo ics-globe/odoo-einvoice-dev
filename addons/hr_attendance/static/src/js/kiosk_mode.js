@@ -41,7 +41,7 @@ var KioskMode = AbstractAction.extend({
 
     on_attach_callback: function () {
         // Stop polling to avoid notifications in kiosk mode
-        this.call('bus_service', 'stopPolling');
+        this.call('bus_service', 'stopBus');
         $('body').find('.o_ChatWindowHeader_commandClose').click();
     },
 

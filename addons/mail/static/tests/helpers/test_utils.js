@@ -1,6 +1,8 @@
 /** @odoo-module **/
 
-import BusService from 'bus.BusService';
+import { makeLegacyBusService } from '@bus/js/services/bus_service';
+import { websocketService } from "@bus/js/services/websocket_service";
+import { makeFakeBusService } from '@bus/../tests/test_utils';
 
 import { MessagingMenuContainer } from '@mail/components/messaging_menu_container/messaging_menu_container';
 import { addMessagingToEnv } from '@mail/env/test_env';
@@ -14,21 +16,24 @@ import { nextTick } from '@mail/utils/utils';
 import { DiscussWidget } from '@mail/widgets/discuss/discuss';
 import { addTimeControlToEnv } from '@mail/../tests/helpers/time_control';
 
-import core from 'web.core';
+import { registry } from '@web/core/registry';
+import { makeLegacyNotificationService } from "@web/legacy/utils";
+import { registerCleanup } from "@web/../tests/helpers/cleanup";
+import { makeTestEnv } from '@web/../tests/helpers/mock_env';
+import { getFixture, patchWithCleanup } from "@web/../tests/helpers/utils";
+import { createWebClient, getActionManagerServerData } from "@web/../tests/webclient/helpers";
+
 import AbstractStorageService from 'web.AbstractStorageService';
+import core from 'web.core';
+import MockServer from 'web.MockServer';
 import RamStorage from 'web.RamStorage';
+import LegacyRegistry from "web.Registry";
 import {
     createView,
     mock,
 } from 'web.test_utils';
 import Widget from 'web.Widget';
-import { registry } from '@web/core/registry';
-import { registerCleanup } from "@web/../tests/helpers/cleanup";
-import { getFixture, patchWithCleanup } from "@web/../tests/helpers/utils";
-import { createWebClient, getActionManagerServerData } from "@web/../tests/webclient/helpers";
 
-import LegacyRegistry from "web.Registry";
-import MockServer from 'web.MockServer';
 
 const { App, Component, EventBus } = owl;
 const { afterNextRender } = App;
@@ -582,6 +587,7 @@ function getOpenDiscuss({ afterNextRender, discuss, selector, widget }) {
  * @param {integer} [param0.res_id] makes only sense when `param0.hasView` is set:
  *   the res_id to use in createView.
  * @param {Object} [param0.services]
+ * @param {Object} [param0.legacyServices]
  * @param {Object} [param0.session]
  * @param {Element} [param0.target] if provided, the component will be mounted inside
  *   that element (only used if `params0.hasWebClient` is true)
@@ -671,16 +677,30 @@ async function start(param0 = {}) {
         env = addTimeControlToEnv(env);
     }
 
+    env.services = env.services || {};
     const services = Object.assign({}, {
-        bus_service: BusService.extend({
-            _beep() {}, // Do nothing
-            _poll() {}, // Do nothing
-            _registerWindowUnload() {}, // Do nothing
-            isOdooFocused() {
-                return true;
-            },
-            updateOption() {},
+        bus_service: makeFakeBusService({
+            _beep() {},
+            _registerWindowUnload() {},
+            send() {},
+            isOdooFocused: () => true,
         }),
+        websocketService,
+        legacy_notification_service: makeLegacyNotificationService(env),
+        legacy_bus_service: makeLegacyBusService(env),
+    }, param0.services);
+
+    for (const [serviceName, service] of Object.entries(services)) {
+        registry.category('services').add(serviceName, service);
+    }
+
+    if (!hasWebClient) {
+        // if we're not using createWebClient then, create a new test env in order for the
+        // new services to be added to the legacy env.
+        await makeTestEnv();
+    }
+
+    const legacyServices = Object.assign({}, {
         chat_window: ChatWindowService.extend({
             _getParentNode() {
                 return document.querySelector(debug ? 'body' : '#qunit-fixture');
@@ -727,7 +747,7 @@ async function start(param0 = {}) {
                 _super();
             },
         }),
-    }, param0.services);
+    }, param0.legacyServices);
 
     if (!param0.data && (!param0.serverData || !param0.serverData.models)) {
         pyEnv = pyEnv || await startServer();
@@ -746,7 +766,7 @@ async function start(param0 = {}) {
             'mail.message,false,search': '<search/>'
         }, param0.archs),
         debug: param0.debug || false,
-        services: Object.assign({}, services, param0.services),
+        services: Object.assign({}, legacyServices, param0.legacyServices),
     }, { env });
     let widget;
     let mockServer;

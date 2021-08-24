@@ -33,6 +33,8 @@ export const browser = {
     history: window.history,
     navigator: navigator,
     open: window.open.bind(window),
+    SharedWorker: window.SharedWorker,
+    Worker: window.Worker,
     XMLHttpRequest: window.XMLHttpRequest,
     localStorage,
     sessionStorage,
