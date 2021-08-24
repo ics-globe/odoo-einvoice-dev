@@ -165,6 +165,7 @@
             'point_of_sale/static/src/js/tours/point_of_sale.js',
             'point_of_sale/static/src/js/debug_manager.js',
             'point_of_sale/static/src/js/web_overrides/pos_config_form.js',
+            'point_of_sale/static/src/js/web_overrides/many2one_placeholder.js',
         ],
         'point_of_sale.pos_assets_backend': [
             ('include', 'web.assets_backend'),
