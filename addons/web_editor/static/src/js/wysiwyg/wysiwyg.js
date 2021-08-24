@@ -251,27 +251,27 @@ const Wysiwyg = Widget.extend({
                 iceServers:
                 [
                     {
-                        'url': 'stun:global.stun.twilio.com:3478?transport=udp',
-                        'urls': 'stun:global.stun.twilio.com:3478?transport=udp',
+                    "url": "stun:global.stun.twilio.com:3478?transport=udp",
+                    "urls": "stun:global.stun.twilio.com:3478?transport=udp"
                     },
                     {
-                        'url': 'turn:global.turn.twilio.com:3478?transport=udp',
-                        'username': '0fea671d7bc5e96b2e62884a46d95ddfb58845a2d2b465a1834a03f7bdc2ca94',
-                        'urls': 'turn:global.turn.twilio.com:3478?transport=udp',
-                        'credential': 'qW/go5PiWJlxGC2pAOBYrEgrFJQOJ5nRAPruZOXBZNg=',
+                    "url": "turn:global.turn.twilio.com:3478?transport=udp",
+                    "username": "e5cda20f51e4ec7e8d4ec95980d750ef3714f3ecde1519e54767d6e0b63f75f8",
+                    "urls": "turn:global.turn.twilio.com:3478?transport=udp",
+                    "credential": "hLKInr7mNZjM1+iSjQ9UW3jurVoPAbx52OUjMKLVU+U="
                     },
                     {
-                        'url': 'turn:global.turn.twilio.com:3478?transport=tcp',
-                        'username': '0fea671d7bc5e96b2e62884a46d95ddfb58845a2d2b465a1834a03f7bdc2ca94',
-                        'urls': 'turn:global.turn.twilio.com:3478?transport=tcp',
-                        'credential': 'qW/go5PiWJlxGC2pAOBYrEgrFJQOJ5nRAPruZOXBZNg=',
+                    "url": "turn:global.turn.twilio.com:3478?transport=tcp",
+                    "username": "e5cda20f51e4ec7e8d4ec95980d750ef3714f3ecde1519e54767d6e0b63f75f8",
+                    "urls": "turn:global.turn.twilio.com:3478?transport=tcp",
+                    "credential": "hLKInr7mNZjM1+iSjQ9UW3jurVoPAbx52OUjMKLVU+U="
                     },
                     {
-                        'url': 'turn:global.turn.twilio.com:443?transport=tcp',
-                        'username': '0fea671d7bc5e96b2e62884a46d95ddfb58845a2d2b465a1834a03f7bdc2ca94',
-                        'urls': 'turn:global.turn.twilio.com:443?transport=tcp',
-                        'credential': 'qW/go5PiWJlxGC2pAOBYrEgrFJQOJ5nRAPruZOXBZNg=',
-                    },
+                    "url": "turn:global.turn.twilio.com:443?transport=tcp",
+                    "username": "e5cda20f51e4ec7e8d4ec95980d750ef3714f3ecde1519e54767d6e0b63f75f8",
+                    "urls": "turn:global.turn.twilio.com:443?transport=tcp",
+                    "credential": "hLKInr7mNZjM1+iSjQ9UW3jurVoPAbx52OUjMKLVU+U="
+                    }
                 ],
                 // [
                 //     {
