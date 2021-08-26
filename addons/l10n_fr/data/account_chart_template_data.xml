@@ -21,7 +21,9 @@
       <field name="expense_currency_exchange_account_id" ref="pcg_666"/>
       <field name="property_tax_payable_account_id" ref="pcg_44551"/>
       <field name="property_tax_receivable_account_id" ref="pcg_44567"/>
-      <field name="default_pos_receivable_account_id" ref="fr_pcg_recv_pos" />
+      <field name="default_pos_receivable_account_id" ref="fr_pcg_recv_pos"/>
+      <field name="l10n_fr_rounding_difference_loss_account_id" ref="pcg_658"/>
+      <field name="l10n_fr_rounding_difference_profit_account_id" ref="pcg_758"/>
       <field name="currency_id" ref="base.EUR"/>
     </record>
 </odoo>
