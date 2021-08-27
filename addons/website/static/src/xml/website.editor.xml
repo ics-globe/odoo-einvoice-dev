@@ -93,7 +93,10 @@
     </t>
 
     <t t-name="website.color_combination_edition">
-        <we-colorpicker string="Background" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-bg"/>
+        <we-colorpicker string="Background" data-customize-website-layer2-color="null"
+            t-attf-data-layer-color="o-cc#{number}-bg"
+            t-attf-data-layer-gradient="o-cc#{number}-bg-gradient"
+            data-no-bundle-reload="true" data-with-gradients="true"/>
         <we-colorpicker string="Text" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-text"/>
         <we-collapse>
             <we-colorpicker string="Headings" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-headings"/>
@@ -105,11 +108,17 @@
         </we-collapse>
         <we-colorpicker string="Links" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-link"/>
         <we-row string="Primary Buttons">
-            <we-colorpicker title="Background" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-primary"/>
+            <we-colorpicker title="Background" data-customize-website-layer2-color="null"
+                t-attf-data-layer-color="o-cc#{number}-btn-primary"
+                t-attf-data-layer-gradient="o-cc#{number}-btn-primary-gradient"
+                data-no-bundle-reload="true" data-with-gradients="true"/>
             <we-colorpicker title="Border" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-primary-border"/>
         </we-row>
         <we-row string="Secondary Buttons">
-            <we-colorpicker title="Background" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-secondary"/>
+            <we-colorpicker title="Background" data-customize-website-layer2-color="null"
+                t-attf-data-layer-color="o-cc#{number}-btn-secondary"
+                t-attf-data-layer-gradient="o-cc#{number}-btn-secondary-gradient"
+                data-no-bundle-reload="true" data-with-gradients="true"/>
             <we-colorpicker title="Border" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-secondary-border"/>
         </we-row>
     </t>

@@ -37,11 +37,16 @@ class Assets(models.AbstractModel):
                 'danger': 'null',
             })
             # Also reset gradients which are in the "website" values palette
+            preset_fields = {
+                'bg', 'btn-primary', 'btn-secondary',
+            }
+            preset_gradients = {f'o-cc{cc}-{field}-gradient': 'null' for cc in range(1, 6) for field in preset_fields}
             self.make_scss_customization('/website/static/src/scss/options/user_values.scss', {
                 'menu-gradient': 'null',
                 'header-boxed-gradient': 'null',
                 'footer-gradient': 'null',
                 'copyright-gradient': 'null',
+                **preset_gradients,
             })
 
         custom_url = self._make_custom_asset_url(url, 'web.assets_common')

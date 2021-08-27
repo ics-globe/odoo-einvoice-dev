@@ -997,7 +997,7 @@ options.registry.WebsiteLevelColor = options.Class.extend({
     },
 });
 
-options.registry.OptionsTab = options.Class.extend({
+options.registry.OptionsTab = options.registry.WebsiteLevelColor.extend({
     GRAY_PARAMS: {EXTRA_SATURATION: "gray-extra-saturation", HUE: "gray-hue"},
 
     /**
