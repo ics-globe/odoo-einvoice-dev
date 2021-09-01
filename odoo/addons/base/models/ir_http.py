@@ -204,7 +204,7 @@ class IrHttp(models.AbstractModel):
                 and not isinstance(exception, werkzeug.exceptions.NotFound)
                 and request._request_type != 'json'):
             raise exception
-
+        
         try:
             return request._handle_exception(exception)
         except AccessDenied:
@@ -237,6 +237,8 @@ class IrHttp(models.AbstractModel):
             result = request.dispatch()
             if isinstance(result, Exception):
                 raise result
+        except MissingError:
+            return cls._handle_exception(werkzeug.exceptions.NotFound())
         except Exception as e:
             return cls._handle_exception(e)
 
