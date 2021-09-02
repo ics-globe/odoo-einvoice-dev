@@ -740,7 +740,7 @@ class MailCase(MockEmail):
 
             # check notifications and prepare assert data
             email_groups = defaultdict(list)
-            mail_groups = {'failure': []}
+            mail_groups = {'failure': [], 'outgoing': []}
             for recipient in message_info['notif']:
                 partner, ntype, ngroup, nstatus = recipient['partner'], recipient['type'], recipient.get('group'), recipient.get('status', 'sent')
                 nis_read, ncheck_send = recipient.get('is_read', False if recipient['type'] == 'inbox' else True), recipient.get('check_send', True)
@@ -771,6 +771,12 @@ class MailCase(MockEmail):
                         mail_groups['failure'].append(partner)
                         if ncheck_send:
                             email_groups[ngroup].append(partner)
+                    # when force_send is False notably, notifications are ready and emails outgoing
+                    elif nstatus == 'ready':
+                        mail_groups['outgoing'].append(partner)
+                        if ncheck_send:
+                            email_groups[ngroup].append(partner)
+                    # canceled: currently nothing checked
                     elif nstatus == 'canceled':
                         pass
                     else:
@@ -793,26 +799,38 @@ class MailCase(MockEmail):
                 partners = self.env['res.partner'].sudo().concat(*recipients)
                 if all(p in mail_groups['failure'] for p in partners):
                     if not self.mail_unlink_sent:
-                        self.assertMailMail(partners, 'exception',
-                                            author=message.author_id,
-                                            mail_message=message)
+                        self.assertMailMail(
+                            partners, 'exception',
+                            author=message.author_id if message.author_id else message.email_from,
+                            email_values={'body_content': mbody},
+                            mail_message=message
+                        )
                     else:
                         for recipient in partners:
-                            self.assertSentEmail(message.author_id, [recipient])
+                            self.assertSentEmail(
+                                message.author_id,
+                                [recipient],
+                                email_values=email_values,
+                            )
                 else:
+                    mail_status = 'sent'
+                    if all(p in mail_groups['outgoing'] for p in partners):
+                        mail_status = 'outgoing'
+
                     if not self.mail_unlink_sent:
                         self.assertMailMail(
-                            partners, 'sent',
+                            partners, mail_status,
                             author=message.author_id if message.author_id else message.email_from,
                             mail_message=message,
                             email_values=email_values,
                         )
                     else:
                         for recipient in partners:
-                            self.assertSentEmail(message.author_id if message.author_id else message.email_from,
-                                                 [recipient],
-                                                 **email_values
-                                                )
+                            self.assertSentEmail(
+                                message.author_id if message.author_id else message.email_from,
+                                [recipient],
+                                **email_values
+                            )
             if not any(p for recipients in email_groups.values() for p in recipients):
                 self.assertNoMail(partners, mail_message=message, author=message.author_id)
 

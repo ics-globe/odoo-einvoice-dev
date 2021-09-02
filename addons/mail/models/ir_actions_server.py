@@ -13,11 +13,18 @@ class ServerActions(models.Model):
     _description = 'Server Action'
     _inherit = ['ir.actions.server']
 
-    state = fields.Selection(selection_add=[
-        ('email', 'Send Email'),
-        ('followers', 'Add Followers'),
-        ('next_activity', 'Create Next Activity'),
-        ], ondelete={'email': 'cascade', 'followers': 'cascade', 'next_activity': 'cascade'})
+    state = fields.Selection(
+        selection_add=[('email', 'Send Email'),
+                       ('followers', 'Add Followers'),
+                       ('message_post', 'Post a Message'),
+                       ('next_activity', 'Create Next Activity'),
+        ],
+        ondelete={'email': 'cascade',
+                  'followers': 'cascade',
+                  'message_post': 'cascade',
+                  'next_activity': 'cascade',
+        }
+    )
     # Followers
     partner_ids = fields.Many2many('res.partner', string='Add Followers')
     # Template
@@ -106,6 +113,18 @@ class ServerActions(models.Model):
         cleaned_ctx.pop('default_parent_id', None)
         self.template_id.with_context(cleaned_ctx).send_mail(self._context.get('active_id'), force_send=False,
                                                              raise_exception=False)
+        return False
+
+    def _run_action_message_post_multi(self, eval_context=None):
+        if not self.template_id or (not self._context.get('active_ids') and not self._context.get('active_id')) or self._is_recompute():
+            return False
+
+        records = self.env[self.model_name].browse(self._context.get('active_ids', [self._context.get('active_id')]))
+        for record in records:
+            record.message_post_with_template(
+                self.template_id.id,
+                composition_mode='comment',
+            )
         return False
 
     def _run_action_next_activity(self, eval_context=None):

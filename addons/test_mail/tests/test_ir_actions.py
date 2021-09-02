@@ -7,9 +7,17 @@ from odoo.addons.test_mail.tests.common import TestMailCommon
 
 class TestServerActionsEmail(TestMailCommon, TestServerActionsBase):
 
+    def setUp(self):
+        super(TestServerActionsEmail, self).setUp()
+        self.template = self._create_template(
+            'res.partner',
+            {'email_from': '{{ object.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted }}',
+             'partner_to': '%s' % self.test_partner.id,
+            }
+        )
+
     def test_action_email(self):
-        email_template = self._create_template('res.partner', {'partner_to': '%s' % self.test_partner.id})
-        self.action.write({'state': 'email', 'template_id': email_template.id})
+        self.action.write({'state': 'email', 'template_id': self.template.id})
         self.action.with_context(self.context).run()
         # check an email is waiting for sending
         mail = self.env['mail.mail'].sudo().search([('subject', '=', 'About TestingPartner')])
@@ -26,6 +34,19 @@ class TestServerActionsEmail(TestMailCommon, TestServerActionsBase):
         })
         self.action.with_context(self.context).run()
         self.assertEqual(self.test_partner.message_partner_ids, self.env.ref('base.partner_admin') | random_partner)
+
+    def test_action_message_post(self):
+        self.action.write({'state': 'message_post', 'template_id': self.template.id})
+        with self.assertSinglePostNotifications(
+                [{'partner': self.test_partner, 'type': 'email', 'status': 'ready'}],
+                message_info={'content': 'Hello %s' % self.test_partner.name,
+                              'message_type': 'notification',
+                              'subtype': 'mail.mt_comment',
+                             }
+            ):
+            self.action.with_context(self.context).run()
+        # NOTE: template using current user will have funny email_from
+        self.assertEqual(self.test_partner.message_ids[0].email_from, self.partner_root.email_formatted)
 
     def test_action_next_activity(self):
         self.action.write({

@@ -42,8 +42,8 @@
                     <field name="partner_ids" widget="many2many_tags"
                         attrs="{'invisible': [('state', '!=', 'followers')]}"/>
                     <field name="template_id"
-                        attrs="{'invisible': [('state', '!=', 'email')],
-                                'required': [('state', '=', 'email')]}"/>
+                        attrs="{'invisible': [('state', 'not in', ['email', 'message_post'])],
+                                'required': [('state', 'in', ['email', 'message_post'])]}"/>
                 </xpath>
             </field>
         </record>
