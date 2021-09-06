@@ -4,7 +4,7 @@
 import itertools
 import psycopg2
 
-from odoo import api
+from odoo import api, tools
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 from odoo.addons.test_mail.tests import common as mail_common
 from odoo.tests import common, tagged
@@ -25,7 +25,7 @@ class TestMail(mail_common.BaseFunctionalTest, mail_common.MockEmails):
         }).with_context({})
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
-    def test_mail_message_notify_from_mail_mail(self):
+    def test_mail_mail_notify_from_mail_mail(self):
         # Due ot post-commit hooks, store send emails in every step
         self.email_to_list = []
         mail = self.env['mail.mail'].create({
@@ -41,7 +41,100 @@ class TestMail(mail_common.BaseFunctionalTest, mail_common.MockEmails):
         self.assertIn(u'test@example.com', self.email_to_list)
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
-    def test_mail_message_values_unicode(self):
+    def test_mail_mail_values_email_formatted(self):
+        """ Test email fields, with formatting """
+        customer = self.env['res.partner'].create({
+            'name': 'Tony Customer',
+            'email': 'tony.customer@test.example.com',
+        })
+        customer.write({'email': '"Formatted Emails" <tony.customer@test.example.com>'})
+        self._init_mock_build_email()
+        mail = self.env['mail.mail'].create({
+            'body_html': '<p>Test</p>',
+            'email_cc': '"Ignasse, le Poilu" <test.cc.1@test.example.com>',
+            'email_to': '"Raoul, le Grand" <test.email.1@test.example.com>, "Micheline, l\'immense" <test.email.2@test.example.com>',
+            'recipient_ids': [(4, self.user_employee.partner_id.id), (4, customer.id)]
+        })
+        mail.send()
+        self.assertEqual(len(self._mails), 3, 'Mail: sent 3 emails: 1 for email_to, 1 / recipient')
+        self.assertEqual(
+            sorted([sorted(['"Raoul, le Grand" <test.email.1@test.example.com>', '"Micheline, l\'immense" <test.email.2@test.example.com>']),
+                    [tools.formataddr((self.user_employee.name, self.user_employee.email_normalized))],
+                    # ['"Tony Customer" <tony.customer@test.example.com>']]),
+                    [tools.formataddr(("Tony Customer", '"Formatted Emails" <tony.customer@test.example.com>'))]
+                   ]),
+            sorted(sorted(_mail['email_to']) for _mail in self._mails),
+            'Mail: currently broken, double encapsulation of emails ("Tony" <"Formatted" <tony@e.com>>)'
+        )
+        # Currently broken: CC are added to ALL emails (spammy)
+        self.assertEqual(
+            # [['"Ignasse, le Poilu" <test.cc.1@test.example.com>']],
+            [['test.cc.1@test.example.com']] * 3,
+            [_mail['email_cc'] for _mail in self._mails],
+            'Mail: currently always removing formatting in email_cc'
+        )
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_mail_mail_values_email_multi(self):
+        """ Test email fields, without formatting """
+        # Multi
+        self._init_mock_build_email()
+        customer = self.env['res.partner'].create({
+            'name': 'Tony Customer',
+            'email': 'tony.customer@test.example.com, norbert.customer@test.example.com',
+        })
+        mail = self.env['mail.mail'].create({
+            'body_html': '<p>Test</p>',
+            'email_cc': 'test.cc.1@test.example.com, test.cc.2@test.example.com',
+            'email_to': 'test.email.1@test.example.com, test.email.2@test.example.com',
+            'recipient_ids': [(4, self.user_employee.partner_id.id), (4, customer.id)]
+        })
+        mail.send()
+        self.assertEqual(len(self._mails), 3, 'Mail: sent 3 emails: 1 for email_to, 1 / recipient')
+        self.assertEqual(
+            sorted([sorted(['test.email.1@test.example.com', 'test.email.2@test.example.com']),
+                    [tools.formataddr((self.user_employee.name, self.user_employee.email_normalized))],
+                    [tools.formataddr(("Tony Customer", 'tony.customer@test.example.com, norbert.customer@test.example.com'))]
+                   ]),
+            sorted(sorted(_mail['email_to']) for _mail in self._mails),
+            'Mail: currenty broken (multi email in a single address) but supported by some providers ("Tony" <tony@e.com, tony2@e.com>)'
+        )
+        # Currently broken: CC are added to ALL emails (spammy)
+        self.assertEqual(
+            [['test.cc.1@test.example.com', 'test.cc.2@test.example.com']] * 3,
+            [_mail['email_cc'] for _mail in self._mails]
+        )
+
+        # Multi + formatting
+        self._init_mock_build_email()
+        customer = self.env['res.partner'].create({
+            'name': 'Tony Customer',
+            'email': 'tony.customer@test.example.com, "Norbert Customer" <norbert.customer@test.example.com>',
+        })
+        mail = self.env['mail.mail'].create({
+            'body_html': '<p>Test</p>',
+            'email_cc': 'test.cc.1@test.example.com, test.cc.2@test.example.com',
+            'email_to': 'test.email.1@test.example.com, test.email.2@test.example.com',
+            'recipient_ids': [(4, self.user_employee.partner_id.id), (4, customer.id)]
+        })
+        mail.send()
+        self.assertEqual(len(self._mails), 3, 'Mail: sent 3 emails: 1 for email_to, 1 / recipient')
+        self.assertEqual(
+            sorted([sorted(['test.email.1@test.example.com', 'test.email.2@test.example.com']),
+                    [tools.formataddr((self.user_employee.name, self.user_employee.email_normalized))],
+                    [tools.formataddr(("Tony Customer", 'tony.customer@test.example.com, "Norbert Customer" <norbert.customer@test.example.com>'))]
+                   ]),
+            sorted(sorted(_mail['email_to']) for _mail in self._mails),
+            'Mail: currently broken, double encapsulation with formatting ("Tony" <tony@e.com, "Tony2" <tony2@e.com>>)'
+        )
+        # Currently broken: CC are added to ALL emails (spammy)
+        self.assertEqual(
+            [['test.cc.1@test.example.com', 'test.cc.2@test.example.com']] * 3,
+            [_mail['email_cc'] for _mail in self._mails]
+        )
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_mail_mail_values_unicode(self):
         mail = self.env['mail.mail'].create({
             'body_html': '<p>Test</p>',
             'email_to': 'test.😊@example.com',
@@ -50,6 +143,7 @@ class TestMail(mail_common.BaseFunctionalTest, mail_common.MockEmails):
 
         self.assertRaises(MailDeliveryException, lambda: mail.send(raise_exception=True))
 
+    @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_mail_mail_return_path(self):
         # mail without thread-enabled record
         base_values = {

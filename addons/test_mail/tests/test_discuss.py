@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import exceptions, tools
 from odoo.addons.test_mail.tests.common import BaseFunctionalTest, TestRecipients, MockEmails
-from odoo.tests.common import users
+from odoo.tests.common import tagged, users
 from odoo.tools import mute_logger
 
 
+@tagged('mail_thread')
 class TestChatterTweaks(BaseFunctionalTest, TestRecipients):
 
     @classmethod
@@ -148,3 +150,52 @@ class TestDiscuss(BaseFunctionalTest, TestRecipients, MockEmails):
         channel.unlink()
         remaining_message = channel_message.exists()
         self.assertEqual(len(remaining_message), 0, "Test message should have been deleted")
+
+
+@tagged('mail_thread')
+class TestMailThread(BaseFunctionalTest, TestRecipients, MockEmails):
+
+    @mute_logger('odoo.models.unlink')
+    def test_blacklist_mixin_email_normalized(self):
+        base_email = 'test.email@test.example.com'
+
+        # test data
+        valid_pairs = [(base_email, base_email),
+                       (tools.formataddr(('Another Name', base_email)),
+                        base_email),
+                       ('Name That Should Be Escaped <%s>' % base_email,
+                        base_email)]
+        void_pairs = [(False, False),
+                      ('', False),
+                      (' ', False)]
+        multi_pairs = [
+            ('%s, other.email@test.example.com' % base_email,
+             False),  # multi not supported currently
+            ('%s, other.email@test.example.com' % tools.formataddr(('Another Name', base_email)),
+             False),  # multi not supported currently
+        ]
+        for source, expected in valid_pairs + void_pairs + multi_pairs:
+            new_record = self.env['mail.test.gateway'].create({
+                'email_from': source,
+                'name': 'BL Test',
+            })
+            self.assertEqual(new_record.email_normalized, expected,
+                             'Normalized failed with %s, got %s (expected %s)' % (source, new_record.email_normalized, expected))
+            self.assertFalse(new_record.is_blacklisted)
+
+            # blacklist email should fail as void
+            if source in [pair[0] for pair in void_pairs]:
+                with self.assertRaises(exceptions.UserError):
+                    bl_record = self.env['mail.blacklist']._add(source)
+            # blacklist email currently fails but could not
+            elif source in [pair[0] for pair in multi_pairs]:
+                with self.assertRaises(exceptions.UserError):
+                    bl_record = self.env['mail.blacklist']._add(source)
+            # blacklist email ok
+            else:
+                bl_record = self.env['mail.blacklist']._add(source)
+                self.assertEqual(bl_record.email, expected)
+                new_record.invalidate_cache(fnames=['is_blacklisted'])
+                self.assertTrue(new_record.is_blacklisted, 'Blacklist failed with %s' % source)
+
+            self.env['mail.blacklist'].search([('email', '=', base_email)]).unlink()

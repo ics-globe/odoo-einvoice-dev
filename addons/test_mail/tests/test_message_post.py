@@ -213,6 +213,83 @@ class TestMessagePost(BaseFunctionalTest, TestRecipients, MockEmails):
             references=msg.message_id)
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_post_notifications_email_field(self):
+        """ Test various combinations of corner case / not standard filling of
+        email fields: multi email, formatted emails, ... """
+        # Multi email
+        self.partner_1.write({'email': 'valid.lelitre@agrolait.com, valid.lelitre.cc@agrolait.com'})
+        self.test_record.with_user(self.user_employee).message_post(
+            body='Test multi email',
+            message_type='comment',
+            partner_ids=[self.partner_1.id],
+            subtype='mt_comment',
+            subject='Test multi email',
+        )
+        # Currently semi-broken: sending to an incorrect email "Name" <address1, address2>
+        self.assertEmails(
+            self.user_employee.partner_id,
+            [[self.partner_1]],
+            email_to=[formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com, valid.lelitre.cc@agrolait.com'))]
+        )
+
+        # Formatted email
+        self._init_mock_build_email()
+        self.partner_1.write({'email': '"Valid Lelitre" <valid.lelitre@agrolait.com>'})
+        self.test_record.with_user(self.user_employee).message_post(
+            body='Test encapsulated email',
+            message_type='comment',
+            partner_ids=[self.partner_1.id],
+            subtype='mt_comment',
+            subject='Encapsulated email',
+        )
+        # Currently broken: sending to an incorrect email "Name" <"Name" <address>>
+        self.assertEmails(
+            self.user_employee.partner_id,
+            [[self.partner_1]],
+            email_to=[formataddr((self.partner_1.name, '"Valid Lelitre" <valid.lelitre@agrolait.com>'))]
+        )
+
+        # Wrong email: sent normally
+        self._init_mock_build_email()
+        self.partner_1.write({'email': 'wrong'})
+        self.test_record.with_user(self.user_employee).message_post(
+            body='Test encapsulated email',
+            message_type='comment',
+            partner_ids=[self.partner_1.id],
+            subtype='mt_comment',
+            subject='Encapsulated email',
+        )
+        self.assertEmails(
+            self.user_employee.partner_id,
+            [[self.partner_1]],
+            email_to=[formataddr((self.partner_1.name, 'wrong'))]
+        )
+
+        # Void email: sent normally
+        for partner_email, email_email in zip(
+                [False, '', ' '],
+                ['False', 'False', ' ']):
+            self._init_mock_build_email()
+            self.partner_1.write({'email': partner_email})
+            self.test_record.with_user(self.user_employee).message_post(
+                body='Test encapsulated email',
+                message_type='comment',
+                partner_ids=[self.partner_1.id],
+                subtype='mt_comment',
+                subject='Encapsulated email',
+            )
+            self.assertEmails(
+                self.user_employee.partner_id,
+                [[self.partner_1]],
+                email_to=[formataddr((self.partner_1.name, email_email))]
+            )
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_post_notifications_emails_tweak(self):
+        pass
+        # we should check _notification_groups behavior, for emails and buttons
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_post_notifications_keep_emails(self):
         self.test_record.message_subscribe(partner_ids=[self.user_admin.partner_id.id])
 
@@ -225,11 +302,6 @@ class TestMessagePost(BaseFunctionalTest, TestRecipients, MockEmails):
 
         # notifications emails should not have been deleted: one for customers, one for user
         self.assertEqual(len(self.env['mail.mail'].search([('mail_message_id', '=', msg.id)])), 2)
-
-    @mute_logger('odoo.addons.mail.models.mail_mail')
-    def test_post_notifications_emails_tweak(self):
-        pass
-        # we should check _notification_groups behavior, for emails and buttons
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_post_attachments(self):

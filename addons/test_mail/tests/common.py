@@ -282,22 +282,17 @@ class MockEmails(common.SingleTransactionCase):
                 email_from = values['email_from']
             expected = {
                 'email_from': email_from,
-                'email_to': [formataddr((partner.name, partner.email)) for partner in partners]
+                'email_to': [formataddr((partner.name, partner.email or '')) for partner in partners]
             }
-            if 'reply_to' in values:
-                expected['reply_to'] = values['reply_to']
-            if 'subject' in values:
-                expected['subject'] = values['subject']
-            if 'attachments' in values:
-                expected['attachments'] = values['attachments']
-            if 'body' in values:
-                expected['body'] = values['body']
-            if 'body_content' in values:
-                expected['body_content'] = values['body_content']
+            expected.update(dict(
+                (key, values[key])
+                for key in ['email_cc', 'email_from', 'email_to', 'reply_to',
+                            'subject', 'body', 'body_content',
+                            'attachments', 'references']
+                if key in values
+            ))
             if 'body_alt_content' in values:
                 expected['body_alternative_content'] = values['body_alt_content']
-            if 'references' in values:
-                expected['references'] = values['references']
             if 'ref_content' in values:
                 expected['references_content'] = values['ref_content']
             expected_email_values.append(expected)
@@ -306,10 +301,10 @@ class MockEmails(common.SingleTransactionCase):
         for expected in expected_email_values:
             sent_mail = next((mail for mail in self._mails if set(mail['email_to']) == set(expected['email_to'])), False)
             self.assertTrue(bool(sent_mail), 'Expected mail to %s not found' % expected['email_to'])
-            for val in ['email_from', 'reply_to', 'subject', 'body', 'references', 'attachments']:
+            for val in ['email_cc', 'email_from', 'reply_to', 'subject', 'body', 'references', 'attachments']:
                 if val in expected:
                     self.assertEqual(expected[val], sent_mail[val], 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
-            for val in ['body_content', 'body_alternative', 'references_content']:
+            for val in ['body_content', 'body_alternative', 'body_alternative_content', 'references_content']:
                 if val in expected:
                     self.assertIn(expected[val], sent_mail[val[:-8]], 'Value for %s: %s does not contain %s' % (val, sent_mail[val[:-8]], expected[val]))
 

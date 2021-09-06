@@ -81,3 +81,15 @@ class TestMessageModeration(BaseFunctionalTest, TestRecipients):
             # test with wildcard "_"
             found = Partner._mail_find_partner_from_emails(['alfred_astaire@test.example.com'])
             self.assertEqual(found, [self.env['res.partner']])
+
+        # test partners with multi emails
+        # ------------------------------------------------------------
+        test_partner.sudo().write({'email': '%s, "Robert Astaire" <not.alfredoastaire@test.example.com>' % self._test_email})
+
+        # test direct match
+        found = Partner._mail_find_partner_from_emails(['%s, "Robert Astaire" <not.alfredoastaire@test.example.com>' % self._test_email])
+        self.assertFalse(found[0], 'Mail: not recognized due to usage of email_normalize that does not accept multi emails')
+
+        # test based on first email
+        found = Partner._mail_find_partner_from_emails([self._test_email])
+        self.assertFalse(found[0], 'Mail: not recognized due to usage of email_normalize that does not accept multi emails')
