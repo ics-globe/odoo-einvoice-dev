@@ -42,6 +42,16 @@ registerModel({
                     });
                 }
             }
+            if ('sender_id' in data) {
+                if (!data.sender_id) {
+                    data2.sender = unlinkAll();
+                } else {
+                    data2.sender = insert({
+                        display_name: data.sender_id[1],
+                        id: data.sender_id[0],
+                    });
+                }
+            }
             if ('body' in data) {
                 data2.body = data.body;
             }
@@ -554,6 +564,10 @@ registerModel({
         attachments: many('Attachment', {
             inverse: 'messages',
         }),
+        /**
+         * This value describes the author of the message. It's not necessarily the sender of
+         * the message but the individual used to be impersonated by the sender.
+         */
         author: one('Partner'),
         /**
          * This value is meant to be returned by the server
@@ -762,6 +776,12 @@ registerModel({
             compute: '_computePrettyBody',
             default: "",
         }),
+        /**
+         * The sender is the one that wrote and send the message. By default, the sender
+         * and the author are the same. They can be different when an author is specified
+         * manually on a template.
+         */
+        sender: one('Partner'),
         subject: attr(),
         subtype_description: attr(),
         subtype_id: attr(),

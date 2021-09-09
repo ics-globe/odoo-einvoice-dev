@@ -17,6 +17,7 @@
                         <field name="parent_id" invisible="1"/>
                         <field name="mail_server_id" invisible="1"/>
                         <!-- visible wizard -->
+                        <field name="author_id" attrs="{'invisible':[('composition_mode', '!=', 'mass_mail')]}"/>
                         <field name="email_from"
                             attrs="{'invisible':[('composition_mode', '!=', 'mass_mail')]}"/>
                         <label for="partner_ids" string="Recipients" attrs="{'invisible': ['|', ('is_log', '=', True), ('composition_mode', '!=', 'comment')]}"/>

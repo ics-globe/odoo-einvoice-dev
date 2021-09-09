@@ -442,6 +442,7 @@ registerModel({
         memberThreads: many('Thread', {
             inverse: 'members',
         }),
+        messagesAsSender: one('Message'),
         model: attr({
             default: 'res.partner',
         }),

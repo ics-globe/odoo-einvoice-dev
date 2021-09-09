@@ -879,8 +879,14 @@ class Message(models.Model):
                     'id': message_sudo.author_guest_id.id,
                     'name': message_sudo.author_guest_id.name,
                 })]
+                vals['sender_id'] = vals['guestAuthor']
             else:
                 vals['author_id'] = author
+                if len(message_sudo.author_id.user_ids) > 0:
+                    vals['sender_id'] = (message_sudo.create_uid.partner_id.id, message_sudo.create_uid.partner_id.display_name)
+                else:
+                    vals['sender_id'] = author
+
             reactions_per_content = defaultdict(lambda: self.env['mail.message.reaction'])
             for reaction in message_sudo.reaction_ids:
                 reactions_per_content[reaction.content] |= reaction
@@ -946,6 +952,7 @@ class Message(models.Model):
                         }
                     ],
                     'author_id': (3, u'Administrator'),
+                    'sender_id': (3, u'Administrator'),
                     'email_from': 'sacha@pokemon.com' # email address or False
                     'subtype_id': (1, u'Discussions'),
                     'date': '2015-06-30 08:22:33',
