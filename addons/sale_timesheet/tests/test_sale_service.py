@@ -622,16 +622,16 @@ class TestSaleService(TestCommonSaleTimesheet):
         # and check if the remaining hours is equal to the remaining hours in the SOL,
         task = self.env['project.task'].create({
             'name': 'Test task',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
         })
-        self.assertEqual(task.partner_id, self.project_task_rate.partner_id)
+        self.assertEqual(task.partner_id, self.project_task.partner_id)
         self.assertEqual(task.partner_id, self.so.partner_id)
         self.assertEqual(task.remaining_hours_so, prepaid_service_sol.remaining_hours)
 
         # 3) Create timesheet in the task for this SOL and check if the remaining hours correctly decrease
         self.env['account.analytic.line'].create({
             'name': 'Test Timesheet',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
             'task_id': task.id,
             'unit_amount': 1,
         })
@@ -648,7 +648,7 @@ class TestSaleService(TestCommonSaleTimesheet):
         # 5) Create without storing the timesheet to check if remaining hours in SOL does not change
         timesheet = self.env['account.analytic.line'].new({
             'name': 'Test Timesheet',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
             'task_id': task.id,
             'unit_amount': 1,
             'so_line': prepaid_service_sol.id,

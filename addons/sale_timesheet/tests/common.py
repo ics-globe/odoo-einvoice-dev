@@ -84,8 +84,8 @@ class TestCommonSaleTimesheet(TestSaleCommon):
             'project_ids': [(4, cls.project_template.id)]
         })
         # Projects: at least one per billable type
-        cls.project_task_rate = Project.create({
-            'name': 'Project with pricing_type="task_rate"',
+        cls.project_task = Project.create({
+            'name': 'Project Task',
             'allow_timesheets': True,
             'allow_billable': True,
             'partner_id': cls.partner_b.id,

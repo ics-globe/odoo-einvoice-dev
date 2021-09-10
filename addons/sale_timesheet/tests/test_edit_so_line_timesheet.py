@@ -12,7 +12,7 @@ class TestEditSoLineTimesheet(TestCommonSaleTimesheet):
         super().setUp()
         self.task_rate_task = self.env['project.task'].create({
             'name': 'Task',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
             'sale_line_id': self.so.order_line[0].id,
         })
 
@@ -30,7 +30,7 @@ class TestEditSoLineTimesheet(TestCommonSaleTimesheet):
         # 1) create some timesheets on this task
         timesheet = self.env['account.analytic.line'].create({
             'name': 'Test Line',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
             'task_id': self.task_rate_task.id,
             'unit_amount': 5,
             'employee_id': self.employee_manager.id

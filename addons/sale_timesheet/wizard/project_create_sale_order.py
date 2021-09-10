@@ -25,22 +25,21 @@ class ProjectCreateSalesOrder(models.TransientModel):
             result['project_id'] = active_id
             if not result.get('partner_id', False):
                 result['partner_id'] = project.partner_id.id
-            if project.pricing_type != 'task_rate' and not result.get('line_ids', False):
-                if project.pricing_type == 'employee_rate':
-                    default_product = self.env.ref('sale_timesheet.time_product', False)
-                    result['line_ids'] = [
-                        (0, 0, {
-                            'employee_id': e.employee_id.id,
-                            'product_id': e.timesheet_product_id.id or default_product.id,
-                            'price_unit': e.price_unit if e.timesheet_product_id else default_product.lst_price
-                        }) for e in project.sale_line_employee_ids]
-                    employee_from_timesheet = project.task_ids.timesheet_ids.employee_id - project.sale_line_employee_ids.employee_id
-                    result['line_ids'] += [
-                        (0, 0, {
-                            'employee_id': e.id,
-                            'product_id': default_product.id,
-                            'price_unit': default_product.lst_price
-                        }) for e in employee_from_timesheet]
+            if not result.get('line_ids', False):
+                default_product = self.env.ref('sale_timesheet.time_product', False)
+                result['line_ids'] = [
+                    (0, 0, {
+                        'employee_id': e.employee_id.id,
+                        'product_id': e.timesheet_product_id.id or default_product.id,
+                        'price_unit': e.price_unit if e.timesheet_product_id else default_product.lst_price
+                    }) for e in project.sale_line_employee_ids]
+                employee_from_timesheet = project.task_ids.timesheet_ids.employee_id - project.sale_line_employee_ids.employee_id
+                result['line_ids'] += [
+                    (0, 0, {
+                        'employee_id': e.id,
+                        'product_id': default_product.id,
+                        'price_unit': default_product.lst_price
+                    }) for e in employee_from_timesheet]
         return result
 
     project_id = fields.Many2one('project.project', "Project", domain=[('sale_line_id', '=', False)], help="Project for which we are creating a sales order", required=True)

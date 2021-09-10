@@ -103,24 +103,20 @@ class AccountAnalyticLine(models.Model):
         self.ensure_one()
 
         if not self.task_id:
-            if self.project_id.pricing_type == 'employee_rate':
-                map_entry = self._get_employee_mapping_entry()
-                if map_entry:
-                    return map_entry.sale_line_id
+            map_entry = self._get_employee_mapping_entry()
+            if map_entry:
+                return map_entry.sale_line_id
             if self.project_id.sale_line_id:
                 return self.project_id.sale_line_id
         if self.task_id.allow_billable and self.task_id.sale_line_id:
-            if self.task_id.pricing_type in ('task_rate', 'fixed_rate'):
-                return self.task_id.sale_line_id
-            else:  # then pricing_type = 'employee_rate'
-                map_entry = self.project_id.sale_line_employee_ids.filtered(
-                    lambda map_entry:
-                        map_entry.employee_id == self.employee_id
-                        and map_entry.sale_line_id.order_partner_id.commercial_partner_id == self.task_id.commercial_partner_id
-                )
-                if map_entry:
-                    return map_entry.sale_line_id
-                return self.task_id.sale_line_id
+            map_entry = self.project_id.sale_line_employee_ids.filtered(
+                lambda map_entry:
+                    map_entry.employee_id == self.employee_id
+                    and map_entry.sale_line_id.order_partner_id.commercial_partner_id == self.task_id.commercial_partner_id
+            )
+            if map_entry:
+                return map_entry.sale_line_id
+            return self.task_id.sale_line_id
         return False
 
     def _timesheet_get_portal_domain(self):
@@ -161,8 +157,7 @@ class AccountAnalyticLine(models.Model):
         return self.env['project.sale.line.employee.map'].search([('project_id', '=', self.project_id.id), ('employee_id', '=', self.employee_id.id)])
 
     def _employee_timesheet_cost(self):
-        if self.project_id.pricing_type == 'employee_rate':
-            mapping_entry = self._get_employee_mapping_entry()
-            if mapping_entry:
-                return mapping_entry.cost
+        mapping_entry = self._get_employee_mapping_entry()
+        if mapping_entry:
+            return mapping_entry.cost
         return super()._employee_timesheet_cost()

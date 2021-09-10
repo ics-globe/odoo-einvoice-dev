@@ -14,17 +14,17 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
 
             Test Case:
             =========
-            1) Create Task in project with pricing_type='task_rate',
+            1) Create Task in project,
             2) Compute the SOL for the task and check if we have the one containing the prepaid service product,
             3) Create timesheet and check if the SOL in this timesheet is the one in the task,
             4) Since the remaining hours of the prepaid service is equals to 0 hour,
                 when we create a new task, the SOL in this one should be equal to False
             5) Change the SOL in the task and see if the SOL in the timesheet also changes.
         """
-        # 1) Create Task in project with pricing_type='task_rate'
+        # 1) Create Task in project
         task = self.env['project.task'].create({
             'name': 'Task',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
         })
 
         # 2) Compute the SOL for the task and check if we have the one containing the prepaid service product
@@ -37,7 +37,7 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
             'name': 'Test Line',
             'unit_amount': 2,
             'employee_id': self.employee_manager.id,
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
             'task_id': task.id,
         })
         self.assertEqual(timesheet.so_line, task.sale_line_id, "The SOL in the timesheet should be the same than the one in the task.")
@@ -47,7 +47,7 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
         # 4) Since the remaining hours of the prepaid service product is equals to 0 hour, when we create a new task, the SOL in this one should be equals to False
         task2 = self.env['project.task'].create({
             'name': 'Task 2',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
         })
         self.assertFalse(task2.sale_line_id, "The SOL in this task should be equal to False")
 
@@ -66,7 +66,7 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
             4) Change the SOL in the task and check if the SOL in the timesheet has also changed.
         """
         # 1) Define a SO and SOL in the project
-        self.project_project_rate = self.project_task_rate.copy({
+        self.project_project_rate = self.project_task.copy({
             'name': 'Project with pricing_type="project_rate"',
             'sale_line_id': self.so.order_line[0].id,
         })
@@ -107,7 +107,7 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
             6) Change the SOL in the mapping and check if the timesheet conserne by the mapping has its SOL has been changed too.
         """
         # 1) Define a SO, SOL and mapping for an employee in the project,
-        self.project_employee_rate = self.project_task_rate.copy({
+        self.project_employee_rate = self.project_task.copy({
             'name': 'Project with pricing_type="employee_rate"',
             'sale_line_id': self.so.order_line[0].id,
             'sale_line_employee_ids': [(0, 0, {
@@ -190,17 +190,17 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
 
             Test Case:
             =========
-            1) Create task in project_task_rate,
+            1) Create task,
             2) Check if the task has the SOL which contain the prepaid service product,
             3) Create timesheet in this task,
             4) Check if the timesheet contains the same SOL than the task,
             5) Move the task in a non billable project,
             6) Check if the task and timesheet has no SOL.
         """
-        # 1) Create task in project_task_rate,
+        # 1) Create task,
         task = self.env['project.task'].create({
             'name': 'Test Task',
-            'project_id': self.project_task_rate.id,
+            'project_id': self.project_task.id,
         })
 
         # 2) Check if the task has the SOL which contain the prepaid service product,

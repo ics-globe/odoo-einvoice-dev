@@ -31,7 +31,6 @@
                     <group>
                         <group>
                             <field name="display_create_order" invisible="1"/>
-                            <field name="pricing_type" invisible="1" widget="radio"/>
                             <field name="timesheet_product_id" string="Default Service" invisible="1" context="{'default_type': 'service', 'default_service_policy': 'delivered_timesheet', 'default_service_type': 'timesheet'}"/>
                             <field name="sale_order_id" invisible="1" options="{'no_create': True, 'no_edit': True, 'delete': False, 'no_open': True}"/>
                             <field name="sale_line_id" string="Default Sales Order Item" options="{'no_create': True, 'no_edit': True, 'delete': False, 'no_open': True}"/>
@@ -100,7 +99,6 @@
                 <field name="allow_billable"/>
                 <field name="warning_employee_rate" invisible="1"/>
                 <field name="sale_order_id" invisible="1"/>
-                <field name="pricing_type" invisible="1"/>
             </xpath>
             <xpath expr="//div[hasclass('o_kanban_manage_reporting')]" position="inside">
                 <div role="menuitem" t-if="record.rating_active.raw_value" groups="project.group_project_manager">
@@ -110,7 +108,7 @@
                 </div> 
             </xpath>
             <xpath expr="//div[hasclass('o_kanban_manage_view')]" position="inside">
-                <div t-if="record.allow_billable.raw_value and record.sale_order_id.raw_value and record.pricing_type.raw_value != 'task_rate'"
+                <div t-if="record.allow_billable.raw_value and record.sale_order_id.raw_value"
                     role="menuitem"
                     groups="sales_team.group_sale_salesman_all_leads">
                     <a name="action_view_so" type="object">Sales Order</a>
@@ -143,9 +141,6 @@
                 <xpath expr="//field[@name='user_ids']" position="after">
                     <field name="is_project_map_empty" invisible="1"/>
                     <field name="has_multi_sol" invisible="1"/>
-                </xpath>
-                 <xpath expr="//field[@name='partner_phone']" position="after">
-                    <field name="pricing_type" invisible="1"/>
                 </xpath>
                 <xpath expr="//field[@name='timesheet_ids']" position="attributes">
                     <attribute name="widget">so_line_one2many</attribute>
