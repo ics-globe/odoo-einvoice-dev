@@ -57,6 +57,11 @@ weWidgets.LinkTools.include({
         const isFromWebsite = urlInputValue[0] === '/';
         const $selectMenu = this.$('we-selection-items[name="link_anchor"]');
 
+        if (this.fileName) {
+            $pageAnchor[0].classList.add('d-none');
+            return;
+        }
+
         if ($selectMenu.data("anchor-for") !== urlInputValue) { // avoid useless query
             $pageAnchor.toggleClass('d-none', !isFromWebsite);
             $selectMenu.empty();
@@ -101,6 +106,20 @@ weWidgets.LinkTools.include({
      */
     _onURLInput: function () {
         this._super.apply(this, arguments);
+        this._adaptPageAnchor();
+    },
+    /**
+     * @override
+     */
+    _onRemoveFileClick() {
+        this._super(...arguments);
+        this._adaptPageAnchor();
+    },
+    /**
+     * @override
+     */
+    _onFileUploaded() {
+        this._super(...arguments);
         this._adaptPageAnchor();
     },
 });

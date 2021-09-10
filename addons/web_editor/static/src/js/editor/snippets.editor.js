@@ -3325,10 +3325,15 @@ var SnippetsMenu = Widget.extend({
         const $toolbarTableContainer = this.$('#o-we-editor-table-container');
         const docSelection = document.getSelection();
         const $currentSelectionTarget = docSelection && docSelection.rangeCount > 0 ? $(docSelection.getRangeAt(0).commonAncestorContainer) : $();
-        // Do not  toggle visibility if the target is inside the toolbar ( eg. during link edition).
-        if ($currentSelectionTarget.closest('#o_we_editor_toolbar_container').length ||
-            (e && $(e.target).closest('#o_we_editor_toolbar_container').length)
-        ) {
+        const isClickOnToolbar = $currentSelectionTarget.closest('#o_we_editor_toolbar_container').length
+            || (e && $(e.target).closest('#o_we_editor_toolbar_container').length);
+        // The selector .o_existing_attachment_cell is still needed as the
+        // media dialog will already be destroyed at that point.
+        const isClickOnMediaDialog = (e && e.target.closest('.o_technical_modal, .o_existing_attachment_cell'));
+
+        // Do not toggle visibility if the target is inside the toolbar
+        // (eg. during link edition), or inside the media selection dialog.
+        if (isClickOnToolbar || isClickOnMediaDialog) {
             return;
         }
 

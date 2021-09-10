@@ -65,7 +65,7 @@ var MediaDialog = Dialog.extend({
             this.activeWidget = this.tabWidgets[options.activeTab];
         } else if (this.tabWidgets.images && $media.is('img')) {
             this.activeWidget = this.tabWidgets.images;
-        } else if (this.tabWidgets.documents && $media.is('a.o_image')) {
+        } else if (this.tabWidgets.documents && $media.is('a')) {
             this.activeWidget = this.tabWidgets.documents;
         } else if (this.tabWidgets.videos && $media.is('.media_iframe_video, .o_bg_video_iframe')) {
             this.activeWidget = this.tabWidgets.videos;
