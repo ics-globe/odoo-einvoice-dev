@@ -315,10 +315,15 @@ odoo.define('website.s_website_form', function (require) {
                             if (successPage.charAt(0) === "#") {
                                 successPage = document.getElementById(successPage.substring(1));
                                 if (successPage) {
-                                    dom.scrollTo(successPage, {
-                                        duration: 500,
-                                        extraOffset: 0,
-                                    });
+                                    // Check if the target of the link is a modal.
+                                    if (successPage.classList.contains('modal')) {
+                                        $(successPage).modal('show');
+                                    } else {
+                                        await dom.scrollTo(successPage, {
+                                            duration: 500,
+                                            extraOffset: 0,
+                                        });
+                                    }
                                 }
                                 break;
                             }

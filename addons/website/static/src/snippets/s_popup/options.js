@@ -32,6 +32,13 @@ options.registry.SnippetPopup = options.Class.extend({
         // sound). Stop the video, as the user can't do it (no button on video
         // in edit mode).
         this._removeIframeSrc();
+        this.trigger_up('option_update', {
+            optionName: 'anchor',
+            name: 'modalAnchor',
+            data: {
+                $button: this._requestUserValueWidgets('onclick_opt')[0].$el,
+            },
+        });
         return this._super(...arguments);
     },
     /**

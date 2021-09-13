@@ -22,7 +22,7 @@ function loadAnchors(url) {
             resolve();
         }
     }).then(function (response) {
-        return _.map($(response).find('[id][data-anchor=true]'), function (el) {
+        return _.map($(response).find('[id][data-anchor=true], .modal[id][data-display="onClick"]'), function (el) {
             return '#' + el.id;
         });
     }).catch(error => {

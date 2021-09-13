@@ -18,6 +18,10 @@ const PopupWidget = publicWidget.Widget.extend({
      * @override
      */
     start: function () {
+        const hash = window.location.hash;
+        if (hash && this.target.querySelector('.modal').id === hash.substring(1)) {
+            this._showPopup();
+        }
         this._popupAlreadyShown = !!utils.get_cookie(this.$el.attr('id'));
         if (!this._popupAlreadyShown) {
             this._bindPopup();
@@ -57,7 +61,7 @@ const PopupWidget = publicWidget.Widget.extend({
 
         if (display === 'afterDelay') {
             this.timeout = setTimeout(() => this._showPopup(), delay);
-        } else {
+        } else if (display === 'mouseExit') {
             $(document).on('mouseleave.open_popup', () => this._showPopup());
         }
     },
