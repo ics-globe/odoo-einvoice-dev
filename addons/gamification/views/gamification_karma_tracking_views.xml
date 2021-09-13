@@ -21,12 +21,14 @@
         <field name="name">gamification.karma.tracking.view.tree</field>
         <field name="model">gamification.karma.tracking</field>
         <field name="arch" type="xml">
-            <tree string="Trackings">
-                <field name="user_id"/>
-                <field name="tracking_date"/>
-                <field name="old_value"/>
-                <field name="new_value"/>
-                <field name="consolidated"/>
+            <tree string="Trackings" editable="top" delete="0"
+                class="o_gamification_karma_tracking_tree">
+                <field name="origin_ref" options="{'no_create': True}" required="1"/>
+                <field name="reason"/>
+                <field name="user_id" widget="many2one_avatar_user" string="Karma Owner"/>
+                <field name="tracking_date" string="Date"/>
+                <field name="old_value" string="Old Value"/>
+                <field name="new_value" string="New Value" attrs="{'readonly': [('id', '!=', False)]}"/>
             </tree>
         </field>
     </record>
@@ -35,7 +37,7 @@
         <field name="name">gamification.karma.tracking.view.form</field>
         <field name="model">gamification.karma.tracking</field>
         <field name="arch" type="xml">
-            <form string="Tracking">
+            <form string="Tracking" delete="0">
                 <sheet>
                     <group>
                         <field name="user_id"/>
@@ -43,6 +45,8 @@
                         <field name="old_value"/>
                         <field name="new_value"/>
                         <field name="consolidated"/>
+                        <field name="origin_ref"/>
+                        <field name="reason"/>
                     </group>
                 </sheet>
             </form>
@@ -50,7 +54,7 @@
     </record>
 
     <record id="gamification_karma_tracking_action" model="ir.actions.act_window">
-        <field name="name">Trackings</field>
+        <field name="name">Karma Tracking</field>
         <field name="res_model">gamification.karma.tracking</field>
         <field name="view_mode">tree,form</field>
     </record>

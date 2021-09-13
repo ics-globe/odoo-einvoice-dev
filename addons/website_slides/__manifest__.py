@@ -61,6 +61,7 @@ Featuring
         'data/slide_channel_demo.xml',
         'data/slide_slide_demo.xml',
         'data/slide_user_demo.xml',
+        'data/slide_user_gamification_demo.xml',
     ],
     'installable': True,
     'application': True,

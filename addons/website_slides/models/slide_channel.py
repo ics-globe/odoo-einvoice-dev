@@ -89,20 +89,11 @@ class ChannelUsersRelation(models.Model):
 
     def _set_as_completed(self):
         """ Set record as completed and compute karma gains """
-        partner_karma = dict.fromkeys(self.mapped('partner_id').ids, 0)
         for record in self:
             record.completed = True
-            partner_karma[record.partner_id.id] += record.channel_id.karma_gen_channel_finish
-
-        partner_karma = {
-            partner_id: karma_to_add
-            for partner_id, karma_to_add in partner_karma.items() if karma_to_add > 0
-        }
-
-        if partner_karma:
-            users = self.env['res.users'].sudo().search([('partner_id', 'in', list(partner_karma.keys()))])
-            for user in users:
-                users.add_karma(partner_karma[user.partner_id.id])
+            karma = record.channel_id.karma_gen_channel_finish
+            if karma:
+                record.partner_id.user_ids._add_karma(karma, record.channel_id, _('Course finished'))
 
     def _send_completed_mail(self):
         """ Send an email to the attendee when he has successfully completed a course. """
@@ -270,7 +261,6 @@ class Channel(models.Model):
     can_upload = fields.Boolean('Can Upload', compute='_compute_can_upload', compute_sudo=False)
     partner_has_new_content = fields.Boolean(compute='_compute_partner_has_new_content', compute_sudo=False)
     # karma generation
-    karma_gen_slide_vote = fields.Integer(string='Lesson voted', default=1)
     karma_gen_channel_rank = fields.Integer(string='Course ranked', default=5)
     karma_gen_channel_finish = fields.Integer(string='Course finished', default=10)
     # Karma based actions
@@ -665,7 +655,7 @@ class Channel(models.Model):
         Warning: this count will not be accurate if the configuration has been
         modified after the completion of a course!
         """
-        total_karma = defaultdict(int)
+        total_karma = defaultdict(lambda: [])
 
         slide_completed = self.env['slide.slide.partner'].sudo().search([
             ('partner_id', 'in', partner_ids),
@@ -677,21 +667,29 @@ class Channel(models.Model):
             slide = partner_slide.slide_id
             if not slide.question_ids:
                 continue
-            gains = [slide.quiz_first_attempt_reward,
-                     slide.quiz_second_attempt_reward,
-                     slide.quiz_third_attempt_reward,
-                     slide.quiz_fourth_attempt_reward]
-            attempts = min(partner_slide.quiz_attempts_count - 1, 3)
-            total_karma[partner_slide.partner_id.id] += gains[attempts]
+            gains = [
+                slide.quiz_first_attempt_reward,
+                slide.quiz_second_attempt_reward,
+                slide.quiz_third_attempt_reward,
+                slide.quiz_fourth_attempt_reward,
+            ]
+            attempts = min(partner_slide.quiz_attempts_count, len(gains))
+            total_karma[partner_slide.partner_id.id].append({
+                'karma': gains[attempts - 1],
+                'channel_id': slide.channel_id,
+            })
 
         channel_completed = self.env['slide.channel.partner'].sudo().search([
             ('partner_id', 'in', partner_ids),
             ('channel_id', 'in', self.ids),
-            ('completed', '=', True)
+            ('completed', '=', True),
         ])
         for partner_channel in channel_completed:
             channel = partner_channel.channel_id
-            total_karma[partner_channel.partner_id.id] += channel.karma_gen_channel_finish
+            total_karma[partner_channel.partner_id.id].append({
+                'karma': channel.karma_gen_channel_finish,
+                'channel_id': channel,
+            })
 
         return total_karma
 
@@ -706,9 +704,16 @@ class Channel(models.Model):
         users = self.env['res.users'].sudo().search([
             ('partner_id', 'in', list(earned_karma)),
         ])
+
         for user in users:
-            if earned_karma[user.partner_id.id]:
-                user.add_karma(-1 * earned_karma[user.partner_id.id])
+            # Group the earned karma per channel
+            earned_karma_per_channel = defaultdict(lambda: 0)
+            for entry in earned_karma[user.partner_id.id]:
+                if entry['karma']:
+                    earned_karma_per_channel[entry['channel_id']] += entry['karma']
+            # Removed the earned karma for each channel
+            for channel, karma in earned_karma_per_channel.items():
+                user._add_karma(- karma, channel, _('Membership Removed'))
 
         removed_channel_partner_domain = []
         for channel in self:
