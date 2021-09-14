@@ -23,7 +23,7 @@
                                 </div>
                                 <div class="content-group" attrs="{'invisible': [('group_product_variant','=',False)]}">
                                     <div class="mt8">
-                                        <button name="%(product.attribute_action)d" icon="fa-arrow-right" type="action" string="Attributes" class="btn-link"/>
+                                        <button name="product.attribute_action" icon="fa-arrow-right" type="action" string="Attributes" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>
@@ -61,7 +61,7 @@
                                 </div>
                                 <div class="content-group" attrs="{'invisible': [('group_uom','=',False)]}">
                                     <div class="mt8">
-                                        <button name="%(uom.product_uom_form_action)d" icon="fa-arrow-right" type="action" string="Units of Measure" class="btn-link"/>
+                                        <button name="uom.product_uom_form_action" icon="fa-arrow-right" type="action" string="Units of Measure" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>
@@ -137,7 +137,7 @@
                                         <field name="product_pricelist_setting" widget="radio" class="o_light_label"/>
                                     </div>
                                     <div class="mt8">
-                                        <button name="%(product.product_pricelist_action2)d" icon="fa-arrow-right" type="action" string="Pricelists" groups="product.group_product_pricelist" class="btn-link"/>
+                                        <button name="product.product_pricelist_action2" icon="fa-arrow-right" type="action" string="Pricelists" groups="product.group_product_pricelist" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>

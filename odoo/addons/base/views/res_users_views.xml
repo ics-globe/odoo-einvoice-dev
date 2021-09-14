@@ -243,7 +243,7 @@
                                             <field name="lang" required="1"/>
                                             <button
                                                 type="action"
-                                                name="%(base.res_lang_act_window)d"
+                                                name="base.res_lang_act_window"
                                                 class="btn-sm btn-link mb4 fa fa-globe"
                                                 aria-label="More languages"
                                                 title="More languages"/>
@@ -443,7 +443,7 @@
                                         <field name="lang" required="1" readonly="0"/>
                                         <button
                                             type="action"
-                                            name="%(base.res_lang_act_window)d"
+                                            name="base.res_lang_act_window"
                                             class="btn-sm btn-link mb4 fa fa-globe"
                                             aria-label="More languages"
                                             groups="base.group_system"

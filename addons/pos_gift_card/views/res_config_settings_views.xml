@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@id='pos-gift-card']/div[last()]" position="after">
                 <div class="mt8" attrs="{'invisible': [('module_pos_gift_card', '=', False)]}">
-                    <button name="%(gift_card.gift_card_action)d" icon="fa-arrow-right" type="action" string="Gift Card" class="btn-link"/><br/>
+                    <button name="gift_card.gift_card_action" icon="fa-arrow-right" type="action" string="Gift Card" class="btn-link"/><br/>
                 </div>
             </xpath>
         </field>

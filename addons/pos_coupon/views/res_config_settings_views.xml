@@ -7,10 +7,10 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@id='pos-coupon']/div[last()]" position="after">
                 <div class="mt8" attrs="{'invisible': [('module_pos_coupon', '=', False)]}">
-                    <button name="%(coupon.coupon_program_action_promo_program)d" icon="fa-arrow-right" type="action" string="Promotion Programs" class="btn-link"/>
+                    <button name="coupon.coupon_program_action_promo_program" icon="fa-arrow-right" type="action" string="Promotion Programs" class="btn-link"/>
                 </div>
                 <div class="mt8" attrs="{'invisible': [('module_pos_coupon', '=', False)]}">
-                    <button name="%(coupon.coupon_program_action_coupon_program)d" icon="fa-arrow-right" type="action" string="Coupon Programs" class="btn-link"/>
+                    <button name="coupon.coupon_program_action_coupon_program" icon="fa-arrow-right" type="action" string="Coupon Programs" class="btn-link"/>
                 </div>
             </xpath>
         </field>

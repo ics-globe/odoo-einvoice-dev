@@ -192,7 +192,7 @@
                         <button id="w_visitor_visit_counter" class="oe_stat_button o_stat_button_info" disabled="1" icon="fa-globe">
                             <field name="visit_count" widget="statinfo" string="Visits"/>
                         </button>
-                        <button name="%(website.website_visitor_page_action)d" type="action"
+                        <button name="website.website_visitor_page_action" type="action"
                                 class="oe_stat_button"
                                 icon="fa-tags">
                             <field name="visitor_page_count" widget="statinfo" string="Page Views"/>

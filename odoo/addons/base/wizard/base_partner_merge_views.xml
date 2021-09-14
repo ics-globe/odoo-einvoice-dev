@@ -16,7 +16,7 @@
                     <sheet>
                         <group attrs="{'invisible': [('state', '!=', 'finished')]}" col="1">
                             <h2>There are no more contacts to merge for this request</h2>
-                            <button name="%(action_partner_deduplicate)d" string="Deduplicate the other Contacts" class="oe_highlight" type="action"/>
+                            <button name="action_partner_deduplicate" string="Deduplicate the other Contacts" class="oe_highlight" type="action"/>
                         </group>
                         <p class="oe_grey" attrs="{'invisible': [('state', '!=', ('option'))]}">
                             Select the list of fields used to search for

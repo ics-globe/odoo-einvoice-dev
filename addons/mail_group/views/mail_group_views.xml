@@ -62,7 +62,7 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" groups="base.group_user" attrs="{'invisible': [('can_manage_group', '=', False)]}">
-                        <button name="%(mail_group.mail_group_member_action)d"
+                        <button name="mail_group.mail_group_member_action"
                                 type="action"
                                 context="{'search_default_mail_group_id': active_id}"
                                 class="oe_stat_button"
@@ -70,7 +70,7 @@
                                 help="Members of this group">
                             <field name="member_count" widget="statinfo" string="Members"/>
                         </button>
-                       <button name="%(mail_group.mail_group_message_action)d"
+                       <button name="mail_group.mail_group_message_action"
                                 type="action"
                                 context="{'search_default_mail_group_id': active_id}"
                                 class="oe_stat_button"
@@ -78,7 +78,7 @@
                                 help="All messages of this group">
                             <field name="mail_group_message_count" widget="statinfo" string="Emails"/>
                         </button>
-                        <button name="%(mail_group.mail_group_message_action)d"
+                        <button name="mail_group.mail_group_message_action"
                                 type="action"
                                 context="{'search_default_mail_group_id': active_id, 'search_default_moderation_status': 'pending_moderation'}"
                                 class="oe_stat_button"
@@ -87,7 +87,7 @@
                                 attrs="{'invisible': [('moderation', '=', False)]}">
                             <field name="mail_group_message_moderation_count" widget="statinfo" string="To Review"/>
                         </button>
-                        <button name="%(mail_group.mail_group_moderation_action)d"
+                        <button name="mail_group.mail_group_moderation_action"
                                 type="action"
                                 context="{'search_default_mail_group_id': active_id}"
                                 attrs="{'invisible': [('moderation', '=', False)]}"
@@ -116,7 +116,7 @@
                                     <div class="oe_edit_only" attrs="{'invisible': [('alias_domain', '=', False)]}">
                                         <field name="alias_name" class="oe_inline"/>@<field name="alias_domain" class="oe_inline" readonly="1"/>
                                     </div>
-                                    <button icon="fa-arrow-right" type="action" name="%(base_setup.action_general_configuration)d" string="Configure a custom domain" class="p-0 btn-link" attrs="{'invisible': [('alias_domain', '!=', False)]}"/>
+                                    <button icon="fa-arrow-right" type="action" name="base_setup.action_general_configuration" string="Configure a custom domain" class="p-0 btn-link" attrs="{'invisible': [('alias_domain', '!=', False)]}"/>
                                 </div>
                             </div>
                             <field name="description"/>

@@ -31,7 +31,7 @@
                 <xpath expr="//div[hasclass('o_kanban_primary_right')]" position="inside">
                     <div t-if="record.leave_to_approve_count.raw_value > 0" class="row ml16">
                         <div class="col-9">
-                            <a name="%(hr_leave_action_action_approve_department)d" type="action">
+                            <a name="hr_leave_action_action_approve_department" type="action">
                                 Time Off Requests
                             </a>
                         </div>
@@ -41,7 +41,7 @@
                     </div>
                     <div t-if="record.allocation_to_approve_count.raw_value > 0" class="row ml16">
                         <div class="col-9">
-                            <a name="%(hr_leave_allocation_action_approve_department)d" type="action">
+                            <a name="hr_leave_allocation_action_approve_department" type="action">
                                 Allocation Requests
                             </a>
                         </div>
@@ -54,7 +54,7 @@
                 <xpath expr="//div[hasclass('o_kanban_card_upper_content')]" position="after">
                     <div class="row o_kanban_primary_bottom bottom_block">
                         <div class="col-3">
-                            <a name="%(hr_employee_action_from_department)d" type="action" title="Absent Employee(s), Whose time off requests are either confirmed or validated on today">Absence</a>
+                            <a name="hr_employee_action_from_department" type="action" title="Absent Employee(s), Whose time off requests are either confirmed or validated on today">Absence</a>
                         </div>
                         <div class="col-9">
                             <field name="absence_of_today" widget="progressbar" options="{'current_value': 'absence_of_today', 'max_value': 'total_employee', 'editable': false}"/>
@@ -63,7 +63,7 @@
                 </xpath>
 
                 <xpath expr="//div[hasclass('o_kanban_manage_reports')]" position="inside">
-                    <a role="menuitem" class="dropdown-item" name="%(hr_leave_action_action_department)d" type="action">
+                    <a role="menuitem" class="dropdown-item" name="hr_leave_action_action_department" type="action">
                         Time Off
                     </a>
                 </xpath>
@@ -188,7 +188,7 @@
                         </span>
                     </div>
                 </button>
-                <button name="%(act_hr_employee_holiday_request)d"
+                <button name="act_hr_employee_holiday_request"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-calendar"
@@ -205,7 +205,7 @@
                         </span>
                     </div>
                 </button>
-                 <button name="%(act_hr_employee_holiday_request)d"
+                 <button name="act_hr_employee_holiday_request"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-sun-o"
@@ -276,11 +276,11 @@
         <field name="inherit_id" ref="hr.res_users_view_form_profile"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="%(hr_leave_action_new_request)d"
+                <button name="hr_leave_action_new_request"
                 string="Request Time off"
                 type="action"
                 class="btn btn-primary"/>
-                <button name="%(hr_leave_allocation_action_my)d"
+                <button name="hr_leave_allocation_action_my"
                 string="Request Allocation"
                 type="action"
                 class="btn btn-primary"/>
@@ -296,7 +296,7 @@
                 <field name="employee_ids" invisible="1"/>
                 <field name="is_absent" invisible="1"/>
                 <field name="hr_icon_display" invisible="1"/>
-                <button name="%(hr_leave_action_new_request)d" type="action"
+                <button name="hr_leave_action_new_request" type="action"
                         class="oe_stat_button"
                         invisible="context.get('from_my_profile', False)"
                         attrs="{'invisible': [('is_absent', '=', False)]}">
@@ -315,7 +315,7 @@
                         </span>
                     </div>
                 </button>
-                <button name="%(hr_leave_action_new_request)d"
+                <button name="hr_leave_action_new_request"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-calendar"

@@ -169,7 +169,7 @@
                             <div class="oe_edit_only" attrs="{'invisible': [('alias_domain', '=', False)]}">
                                 <field name="alias_name" class="oe_inline"/>@<field name="alias_domain" class="oe_inline" readonly="1"/>
                             </div>
-                            <button icon="fa-arrow-right" type="action" name="%(base_setup.action_general_configuration)d" string="Configure a custom domain" class="p-0 btn-link" attrs="{'invisible': [('alias_domain', '!=', False)]}"/>
+                            <button icon="fa-arrow-right" type="action" name="base_setup.action_general_configuration" string="Configure a custom domain" class="p-0 btn-link" attrs="{'invisible': [('alias_domain', '!=', False)]}"/>
                         </div>
                     </div>
                     <field name="alias_contact"
@@ -262,7 +262,7 @@
                     <xpath expr="//t[@name='first_options']" position="after">
                         <div class="row" t-if="record.lead_unassigned_count.raw_value">
                             <div class="col-8">
-                                <a name="%(crm_case_form_view_salesteams_lead)d" type="action" context="{'search_default_unassigned_leads': 1}">
+                                <a name="crm_case_form_view_salesteams_lead" type="action" context="{'search_default_unassigned_leads': 1}">
                                     <field name="lead_unassigned_count"/>
                                     <t t-if="record.lead_unassigned_count.raw_value == 1">Unassigned Lead</t>
                                     <t t-else="">Unassigned Leads</t>
@@ -271,7 +271,7 @@
                         </div>
                         <div class="row" t-if="record.opportunities_count.raw_value">
                             <div class="col-8">
-                                <a name="%(crm_case_form_view_salesteams_opportunity)d" type="action" context="{'search_default_open_opportunities': True}"> <!-- context="{'search_default_probability': NOT or < 100}" -->
+                                <a name="crm_case_form_view_salesteams_opportunity" type="action" context="{'search_default_open_opportunities': True}"> <!-- context="{'search_default_probability': NOT or < 100}" -->
                                     <field name="opportunities_count"/>
                                     <t t-if="record.opportunities_count.raw_value == 1">Open Opportunity</t>
                                     <t t-else="">Open Opportunities</t>
@@ -283,7 +283,7 @@
                         </div>
                         <div class="row" t-if="record.opportunities_overdue_count.raw_value">
                             <div class="col-8">
-                                <a name="%(crm_lead_action_team_overdue_opportunity)d" type="action">
+                                <a name="crm_lead_action_team_overdue_opportunity" type="action">
                                     <field name="opportunities_overdue_count"/>
                                     <t t-if="record.opportunities_overdue_count.raw_value == 1">Overdue Opportunity</t>
                                     <t t-else="">Overdue Opportunities</t>
@@ -297,12 +297,12 @@
 
                     <xpath expr="//div[hasclass('o_kanban_manage_view')]/div[hasclass('o_kanban_card_manage_title')]" position="after">
                         <div t-if="record.use_leads.raw_value" groups="crm.group_use_lead">
-                            <a name="%(crm_case_form_view_salesteams_lead)d" type="action">
+                            <a name="crm_case_form_view_salesteams_lead" type="action">
                                 Leads
                             </a>
                         </div>
                         <div t-if="record.use_opportunities.raw_value">
-                            <a name="%(crm_case_form_view_salesteams_opportunity)d" type="action">
+                            <a name="crm_case_form_view_salesteams_opportunity" type="action">
                                 Opportunities
                             </a>
                         </div>
@@ -310,12 +310,12 @@
 
                     <xpath expr="//div[hasclass('o_kanban_manage_new')]/div[hasclass('o_kanban_card_manage_title')]" position="after">
                         <div t-if="record.use_leads.raw_value" groups="crm.group_use_lead">
-                            <a name="%(crm_lead_action_open_lead_form)d" type="action">
+                            <a name="crm_lead_action_open_lead_form" type="action">
                                 Leads
                             </a>
                         </div>
                         <div t-if="record.use_opportunities.raw_value">
-                            <a  name="%(action_opportunity_form)d" type="action">
+                            <a  name="action_opportunity_form" type="action">
                                 Opportunity
                             </a>
                         </div>
@@ -323,12 +323,12 @@
 
                     <xpath expr="//div[hasclass('o_kanban_manage_reports')]/div[hasclass('o_kanban_card_manage_title')]" position="after">
                         <div t-if="record.use_leads.raw_value" groups="crm.group_use_lead">
-                            <a name="%(action_report_crm_lead_salesteam)d" type="action">
+                            <a name="action_report_crm_lead_salesteam" type="action">
                                 Leads
                             </a>
                         </div>
                         <div t-if="record.use_opportunities.raw_value">
-                            <a name="%(action_report_crm_opportunity_salesteam)d" type="action">
+                            <a name="action_report_crm_opportunity_salesteam" type="action">
                                 Opportunities
                             </a>
                         </div>
@@ -337,7 +337,7 @@
                     <xpath expr="//div[hasclass('o_kanban_manage_reports')]/div[@name='o_team_kanban_report_separator']" position="after">
                         <div name="activity_report">
                             <div t-if="record.use_opportunities.raw_value">
-                                <a name="%(crm.crm_activity_report_action_team)d" type="action" style="color: #444B5A;">
+                                <a name="crm.crm_activity_report_action_team" type="action" style="color: #444B5A;">
                                     Activities
                                 </a>
                             </div>

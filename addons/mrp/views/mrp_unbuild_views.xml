@@ -94,7 +94,7 @@
                     </header>
                     <sheet>
                         <div class="oe_button_box" name="button_box">
-                            <button class="oe_stat_button" name="%(action_mrp_unbuild_moves)d"
+                            <button class="oe_stat_button" name="action_mrp_unbuild_moves"
                                     string="Product Moves" type="action" icon="fa-exchange" states="done"/>
                         </div>
                         <div class="oe_title">

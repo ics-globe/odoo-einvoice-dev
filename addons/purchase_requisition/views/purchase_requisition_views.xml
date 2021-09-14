@@ -116,10 +116,10 @@
         <field name="arch" type="xml">
             <form string="Purchase Agreements">
             <header>
-                <button name="%(action_purchase_requisition_to_so)d" type="action"
+                <button name="action_purchase_requisition_to_so" type="action"
                     string="New Quotation"
                     attrs="{'invisible': [('state', '!=', 'open')]}"/>
-                <button name="%(action_purchase_requisition_to_so)d" type="action"
+                <button name="action_purchase_requisition_to_so" type="action"
                     string="New Quotation" class="btn-primary"
                     attrs="{'invisible': [('state', 'not in', ('in_progress', 'ongoing'))]}"/>
                 <button name="action_in_progress" states="draft" string="Confirm" type="object" class="btn-primary"/>
@@ -132,7 +132,7 @@
             </header>
             <sheet>
                 <div class="oe_button_box" name="button_box">
-                    <button name="%(action_purchase_requisition_list)d" type="action" class="oe_stat_button" icon="fa-list-alt"
+                    <button name="action_purchase_requisition_list" type="action" class="oe_stat_button" icon="fa-list-alt"
                         attrs="{'invisible': [('state', '=', 'draft')]}">
                         <field name="order_count" widget="statinfo" string="RFQs/Orders"/>
                     </button>

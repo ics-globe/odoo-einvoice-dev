@@ -262,11 +262,11 @@
                 <sheet string="Working Time">
                     <widget name="web_ribbon" text="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
                     <div class="oe_button_box" name="button_box">
-                        <button name="%(resource_calendar_leaves_action_from_calendar)d" type="action"
+                        <button name="resource_calendar_leaves_action_from_calendar" type="action"
                                 string="Time Off" icon="fa-plane"
                                 class="oe_stat_button"
                                 groups="base.group_no_one"/>
-                        <button name="%(resource_resource_action_from_calendar)d" type="action"
+                        <button name="resource_resource_action_from_calendar" type="action"
                                 string="Work Resources" icon="fa-cogs"
                                 class="oe_stat_button"
                                 groups="base.group_user"/>

@@ -28,7 +28,7 @@
                                 <span class="o_stat_text">Context Action</span>
                             </div>
                         </button>
-                        <button class="oe_stat_button" name="%(sms_template_preview_action)d" icon="fa-search-plus" string="Preview" type="action" target="new"/>
+                        <button class="oe_stat_button" name="sms_template_preview_action" icon="fa-search-plus" string="Preview" type="action" target="new"/>
                     </div>
                     <div class="oe_title">
                         <label for="name" string="SMS Template"/>

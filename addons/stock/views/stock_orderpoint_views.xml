@@ -62,7 +62,7 @@
                     attrs="{'invisible': [('qty_to_order', '&lt;', 1.0)]}"/>
                 <button name="action_replenish_auto" string="Automate Orders" type="object" class="o_replenish_buttons" icon="fa-refresh"
                     attrs="{'invisible': ['|', ('qty_to_order', '&lt;', 1.0), ('trigger', '=', 'auto')]}"/>
-                <button name="%(action_orderpoint_snooze)d" string="Snooze" type="action" class="text-warning" icon="fa-bell-slash"
+                <button name="action_orderpoint_snooze" string="Snooze" type="action" class="text-warning" icon="fa-bell-slash"
                     attrs="{'invisible': [('trigger', '!=', 'manual')]}" context="{'default_orderpoint_ids': [id]}"/>
             </tree>
         </field>
@@ -144,7 +144,7 @@
         <field name="arch" type="xml">
             <form string="Reordering Rules">
                 <div class="alert alert-info" role="alert">
-                    <a style="cursor: pointer" class="alert-link o_form_uri" type="action" name="%(action_procurement_compute)d">Run the scheduler</a> manually to trigger the reordering rules right now.
+                    <a style="cursor: pointer" class="alert-link o_form_uri" type="action" name="action_procurement_compute">Run the scheduler</a> manually to trigger the reordering rules right now.
                 </div>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>

@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="utm.utm_campaign_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-                <button name="%(link_tracker_action_campaign)d"
+                <button name="link_tracker_action_campaign"
                     type="action" class="oe_stat_button order-12" icon="fa-mouse-pointer">
                     <field name="click_count" widget="statinfo" string="Clicks"/>
                 </button>

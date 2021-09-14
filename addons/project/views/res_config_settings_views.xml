@@ -65,7 +65,7 @@
                                     </div>
                                     <div class="content-group" attrs="{'invisible': [('group_project_stages', '=', False)]}">
                                         <div class="mt8">
-                                            <button name="%(project.project_project_stage_configure)d" icon="fa-arrow-right" type="action" string="Configure Stages" class="btn-link"/>
+                                            <button name="project.project_project_stage_configure" icon="fa-arrow-right" type="action" string="Configure Stages" class="btn-link"/>
                                         </div>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                                     </div>
                                     <div class="content-group" attrs="{'invisible': [('group_project_rating', '=', False)]}">
                                         <div class="mt8">
-                                            <button name="%(project.open_task_type_form)d" icon="fa-arrow-right" type="action" string="Set a Rating Email Template on Stages" class="btn-link"/>
+                                            <button name="project.open_task_type_form" icon="fa-arrow-right" type="action" string="Set a Rating Email Template on Stages" class="btn-link"/>
                                         </div>
                                     </div>
                                 </div>

@@ -208,7 +208,7 @@
             <form string="Product Categories Form">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" type="action" name="%(lunch.lunch_product_action_statbutton)d"
+                        <button class="oe_stat_button" type="action" name="lunch.lunch_product_action_statbutton"
                             context="{'search_default_category_id': active_id,'default_category_id': active_id}"
                             attrs="{'invisible': [('product_count', '=', 0)]}"
                             icon="fa-cutlery">
@@ -245,7 +245,7 @@
                                     <div class="o_kanban_record_headings">
                                         <div class="float-right">
                                             <button class="badge badge-primary" type="action"
-                                                name="%(lunch.lunch_product_action_statbutton)d"
+                                                name="lunch.lunch_product_action_statbutton"
                                                 context="{'search_default_category_id': active_id,'default_category_id': active_id}"
                                                 attrs="{'invisible': [('product_count', '=', 0)]}">
                                                 <field string="Products" name="product_count" widget="statinfo"/>

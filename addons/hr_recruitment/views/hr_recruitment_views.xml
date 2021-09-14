@@ -494,7 +494,7 @@
             <div name="button_box" position="inside">
                 <button class="oe_stat_button"
                     icon="fa-pencil"
-                    name="%(action_hr_job_applications)d"
+                    name="action_hr_job_applications"
                     context="{'default_user_id': user_id, 'active_test': False}"
                     type="action">
                     <field name="all_application_count" widget="statinfo" string="Job Applications"/>
@@ -506,7 +506,7 @@
                     <field name="documents_count" widget="statinfo" string="Documents"/>
                 </button>
                 <button class="oe_stat_button" type="action"
-                    name="%(action_hr_job_sources)d" icon="fa-bar-chart-o"
+                    name="action_hr_job_sources" icon="fa-bar-chart-o"
                     context="{'default_job_id': active_id}">
                     <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">Trackers</span>

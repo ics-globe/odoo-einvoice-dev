@@ -56,7 +56,7 @@
                                 <field name="printer_ids" widget="many2many_tags"/>
                             </div>
                             <div>
-                                <button name="%(pos_restaurant.action_restaurant_printer_form)d" icon="fa-arrow-right" type="action" string="Printers" class="btn-link"/>
+                                <button name="pos_restaurant.action_restaurant_printer_form" icon="fa-arrow-right" type="action" string="Printers" class="btn-link"/>
                             </div>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                                 <field name="floor_ids" widget="many2many_tags" attrs="{'readonly': [('has_active_session','=', True)]}" domain="['|', ('pos_config_id', '=', False), ('pos_config_id', '=', active_id)]"/>
                             </div>
                             <div>
-                                <button name="%(pos_restaurant.action_restaurant_floor_form)d" icon="fa-arrow-right" type="action" string="Floors" class="btn-link"/>
+                                <button name="pos_restaurant.action_restaurant_floor_form" icon="fa-arrow-right" type="action" string="Floors" class="btn-link"/>
                             </div>
                         </div>
                     </div>

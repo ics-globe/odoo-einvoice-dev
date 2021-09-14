@@ -269,10 +269,10 @@
                             string="Void Transaction" data-hotkey="shift+v"
                             confirm="Are you sure you want to void the authorized transaction? This action can't be undone."
                             attrs="{'invisible': [('authorized_transaction_ids', '=', [])]}"/>
-                    <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
+                    <button name="sale.action_view_sale_advance_payment_inv" string="Create Invoice"
                         type="action" class="btn-primary" data-hotkey="q"
                         attrs="{'invisible': [('invoice_status', '!=', 'to invoice')]}"/>
-                    <button name="%(sale.action_view_sale_advance_payment_inv)d" string="Create Invoice"
+                    <button name="sale.action_view_sale_advance_payment_inv" string="Create Invoice"
                         type="action" context="{'default_advance_payment_method': 'percentage'}" data-hotkey="q"
                         attrs="{'invisible': ['|',('invoice_status', '!=', 'no'), ('state', '!=', 'sale')]}"/>
                     <button name="action_quotation_send" string="Send by Email" type="object" states="draft" class="btn-primary" data-hotkey="g"/>

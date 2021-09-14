@@ -122,7 +122,7 @@
                                     Display pictures of product categories
                                 </div>
                                 <div class="content-group mt16" attrs="{'invisible': [('iface_display_categ_images', '=', False)]}">
-                                    <button name="%(product_pos_category_action)d" icon="fa-arrow-right" type="action" string="PoS Product Categories" class="btn-link"/>
+                                    <button name="product_pos_category_action" icon="fa-arrow-right" type="action" string="PoS Product Categories" class="btn-link"/>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@
                                     <field name="iface_available_categ_ids" widget="many2many_tags" attrs="{'readonly': [('has_active_session','=', True)]}"/>
                                 </div>
                                 <div class="content-group mt16" attrs="{'invisible': [('limit_categories', '=', False)]}">
-                                    <button name="%(product_pos_category_action)d" icon="fa-arrow-right" type="action" string="PoS Product Categories" class="btn-link"/>
+                                    <button name="product_pos_category_action" icon="fa-arrow-right" type="action" string="PoS Product Categories" class="btn-link"/>
                                 </div>
                             </div>
                         </div>
@@ -282,7 +282,7 @@
                                         <field name="fiscal_position_ids" widget="many2many_tags" options="{'no_create': True}" domain="['|',('company_id', '=', company_id),('company_id', '=', False)]"/>
                                     </div>
                                     <div>
-                                        <button name="%(account.action_account_fiscal_position_form)d" icon="fa-arrow-right" type="action" string="Fiscal Positions" class="btn-link"/>
+                                        <button name="account.action_account_fiscal_position_form" icon="fa-arrow-right" type="action" string="Fiscal Positions" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>
@@ -313,7 +313,7 @@
                                     <field name="pricelist_id" domain="[('id', 'in', allowed_pricelist_ids)]" options="{'no_create': True}"/>
                                 </div>
                                 <div>
-                                    <button name="%(product.product_pricelist_action2)d" icon="fa-arrow-right" type="action" string="Pricelists" class="btn-link"/>
+                                    <button name="product.product_pricelist_action2" icon="fa-arrow-right" type="action" string="Pricelists" class="btn-link"/>
                                 </div>
                             </div>
                         </div>
@@ -417,7 +417,7 @@
                                     <field name="payment_method_ids" colspan="4" nolabel="1" widget="many2many_tags" required="1" attrs="{'readonly': [('has_active_session','=', True)]}" options="{'no_create': True}" />
                                 </div>
                                 <div>
-                                    <button name="%(action_payment_methods_tree)d" icon="fa-arrow-right" type="action" string="Payment Methods" class="btn-link"/>
+                                    <button name="action_payment_methods_tree" icon="fa-arrow-right" type="action" string="Payment Methods" class="btn-link"/>
                                 </div>
                             </div>
                         </div>

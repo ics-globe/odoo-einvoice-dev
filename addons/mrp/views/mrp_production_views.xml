@@ -147,8 +147,8 @@
                         <button type="object" name="action_view_mo_delivery" class="oe_stat_button" icon="fa-truck"  groups="base.group_user" attrs="{'invisible': [('delivery_count', '=', 0)]}">
                             <field name="delivery_count" widget="statinfo" string="Transfers"/>
                         </button>
-                        <button name="%(stock.action_stock_report)d" icon="fa-arrow-up" class="oe_stat_button" string="Traceability" type="action" states="done" groups="stock.group_production_lot"/>
-                        <button name="%(action_mrp_production_moves)d" type="action" string="Product Moves" class="oe_stat_button" icon="fa-exchange" attrs="{'invisible': [('state', 'not in', ('progress', 'done'))]}"/>
+                        <button name="stock.action_stock_report" icon="fa-arrow-up" class="oe_stat_button" string="Traceability" type="action" states="done" groups="stock.group_production_lot"/>
+                        <button name="action_mrp_production_moves" type="action" string="Product Moves" class="oe_stat_button" icon="fa-exchange" attrs="{'invisible': [('state', 'not in', ('progress', 'done'))]}"/>
                     </div>
                     <div class="oe_title">
                         <h1>
@@ -173,7 +173,7 @@
                                     /
                                 </div>
                                 <field name="product_qty" class="oe_inline text-left" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('state', 'not in', ('draft', 'done'))]}"/>
-                                <button type="action" name="%(mrp.action_change_production_qty)d"
+                                <button type="action" name="mrp.action_change_production_qty"
                                     context="{'default_mo_id': id}" class="oe_link oe_inline" attrs="{'invisible': ['|', ('state', 'in', ('draft', 'done','cancel')), ('id', '=', False)]}">
                                     <field name="product_qty" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                 </button>
@@ -545,7 +545,7 @@
               <p class="o_view_nocontent_smiling_face">
                 No manufacturing order found. Let's create one.
               </p><p>
-                Consume <a name="%(product.product_template_action)d" type='action' tabindex="-1">components</a> and build finished products using <a name="%(mrp_bom_form_action)d" type='action' tabindex="-1">bills of materials</a>
+                Consume <a name="product.product_template_action" type='action' tabindex="-1">components</a> and build finished products using <a name="mrp_bom_form_action" type='action' tabindex="-1">bills of materials</a>
               </p>
             </field>
         </record>

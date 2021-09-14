@@ -78,7 +78,7 @@
                     <sheet>
                         <field name="rating_count" invisible="1"/>
                         <div class="oe_button_box" name="button_box">
-                            <button class="oe_stat_button" type="action" attrs="{'invisible':[('nbr_channel','=', 0)]}" name="%(mail_channel_action_from_livechat_channel)d" icon="fa-comments">
+                            <button class="oe_stat_button" type="action" attrs="{'invisible':[('nbr_channel','=', 0)]}" name="mail_channel_action_from_livechat_channel" icon="fa-comments">
                                 <field string="Sessions" name="nbr_channel" widget="statinfo"/>
                             </button>
                             <button name="action_view_rating" attrs="{'invisible':[('rating_count', '=', 0)]}" class="oe_stat_button" type="object" icon="fa-smile-o">

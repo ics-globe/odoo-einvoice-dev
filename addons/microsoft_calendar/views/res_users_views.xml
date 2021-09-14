@@ -18,7 +18,7 @@
                             <field name="microsoft_calendar_sync_token" string="Next Sync Token" readonly="1"/>
                             <button
                                 string="Reset Account" class="btn btn-secondary mt-3"
-                                type="action" name="%(microsoft_calendar_reset_account_action)d"
+                                type="action" name="microsoft_calendar_reset_account_action"
                                 context="{'default_user_id': id}"/>
                         </group>
                     </group>

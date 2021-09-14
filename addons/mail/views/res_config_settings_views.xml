@@ -19,7 +19,7 @@
                                 </div>
                                 <div class="content-group">
                                     <div class="mt8">
-                                        <button name="%(mail.mail_activity_type_action)d" string="Activity Types" type="action" class="oe_link" icon="fa-arrow-right"/>
+                                        <button name="mail.mail_activity_type_action" string="Activity Types" type="action" class="oe_link" icon="fa-arrow-right"/>
                                     </div>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                                 </div>
                                 <div class="content-group">
                                     <div class="row col-lg-4">
-                                        <button type="action" name="%(mail.action_ice_servers)d" string="ICE Servers" icon="fa-arrow-right" class="btn-link"/>
+                                        <button type="action" name="mail.action_ice_servers" string="ICE Servers" icon="fa-arrow-right" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>

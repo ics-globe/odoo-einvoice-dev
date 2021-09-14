@@ -63,7 +63,7 @@
         <field name="inherit_id" ref="resource.resource_calendar_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='%(resource.resource_calendar_leaves_action_from_calendar)d']" position="before">
-                <button name="%(resource_calendar_global_leaves_action_from_calendar)d" type="action"
+                <button name="resource_calendar_global_leaves_action_from_calendar" type="action"
                                 string="Public Time Off" icon="fa-sun-o"
                                 class="oe_stat_button"/>
             </xpath>

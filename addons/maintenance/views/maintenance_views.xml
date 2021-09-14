@@ -335,7 +335,7 @@
             <form string="Equipments">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="%(hr_equipment_request_action_from_equipment)d"
+                        <button name="hr_equipment_request_action_from_equipment"
                             type="action"
                             class="oe_stat_button"
                             context="{'default_company_id': company_id}"
@@ -580,13 +580,13 @@
             <form string="Equipment Categories">
                 <sheet>
                 <div class="oe_button_box" name="button_box">
-                    <button name="%(hr_equipment_action_from_category_form)d"
+                    <button name="hr_equipment_action_from_category_form"
                         class="oe_stat_button"
                         icon="fa-cubes"
                         type="action">
                         <field string="Equipment" name="equipment_count" widget="statinfo"/>
                     </button>
-                    <button name="%(hr_equipment_request_action_link)d"
+                    <button name="hr_equipment_request_action_link"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-wrench">
@@ -823,7 +823,7 @@
                             <div t-attf-class="o_kanban_card_header">
                                 <div class="o_kanban_card_header_title">
                                     <div class="o_primary">
-                                        <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action">
+                                        <a name="hr_equipment_todo_request_action_from_dashboard" type="action">
                                             <field name="name"/>
                                         </a></div>
                                 </div>
@@ -834,31 +834,31 @@
                             <div class="container o_kanban_card_content">
                                 <div class="row">
                                     <div class="col-6 o_kanban_primary_left">
-                                        <button class="btn btn-primary" name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_todo': 1}">
+                                        <button class="btn btn-primary" name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_todo': 1}">
                                             <t t-esc="record.todo_request_count.value"/> To Do
                                         </button>
                                     </div>
                                     <div class="col-6 o_kanban_primary_right">
                                         <div t-if="record.todo_request_count_date.raw_value > 0">
-                                            <a name="%(hr_equipment_request_action_cal)d" type="action">
+                                            <a name="hr_equipment_request_action_cal" type="action">
                                                 <t t-esc="record.todo_request_count_date.value"/>
                                                 Scheduled
                                             </a>
                                         </div>
                                         <div t-if="record.todo_request_count_high_priority.raw_value > 0">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_high_priority': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_high_priority': 1}">
                                                 <t t-esc="record.todo_request_count_high_priority.value"/>
                                                 Top Priorities
                                             </a>
                                         </div>
                                         <div t-if="record.todo_request_count_block.raw_value > 0">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_kanban_state_block': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_kanban_state_block': 1}">
                                                 <t t-esc="record.todo_request_count_block.value"/>
                                                 Blocked
                                             </a>
                                         </div>
                                         <div t-if="record.todo_request_count_unscheduled.raw_value > 0">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_unscheduled': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_unscheduled': 1}">
                                                 <t t-esc="record.todo_request_count_unscheduled.value"/>
                                                 Unscheduled
                                             </a>
@@ -872,22 +872,22 @@
                                             <span>Requests</span>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action">
                                                 All
                                             </a>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_todo': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_todo': 1}">
                                                 To Do
                                             </a>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_progress': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_progress': 1}">
                                                 In Progress
                                             </a>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(hr_equipment_todo_request_action_from_dashboard)d" type="action" context="{'search_default_done': 1}">
+                                            <a name="hr_equipment_todo_request_action_from_dashboard" type="action" context="{'search_default_done': 1}">
                                                 Done
                                             </a>
                                         </div>
@@ -897,7 +897,7 @@
                                             <span>Reporting</span>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(maintenance_request_action_reports)d" type="action" context="{'search_default_maintenance_team_id': active_id}">
+                                            <a name="maintenance_request_action_reports" type="action" context="{'search_default_maintenance_team_id': active_id}">
                                             Maintenance Requests
                                             </a>
                                         </div>

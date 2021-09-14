@@ -63,7 +63,7 @@
         <field name="inherit_id" ref="website.website_visitor_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='%(website.website_visitor_page_action)d']" position="after">
-                <button name="%(website_sale.website_sale_visitor_product_action)d" type="action"
+                <button name="website_sale.website_sale_visitor_product_action" type="action"
                     class="oe_stat_button"
                     icon="fa-tags">
                     <field name="visitor_product_count" widget="statinfo" string="Product Views"/>

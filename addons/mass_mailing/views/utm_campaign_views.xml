@@ -6,10 +6,10 @@
         <field name="inherit_id" ref="utm.utm_campaign_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                    <button name="%(action_create_mass_mailings_from_campaign)d" type="action" class="oe_highlight" groups="mass_mailing.group_mass_mailing_campaign" string="Send new Mailing"/>
+                    <button name="action_create_mass_mailings_from_campaign" type="action" class="oe_highlight" groups="mass_mailing.group_mass_mailing_campaign" string="Send new Mailing"/>
             </xpath>
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-                <button name="%(action_view_mass_mailings_from_campaign)d"
+                <button name="action_view_mass_mailings_from_campaign"
                     type="action" class="oe_stat_button order-9" icon="fa-envelope-o"
                     attrs="{'invisible': [('mailing_mail_count', '=', 0)]}" groups="mass_mailing.group_mass_mailing_campaign">
                     <field name="mailing_mail_count" widget="statinfo" string="Mailings"/>
@@ -81,7 +81,7 @@
                 <field name="mailing_mail_ids"/>
             </xpath>
             <xpath expr="//ul[@id='o_utm_actions']">
-                <a name="%(action_view_mass_mailings_from_campaign)d" type="action"
+                <a name="action_view_mass_mailings_from_campaign" type="action"
                     t-attf-class="oe_mailings #{record.mailing_mail_ids.raw_value.length === 0 ? 'text-muted' : ''}"
                     groups="mass_mailing.group_mass_mailing_campaign">
                     <t t-out="record.mailing_mail_ids.raw_value.length"/> Mailings

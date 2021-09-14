@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <div name="button_box" position="inside">
-                <button name="%(maintenance.hr_equipment_action)d"
+                <button name="maintenance.hr_equipment_action"
                     context="{'search_default_employee_id': id, 'default_employee_id': id}"
                     groups="maintenance.group_equipment_manager"
                     class="o_stat_button"
@@ -26,7 +26,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
                 <field name="employee_id" invisible="1"/>
-                <button name="%(maintenance.hr_equipment_action)d"
+                <button name="maintenance.hr_equipment_action"
                     context="{'search_default_employee_id': employee_id, 'default_employee_id': employee_id}"
                     class="o_stat_button"
                     icon="fa-cubes"

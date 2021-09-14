@@ -14,7 +14,7 @@
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <field name="attendance_state" invisible="1"/>
-                <button name="%(hr_attendance_action_employee)d"
+                <button name="hr_attendance_action_employee"
                     id="hr_attendance_button"
                     class="oe_stat_button"
                     type="action" attrs="{'invisible': [
@@ -37,7 +37,7 @@
                         <span class="o_stat_text">Attendance</span>
                     </div>
                 </button>
-                <button name="%(hr_attendance_action)d"
+                <button name="hr_attendance_action"
                         class="oe_stat_button"
                         icon="fa-clock-o"
                         type="action"
@@ -53,7 +53,7 @@
                         </span>
                     </div>
                 </button>
-                <button name="%(hr_attendance_overtime_action)d"
+                <button name="hr_attendance_overtime_action"
                         class="oe_stat_button"
                         icon="fa-history"
                         type="action"
@@ -85,7 +85,7 @@
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <field name="attendance_state" invisible="1"/>
-                <button name="%(hr_attendance_action_my_attendances)d"
+                <button name="hr_attendance_action_my_attendances"
                     id="hr_attendance_button"
                     class="oe_stat_button"
                     invisible="context.get('from_my_profile', False)"
@@ -107,7 +107,7 @@
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <field name="employee_ids" invisible="1"/>
-                <button name="%(hr_attendance_action_employee)d"
+                <button name="hr_attendance_action_employee"
                         class="oe_stat_button"
                         icon="fa-calendar"
                         type="action"
@@ -125,7 +125,7 @@
                 </button>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="%(hr_attendance_overtime_action)d"
+                <button name="hr_attendance_overtime_action"
                         class="oe_stat_button"
                         icon="fa-history"
                         type="action"

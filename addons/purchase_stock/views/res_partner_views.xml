@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="purchase.res_partner_view_purchase_buttons"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='purchase_order_count']/.." position="after">
-                    <button class="oe_stat_button" name="%(action_purchase_vendor_delay_report)d" type="action"
+                    <button class="oe_stat_button" name="action_purchase_vendor_delay_report" type="action"
                         groups="purchase.group_purchase_user"
                         icon="fa-truck"
                         context="{'search_default_partner_id': id}">

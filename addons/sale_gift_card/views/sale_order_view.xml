@@ -15,7 +15,7 @@
         <field name="arch" type="xml">
             <xpath expr="//button[@name='preview_sale_order']" position="before">
                 <button class="oe_stat_button"
-                        name="%(gift_card_sale_order_action)d"
+                        name="gift_card_sale_order_action"
                         attrs="{'invisible': [('gift_card_count', '=', 0)]}"
                         icon="fa-gift"
                         type="action">

@@ -8,7 +8,7 @@
         <field name="priority" eval="3"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='is_published']" position="before">
-                <button name="%(action_event_track_from_event)d"
+                <button name="action_event_track_from_event"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-microphone">

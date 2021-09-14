@@ -87,7 +87,7 @@
             <field name="groups_id" eval="[(4, ref('mrp.group_mrp_user'))]"/>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='action_open_product_lot']" position="after">
-                    <button class="oe_stat_button" name="%(template_open_bom)d" type="action"
+                    <button class="oe_stat_button" name="template_open_bom" type="action"
                         attrs="{'invisible':[('type', 'not in', ['product', 'consu'])]}" icon="fa-flask">
                         <field string="Bill of Materials" name="bom_count" widget="statinfo" />
                     </button>

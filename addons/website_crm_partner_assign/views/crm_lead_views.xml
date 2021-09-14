@@ -24,7 +24,7 @@
                             <field name="partner_assigned_id" domain="[('grade_id','!=',False)]"/>
                             <button string="Send Email" type="action" class="btn-link"
                                 attrs="{'invisible':[('partner_assigned_id','=',False)]}"
-                                name="%(crm_lead_forward_to_partner_act)d"
+                                name="crm_lead_forward_to_partner_act"
                                 context="{'default_composition_mode': 'forward','hide_forward_type': 1 , 'default_partner_ids': [partner_assigned_id]}"/>
                         </group>
                     </page>

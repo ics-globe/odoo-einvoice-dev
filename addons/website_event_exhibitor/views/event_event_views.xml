@@ -8,7 +8,7 @@
         <field name="inherit_id" ref="website_event.event_event_view_form"/>
         <field name="arch" type="xml">
             <field name="is_published" position="before">
-                <button name="%(event_sponsor_action_from_event)d"
+                <button name="event_sponsor_action_from_event"
                         type="action"
                         class="oe_stat_button"
                         icon="fa-black-tie">

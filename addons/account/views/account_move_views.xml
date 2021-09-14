@@ -222,7 +222,7 @@
                         <button name="open_bank_statement_view" type="object" icon="fa-edit" title="Edit" attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), ('statement_id', '=', False)]}"/>
                         <button name="open_payment_view" type="object" icon="fa-edit" title="Edit" attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), ('payment_id', '=', False)]}"/>
                         <button name="action_post" states="draft" icon="fa-check" title="Post" type="object" groups="account.group_account_invoice"/>
-                        <button name="%(action_view_account_move_reversal)d" states="posted" title="Reverse" icon="fa-undo" type="action" groups="account.group_account_invoice"/>
+                        <button name="action_view_account_move_reversal" states="posted" title="Reverse" icon="fa-undo" type="action" groups="account.group_account_invoice"/>
                         <button name="action_duplicate" icon="fa-files-o" title="Duplicate" type="object" groups="account.group_account_invoice"/>
                     </groupby>
                 </tree>
@@ -626,7 +626,7 @@
                         <button name="preview_invoice" type="object" string="Preview" data-hotkey="o"
                                 attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund'))]}"/>
                         <!-- Reverse -->
-                        <button name="%(action_view_account_move_reversal)d" string="Reverse Entry"
+                        <button name="action_view_account_move_reversal" string="Reverse Entry"
                                 type="action" groups="account.group_account_invoice" data-hotkey="z"
                                 attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), '|', ('state', '!=', 'posted'), ('payment_state', '=', 'reversed')]}"/>
                         <button name="action_reverse" string='Add Credit Note'

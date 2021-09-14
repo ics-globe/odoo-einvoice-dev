@@ -265,9 +265,9 @@
             <field name="arch" type="xml">
                 <form string="Project" delete="0">
                     <header>
-                        <button name="%(project.project_share_wizard_action)d" string="Share Readonly" type="action" class="oe_highlight" groups="project.group_project_manager"
+                        <button name="project.project_share_wizard_action" string="Share Readonly" type="action" class="oe_highlight" groups="project.group_project_manager"
                         attrs="{'invisible': [('privacy_visibility', '!=', 'portal')]}" context="{'default_access_mode': 'read'}"/>
-                        <button name="%(project.project_share_wizard_action)d" string="Share Editable" type="action" class="oe_highlight" groups="project.group_project_manager"
+                        <button name="project.project_share_wizard_action" string="Share Editable" type="action" class="oe_highlight" groups="project.group_project_manager"
                         attrs="{'invisible': [('privacy_visibility', '!=', 'portal')]}" context="{'default_access_mode': 'edit'}"/>
                         <field name="stage_id" widget="statusbar" options="{'clickable': '1', 'fold_field': 'fold'}" groups="project.group_project_stages"/>
                     </header>
@@ -275,10 +275,10 @@
                     <div class="oe_button_box" name="button_box" groups="base.group_user">
                         <field name="currency_id" invisible="1"/>
                         <button class="oe_stat_button" type="action"
-                            name="%(act_project_project_2_project_task_all)d" icon="fa-tasks">
+                            name="act_project_project_2_project_task_all" icon="fa-tasks">
                             <field string="Tasks In Progress" name="task_count" widget="statinfo" options="{'label_field': 'label_tasks'}"/>
                         </button>
-                        <button class="oe_stat_button" name="%(project.project_milestone_all)d" type="action" icon="fa-check-square-o">
+                        <button class="oe_stat_button" name="project.project_milestone_all" type="action" icon="fa-check-square-o">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_value">
                                     <field name="milestone_count" nolabel="1"/>
@@ -299,7 +299,7 @@
                                 </span>
                             </div>
                         </button>
-                        <button name="%(action_project_task_burndown_chart_report)d" type="action" class="oe_stat_button" icon="fa-area-chart" groups="project.group_project_manager">
+                        <button name="action_project_task_burndown_chart_report" type="action" class="oe_stat_button" icon="fa-area-chart" groups="project.group_project_manager">
                             <span class="o_stat_text">
                                 Burndown Chart
                             </span>
@@ -312,7 +312,7 @@
                                 <span class="o_stat_text">Gross Margin</span>
                             </div>
                         </button>
-                        <button class="oe_stat_button" name="%(project.project_collaborator_action)d" type="action" icon="fa-users" groups="project.group_project_manager">
+                        <button class="oe_stat_button" name="project.project_collaborator_action" type="action" icon="fa-users" groups="project.group_project_manager">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_value">
                                     <field name="collaborator_count" nolabel="1"/>
@@ -322,7 +322,7 @@
                                 </span>
                             </div>
                         </button>
-                        <button class="oe_stat_button" name="%(project.project_update_all_action)d" type="action" groups="project.group_project_manager">
+                        <button class="oe_stat_button" name="project.project_update_all_action" type="action" groups="project.group_project_manager">
                             <div class="pl-4">
                                 <field name="last_update_color" invisible="1"/>
                                 <field name="last_update_status" widget="status_with_color" options="{'color_field': 'last_update_color'}"/>
@@ -408,7 +408,7 @@
                                             </div>
                                             <div class="content-group">
                                                     <div class="mt8">
-                                                        <button name="%(project.open_task_type_form_domain)d" context="{'project_id':id}" icon="fa-arrow-right" type="action" string="Set a Rating Email Template on Stages" class="btn-link"/>
+                                                        <button name="project.open_task_type_form_domain" context="{'project_id':id}" icon="fa-arrow-right" type="action" string="Set a Rating Email Template on Stages" class="btn-link"/>
                                                     </div>
                                             </div>
                                         </div>
@@ -666,7 +666,7 @@
                                                     <a name="action_view_tasks_analysis" type="object">Tasks Analysis</a>
                                                 </div>
                                                 <div role="menuitem">
-                                                    <a name="%(action_project_task_burndown_chart_report)d" type="action">Burndown Chart</a>
+                                                    <a name="action_project_task_burndown_chart_report" type="action">Burndown Chart</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -675,7 +675,7 @@
                                                 <ul class="oe_kanban_colorpicker" data-field="color" role="popup"/>
                                             </div>
                                             <div role="menuitem" class="col-4">
-                                                <a t-if="record.privacy_visibility.raw_value == 'portal'" class="dropdown-item" role="menuitem" name="%(project.project_share_wizard_action)d" type="action">Share</a>
+                                                <a t-if="record.privacy_visibility.raw_value == 'portal'" class="dropdown-item" role="menuitem" name="project.project_share_wizard_action" type="action">Share</a>
                                                 <a class="dropdown-item" role="menuitem" type="object" name="action_view_kanban_project">See More</a>
                                             </div>
                                         </div>
@@ -794,7 +794,7 @@
                     <sheet string="Task">
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_parent_task" type="object" class="oe_stat_button" icon="fa-tasks" string="Parent Task" attrs="{'invisible': [('parent_id', '=', False)]}"/>
-                        <button name="%(rating_rating_action_task)d" type="action" attrs="{'invisible': [('rating_count', '=', 0)]}" class="oe_stat_button" icon="fa-smile-o" groups="project.group_project_rating">
+                        <button name="rating_rating_action_task" type="action" attrs="{'invisible': [('rating_count', '=', 0)]}" class="oe_stat_button" icon="fa-smile-o" groups="project.group_project_rating">
                             <field name="rating_count" string="Rating" widget="statinfo"/>
                         </button>
                         <button name="action_recurring_tasks" type="object" attrs="{'invisible': [('recurrence_id', '=', False)]}" class="oe_stat_button" icon="fa-repeat" groups="project.group_project_recurring_tasks">
@@ -1060,7 +1060,7 @@
                                         </a>
                                         <div class="dropdown-menu" role="menu">
                                             <a t-if="widget.editable" role="menuitem" type="set_cover" class="dropdown-item" data-field="displayed_image_id">Set Cover Image</a>
-                                            <a name="%(portal.portal_share_action)d" role="menuitem" type="action" class="dropdown-item">Share</a>
+                                            <a name="portal.portal_share_action" role="menuitem" type="action" class="dropdown-item">Share</a>
                                             <a t-if="widget.editable" role="menuitem" type="edit" class="dropdown-item">Edit</a>
                                             <div role="separator" class="dropdown-divider"></div>
                                             <ul class="oe_kanban_colorpicker" data-field="color"/>
@@ -1386,7 +1386,7 @@
                 </xpath>
                 <xpath expr="//div[hasclass('o_kanban_manage_view')]" position="inside">
                     <div role="menuitem" groups="project.group_project_manager">
-                        <a name="%(project.project_update_all_action)d" type="action" t-attf-context="{'active_id': #{record.id.raw_value}}">Project Updates</a>
+                        <a name="project.project_update_all_action" type="action" t-attf-context="{'active_id': #{record.id.raw_value}}">Project Updates</a>
                     </div>
                 </xpath>
             </field>

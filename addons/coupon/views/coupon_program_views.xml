@@ -78,14 +78,14 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="before">
                 <header>
-                    <button type="action" name="%(coupon.coupon_generate_action)d"
+                    <button type="action" name="coupon.coupon_generate_action"
                             string="Generate Coupon" attrs="{'invisible': [('active', '=', False)]}"/>
-                    <button type="action" name="%(coupon.coupon_generate_action)d"
+                    <button type="action" name="coupon.coupon_generate_action"
                             string="Generate Coupon" attrs="{'invisible': [('active', '=', True)]}" class="oe_highlight"/>
                 </header>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" type="action" icon="fa-ticket" name="%(coupon.coupon_action)d">
+                <button class="oe_stat_button" type="action" icon="fa-ticket" name="coupon.coupon_action">
                     <field name="coupon_count" string="Coupons" widget="statinfo"/>
                 </button>
             </xpath>
@@ -195,7 +195,7 @@
                 <h1><field name="name" class="oe_title o_text_overflow" placeholder="e.g. 10% Discount" height="20px"/></h1>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" type="action" icon="fa-ticket" name="%(coupon.coupon_action)d" attrs="{'invisible': [('promo_applicability', '=', 'on_current_order')]}">
+                <button class="oe_stat_button" type="action" icon="fa-ticket" name="coupon.coupon_action" attrs="{'invisible': [('promo_applicability', '=', 'on_current_order')]}">
                     <field name="coupon_count" string="Coupons" widget="statinfo"/>
                 </button>
             </xpath>

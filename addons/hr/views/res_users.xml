@@ -227,7 +227,7 @@
                             <!-- share is not correctly recomputed because it depends on fields of reified view => invisible before saving (id=False) -->
                 </xpath>
                 <xpath expr="//div[@name='button_box']" position="inside">
-                    <button name="%(hr_employee_action_from_user)d"
+                    <button name="hr_employee_action_from_user"
                         class="oe_stat_button"
                         icon="fa-users"
                         attrs="{'invisible': [('employee_count', '=', 0)]}"

@@ -137,10 +137,10 @@
                                             <span>View</span>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(action_pos_order_filtered)d" type="action">Orders</a>
+                                            <a name="action_pos_order_filtered" type="action">Orders</a>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(action_pos_session_filtered)d" type="action">Sessions</a>
+                                            <a name="action_pos_session_filtered" type="action">Sessions</a>
                                         </div>
                                     </div>
                                     <div class="col-6 o_kanban_card_manage_section o_kanban_manage_new">
@@ -148,7 +148,7 @@
                                             <span>Reporting</span>
                                         </div>
                                         <div role="menuitem">
-                                            <a name="%(action_report_pos_order_all_filtered)d" type="action">Orders</a>
+                                            <a name="action_report_pos_order_all_filtered" type="action">Orders</a>
                                         </div>
                                     </div>
                                 </div>

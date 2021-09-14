@@ -9,7 +9,7 @@
             <data>
                <xpath expr="//button[@name='action_view_invoice']" position="before">
                    <button type="action"
-                       name="%(sale_expense.hr_expense_action_from_sale_order)d"
+                       name="sale_expense.hr_expense_action_from_sale_order"
                        class="oe_stat_button"
                        icon="fa-money"
                        attrs="{'invisible': [('expense_count', '=', 0)]}">

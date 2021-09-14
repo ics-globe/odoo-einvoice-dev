@@ -19,7 +19,7 @@
                             <field name="google_calendar_cal_id" readonly="1"/>
                             <button
                                 string="Reset Account" class="btn btn-secondary mt-3"
-                                type="action" name="%(google_calendar_reset_account_action)d"
+                                type="action" name="google_calendar_reset_account_action"
                                 context="{'default_user_id': id}"/>
                         </group>
                     </group>

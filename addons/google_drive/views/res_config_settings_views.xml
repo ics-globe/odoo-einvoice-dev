@@ -36,7 +36,7 @@
                     </div>
                     <div class="mt8">
                         <button type="action"
-                                name="%(action_google_drive_users_config)d"
+                                name="action_google_drive_users_config"
                                 string="Google Drive Templates"
                                 icon="fa-arrow-right"
                                 class="btn-link pl-0"/>

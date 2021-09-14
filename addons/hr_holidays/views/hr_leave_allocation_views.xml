@@ -72,7 +72,7 @@
                             icon="fa-calendar"
                             type="action"
                             attrs="{'invisible': ['|', '|', ('id', '=', False), ('holiday_type', '!=', 'employee'), ('employee_id', '=', False)]}"
-                            name="%(hr_leave_action_holiday_allocation_id)d"
+                            name="hr_leave_action_holiday_allocation_id"
                             help="Time off Taken/Total Allocated">
                             <div class="o_stat_info">
                                 <span class="o_stat_value">

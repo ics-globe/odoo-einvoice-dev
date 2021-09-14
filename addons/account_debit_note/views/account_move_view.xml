@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <button name="action_reverse" position="after">
                 <field name="debit_origin_id" invisible="1"/>
-                <button name="%(action_view_account_move_debit)d" string='Add Debit Note'
+                <button name="action_view_account_move_debit" string='Add Debit Note'
                                 type='action' groups="account.group_account_invoice"
                                 attrs="{'invisible': ['|', '|', ('debit_origin_id', '!=', False),
                                         ('move_type', 'not in', ('out_invoice', 'in_invoice', 'out_refund', 'in_refund')), ('state', '!=', 'posted')]}"/>

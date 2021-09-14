@@ -76,7 +76,7 @@
                                 <div class="container o_kanban_card_content" t-if="!selection_mode">
                                     <div class="row o_kanban_card_upper_content">
                                         <div class="col-4 o_kanban_primary_left">
-                                            <button class="btn btn-primary" name="%(act_employee_from_department)d" type="action">Employees</button>
+                                            <button class="btn btn-primary" name="act_employee_from_department" type="action">Employees</button>
                                         </div>
                                         <div class="col-8 o_kanban_primary_right">
                                         </div>

@@ -40,7 +40,7 @@
             <xpath expr="//t[@name='first_options']" position="before">
                 <div class="row" t-if="record.pos_sessions_open_count.raw_value">
                     <div class="col-8">
-                        <a name="%(pos_session_action_from_crm_team)d" type="action">
+                        <a name="pos_session_action_from_crm_team" type="action">
                             <field name="pos_sessions_open_count"/>
                             <t t-if="record.pos_sessions_open_count.raw_value == 1">Session Running</t>
                             <t t-else="">Sessions Running</t>

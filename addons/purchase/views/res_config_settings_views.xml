@@ -129,7 +129,7 @@
                                 </div>
                                 <div class="content-group" attrs="{'invisible': [('group_product_variant','=',False)]}">
                                     <div class="mt8">
-                                        <button name="%(product.attribute_action)d" icon="fa-arrow-right" type="action" string="Attributes" class="btn-link"/>
+                                        <button name="product.attribute_action" icon="fa-arrow-right" type="action" string="Attributes" class="btn-link"/>
                                     </div>
                                 </div>
                             </div>

@@ -56,7 +56,7 @@
                 <form string="Rank">
                     <sheet>
                         <div class="oe_button_box" name="button_box">
-                            <button type="action" class="oe_stat_button" icon="fa-users" name="%(action_current_rank_users)d">
+                            <button type="action" class="oe_stat_button" icon="fa-users" name="action_current_rank_users">
                                 <div class="o_form_field o_stat_info">
                                     <span class="o_stat_value">
                                         <field name="rank_users_count" />

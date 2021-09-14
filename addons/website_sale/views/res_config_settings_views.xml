@@ -37,7 +37,7 @@
                             </div>
                             <div class="content-group" attrs="{'invisible': [('group_product_variant', '=', False)]}">
                                 <div class="mt8">
-                                    <button type="action" name="%(product.attribute_action)d" string="Attributes" class="btn-link" icon="fa-arrow-right"/>
+                                    <button type="action" name="product.attribute_action" string="Attributes" class="btn-link" icon="fa-arrow-right"/>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                                 <field name="product_pricelist_setting" class="o_light_label" widget="radio"/>
                             </div>
                             <div class="mt8" attrs="{'invisible': [('group_product_pricelist', '=', False)]}">
-                                <button type="action" name="%(product.product_pricelist_action2)d" string="Pricelists" class="btn-link" icon="fa-arrow-right"/>
+                                <button type="action" name="product.product_pricelist_action2" string="Pricelists" class="btn-link" icon="fa-arrow-right"/>
                             </div>
                         </div>
                     </div>

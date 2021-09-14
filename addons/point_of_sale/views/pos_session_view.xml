@@ -99,7 +99,7 @@
                                     </div>
                                     <div style="margin:0;padding:0;">
                                         <group style="margin:0;padding:0;" attrs="{'invisible' : [('state', 'in', ['opening_control'])]}">
-                                            <button class="oe_inline oe_link" name="%(action_pos_box_out)d" type="action" attrs="{'invisible' : [('state', '=', 'closed')]}">Cash In/Out</button>
+                                            <button class="oe_inline oe_link" name="action_pos_box_out" type="action" attrs="{'invisible' : [('state', '=', 'closed')]}">Cash In/Out</button>
                                         </group>
                                         <group style="margin:0;padding:0;" attrs="{'invisible' : [('state', '=', 'opening_control')]}">
                                         </group>

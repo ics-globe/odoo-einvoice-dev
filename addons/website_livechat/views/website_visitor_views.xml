@@ -101,7 +101,7 @@
                 </group>
             </xpath>
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-                <button name="%(website_visitor_livechat_session_action)d" type="action" class="oe_stat_button" icon="fa-comment"
+                <button name="website_visitor_livechat_session_action" type="action" class="oe_stat_button" icon="fa-comment"
                         attrs="{'invisible': [('session_count', '=', 0)]}">
                     <field name="session_count" widget="statinfo" string="Chats"/>
                 </button>

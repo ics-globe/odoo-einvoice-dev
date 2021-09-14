@@ -8,7 +8,7 @@
                 <field name="employee_id" invisible="1" />
                 <field name="request_overtime" invisible="1" />
                 <button
-                    name="%(hr_leave_allocation_overtime_action)d"
+                    name="hr_leave_allocation_overtime_action"
                     string="Deduct Extra Hours"
                     type="action"
                     context="{'default_employee_id': employee_id, 'deduct_extra_hours': True, 'deduct_extra_hours_allocation_type': 'fixed_allocation'}"

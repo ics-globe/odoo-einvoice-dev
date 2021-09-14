@@ -44,7 +44,7 @@
                     <field name="hr_presence_state" invisible="1"/>
                     <field name="image_128" invisible="1" />
                     <header>
-                        <button name="%(plan_wizard_action)d" string="Launch Plan" type="action" groups="hr.group_hr_manager"/>
+                        <button name="plan_wizard_action" string="Launch Plan" type="action" groups="hr.group_hr_manager"/>
                     </header>
                     <sheet>
                         <div name="button_box" class="oe_button_box">
@@ -193,7 +193,7 @@
                                         <div class="o_row">
                                             <field name="barcode"/>
                                             <button string="Generate" class="btn btn-link" type="object" name="generate_random_barcode" attrs="{'invisible': [('barcode', '!=', False)]}"/>
-                                            <button name="%(hr_employee_print_badge)d" string="Print Badge" class="btn btn-link" type="action" attrs="{'invisible': [('barcode', '=', False)]}"/>
+                                            <button name="hr_employee_print_badge" string="Print Badge" class="btn btn-link" type="action" attrs="{'invisible': [('barcode', '=', False)]}"/>
                                         </div>
                                     </group>
                                     <group string='Payroll' name="payroll_group">

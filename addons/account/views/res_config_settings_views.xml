@@ -39,7 +39,7 @@
                                             <field name="chart_template_id" options="{'no_open': True, 'no_create': True}"/>
                                         </div>
                                         <div class="mt8">
-                                            <button name="%(account.open_account_charts_modules)d" icon="fa-arrow-right" type="action" string="Install More Packages" discard="0" class="btn-link"/>
+                                            <button name="account.open_account_charts_modules" icon="fa-arrow-right" type="action" string="Install More Packages" discard="0" class="btn-link"/>
                                         </div>
                                     </div>
                                 </div>
@@ -148,7 +148,7 @@
                                             <field name="group_multi_currency" invisible="1"/>
                                         </div>
                                         <div class="mt8">
-                                            <button type="action" name="%(base.action_currency_form)d" string="Currencies" class="btn-link" icon="fa-arrow-right"/>
+                                            <button type="action" name="base.action_currency_form" string="Currencies" class="btn-link" icon="fa-arrow-right"/>
                                         </div>
                                     </div>
                                 </div>
@@ -240,7 +240,7 @@
                                         Define the smallest coinage of the currency used to pay by cash
                                     </div>
                                     <div class="mt8">
-                                        <button name="%(account.rounding_list_action)d" icon="fa-arrow-right"
+                                        <button name="account.rounding_list_action" icon="fa-arrow-right"
                                                 type="action" string="Cash Roundings" class="btn-link"
                                                 attrs="{'invisible': [('group_cash_rounding', '=', False)]}"/>
                                     </div>

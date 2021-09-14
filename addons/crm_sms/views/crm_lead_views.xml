@@ -33,10 +33,10 @@
         <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="%(crm_sms.crm_lead_act_window_sms_composer_single)d" type="action" string="SMS" />
+                <button name="crm_sms.crm_lead_act_window_sms_composer_single" type="action" string="SMS" />
             </xpath>
             <xpath expr="//button[@name='%(crm.action_lead_mail_compose)d']" position="after">
-                <button name="%(crm_sms.crm_lead_act_window_sms_composer_multi)d" type="action" string="SMS" icon="fa-comments" />
+                <button name="crm_sms.crm_lead_act_window_sms_composer_multi" type="action" string="SMS" icon="fa-comments" />
             </xpath>
         </field>
     </record>

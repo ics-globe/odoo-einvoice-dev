@@ -43,7 +43,7 @@
                 </div>
             </group>
             <div name="button_box" position="inside">
-                <button class="oe_stat_button" type="action" name="%(timesheet_action_from_employee)d" icon="fa-calendar" groups="hr_timesheet.group_hr_timesheet_user">
+                <button class="oe_stat_button" type="action" name="timesheet_action_from_employee" icon="fa-calendar" groups="hr_timesheet.group_hr_timesheet_user">
                     <div class="o_stat_info">
                         <span class="o_stat_text">Timesheets</span>
                     </div>
@@ -60,7 +60,7 @@
         <field name="arch" type="xml">
             <data>
                 <xpath expr="//div[hasclass('o_kanban_manage_reports')]" position="inside">
-                    <a name="%(act_hr_timesheet_report)d" type="action" context="{ 'search_default_department_id': [active_id], 'default_department_id': active_id}">
+                    <a name="act_hr_timesheet_report" type="action" context="{ 'search_default_department_id': [active_id], 'default_department_id': active_id}">
                         Timesheets
                     </a>
                 </xpath>

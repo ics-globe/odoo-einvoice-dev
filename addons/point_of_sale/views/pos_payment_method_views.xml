@@ -29,7 +29,7 @@
                             <div>
                                 <h2>Tips:</h2>
                                 <p>
-                                    Go to <a href="#" name="%(action_pos_configuration)d" type="action" class="btn-link o_form_uri" role="button">Configurations > Settings</a>
+                                    Go to <a href="#" name="action_pos_configuration" type="action" class="btn-link o_form_uri" role="button">Configurations > Settings</a>
                                     <strong> > Payment Terminals</strong>
                                     in order to install a Payment Terminal and make a fully integrated payment method.
                                 </p>
