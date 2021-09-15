@@ -1460,8 +1460,8 @@ actual arch.
             name = method or str(self.env.ref(action).id)
 
         if special:
-            if type_:
-                self._raise_view_error(_("A button can either be special or call an action or method"), node)
+            # if type_:
+            #     self._raise_view_error(_("A button can either be special or call an action or method"), node)
             if special not in ('cancel', 'save', 'add'):
                 self._raise_view_error(_("Invalid special '%(value)s' in button", value=special), node)
         elif type_:
