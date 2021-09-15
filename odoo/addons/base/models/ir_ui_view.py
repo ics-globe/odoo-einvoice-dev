@@ -1493,6 +1493,8 @@ actual arch.
                 try:
                     action_id = int(name)
                 except ValueError:
+                    if '.' not in name:
+                        name = (self.model_data_id.module or 'base') + '.' + name
                     model, action_id = self.env['ir.model.data']._xmlid_to_res_model_res_id(name, raise_if_not_found=False)
                     if not action_id:
                         msg = _("Invalid xmlid %(xmlid)s for button of type action.", xmlid=name)
