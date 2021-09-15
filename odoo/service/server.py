@@ -17,6 +17,7 @@ import threading
 import time
 import unittest
 from itertools import chain
+from contextlib import suppress
 
 import psutil
 import werkzeug.serving
@@ -344,6 +345,11 @@ class CommonServer(object):
     def on_stop(self, func):
         """ Register a cleanup function to be executed when the server stops """
         self._on_stop_funcs.append(func)
+
+    def off_stop(self, func):
+        """ Remove cleanup function """
+        with suppress(ValueError):
+            self._on_stop_funcs.remove(func)
 
     def stop(self):
         for func in self._on_stop_funcs:
