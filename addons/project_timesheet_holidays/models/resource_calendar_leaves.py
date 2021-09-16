@@ -114,9 +114,19 @@ class ResourceCalendarLeaves(models.Model):
         for leave in self:
             for employee in mapped_employee.get(leave.calendar_id.id, self.env['hr.employee']):
                 holidays = holidays_by_employee.get(employee.id)
+                employee_leave_dates = []
                 work_hours_list = work_hours_data[leave.id]
+                emp_leaves = self.env['hr.leave'].search([('date_from', '<=', leave.date_to), ('date_to', '>=', leave.date_from), ('employee_id', '=', employee.id)])
+                for emp_leave in emp_leaves:
+                    res_emp_leave = self.search([('holiday_id', '=', emp_leave.id)])
+                    emp_leave_work_hour_data = res_emp_leave._work_time_per_day()
+                    emp_leave_work_hour_list = emp_leave_work_hour_data[res_emp_leave.id]
+                    for data in emp_leave_work_hour_list:
+                        employee_leave_dates.append(data[0])
+
                 for index, (day_date, work_hours_count) in enumerate(work_hours_list):
-                    if not holidays or all(not (date_from <= day_date and date_to >= day_date) for date_from, date_to in holidays):
+
+                    if (not holidays or all(not (date_from <= day_date and date_to >= day_date) for date_from, date_to in holidays)) and day_date not in employee_leave_dates:
                         vals_list.append(
                             leave._timesheet_prepare_line_values(
                                 index,
