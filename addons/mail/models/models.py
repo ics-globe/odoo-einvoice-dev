@@ -112,7 +112,7 @@ class BaseModel(models.AbstractModel):
         res_ids = _records.ids if _records and model else []
         _res_ids = res_ids or [False]  # always have a default value located in False
 
-        alias_domain = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.domain")
+        alias_domain = self._alias_get_domain()
         result = dict.fromkeys(_res_ids, False)
         result_email = dict()
         doc_names = dict()
@@ -133,7 +133,7 @@ class BaseModel(models.AbstractModel):
             # left ids: use catchall
             left_ids = set(_res_ids) - set(result_email)
             if left_ids:
-                catchall = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.alias")
+                catchall = self._alias_get_catchall_alias()
                 if catchall:
                     result_email.update(dict((rid, '%s@%s' % (catchall, alias_domain)) for rid in left_ids))
 
@@ -152,6 +152,29 @@ class BaseModel(models.AbstractModel):
     # ------------------------------------------------------------
     # ALIAS MANAGEMENT
     # ------------------------------------------------------------
+
+    def _alias_get_bounce_alias(self):
+        return self.env['ir.config_parameter'].sudo().get_param('mail.bounce.alias')
+
+    def _alias_get_bounce_email(self):
+        bounce_alias = self._alias_get_bounce_alias()
+        catchall_domain = self._alias_get_domain()
+        if bounce_alias and catchall_domain:
+            return '%s@%s' % (bounce_alias, catchall_domain)
+        return False
+
+    def _alias_get_catchall_alias(self):
+        return self.env['ir.config_parameter'].sudo().get_param('mail.catchall.alias')
+
+    def _alias_get_catchall_email(self):
+        catchall_alias = self._alias_get_catchall_alias()
+        catchall_domain = self._alias_get_domain()
+        if catchall_alias and catchall_domain:
+            return '%s@%s' % (catchall_alias, catchall_domain)
+        return False
+
+    def _alias_get_domain(self):
+        return self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
 
     def _alias_get_error_message(self, message, message_dict, alias):
         """ Generic method that takes a record not necessarily inheriting from

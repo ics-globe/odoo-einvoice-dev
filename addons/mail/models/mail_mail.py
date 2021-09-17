@@ -314,6 +314,8 @@ class MailMail(models.Model):
     def _send(self, auto_commit=False, raise_exception=False, smtp_session=None):
         IrMailServer = self.env['ir.mail_server']
         IrAttachment = self.env['ir.attachment']
+
+        bounce_email = self._alias_get_bounce_email()
         for mail_id in self.ids:
             success_pids = []
             failure_type = None
@@ -349,11 +351,8 @@ class MailMail(models.Model):
 
                 # headers
                 headers = {}
-                ICP = self.env['ir.config_parameter'].sudo()
-                bounce_alias = ICP.get_param("mail.bounce.alias")
-                catchall_domain = ICP.get_param("mail.catchall.domain")
-                if bounce_alias and catchall_domain:
-                    headers['Return-Path'] = '%s@%s' % (bounce_alias, catchall_domain)
+                if bounce_email:
+                    headers['Return-Path'] = bounce_email
                 if mail.headers:
                     try:
                         headers.update(ast.literal_eval(mail.headers))

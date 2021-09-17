@@ -325,7 +325,7 @@ class AccountJournal(models.Model):
 
     @api.depends('name')
     def _compute_alias_domain(self):
-        self.alias_domain = self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+        self.alias_domain = self._alias_get_domain()
 
     @api.constrains('type_control_ids')
     def _constrains_type_control_ids(self):

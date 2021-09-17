@@ -95,7 +95,7 @@ class Alias(models.Model):
 
     @api.depends('alias_name')
     def _compute_alias_domain(self):
-        self.alias_domain = self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+        self.alias_domain = self._alias_get_domain()
 
     @api.constrains('alias_defaults')
     def _check_alias_defaults(self):
@@ -165,9 +165,9 @@ class Alias(models.Model):
 
         sanitized_names = [_sanitize_alias_name(name) for name in names]
 
-        catchall_alias = self.env['ir.config_parameter'].sudo().get_param('mail.catchall.alias')
-        bounce_alias = self.env['ir.config_parameter'].sudo().get_param('mail.bounce.alias')
-        alias_domain = self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+        catchall_alias = self._alias_get_catchall_alias()
+        bounce_alias = self._alias_get_bounce_alias()
+        alias_domain = self._alias_get_domain()
 
         # matches catchall or bounce alias
         for sanitized_name in sanitized_names:
