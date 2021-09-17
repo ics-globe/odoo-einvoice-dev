@@ -97,6 +97,7 @@ class MockEmail(common.BaseCase):
 
     @classmethod
     def _init_mail_gateway(cls):
+        # main company alias parameters
         cls.alias_domain = 'test.com'
         cls.alias_catchall = 'catchall.test'
         cls.alias_bounce = 'bounce.test'
@@ -105,6 +106,15 @@ class MockEmail(common.BaseCase):
         cls.env['ir.config_parameter'].set_param('mail.catchall.domain', cls.alias_domain)
         cls.env['ir.config_parameter'].set_param('mail.catchall.alias', cls.alias_catchall)
         cls.env['ir.config_parameter'].set_param('mail.default.from', cls.default_from)
+
+        # ensure global alias domain for tests
+        # cls.env['mail.alias.domain'].search([]).unlink()
+        cls.alias_domain_global = cls.env['mail.alias.domain'].create({
+            'name': cls.alias_domain,
+        })
+        cls.env.ref('base.user_admin').company_id.alias_domain_id = cls.alias_domain_global.id
+
+        # mailer daemon email preformatting
         cls.mailer_daemon_email = formataddr(('MAILER-DAEMON', '%s@%s' % (cls.alias_bounce, cls.alias_domain)))
 
     def format(self, template, to='groups@example.com, other@gmail.com', subject='Frogs',
@@ -929,6 +939,14 @@ class MailCommon(common.TransactionCase, MailCase):
         })
         cls.user_admin.write({'company_ids': [(4, cls.company_2.id)]})
 
+        # alias domain specific to new company
+        cls.alias_domain_c2_name = 'test.company2.com'
+        cls.alias_domain_c2 = cls.env['mail.alias.domain'].create({
+            'name': cls.alias_domain_c2_name,
+        })
+        cls.company_2.write({'alias_domain_id': cls.alias_domain_c2.id})
+
+        # employee specific to second company
         cls.user_employee_c2 = mail_new_test_user(
             cls.env, login='employee_c2',
             groups='base.group_user',
