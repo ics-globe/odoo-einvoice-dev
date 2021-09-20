@@ -949,6 +949,54 @@ options.registry.BackgroundVideo = options.Class.extend({
     },
 });
 
+options.registry.WebsiteLevelColor = options.Class.extend({
+    specialCheckAndReloadMethodsNames: options.Class.prototype.specialCheckAndReloadMethodsNames
+        .concat(['customizeWebsiteLayer2Color']),
+
+    /**
+     * @see this.selectClass for parameters
+     */
+    async customizeWebsiteLayer2Color(previewMode, widgetValue, params) {
+        if (previewMode) {
+            return;
+        }
+        params.color = params.layerColor;
+        params.variable = params.layerGradient;
+        let color = undefined;
+        let gradient = undefined;
+        if (weUtils.isColorGradient(widgetValue)) {
+            color = '';
+            gradient = widgetValue;
+        } else {
+            color = widgetValue;
+            gradient = '';
+        }
+        await this.customizeWebsiteVariable(previewMode, gradient, params);
+        params.noBundleReload = false;
+        return this.customizeWebsiteColor(previewMode, color, params);
+    },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * @override
+     */
+    async _computeWidgetState(methodName, params) {
+        if (methodName === 'customizeWebsiteLayer2Color') {
+            params.variable = params.layerGradient;
+            const gradient = await this._computeWidgetState('customizeWebsiteVariable', params);
+            if (gradient) {
+                return gradient.substring(1, gradient.length - 1); // Unquote
+            }
+            params.color = params.layerColor;
+            return this._computeWidgetState('customizeWebsiteColor', params);
+        }
+        return this._super(...arguments);
+    },
+});
+
 options.registry.OptionsTab = options.Class.extend({
     GRAY_PARAMS: {EXTRA_SATURATION: "gray-extra-saturation", HUE: "gray-hue"},
 
@@ -1904,54 +1952,6 @@ options.registry.collapse = options.Class.extend({
         const panelId = setUniqueId($panel, 'myCollapseTab');
         $tab.attr('data-target', '#' + panelId);
         $tab.data('target', '#' + panelId);
-    },
-});
-
-options.registry.WebsiteLevelColor = options.Class.extend({
-    specialCheckAndReloadMethodsNames: options.Class.prototype.specialCheckAndReloadMethodsNames
-        .concat(['customizeWebsiteLayer2Color']),
-
-    /**
-     * @see this.selectClass for parameters
-     */
-    async customizeWebsiteLayer2Color(previewMode, widgetValue, params) {
-        if (previewMode) {
-            return;
-        }
-        params.color = params.layerColor;
-        params.variable = params.layerGradient;
-        let color = undefined;
-        let gradient = undefined;
-        if (weUtils.isColorGradient(widgetValue)) {
-            color = '';
-            gradient = widgetValue;
-        } else {
-            color = widgetValue;
-            gradient = '';
-        }
-        await this.customizeWebsiteVariable(previewMode, gradient, params);
-        params.noBundleReload = false;
-        return this.customizeWebsiteColor(previewMode, color, params);
-    },
-
-    //--------------------------------------------------------------------------
-    // Private
-    //--------------------------------------------------------------------------
-
-    /**
-     * @override
-     */
-    async _computeWidgetState(methodName, params) {
-        if (methodName === 'customizeWebsiteLayer2Color') {
-            params.variable = params.layerGradient;
-            const gradient = await this._computeWidgetState('customizeWebsiteVariable', params);
-            if (gradient) {
-                return gradient.substring(1, gradient.length - 1); // Unquote
-            }
-            params.color = params.layerColor;
-            return this._computeWidgetState('customizeWebsiteColor', params);
-        }
-        return this._super(...arguments);
     },
 });
 
