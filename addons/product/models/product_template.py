@@ -411,7 +411,7 @@ class ProductTemplate(models.Model):
     def _detailed_type_mapping(self):
         return {}
 
-    @api.depends('detailed_type')
+    @api.onchange('detailed_type')
     def _compute_type(self):
         type_mapping = self._detailed_type_mapping()
         for record in self:
