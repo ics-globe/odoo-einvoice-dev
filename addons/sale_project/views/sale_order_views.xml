@@ -12,8 +12,6 @@
                     <field name="project_ids" invisible="1"/>
                     <field name="project_count" widget="statinfo" string="Projects"/>
                 </button>
-            </xpath>
-            <xpath expr="//button[@name='action_view_invoice']" position="before">
                 <button type="object" name="action_view_task" class="oe_stat_button" icon="fa-tasks" attrs="{'invisible': [('tasks_count', '=', 0)]}" groups="project.group_project_user">
                     <field name="tasks_count" widget="statinfo" string="Tasks"/>
                 </button>
