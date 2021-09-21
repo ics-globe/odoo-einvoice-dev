@@ -442,6 +442,13 @@ class Project(models.Model):
             default = {}
         if not default.get('name'):
             default['name'] = _("%s (copy)") % (self.name)
+        if self.milestone_ids:
+            default['milestone_ids'] = [milestone.copy().id for milestone in self.milestone_ids]
+            milestone_obj = self.env['project.milestone'].browse(default['milestone_ids'])
+            milestone_obj.update({
+                'deadline': False,
+                'is_reached': False
+                })
         project = super(Project, self).copy(default)
         for follower in self.message_follower_ids:
             project.message_subscribe(partner_ids=follower.partner_id.ids, subtype_ids=follower.subtype_ids.ids)
