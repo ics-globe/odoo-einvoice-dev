@@ -16,6 +16,7 @@ const {
     getBgImageURL,
     backgroundImageCssToParts,
     backgroundImagePartsToCss,
+    getNonImageText,
     DEFAULT_PALETTE,
     generateHTMLId,
 } = weUtils;
@@ -731,7 +732,13 @@ const ButtonUserValueWidget = UserValueWidget.extend({
         if (this.options && this.options.childNodes) {
             this.options.childNodes.forEach(node => this.containerEl.appendChild(node));
         }
-
+        if (this.imgEl) {
+            this.$el[0].classList.add('o_we_icon_button');
+            const text = getNonImageText(this.$el[0]).replace(/\u200B+/g, '').trim();
+            if (text) {
+                this.imgEl.classList.add('o_we_img_with_text');
+            }
+        }
         return this._super(...arguments);
     },
 

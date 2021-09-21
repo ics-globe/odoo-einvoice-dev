@@ -486,6 +486,9 @@ body.editor_enable.editor_has_snippets {
         we-button, we-toggler {
             @extend %we-generic-button;
         }
+        we-button .o_we_img_with_text {
+            margin-right: $o-we-sidebar-content-field-spacing;
+        }
 
         #removeFormat, #oe-table-delete-table, .o_we_highlight_animated_text {
             @extend %we-generic-link;
