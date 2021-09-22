@@ -17,6 +17,7 @@ var dom = require('web.dom');
 var Domain = require('web.Domain');
 var DomainSelector = require('web.DomainSelector');
 var DomainSelectorDialog = require('web.DomainSelectorDialog');
+var ModelFieldSelectorPopOver = require("web.ModelFieldSelectorPopover");
 var framework = require('web.framework');
 var py_utils = require('web.py_utils');
 var session = require('web.session');
@@ -571,11 +572,73 @@ var FieldChar = InputField.extend(TranslatableFieldMixin, {
     tagName: 'span',
     supportedFieldTypes: ['char'],
     isQuickEditable: true,
+    dynamicPlaceholderOptions: {
+        readonly: false,
+        needDefaultValue: true,
+        cancelOnEscape: true,
+        filter: (model) => !["one2many", "boolean", "many2many"].includes(model.type)
+    },
 
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
 
+
+    /**
+     * @override
+     */
+    init: function () {
+        this._super(...arguments);
+        if (this.nodeOptions && this.nodeOptions.dynamic_placeholder) {
+            // When the dynamic placeholder is active,
+            // the recordData need to be updated when `mailing_model_real` change
+            this.resetOnAnyFieldChange = true;
+        }
+    },
+
+    openDynamicPlaceholder: async function (baseModel, chain = []) {
+        if (!baseModel) {
+            return;
+        }
+        const triggerKeyReplaceRegex = new RegExp(this.nodeOptions.dynamic_placeholder + '$');
+
+        const modelSelector = new ModelFieldSelectorPopOver(this, baseModel, [], this.dynamicPlaceholderOptions);
+        modelSelector.on("field_chain_changed", undefined, (ev) => {
+            this.$el.focus();
+            if (ev.data.chain.length) {
+                let dynamicPlaceholder = "{{object." + ev.data.chain.join('.');
+                const defaultValue = ev.data.defaultValue;
+                dynamicPlaceholder += defaultValue && defaultValue !== '' ? ` or '''${defaultValue}'''}}` : '}}';
+                this.$el[0].value =
+                    this.$el[0].value.replace(triggerKeyReplaceRegex, '') + dynamicPlaceholder;
+            }
+            modelSelector.destroy();
+        });
+        modelSelector.on("field_chain_cancel", undefined, () => {
+            this.$el.focus();
+            modelSelector.destroy();
+        });
+        await modelSelector.insertAfter(this.$el);
+        modelSelector.open(chain, true);
+
+        modelSelector.$el.css('margin-top', this.$el.height() + 12);
+    },
+    /**
+     * Open the dynamic placeholder if trigger key match
+     *
+     * @private
+     * @override
+     * @param {KeyboardEvent} ev
+     */
+    async _onKeydown(ev) {
+        this._super(...arguments);
+        if (this.nodeOptions && this.nodeOptions.dynamic_placeholder && ev.key === this.nodeOptions.dynamic_placeholder) {
+            ev.preventDefault();
+            const baseModel = this.recordData && this.recordData.mailing_model_real ? this.recordData.mailing_model_real : undefined;
+            await this.openDynamicPlaceholder(baseModel);
+            this.$el[0].value += ev.key;
+        }
+    },
     /**
      * Add translation button
      *

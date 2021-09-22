@@ -295,6 +295,7 @@ var MassMailingFieldHtml = FieldHtml.extend({
         this.wysiwyg.trigger('reload_snippet_dropzones');
         this.trigger_up('iframe_updated', { $iframe: this.wysiwyg.$iframe });
         this.wysiwyg.odooEditor.historyStep(true);
+        this._setValue(this._getValue());
     },
 
     /**
@@ -322,6 +323,23 @@ var MassMailingFieldHtml = FieldHtml.extend({
         } else {
             delete options.snippets;
         }
+        // add the commandBar (powerbox) option to open the Dynamic Placeholder generator
+        options.powerboxCommands = [
+            {
+                groupName: 'Advanced edition',
+                title: 'Dynamic placeholder',
+                description: 'Open the dynamic placeholder tool.',
+                fontawesome: 'fa-terminal',
+                callback: () => {
+                    const baseModel = this.recordData && this.recordData.mailing_model_real ? this.recordData.mailing_model_real : undefined;
+                    // openDynamicPlaceholder need to be trigered after the focus from powerBox prevalidate
+                    setTimeout(() => {
+                        this.openDynamicPlaceholder(baseModel);
+                    });
+                },
+            }];
+
+
         return options;
     },
 
