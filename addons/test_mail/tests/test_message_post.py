@@ -56,7 +56,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
                             'mail.mail_notification_paynow']:
             test_message.write({'email_layout_xmlid': email_xmlid})
             with self.mock_mail_gateway():
-                test_record._notify_record_by_email(
+                test_record._notify_thread_by_email(
                     test_message,
                     recipients_data,
                     force_send=False
@@ -72,7 +72,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
             self.assertTrue(user_email)
 
     @users('employee')
-    def test_notify_prepare_template_context_company_value(self):
+    def test_notify_by_email_prepare_rendering_contextt(self):
         """ Verify that the template context company value is right
         after switching the env company or if a company_id is set
         on mail record.
@@ -89,7 +89,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
         # self.env.company.id = Main Company    AND    test_record.company_id = False
         self.assertEqual(self.env.company.id, main_company.id)
         self.assertEqual(test_record.company_id.id, False)
-        template_values = test_record._notify_prepare_template_context(test_record.message_ids, {})
+        template_values = test_record._notify_by_email_prepare_rendering_context(test_record.message_ids, {})
         self.assertEqual(template_values.get('company').id, self.env.company.id)
 
         # self.env.company.id = Other Company    AND    test_record.company_id = False
@@ -97,7 +97,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
         test_record = self.env['mail.test.multi.company'].browse(test_record.id)
         self.assertEqual(self.env.company.id, other_company.id)
         self.assertEqual(test_record.company_id.id, False)
-        template_values = test_record._notify_prepare_template_context(test_record.message_ids, {})
+        template_values = test_record._notify_by_email_prepare_rendering_context(test_record.message_ids, {})
         self.assertEqual(template_values.get('company').id, self.env.company.id)
 
         # self.env.company.id = Other Company    AND    test_record.company_id = Main Company
@@ -105,7 +105,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
         test_record = self.env['mail.test.multi.company'].browse(test_record.id)
         self.assertEqual(self.env.company.id, other_company.id)
         self.assertEqual(test_record.company_id.id, main_company.id)
-        template_values = test_record._notify_prepare_template_context(test_record.message_ids, {})
+        template_values = test_record._notify_by_email_prepare_rendering_context(test_record.message_ids, {})
         self.assertEqual(template_values.get('company').id, main_company.id)
 
     def test_notify_recipients_internals(self):
@@ -123,7 +123,7 @@ class TestMessagePost(TestMailCommon, TestRecipients):
             'auth_login': 'auth_login_val',
         }
         notify_msg_vals = dict(msg_vals, **link_vals)
-        classify_res = self.env[self.test_record._name]._notify_classify_recipients(pdata, 'My Custom Model Name', msg_vals=notify_msg_vals)
+        classify_res = self.env[self.test_record._name]._notify_recipients_classify(pdata, 'My Custom Model Name', msg_vals=notify_msg_vals)
         # find back information for each recipients
         partner_info = next(item for item in classify_res if item['recipients'] == self.partner_1.ids)
         emp_info = next(item for item in classify_res if item['recipients'] == self.partner_employee.ids)

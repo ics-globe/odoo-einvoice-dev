@@ -743,10 +743,10 @@ class HolidaysAllocation(models.Model):
             return allocation_notif_subtype_id or self.env.ref('hr_holidays.mt_leave_allocation')
         return super(HolidaysAllocation, self)._track_subtype(init_values)
 
-    def _notify_get_groups(self, msg_vals=None):
+    def _notify_recipients_get_groups(self, msg_vals=None):
         """ Handle HR users and officers recipients that can validate or refuse holidays
         directly from email. """
-        groups = super(HolidaysAllocation, self)._notify_get_groups(msg_vals=msg_vals)
+        groups = super(HolidaysAllocation, self)._notify_recipients_get_groups(msg_vals=msg_vals)
         local_msg_vals = dict(msg_vals or {})
 
         self.ensure_one()
