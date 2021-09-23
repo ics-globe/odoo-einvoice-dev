@@ -68,7 +68,7 @@
                     <filter name="filter_lead" string="Leads" domain="[('type','=', 'lead')]" help="Show only leads" groups="crm.group_use_lead"/>
                     <separator/>
                     <filter string="Won" name="won"
-                            domain="[('probability', '=', 100)]"/>
+                            domain="[('probability', '=', 100), ('is_won', '=', True)]"/>
                     <filter string="Lost" name="lost"
                             domain="[('probability', '=', 0), ('active', '=', False)]"/>
                     <field name="team_id" context="{'invisible_team': False}"/>

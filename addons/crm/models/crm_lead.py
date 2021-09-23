@@ -213,6 +213,8 @@ class Lead(models.Model):
     automated_probability = fields.Float('Automated Probability', compute='_compute_probabilities', readonly=True, store=True)
     is_automated_probability = fields.Boolean('Is automated probability?', compute="_compute_is_automated_probability")
     # Won/Lost
+    is_won = fields.Boolean(related='stage_id.is_won')
+    is_lost = fields.Boolean(string="Lost", compute='_compute_is_lost', tracking=True)
     lost_reason = fields.Many2one(
         'crm.lost.reason', string='Lost Reason',
         index=True, ondelete='restrict', tracking=True)
@@ -455,6 +457,11 @@ class Lead(models.Model):
                 if was_automated:
                     lead.probability = lead.automated_probability
 
+    @api.depends('active', 'probability')
+    def _compute_is_lost(self):
+        for lead in self:
+            lead.is_lost = not lead.active and lead.probability == 0
+
     @api.depends('expected_revenue', 'probability')
     def _compute_prorated_revenue(self):
         for lead in self:
@@ -696,7 +703,7 @@ class Lead(models.Model):
         elif vals.get('probability', 0) > 0:
             vals['date_closed'] = False
 
-        if any(field in ['active', 'stage_id'] for field in vals):
+        if any(field in ['active', 'stage_id', 'probability'] for field in vals):
             self._handle_won_lost(vals)
 
         write_result = super(Lead, self).write(vals)
@@ -790,7 +797,12 @@ class Lead(models.Model):
         - From lost to Won : We need to decrement corresponding lost count + increment corresponding won count
         in scoring frequency table.
         - From won to lost : We need to decrement corresponding won count + increment corresponding lost count
-        in scoring frequency table."""
+        in scoring frequency table.
+
+        A lead is WON when in won stage (and probability = 100% but that is implied)
+        A lead is LOST when active = False AND probability = 0
+        In every other case, the lead is not won nor lost.
+        """
         Lead = self.env['crm.lead']
         leads_reach_won = Lead
         leads_leave_won = Lead
@@ -799,19 +811,35 @@ class Lead(models.Model):
         won_stage_ids = self.env['crm.stage'].search([('is_won', '=', True)]).ids
         for lead in self:
             if 'stage_id' in vals:
-                if vals['stage_id'] in won_stage_ids:
-                    if lead.probability == 0:
+                if vals['stage_id'] in won_stage_ids:  # set to won stage
+                    if lead.probability == 0 and not lead.active:
                         leads_leave_lost |= lead
                     leads_reach_won |= lead
-                elif lead.stage_id.id in won_stage_ids and lead.active:  # a lead can be lost at won_stage
+                elif lead.stage_id.id in won_stage_ids:  # remove from won stage
                     leads_leave_won |= lead
             if 'active' in vals:
-                if not vals['active'] and lead.active:  # archive lead
-                    if lead.stage_id.id in won_stage_ids and lead not in leads_leave_won:
-                        leads_leave_won |= lead
+                if not vals['active'] and lead.active and (lead.probability == 0 or vals.get('probability', 1) == 0):  # archive lead
+                    if lead.stage_id.id in won_stage_ids:  # a lead archived in won stage is still won.
+                        continue
                     leads_reach_lost |= lead
-                elif vals['active'] and not lead.active:  # restore lead
-                    leads_leave_lost |= lead
+            # As "mark as lost" in writing active = False first and then probability afterwards, handle reach lost.
+            if vals.get('probability', 1) == 0 and not lead.active and not lead.stage_id.id in won_stage_ids:
+                leads_reach_lost |= lead
+
+            # Leaving lost is a bit tricky as writing active = True and probability = x
+            # will not be done at same time in most cases. As lost need both conditions (active=False AND P=0), changing
+            # one of the two should trigger 'leave lost'. But this should not be triggered a second time if we modify
+            # the other condition. So the lead should leave lost only if both conditions are valid before writing and
+            # not after (if lead is lost before writing and not after).
+            # But this is only valid outside of the won_stage as the lead has already been removed from lost when
+            # arriving in won stage.
+
+            # restore and set p=x OR set p=x and is archived OR restore and p was 0
+            if (lead.stage_id.id not in won_stage_ids or lead not in leads_leave_lost) and \
+                    vals.get('probability', 0) != 0 and ('active' in vals and vals['active']) or \
+                    vals.get('probability', 0) != 0 and not lead.active or \
+                    ('active' in vals and vals['active']) and lead.probability == 0:
+                leads_leave_lost |= lead
 
         leads_reach_won._pls_increment_frequencies(to_state='won')
         leads_leave_won._pls_increment_frequencies(from_state='won')
@@ -895,27 +923,35 @@ class Lead(models.Model):
     # ------------------------------------------------------------
 
     def toggle_active(self):
-        """ When archiving: mark probability as 0. When re-activating
-        update probability again, for leads and opportunities. """
+        """ When archiving: do nothing more. A lead can be archived but not lost.
+        When re-activating, force update probability, for leads and opportunities. """
         res = super(Lead, self).toggle_active()
         activated = self.filtered(lambda lead: lead.active)
-        archived = self.filtered(lambda lead: not lead.active)
         if activated:
             activated.write({'lost_reason': False})
             activated._compute_probabilities()
-        if archived:
-            archived.write({'probability': 0, 'automated_probability': 0})
         return res
 
+    def action_restore(self):
+        """ Restoring a lost lead means that it should go back to its normal life cycle.
+        This should reactivate the lead but also force the recompute of it probability, for the stage where the lead
+        is currently at. During toggle_active, when reactivating a lost lead,only the automated probability will be
+        recomputed, because the probability is not automated anymore. Restore will reset this automation."""
+        self.ensure_one()
+        self.toggle_active()
+        self.probability = self.automated_probability
+
     def action_set_lost(self, **additional_values):
-        """ Lost semantic: probability = 0 or active = False """
+        """ Lost semantic: probability = 0 AND active = False """
         res = self.action_archive()
-        if additional_values:
-            self.write(dict(additional_values))
+        additional_values = dict(additional_values) if additional_values else {}
+        # as archiving lead is not setting the probability to 0 anymore, force it here
+        additional_values.update({'probability': 0, 'automated_probability': 0})
+        self.write(additional_values)
         return res
 
     def action_set_won(self):
-        """ Won semantic: probability = 100 (active untouched) """
+        """ Won semantic: probability = 100 AND stage.is_won """
         self.action_unarchive()
         # group the leads by team_id, in order to write once by values couple (each write leads to frequency increment)
         leads_by_won_stage = {}
@@ -1726,9 +1762,9 @@ class Lead(models.Model):
             return self.env.ref('crm.mt_lead_lost')
         elif 'stage_id' in init_values:
             return self.env.ref('crm.mt_lead_stage')
-        elif 'active' in init_values and self.active:
+        elif 'is_lost' in init_values and not self.is_lost:
             return self.env.ref('crm.mt_lead_restored')
-        elif 'active' in init_values and not self.active:
+        elif 'is_lost' in init_values and self.is_lost:
             return self.env.ref('crm.mt_lead_lost')
         return super(Lead, self)._track_subtype(init_values)
 

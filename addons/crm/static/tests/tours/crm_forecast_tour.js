@@ -78,9 +78,8 @@ tour.register('crm_forecast', {
         content: "wait for date_picker to disappear",
         run: function () {},
     }, {
-        trigger: "input[name=probability]",
-        content: "max out probability",
-        run: "text 100"
+        trigger: "button[name=action_set_won_rainbowman]",
+        content: "win the lead",
     }, {
         trigger: '.o_back_button',
         content: 'navigate back to the kanban view',

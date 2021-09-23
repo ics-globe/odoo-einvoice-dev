@@ -238,9 +238,14 @@ class TestCRMPLS(TransactionCase):
         self.assertEqual(lead_9_country_freq.lost_count, 0.0)  # frequency does not exist
         self.assertEqual(lead_9_email_state_freq.lost_count, 2.1)
 
+        # NOTE: if we touch to active, stage_id and probability, the cache needs to be invalidated in order to get the
+        # correct lead values during the won/lost increment. This is because increment calls _pls_get_lead_pls_values()
+        # that uses SQL queries and not the ORM cache.
+
         # B. Test Live Increment
         leads[4].action_set_lost()
         leads[9].action_set_won()
+        leads.invalidate_cache()
 
         # re-get frequencies that did not exists before
         lead_9_country_freq = LeadScoringFrequency.search([('team_id', '=', leads[9].team_id.id), ('variable', '=', 'country_id'), ('value', '=', leads[9].country_id.id)])
@@ -273,6 +278,9 @@ class TestCRMPLS(TransactionCase):
 
         # Restore -> Should decrease lost
         leads[4].toggle_active()
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_lost, False)
+        self.assertEqual(leads[4].is_won, False)
         self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_stage_won_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_country_freq.won_count, 0.1)  # unchanged
@@ -293,6 +301,9 @@ class TestCRMPLS(TransactionCase):
 
         # set to won stage -> Should increase won
         leads[4].stage_id = won_stage_id
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_won, True)
+        self.assertEqual(leads[4].is_lost, False)
         self.assertEqual(lead_4_stage_0_freq.won_count, 2.1)  # + 1
         self.assertEqual(lead_4_stage_won_freq.won_count, 2.1)  # + 1
         self.assertEqual(lead_4_country_freq.won_count, 1.1)  # + 1
@@ -302,42 +313,67 @@ class TestCRMPLS(TransactionCase):
         self.assertEqual(lead_4_country_freq.lost_count, 1.1)  # unchanged
         self.assertEqual(lead_4_email_state_freq.lost_count, 2.1)  # unchanged
 
-        # Archive (was won, now lost) -> Should decrease won and increase lost
+        # Archive in won stage -> Should NOT decrease won NOR increase lost
+        # as lost = archived + 0% and WON = won_stage (+ 100%)
         leads[4].toggle_active()
-        self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # - 1
-        self.assertEqual(lead_4_stage_won_freq.won_count, 1.1)  # - 1
-        self.assertEqual(lead_4_country_freq.won_count, 0.1)  # - 1
-        self.assertEqual(lead_4_email_state_freq.won_count, 1.1)  # - 1
-        self.assertEqual(lead_4_stage_0_freq.lost_count, 3.1)  # + 1
-        self.assertEqual(lead_4_stage_won_freq.lost_count, 1.1)  # consider stages with <= sequence when lostand as stage is won.. even won_stage lost_count is increased by 1
-        self.assertEqual(lead_4_country_freq.lost_count, 2.1)  # + 1
-        self.assertEqual(lead_4_email_state_freq.lost_count, 3.1)  # + 1
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_won, True)
+        self.assertEqual(leads[4].is_lost, False)
+        self.assertEqual(lead_4_stage_0_freq.won_count, 2.1)  # unchanged
+        self.assertEqual(lead_4_stage_won_freq.won_count, 2.1)  # unchanged
+        self.assertEqual(lead_4_country_freq.won_count, 1.1)  # unchanged
+        self.assertEqual(lead_4_email_state_freq.won_count, 2.1)  # unchanged
+        self.assertEqual(lead_4_stage_0_freq.lost_count, 2.1)  # unchanged
+        self.assertEqual(lead_4_stage_won_freq.lost_count, 0.1)  # unchanged
+        self.assertEqual(lead_4_country_freq.lost_count, 1.1)  # unchanged
+        self.assertEqual(lead_4_email_state_freq.lost_count, 2.1)  # unchanged
 
-        # Move to original stage -> Should do nothing (as lead is still lost)
+        # Move to original stage -> lead is not won anymore but not lost as probability != 0
         leads[4].stage_id = stage_ids[0]
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_won, False)
+        self.assertEqual(leads[4].is_lost, False)
+        self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # -1
+        self.assertEqual(lead_4_stage_won_freq.won_count, 1.1)  # -1
+        self.assertEqual(lead_4_country_freq.won_count, 0.1)  # -1
+        self.assertEqual(lead_4_email_state_freq.won_count, 1.1)  # -1
+        self.assertEqual(lead_4_stage_0_freq.lost_count, 2.1)  # unchanged
+        self.assertEqual(lead_4_stage_won_freq.lost_count, 0.1)  # unchanged
+        self.assertEqual(lead_4_country_freq.lost_count, 1.1)  # unchanged
+        self.assertEqual(lead_4_email_state_freq.lost_count, 2.1)  # unchanged
+
+        # force proba to 0% -> as already archived, will be lost (lost = archived AND 0%)
+        leads[4].probability = 0
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_lost, True)
+        self.assertEqual(leads[4].is_won, False)
         self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_stage_won_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_country_freq.won_count, 0.1)  # unchanged
         self.assertEqual(lead_4_email_state_freq.won_count, 1.1)  # unchanged
-        self.assertEqual(lead_4_stage_0_freq.lost_count, 3.1)  # unchanged
-        self.assertEqual(lead_4_stage_won_freq.lost_count, 1.1)  # unchanged
-        self.assertEqual(lead_4_country_freq.lost_count, 2.1)  # unchanged
-        self.assertEqual(lead_4_email_state_freq.lost_count, 3.1)  # unchanged
+        self.assertEqual(lead_4_stage_0_freq.lost_count, 3.1)  # +1
+        self.assertEqual(lead_4_stage_won_freq.lost_count, 0.1)  # unchanged - should not increase lost frequency of won stage. + consider stages with <= sequence when lost
+        self.assertEqual(lead_4_country_freq.lost_count, 2.1)  # +1
+        self.assertEqual(lead_4_email_state_freq.lost_count, 3.1)  # +1
 
         # Restore -> Should decrease lost - at the end, frequencies should be like first frequencyes tests (except for 0.0 -> 0.1)
         leads[4].toggle_active()
+        leads[4].invalidate_cache()
+        self.assertEqual(leads[4].is_lost, False)
+        self.assertEqual(leads[4].is_won, False)
         self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_stage_won_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_country_freq.won_count, 0.1)  # unchanged
         self.assertEqual(lead_4_email_state_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_stage_0_freq.lost_count, 2.1)  # - 1
-        self.assertEqual(lead_4_stage_won_freq.lost_count, 1.1)  # unchanged - consider stages with <= sequence when lost
+        self.assertEqual(lead_4_stage_won_freq.lost_count, 0.1)  # unchanged - consider stages with <= sequence when lost
         self.assertEqual(lead_4_country_freq.lost_count, 1.1)  # - 1
         self.assertEqual(lead_4_email_state_freq.lost_count, 2.1)  # - 1
 
         # Probabilities should only be recomputed after modifying the lead itself.
         leads[3].stage_id = stage_ids[0]  # probability should only change a bit as frequencies are almost the same (except 0.0 -> 0.1)
         leads[8].stage_id = stage_ids[0]  # probability should change quite a lot
+        leads.invalidate_cache()
 
         # Test frequencies (should not have changed)
         self.assertEqual(lead_4_stage_0_freq.won_count, 1.1)  # unchanged
@@ -345,7 +381,7 @@ class TestCRMPLS(TransactionCase):
         self.assertEqual(lead_4_country_freq.won_count, 0.1)  # unchanged
         self.assertEqual(lead_4_email_state_freq.won_count, 1.1)  # unchanged
         self.assertEqual(lead_4_stage_0_freq.lost_count, 2.1)  # unchanged
-        self.assertEqual(lead_4_stage_won_freq.lost_count, 1.1)  # unchanged
+        self.assertEqual(lead_4_stage_won_freq.lost_count, 0.1)  # unchanged
         self.assertEqual(lead_4_country_freq.lost_count, 1.1)  # unchanged
         self.assertEqual(lead_4_email_state_freq.lost_count, 2.1)  # unchanged
 
@@ -360,6 +396,7 @@ class TestCRMPLS(TransactionCase):
 
         # Continue to test probability computation
         leads[3].probability = 40
+        leads[3].invalidate_cache()
 
         self.assertEqual(leads[3].is_automated_probability, False)
         self.assertEqual(leads[8].is_automated_probability, True)
