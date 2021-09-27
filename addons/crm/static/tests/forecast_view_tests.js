@@ -3,13 +3,11 @@
 import { _lt } from "@web/core/l10n/translation";
 import AbstractView from "web.AbstractView";
 import AbstractModel from "web.AbstractModel";
-import { controlPanel as cpHelpers } from "web.test_utils";
 import { createWebClient, doAction } from "@web/../tests/webclient/helpers";
 import { dialogService } from "@web/core/dialog/dialog_service";
-import { legacyExtraNextTick, patchWithCleanup } from "@web/../tests/helpers/utils";
+import { legacyExtraNextTick, patchDate, patchWithCleanup } from "@web/../tests/helpers/utils";
 import legacyViewRegistry from "web.view_registry";
 import { makeView } from "@web/../tests/views/helpers";
-import { mock } from "web.test_utils";
 import { registry } from "@web/core/registry";
 import {
     setupControlPanelServiceRegistry,
@@ -19,8 +17,6 @@ import {
     toggleMenuItem,
     toggleMenuItemOption,
 } from "@web/../tests/search/helpers";
-
-const patchDate = mock.patchDate;
 
 const serviceRegistry = registry.category("services");
 
@@ -70,10 +66,10 @@ QUnit.module("Views", (hooks) => {
 
     QUnit.module("Forecast views");
 
-    QUnit.test("Forecast graph view", async function (assert) {
+    QUnit.debug("Forecast graph view", async function (assert) {
         assert.expect(5);
 
-        const unpatchDate = patchDate(2021, 8, 16, 16, 54, 0);
+        patchDate(2021, 8, 16, 16, 54, 0);
 
         const expectedDomains = [
             forecastDomain("2021-09-01"), // month granularity due to no groupby
@@ -111,10 +107,17 @@ QUnit.module("Views", (hooks) => {
 
         await toggleMenuItemOption(forecastGraph, "Date Field", "Year");
 
-        await toggleFilterMenu(forecastGraph);
-        await toggleMenuItem(forecastGraph, "Forecast Filter");
+        assert.containsOnce(forecastGraph, ".o_filter_menu");
+        console.log(forecastGraph.el.querySelector(".o_filter_menu").innerText);
 
-        unpatchDate();
+        await toggleFilterMenu(forecastGraph);
+
+        assert.containsOnce(forecastGraph, ".o_filter_menu");
+        assert.containsOnce(forecastGraph, ".o_filter_menu ul.o_dropdown_menu");
+        assert.containsOnce(forecastGraph, ".o_filter_menu li.o_menu_item");
+        console.log(forecastGraph.el.querySelector(".o_filter_menu").innerText);
+
+        await toggleMenuItem(forecastGraph, "Forecast Filter");
     });
 
     QUnit.test(
@@ -122,7 +125,7 @@ QUnit.module("Views", (hooks) => {
         async function (assert) {
             assert.expect(1);
 
-            const unpatchDate = patchDate(2021, 8, 16, 16, 54, 0);
+            patchDate(2021, 8, 16, 16, 54, 0);
 
             serverData.views["foo,false,search"] = `
                 <search>
@@ -157,8 +160,6 @@ QUnit.module("Views", (hooks) => {
 
             // note that the facets of the two filters are combined with an OR.
             // --> current behavior in legacy
-
-            unpatchDate();
         }
     );
 
@@ -168,7 +169,7 @@ QUnit.module("Views", (hooks) => {
         async function (assert) {
             assert.expect(16);
 
-            const unpatchDate = patchDate(2021, 8, 16, 16, 54, 0);
+            patchDate(2021, 8, 16, 16, 54, 0);
 
             const expectedDomains = [
                 // first doAction
@@ -250,7 +251,7 @@ QUnit.module("Views", (hooks) => {
 
             assert.containsOnce(webClient, ".o_switch_view.o_legacy_toy.active");
 
-            await cpHelpers.toggleGroupByMenu(webClient);
+            await toggleGroupByMenu(webClient);
             await toggleMenuItem(webClient, "Date Field");
             await toggleMenuItemOption(webClient, "Date Field", "Year");
 
@@ -277,7 +278,7 @@ QUnit.module("Views", (hooks) => {
 
             assert.containsOnce(webClient, ".o_switch_view.o_legacy_toy.active");
 
-            await cpHelpers.toggleGroupByMenu(webClient);
+            await toggleGroupByMenu(webClient);
             await toggleMenuItem(webClient, "Date Field");
             await toggleMenuItemOption(webClient, "Date Field", "Quarter");
 
@@ -293,8 +294,6 @@ QUnit.module("Views", (hooks) => {
             await legacyExtraNextTick();
 
             assert.containsOnce(webClient, ".o_switch_view.o_legacy_toy.active");
-
-            unpatchDate();
         }
     );
 });
