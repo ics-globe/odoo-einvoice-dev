@@ -4,6 +4,8 @@
 import logging
 import re
 
+from datetime import datetime
+
 from odoo import api, fields, models, tools, _
 from odoo.exceptions import ValidationError
 from odoo.osv import expression
@@ -473,6 +475,10 @@ class ProductProduct(models.Model):
                 sellers = [x for x in product_supplier_info if x.product_id and x.product_id == product]
                 if not sellers:
                     sellers = [x for x in product_supplier_info if not x.product_id]
+                    if self._context.get('date_order'):
+                        date_order = datetime.strptime(self._context.get('date_order'), '%Y-%m-%d %H:%M:%S')
+                        sellers = [x for x in sellers if not x.date_start or x.date_start and x.date_start.year <= date_order.year]
+                        sellers = [x for x in sellers if not x.date_end or x.date_end and x.date_end.year >= date_order.year]
             if sellers:
                 for s in sellers:
                     seller_variant = s.product_name and (
