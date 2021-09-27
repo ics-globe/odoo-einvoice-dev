@@ -70,7 +70,7 @@ QUnit.module("Views", (hooks) => {
 
     QUnit.module("Forecast views");
 
-    QUnit.test("Forecast graph view", async function (assert) {
+    QUnit.debug("Forecast graph view", async function (assert) {
         assert.expect(5);
 
         const unpatchDate = patchDate(2021, 8, 16, 16, 54, 0);
