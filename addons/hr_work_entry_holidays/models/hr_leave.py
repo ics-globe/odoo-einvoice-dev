@@ -77,6 +77,11 @@ class HrLeave(models.Model):
                         ', '.join(contracts.mapped('name')),
                         holiday.display_name))
 
+    def _work_entry_generation_date_to(self):
+        # This is required for french holidays to make sure all work entries are generated properly.
+        self.ensure_one()
+        return self.date_to
+
     def _cancel_work_entry_conflict(self):
         """
         Creates a leave work entry for each hr.leave in self.
@@ -95,19 +100,22 @@ class HrLeave(models.Model):
 
         # 1. Create a work entry for each leave
         work_entries_vals_list = []
+        leaves_date_to = []
         for leave in self:
-            contracts = leave.employee_id.sudo()._get_contracts(leave.date_from, leave.date_to, states=['open', 'close'])
+            leave_date_to = leave._work_entry_generation_date_to()
+            leaves_date_to.append(leave_date_to)
+            contracts = leave.employee_id.sudo()._get_contracts(leave.date_from, leave_date_to, states=['open', 'close'])
             for contract in contracts:
                 # Generate only if it has aleady been generated
-                if leave.date_to >= contract.date_generated_from and leave.date_from <= contract.date_generated_to:
-                    work_entries_vals_list += contracts._get_work_entries_values(leave.date_from, leave.date_to)
+                if leave_date_to >= contract.date_generated_from and leave.date_from <= contract.date_generated_to:
+                    work_entries_vals_list += contracts._get_work_entries_values(leave.date_from, leave_date_to)
 
         new_leave_work_entries = self.env['hr.work.entry'].create(work_entries_vals_list)
 
         if new_leave_work_entries:
             # 2. Fetch overlapping work entries, grouped by employees
             start = min(self.mapped('date_from'), default=False)
-            stop = max(self.mapped('date_to'), default=False)
+            stop = max(leaves_date_to, default=False)
             work_entry_groups = self.env['hr.work.entry']._read_group([
                 ('date_start', '<', stop),
                 ('date_stop', '>', start),
@@ -188,29 +196,6 @@ class HrLeave(models.Model):
             vals_list += work_entry.contract_id._get_work_entries_values(work_entry.date_start, work_entry.date_stop)
         self.env['hr.work.entry'].create(vals_list)
         return res
-
-    def _get_number_of_days(self, date_from, date_to, employee_id):
-        """ If an employee is currently working full time but asks for time off next month
-            where he has a new contract working only 3 days/week. This should be taken into
-            account when computing the number of days for the leave (2 weeks leave = 6 days).
-            Override this method to get number of days according to the contract's calendar
-            at the time of the leave.
-        """
-        days = super(HrLeave, self)._get_number_of_days(date_from, date_to, employee_id)
-        if employee_id:
-            employee = self.env['hr.employee'].browse(employee_id)
-            # Use sudo otherwise base users can't compute number of days
-            contracts = employee.sudo()._get_contracts(date_from, date_to, states=['open'])
-            contracts |= employee.sudo()._get_incoming_contracts(date_from, date_to)
-            calendar = contracts[:1].resource_calendar_id if contracts else None # Note: if len(contracts)>1, the leave creation will crash because of unicity constaint
-            # We force the company in the domain as we are more than likely in a compute_sudo
-            domain = [('company_id', 'in', self.env.company.ids + self.env.context.get('allowed_company_ids', []))]
-            result = employee._get_work_days_data_batch(date_from, date_to, calendar=calendar, domain=domain)[employee.id]
-            if self.request_unit_half and result['hours'] > 0:
-                result['days'] = 0.5
-            return result
-
-        return days
 
     def _get_calendar(self):
         self.ensure_one()
