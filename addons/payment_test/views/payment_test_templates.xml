@@ -13,6 +13,33 @@
                            placeholder="Test Card Information"/>
                 </div>
             </div>
+            <div class="row mt-8">
+                <div class="form-group col">
+                    <label>
+                        <input type="radio" name="status"
+                            value="done" title="Payment successful" checked="True"/>
+                        Payment successful
+                    </label>
+                </div>
+                <div class="form-group col">
+                    <label>
+                        <input type="radio" name="status" value="pending" title="Payment pending"/>
+                        Payment pending
+                    </label>
+                </div>
+                <div class="form-group col">
+                    <label>
+                        <input type="radio" name="status" value="cancel" title="Payment canceled"/>
+                        Payment canceled
+                    </label>
+                </div>
+                <div class="form-group col">
+                    <label>
+                        <input type="radio" name="status" value="error" title="Payment error"/>
+                        Payment error
+                    </label>
+                </div>
+            </div>
         </div>
     </template>
 

@@ -15,7 +15,7 @@
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
-                    <group>
+                    <group name="payment_token_general_information">
                         <field name="name"/>
                         <field name="partner_id" />
                     </group>

@@ -26,11 +26,13 @@ odoo.define('payment_test.payment_form', require => {
             }
 
             const customerInput = document.getElementById('customer_input').value;
+            const status = $('input[name="status"]:checked').val();
             return this._rpc({
                 route: '/payment/test/simulate_payment',
                 params: {
                     'reference': processingValues.reference,
                     'customer_input': customerInput,
+                    'status': status,
                 },
             }).then(() => {
                 window.location = '/payment/status';

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="payment_transaction_form_inherit_payment_test" model="ir.ui.view">
+        <field name="name">payment.transaction.form.inherit.payment.test</field>
+        <field name="model">payment.transaction</field>
+        <field name="inherit_id" ref="payment.payment_transaction_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <field name="capture_manually" invisible="1"/>
+                <button type="object" name="action_done" string="Confirm" class="oe_highlight"
+                    attrs="{'invisible': [
+                        '|',
+                        '|',
+                            ('capture_manually', '=', True),
+                            ('provider', '!=', 'test'),
+                            ('state', '!=', 'pending'),
+                    ]}"/>
+                <button type="object" name="action_authorized" string="Authorize" class="oe_highlight"
+                    attrs="{'invisible': [
+                        '|',
+                        '|',
+                            ('capture_manually', '=', False),
+                            ('provider', '!=', 'test'),
+                            ('state', '!=', 'pending'),
+                    ]}"/>
+                <button type="object" name="action_cancel" string="Cancel"
+                    confirm="Are you sure you want to cancel the pending transaction? This action can't be undone."
+                    attrs="{'invisible': ['|', ('provider', '!=', 'test'), ('state', '!=', 'pending')]}"/>
+                <button type="object" name="action_error" string="Set to Error"
+                    confirm="Are you sure you want to set the pending transaction to Error? This action can't be undone."
+                    attrs="{'invisible': ['|', ('provider', '!=', 'test'), ('state', '!=', 'pending')]}"/>
+            </header>
+        </field>
+    </record>
+
+</odoo>
