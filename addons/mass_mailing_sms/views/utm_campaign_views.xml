@@ -44,6 +44,9 @@
                     </group>
                 </page>
             </xpath>
+            <xpath expr="//group[@name='ab_test_group']" position="attributes">
+                <attribute name="attrs">{'invisible': [('ab_testing_mailings_sms_count', '=', 0), ('ab_testing_mailings_count', '=', 0)]}</attribute>
+            </xpath>
         </field>
     </record>
 
