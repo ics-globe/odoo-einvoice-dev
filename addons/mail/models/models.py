@@ -207,7 +207,14 @@ class BaseModel(models.AbstractModel):
         return False
 
     def _alias_get_domain(self):
+        # return self._alias_get_domains()[0]
         return self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain")
+
+    def _alias_get_domain_names(self):
+        return [
+            company.alias_domain_id.name
+            for company in self._mail_get_companies()
+        ]
 
     def _alias_get_error_message(self, message, message_dict, alias):
         """ Generic method that takes a record not necessarily inheriting from

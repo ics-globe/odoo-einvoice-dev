@@ -323,9 +323,10 @@ class AccountJournal(models.Model):
             else:
                 journal.suspense_account_id = False
 
-    @api.depends('name')
+    @api.depends('company_id', 'name')
     def _compute_alias_domain(self):
-        self.alias_domain = self._alias_get_domain()
+        for journal, alias_domain_name in zip(self, self._alias_get_domain_names()):
+            journal.alias_domain = alias_domain_name
 
     @api.constrains('type_control_ids')
     def _constrains_type_control_ids(self):
