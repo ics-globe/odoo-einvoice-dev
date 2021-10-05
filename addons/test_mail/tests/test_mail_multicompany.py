@@ -66,23 +66,30 @@ class TestMultiCompanySetup(TestMailCommon, TestRecipients):
         self.assertEqual(self.company_2.alias_domain_id, self.alias_domain_c2)
 
         alias_domain = self.env['mail.alias.domain'].create({
+            'bounce': 'bounce.bitnurk',
+            'catchall': 'catchall.bitnurk',
             'name': 'test.global.bitnurk.com',
         })
         # self.assertFalse(alias_domain.company_id)
         self.assertEqual(self.company_admin.alias_domain_id, alias_domain)
-        self.assertEqual(self.company_admin.catchall_email, '%s@%s' % (self.alias_catchall, 'test.global.bitnurk.com'))
+        self.assertEqual(self.company_admin.bounce_email, '%s@%s' % ('bounce.bitnurk', 'test.global.bitnurk.com'))
+        self.assertEqual(self.company_admin.catchall_email, '%s@%s' % ('catchall.bitnurk', 'test.global.bitnurk.com'))
         self.assertEqual(self.company_2.alias_domain_id, self.alias_domain_c2)
-        self.assertEqual(self.company_2.catchall_email, '%s@%s' % (self.alias_catchall, self.alias_domain_c2_name))
+        self.assertEqual(self.company_2.bounce_email, '%s@%s' % (self.alias_bounce_c2, self.alias_domain_c2_name))
+        self.assertEqual(self.company_2.catchall_email, '%s@%s' % (self.alias_catchall_c2, self.alias_domain_c2_name))
 
         # remove 2d company alias domain: fallback on generic one
         self.alias_domain_c2.unlink()
         self.alias_domain_c2.flush()
         # self.assertEqual(self.company_2.alias_domain_id, alias_domain)
         self.assertFalse(self.company_2.alias_domain_id)
-        # self.assertEqual(self.company_2.catchall_email, '%s@%s' % (self.alias_catchall, 'test.global.bitnurk.com'))
+        # self.assertEqual(self.company_2.bounce_email, '%s@%s' % ('bounce.bitnurk', 'test.global.bitnurk.com'))
+        # self.assertEqual(self.company_2.catchall_email, '%s@%s' % ('catchall.bitnurk', 'test.global.bitnurk.com'))
 
         # create a new alias domain for 2d company: takes over
         alias_domain_c2 = self.env['mail.alias.domain'].create({
+            'bounce': 'bounce.new',
+            'catchall': 'catchall.new',
             'name': 'test.c2.bitnurk.com',
             # 'company_id': self.company_2.id,
         })
@@ -91,7 +98,8 @@ class TestMultiCompanySetup(TestMailCommon, TestRecipients):
         self.company_2.write({'alias_domain_id': alias_domain_c2.id})  # TDE TMP
         self.assertEqual(self.company_admin.alias_domain_id, alias_domain)
         self.assertEqual(self.company_2.alias_domain_id, alias_domain_c2)
-        self.assertEqual(self.company_2.catchall_email, '%s@%s' % (self.alias_catchall, 'test.c2.bitnurk.com'))
+        self.assertEqual(self.company_2.bounce_email, '%s@%s' % ('bounce.new', 'test.c2.bitnurk.com'))
+        self.assertEqual(self.company_2.catchall_email, '%s@%s' % ('catchall.new', 'test.c2.bitnurk.com'))
 
         # should always have something for all companies
         # with self.assertRaises(exceptions.ValidationError):

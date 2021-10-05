@@ -110,6 +110,8 @@ class MockEmail(common.BaseCase):
         # ensure global alias domain for tests
         # cls.env['mail.alias.domain'].search([]).unlink()
         cls.alias_domain_global = cls.env['mail.alias.domain'].create({
+            'bounce': cls.alias_bounce,
+            'catchall': cls.alias_catchall,
             'name': cls.alias_domain,
         })
         cls.env.ref('base.user_admin').company_id.alias_domain_id = cls.alias_domain_global.id
@@ -940,8 +942,12 @@ class MailCommon(common.TransactionCase, MailCase):
         cls.user_admin.write({'company_ids': [(4, cls.company_2.id)]})
 
         # alias domain specific to new company
+        cls.alias_bounce_c2 = 'bounce.c2'
+        cls.alias_catchall_c2 = 'catchall.c2'
         cls.alias_domain_c2_name = 'test.company2.com'
         cls.alias_domain_c2 = cls.env['mail.alias.domain'].create({
+            'bounce': cls.alias_bounce_c2,
+            'catchall': cls.alias_catchall_c2,
             'name': cls.alias_domain_c2_name,
         })
         cls.company_2.write({'alias_domain_id': cls.alias_domain_c2.id})

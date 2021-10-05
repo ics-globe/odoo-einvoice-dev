@@ -9,6 +9,8 @@
                 <sheet>
                     <group>
                         <field name="name"/>
+                        <field name="bounce"/>
+                        <field name="catchall"/>
                         <field name="company_ids" widget="many2many_tags" groups="base.group_multi_company"/>
                     </group>
                 </sheet>
@@ -22,6 +24,8 @@
         <field name="arch" type="xml">
             <tree string="Alias Domains">
                 <field name="name"/>
+                <field name="bounce"/>
+                <field name="catchall"/>
                 <field name="company_ids" optional="hide" groups="base.group_multi_company"/>
             </tree>
         </field>

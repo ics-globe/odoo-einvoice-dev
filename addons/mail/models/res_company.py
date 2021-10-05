@@ -19,6 +19,8 @@ class Company(models.Model):
         'mail.alias.domain', string='Alias Domain', ondelete='set null',
         default=lambda self: self._get_default_alias_domain_id())
     alias_domain_name = fields.Char('Alias Domain Name', related='alias_domain_id.name', readonly=True, store=True)
+    bounce_email = fields.Char(string="Bounce Email", compute="_compute_bounce")
+    bounce_formatted = fields.Char(string="Bounce", compute="_compute_bounce")
     catchall_email = fields.Char(string="Catchall Email", compute="_compute_catchall")
     catchall_formatted = fields.Char(string="Catchall", compute="_compute_catchall")
     email_formatted = fields.Char(string="Formatted Email", compute="_compute_email_formatted")
@@ -40,18 +42,27 @@ class Company(models.Model):
     #         else:
     #             company.alias_domain_name = False
 
-    @api.depends('alias_domain_name', 'name')
+    @api.depends('alias_domain_id.bounce', 'alias_domain_id.name')
+    def _compute_bounce(self):
+        self.bounce_email = ''
+        self.bounce_formatted = ''
+
+        for company in self:
+            if company.alias_domain_id:
+                bounce_email = '%s@%s' % (company.alias_domain_id.bounce, company.alias_domain_id.name)
+                company.bounce_email = bounce_email
+                company.bounce_formatted = tools.formataddr((company.name, company.bounce_email))
+
+    @api.depends('alias_domain_id.catchall', 'alias_domain_id.name')
     def _compute_catchall(self):
         self.catchall_email = ''
         self.catchall_formatted = ''
 
-        catchall_alias = self._alias_get_catchall_alias()
-        if catchall_alias:
-            for company in self:
-                if company.alias_domain_name:
-                    catchall_email = '%s@%s' % (catchall_alias, company.alias_domain_name)
-                    company.catchall_email = catchall_email
-                    company.catchall_formatted = tools.formataddr((company.name, company.catchall_email))
+        for company in self:
+            if company.alias_domain_id:
+                catchall_email = '%s@%s' % (company.alias_domain_id.catchall, company.alias_domain_id.name)
+                company.catchall_email = catchall_email
+                company.catchall_formatted = tools.formataddr((company.name, company.catchall_email))
 
     @api.depends('partner_id.email_formatted', 'catchall_formatted')
     def _compute_email_formatted(self):

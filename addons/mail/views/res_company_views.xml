@@ -9,6 +9,8 @@
                 <group name="social_media" position="after">
                     <group>
                         <field name="alias_domain_id"/>
+                        <field name="bounce_formatted"/>
+                        <field name="catchall_formatted"/>
                     </group>
                 </group>
             </field>

@@ -15,6 +15,8 @@ class AliasDomain(models.Model):
     name = fields.Char('Name', required=True)
     # company_id = fields.Many2one('res.company', string='Company')
     company_ids = fields.One2many('res.company', 'alias_domain_id', string='Used in')
+    bounce = fields.Char('Bounce Alias', default='bounce', required=True)
+    catchall = fields.Char('Catchall Alias', default='catchall', required=True)
 
     # @api.constrains('company_id')
     # def _constrains_company(self):
