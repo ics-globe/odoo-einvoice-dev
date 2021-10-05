@@ -20,6 +20,18 @@ class BaseModel(models.AbstractModel):
     # GENERIC MAIL FEATURES
     # ------------------------------------------------------------
 
+    def _mail_get_company_field(self):
+        return 'company_id' if 'company_id' in self else False
+
+    def _mail_get_companies(self, default=None):
+        company_field = self._mail_get_company_field()
+        if company_field:
+            return self.env['res.company'].concat(*(record[company_field] for record in self))
+        return self.env['res.company'].concat(
+            *(default if default is not None else self.env.company
+              for record in self)
+        )
+
     def _mail_track(self, tracked_fields, initial):
         """ For a given record, fields to check (tuple column name, column info)
         and initial values, return a valid command to create tracking values.
@@ -112,42 +124,63 @@ class BaseModel(models.AbstractModel):
         res_ids = _records.ids if _records and model else []
         _res_ids = res_ids or [False]  # always have a default value located in False
 
-        alias_domain = self._alias_get_domain()
-        result = dict.fromkeys(_res_ids, False)
-        result_email = dict()
+        # group ids per company
+        _records_sudo = _records.sudo()
+        company_to_res_ids = dict()
+        if res_ids:
+            for record in _records_sudo:
+                record_company = record._mail_get_companies()
+                company_to_res_ids.setdefault(record_company, list())
+                company_to_res_ids[record_company] += record.ids
+        else:
+            company_to_res_ids[self.env.company] = _res_ids
+
+        reply_to_formatted = dict.fromkeys(_res_ids, False)
         doc_names = dict()
+        if model and res_ids:
+            doc_names = dict(
+                (record.id, record.display_name)
+                for record in _records_sudo
+            )
 
-        if alias_domain:
-            if model and res_ids:
-                if not doc_names:
-                    doc_names = dict((rec.id, rec.display_name) for rec in _records)
+        for company, record_ids in company_to_res_ids.items():
+            reply_to_email = dict()
+            alias_domain = company.alias_domain_id
+            if not alias_domain:
+                continue
 
+            if model and record_ids:
                 mail_aliases = self.env['mail.alias'].sudo().search([
                     ('alias_parent_model_id.model', '=', model),
-                    ('alias_parent_thread_id', 'in', res_ids),
+                    ('alias_parent_thread_id', 'in', record_ids),
                     ('alias_name', '!=', False)])
                 # take only first found alias for each thread_id, to match order (1 found -> limit=1 for each res_id)
                 for alias in mail_aliases:
-                    result_email.setdefault(alias.alias_parent_thread_id, '%s@%s' % (alias.alias_name, alias_domain))
+                    reply_to_email.setdefault(
+                        alias.alias_parent_thread_id,
+                        '%s@%s' % (alias.alias_name, alias_domain.name)
+                    )
 
-            # left ids: use catchall
-            left_ids = set(_res_ids) - set(result_email)
+            # left ids: use catchall defined on alias domain
+            left_ids = set(record_ids) - set(reply_to_email)
             if left_ids:
-                catchall = self._alias_get_catchall_alias()
-                if catchall:
-                    result_email.update(dict((rid, '%s@%s' % (catchall, alias_domain)) for rid in left_ids))
+                reply_to_email.update(
+                    dict((rid, company.catchall_email) for rid in left_ids)
+                )
 
-            # compute name of reply-to - TDE tocheck: quotes and stuff like that
-            company_name = self.env.company.name
-            for res_id in result_email:
-                name = '%s%s%s' % (company_name, ' ' if doc_names.get(res_id) else '', doc_names.get(res_id, ''))
-                result[res_id] = tools.formataddr((name, result_email[res_id]))
+            # compute name of reply-to ("Company Document" <alias@domain>)
+            for res_id in reply_to_email:
+                if doc_names.get(res_id):
+                    name = '%s %s' % (company.name, doc_names[res_id])
+                else:
+                    name = company.name
+                reply_to_formatted[res_id] = tools.formataddr((name, reply_to_email[res_id]))
 
-        left_ids = set(_res_ids) - set(result_email)
+        left_ids = set(_res_ids) - set(res_id for res_id, value in reply_to_formatted.items() if value)
         if left_ids:
-            result.update(dict((res_id, default) for res_id in left_ids))
+            reply_to_formatted.update(dict((res_id, default) for res_id in left_ids))
 
-        return result
+        return reply_to_formatted
 
     # ------------------------------------------------------------
     # ALIAS MANAGEMENT

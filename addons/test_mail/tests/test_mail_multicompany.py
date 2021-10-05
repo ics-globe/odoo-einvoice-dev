@@ -128,7 +128,7 @@ class TestMultiCompanySetup(TestMailCommon, TestRecipients):
             res[test_record.id],
             formataddr((
                 "%s %s" % (self.user_employee_c2.company_id.name, test_record.name),
-                "%s@%s" % (self.alias_catchall, self.alias_domain)))
+                "%s@%s" % (self.alias_catchall_c2, self.alias_domain_c2.name)))
         )
 
         # Test2: company_id field, MC environment
@@ -141,9 +141,17 @@ class TestMultiCompanySetup(TestMailCommon, TestRecipients):
         ])
         res = test_records._notify_get_reply_to()
         for test_record in test_records:
+            company = test_record.company_id
+            if company == self.company_2:
+                alias_domain = self.alias_domain_c2
+                alias_catchall = self.alias_catchall_c2
+            else:
+                alias_domain = self.alias_domain_global
+                alias_catchall = self.alias_catchall
+
             self.assertEqual(
                 res[test_record.id],
                 formataddr((
-                    "%s %s" % (self.user_employee_c2.company_id.name, test_record.name),
-                    "%s@%s" % (self.alias_catchall, self.alias_domain)))
+                    "%s %s" % (company.name, test_record.name),
+                    "%s@%s" % (alias_catchall, alias_domain.name)))
             )
