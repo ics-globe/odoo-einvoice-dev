@@ -19,6 +19,7 @@
                             isCompact="false"
                             isExpandable="true"
                             textInputSendShortcuts="['ctrl-enter', 'meta-enter']"
+                            disableAttachmentUpload="chatter.disableAttachmentUpload"
                         />
                     </t>
                 </div>

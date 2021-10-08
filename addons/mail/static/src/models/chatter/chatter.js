@@ -392,6 +392,12 @@ function factory(dependencies) {
         isAttachmentBoxVisible: attr({
             default: false,
         }),
+        disableAttachmentUpload: attr({
+            default: false,
+        }),
+        attachmentDomain: attr({
+            default: [],
+        }),
         /**
          * Determiners whether the attachment box is visible initially.
          */

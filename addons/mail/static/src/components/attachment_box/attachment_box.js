@@ -81,6 +81,10 @@ export class AttachmentBox extends Component {
 Object.assign(AttachmentBox, {
     props: {
         chatterLocalId: String,
+        disableAttachmentUpload: Boolean,
+    },
+    defaultProps: {
+        disableAttachmentUpload: false,
     },
     template: 'mail.AttachmentBox',
 });

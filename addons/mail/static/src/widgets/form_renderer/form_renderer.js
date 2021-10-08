@@ -4,6 +4,7 @@ import { getMessagingComponent } from "@mail/utils/messaging_component";
 
 import FormRenderer from 'web.FormRenderer';
 import { ComponentWrapper } from 'web.OwlCompatibility';
+import Domain from 'web.Domain';
 
 class ChatterContainerWrapperComponent extends ComponentWrapper {}
 
@@ -84,7 +85,10 @@ FormRenderer.include({
      * @returns {Object}
      */
     _makeChatterContainerProps() {
+        const disableAttachmentUpload = new Domain(this.chatterFields.disableAttachmentUpload).compute(this.state.evalContext);
         return {
+            attachmentDomain: this.chatterFields.attachmentDomain,
+            disableAttachmentUpload: disableAttachmentUpload,
             hasActivities: this.chatterFields.hasActivityIds,
             hasFollowers: this.chatterFields.hasMessageFollowerIds,
             hasMessageList: this.chatterFields.hasMessageIds,

@@ -709,13 +709,15 @@ function factory(dependencies) {
          * with these attachments, which are used by attachment box in the chatter.
          */
         async fetchAttachments() {
+             let attachmentDomain = [['res_id', '=', this.id],['res_model', '=', this.model]];
+            if (this.attachmentDomain.length) {
+                attachmentDomain = attachmentDomain.concat(this.attachmentDomain);
+            }
+
             const attachmentsData = await this.async(() => this.env.services.rpc({
                 model: 'ir.attachment',
                 method: 'search_read',
-                domain: [
-                    ['res_id', '=', this.id],
-                    ['res_model', '=', this.model],
-                ],
+                domain: attachmentDomain,
                 fields: ['id', 'name', 'mimetype'],
                 orderBy: [{ name: 'id', asc: false }],
             }, { shadow: true }));
@@ -1998,6 +2000,9 @@ function factory(dependencies) {
         }),
         areAttachmentsLoaded: attr({
             default: false,
+        }),
+        attachmentDomain: attr({
+            default: [],
         }),
         /**
          * States whether followers have been loaded at least once for this
