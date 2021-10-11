@@ -108,6 +108,14 @@ Object.assign(ChatterContainer, {
             type: Number,
             optional: true,
         },
+        disableAttachmentUpload: {
+            type: Boolean,
+            optional: true,
+        },
+        attachmentDomain: {
+            type: Array,
+            optional: true,
+        },
         threadModel: String,
     },
     template: 'mail.ChatterContainer',
