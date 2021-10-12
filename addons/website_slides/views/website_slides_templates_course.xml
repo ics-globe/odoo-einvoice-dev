@@ -344,7 +344,7 @@
                 <button role="button" class="btn btn-link btn-block" title="Share Channel"
                     aria-label="Share Channel"
                     data-toggle="modal" t-att-data-target="'#slideChannelShareModal_%s' % channel.id">
-                    <i class="fa fa-share-square fa-fw"/> Share
+                    <i class="fa fa-share-alt"/> Share
                 </button>
             </div>
         </div>

@@ -210,50 +210,51 @@
 
 <!-- Slide: all its content, not fullscreen mode -->
 <template id="slide_content_detailed" name="Slide: Detailed Content">
-    <div class="row align-items-center my-3">
-        <div class="col-12 col-md order-2 order-md-1 d-flex">
-            <div class="d-flex align-items-center">
-                <h1 class="h4 my-0">
-                    <t t-call="website_slides.slide_icon">
-                        <t t-set="icon_class" t-valuef="mr-1"/>
-                    </t>
-                    <span t-field="slide.name"/>
-                </h1>
-                <span t-if="slide.question_ids"
-                    t-att-class="'ml-2 badge %s' % ('badge-success' if channel_progress[slide.id].get('completed') else 'badge-info')">
-                    <span t-if="channel_progress[slide.id].get('completed')">
-                        <i class="fa fa-check-circle"/>
-                        <t t-esc="channel_progress[slide.id].get('quiz_karma_won', 0)"/>
-                    </span>
-                    <span t-else="" t-esc="channel_progress[slide.id].get('quiz_karma_gain', 0)"/>
-                    <span>XP</span>
-                </span>
-            </div>
-        </div>
-        <div class="col-12 col-md order-1 order-md-2 text-nowrap flex-grow-0 d-flex justify-content-end mb-3 mb-md-0">
-            <div class="btn-group flex-grow-1 flex-sm-0" role="group" aria-label="Lesson Nav">
-                <a t-att-class="'btn btn-light border %s' % ('disabled' if not previous_slide else '')"
-                    role="button" t-att-aria-disabled="'disabled' if not previous_slide else None"
-                    t-att-href="'/slides/slide/%s' % (slug(previous_slide)) if previous_slide else '#'">
-                    <i class="fa fa-chevron-left mr-2"></i> <span class="d-none d-sm-inline-block">Prev</span>
-                </a>
-                <t t-set="allow_done_btn" t-value="slide.slide_category in ['infographic', 'document', 'article', 'video'] and not slide.question_ids and not channel_progress[slide.id].get('completed') and slide.channel_id.is_member"/>
-                <a t-att-class="'btn btn-primary border text-white %s' % ('disabled' if not allow_done_btn else '')"
-                    role="button" t-att-aria-disabled="'true' if not allow_done_btn else None"
-                    t-att-href="'/slides/slide/%s/set_completed?%s' % (slide.id, 'next_slide_id=%s' % (next_slide.id) if next_slide else '') if allow_done_btn else '#'">
-                    Set Done
-                </a>
-                <a t-att-class="'btn btn-light border %s' % ('disabled' if not next_slide else '')"
-                    role="button" t-att-aria-disabled="'disabled' if not next_slide else None"
-                    t-att-href="'/slides/slide/%s' % (slug(next_slide)) if next_slide else '#'">
-                    <span class="d-none d-sm-inline-block">Next</span> <i class="fa fa-chevron-right ml-2"></i>
-                </a>
-            </div>
-            <a class="btn btn-light border ml-2" role="button" t-att-href="'/slides/slide/%s?fullscreen=1' % (slug(slide))">
-                <i class="fa fa-desktop mr-2"/>
-                <span class="d-none d-sm-inline-block">Fullscreen</span>
+    <div class="d-flex my-3 justify-content-end">
+        <button class="btn btn-light border" data-toggle="modal"
+            t-att-data-target="'#shareSlideModal_%s' % slide.id">
+            <i class="fa fa-share-alt mr-2"/>
+            <span class="d-none d-sm-inline-block">Share</span>
+        </button>
+        <a class="btn btn-light border mx-2" role="button" t-att-href="'/slides/slide/%s?fullscreen=1' % (slug(slide))">
+            <i class="fa fa-desktop mr-2"/>
+            <span class="d-none d-sm-inline-block">Fullscreen</span>
+        </a>
+        <div class="btn-group" role="group" aria-label="Lesson Nav">
+            <a t-att-class="'btn btn-light border %s' % ('disabled' if not previous_slide else '')"
+                role="button" t-att-aria-disabled="'disabled' if not previous_slide else None"
+                t-att-href="'/slides/slide/%s' % (slug(previous_slide)) if previous_slide else '#'">
+                <i class="fa fa-chevron-left mr-2"></i> <span class="d-none d-sm-inline-block">Prev</span>
+            </a>
+            <t t-set="allow_done_btn" t-value="slide.slide_category in ['infographic', 'document', 'article', 'video'] and not slide.question_ids and not channel_progress[slide.id].get('completed') and slide.channel_id.is_member"/>
+            <a t-att-class="'btn btn-primary border text-white %s' % ('disabled' if not allow_done_btn else '')"
+                role="button" t-att-aria-disabled="'true' if not allow_done_btn else None"
+                t-att-href="'/slides/slide/%s/set_completed?%s' % (slide.id, 'next_slide_id=%s' % (next_slide.id) if next_slide else '') if allow_done_btn else '#'">
+                Set Done
+            </a>
+            <a t-att-class="'btn btn-light border %s' % ('disabled' if not next_slide else '')"
+                role="button" t-att-aria-disabled="'disabled' if not next_slide else None"
+                t-att-href="'/slides/slide/%s' % (slug(next_slide)) if next_slide else '#'">
+                <span class="d-none d-sm-inline-block">Next</span> <i class="fa fa-chevron-right ml-2"></i>
             </a>
         </div>
+    </div>
+    <div class="my-2">
+        <span class="h4 my-0">
+            <t t-call="website_slides.slide_icon">
+                <t t-set="icon_class" t-valuef="mr-1"/>
+            </t>
+            <span t-field="slide.name"/>
+        </span>
+        <span t-if="slide.question_ids"
+            t-att-class="'align-middle ml-2 badge %s' % ('badge-success' if channel_progress[slide.id].get('completed') else 'badge-info')">
+            <span t-if="channel_progress[slide.id].get('completed')">
+                <i class="fa fa-check-circle"/>
+                <t t-out="channel_progress[slide.id].get('quiz_karma_won', 0)"/>
+            </span>
+            <span t-else="" t-out="channel_progress[slide.id].get('quiz_karma_gain', 0)"/>
+            <span>XP</span>
+        </span>
     </div>
     <div t-if="slide.tag_ids" class="pb-2">
         <t t-foreach="slide.tag_ids" t-as="tag">
@@ -294,11 +295,6 @@
             <li class="nav-item">
                 <a href="#statistic" aria-controls="statistic" class="nav-link" role="tab" data-toggle="tab">
                     <i class="fa fa-bar-chart"></i> Statistics
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#share" aria-controls="share" class="nav-link" role="tab" data-toggle="tab">
-                    <i class="fa fa-share-alt"></i> Share
                 </a>
             </li>
         </ul>
@@ -353,40 +349,6 @@
                     </div>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane fade" t-if="slide.website_published" id="share">
-                <h4 t-if="not slide.website_published"><i class="fa fa-info-circle"></i>
-                    The social sharing module will be unlocked when a moderator will allow your publication.
-                </h4>
-                <t t-if="slide.website_published">
-                    <div class="row">
-                        <div class="col-12 col-lg-6">
-                            <h5 class="mt16">Share on Social Networks</h5>
-                            <t t-call="website_slides.slide_share_social">
-                                <t t-set="record" t-value="slide"/>
-                                <t t-set="website_share_url" t-value="slide.website_share_url"/>
-                            </t>
-                        </div>
-                        <div class="col-12 col-lg-6">
-                            <t t-call="website_slides.slide_share_link">
-                                <t t-set="record" t-value="slide"/>
-                                <t t-set="website_share_url" t-value="slide.website_share_url"/>
-                            </t>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div t-attf-class="col-12 #{'col-lg-6' if slide.embed_code else ''}">
-                            <t t-call="website_slides.slide_social_email">
-                                <t t-set="slide" t-value="slide"/>
-                            </t>
-                        </div>
-                        <div class="col-12 col-lg-6" t-if="slide.embed_code">
-                            <t t-call="website_slides.slide_social_embed">
-                                <t t-set="slide" t-value="slide"/>
-                            </t>
-                        </div>
-                    </div>
-                </t>
-            </div>
         </div>
     </div>
     <div class="o_wslides_js_quiz_container" t-att-data-slide-id="slide.id">
@@ -425,6 +387,24 @@
                 </div>
             </div>
         </group>
+    </div>
+    <t t-call="website_slides.share_slide_modal">
+        <t t-set="record" t-value="slide"/>
+        <t t-set="include_embed" t-value="bool(slide.embed_code)"/>
+        <t t-set="share_slide_modal_title">Share This Document</t>
+        <t t-set="website_share_url" t-value="slide.website_share_url"/>
+    </t>
+</template>
+
+<!-- Share: social media -->
+<template id='share_slide_modal'>
+    <div class="modal fade" t-att-id="'shareSlideModal_%s' % record.id" tabindex="-1" role="dialog" aria-labelledby="shareSlideModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <t t-call="website_slides.slide_share_modal_header"/>
+                <t t-call="website_slides.slide_share_modal_body"/>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -515,32 +495,38 @@
 
 <!-- Slide sub-template: share: send by email -->
 <template id='slide_social_email' name="Share by Email">
-    <h5 class="mt-4">Share by mail</h5>
-    <div t-if="not is_public_user" class="form-inline">
+    <h5 class="mt-4">Share by Email</h5>
+    <div t-if="not is_public_user">
         <form class="form-group oe_slide_js_share_email" role="form">
             <div class="input-group">
-                <input type="email" class="form-control" placeholder="your-friend@domain.com"/>
+                <input type="text" class="form-control" placeholder="your-friend1@domain.com, your-friend2@domain.com"/>
                 <span class="input-group-append">
                     <button class="btn btn-primary" type="button"
                         data-loading-text="Sending..."
-                        t-attf-data-slide-id="#{slide.id}"
+                        t-attf-data-slide-id="#{record.id if record._name == 'slide.slide' else False}"
+                        t-attf-data-channel-id="#{record.id if record._name == 'slide.channel' else False}"
                         style="border-top-right-radius: 4px;border-bottom-right-radius: 4px;">
                         <i class="fa fa-envelope"/> Send Email
                     </button>
                 </span>
             </div>
-            <span class="form-text text-muted d-block w-100">Send presentation through email</span>
+            <div class="alert alert-info d-none" role="alert">
+                <strong>Sharing is caring!</strong> Your email(s) have been sent.
+            </div>
+            <div class="alert alert-warning d-none" role="alert">Please enter valid email(s)</div>
         </form>
     </div>
     <div t-if="is_public_user" class="alert alert-info d-inline-block">
-        <p class="mb-0">Please <a t-attf-href="/web?redirect=#{request.httprequest.url}" class="font-weight-bold"> login </a> to share this <t t-esc="slide.slide_category"/> by email.</p>
+        <p class="mb-0">Please <a t-attf-href="/web?redirect=#{request.httprequest.url}" class="font-weight-bold"> login </a> to share this
+        <span t-field="record.slide_category" t-if="record._name == 'slide.slide'"/>
+        <span t-field="record.name" t-if="record._name == 'slide.channel'"/> by email.</p>
     </div>
 </template>
 
 <!-- Slide sub-template: share: embed in your website -->
 <template id="slide_social_embed" name="Share on Your Website">
     <div class="oe_slide_js_embed_code_widget mt-4">
-        <h5 class="mt0">Embed in your website</h5>
+        <h5 class="mt0">Embed in another website</h5>
         <div class="form-group">
             <textarea class="form-control slide_embed_code" readonly="readonly" onClick="this.select();">
                 <!-- Use the external embedding URL here, see python controller '_slide_embed' method for more details. -->
@@ -548,8 +534,8 @@
             </textarea>
         </div>
         <div t-if="slide.slide_category == 'document' and not embed_hide_starting_page" class="form-group d-flex">
-            <div class="form-text p-0 col-xs-5 col-sm-5 col-md-5 col-lg-5">Select page to start with</div>
-            <div class="input-group col-xs-3 col-sm-2 col-md-2 col-lg-3">
+            <div class="form-text p-0 col-xs-5 col-sm-5 col-md-2 col-lg-2">Start at Page</div>
+            <div class="input-group col-xs-3 col-sm-2 col-md-2 col-lg-2">
                 <input type="number" value="1" class="form-control"/>
             </div>
         </div>

@@ -17,6 +17,7 @@ from odoo.addons.website_profile.controllers.main import WebsiteProfile
 from odoo.exceptions import AccessError, ValidationError, UserError, MissingError
 from odoo.http import request
 from odoo.osv import expression
+from odoo.tools import single_email_re
 
 _logger = logging.getLogger(__name__)
 
@@ -908,11 +909,15 @@ class WebsiteSlides(WebsiteProfile):
             slide.is_preview = not slide.is_preview
         return slide.is_preview
 
-    @http.route(['/slides/slide/send_share_email'], type='json', auth='user', website=True)
-    def slide_send_share_email(self, slide_id, email, fullscreen=False):
-        slide = request.env['slide.slide'].browse(int(slide_id))
-        result = slide._send_share_email(email, fullscreen)
-        return result
+    @http.route(['/slides/send_share_email'], type='json', auth='user', website=True)
+    def slide_send_share_email(self, emails, res_id, res_model, fullscreen=False):
+        for email in emails.split(','):
+            if not single_email_re.match(email.strip()):
+                return False
+        if res_model not in ['slide.channel', 'slide.slide']:
+            raise werkzeug.exceptions.NotFound()
+        slide = request.env[res_model].browse(int(res_id))
+        return slide._send_share_email(emails, fullscreen)
 
     # --------------------------------------------------
     # TAGS SECTION

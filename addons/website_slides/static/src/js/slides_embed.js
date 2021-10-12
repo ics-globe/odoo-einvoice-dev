@@ -227,22 +227,32 @@ $(function () {
             var widget = $('.oe_slide_js_share_email');
             var input = widget.find('input');
             var slideID = widget.find('button').data('slide-id');
-            if (input.val() && input[0].checkValidity()) {
+            if (input.val()) {
                 widget.removeClass('o_has_error').find('.form-control, .custom-select').removeClass('is-invalid');
                 $.ajax({
                     type: "POST",
                     dataType: 'json',
-                    url: '/slides/slide/send_share_email',
+                    url: '/slides/send_share_email',
                     contentType: "application/json; charset=utf-8",
-                    data: JSON.stringify({'jsonrpc': "2.0", 'method': "call", "params": {'slide_id': slideID, 'email': input.val()}}),
-                    success: function () {
-                        widget.html($('<div class="alert alert-info" role="alert"><strong>Thank you!</strong> Mail has been sent.</div>'));
+                    data: JSON.stringify({'jsonrpc': "2.0", 'method': "call", "params": {'res_id': slideID, 'res_model': 'slide.slide', 'emails': input.val()}}),
+                    success: function (action) {
+                        if (action.result) {
+                            widget.find('.alert-info').removeClass('d-none');
+                            widget.find('.input-group').addClass('d-none');
+                        } else {
+                            widget.find('.alert-warning').removeClass('d-none');
+                            widget.find('.input-group').addClass('d-none');
+                            widget.addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
+                            input.focus();
+                        }
                     },
                     error: function (data) {
                         console.error("ERROR ", data);
                     },
                 });
             } else {
+                widget.find('.alert-warning').removeClass('d-none');
+                widget.find('.input-group').addClass('d-none');
                 widget.addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
                 input.focus();
             }

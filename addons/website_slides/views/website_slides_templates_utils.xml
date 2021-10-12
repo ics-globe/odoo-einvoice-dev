@@ -20,6 +20,16 @@
             social-key="linkedin" aria-label="Share on LinkedIn" title="Share on LinkedIn" target="_blank">
             <i class="fa fa-linkedin fa-fw"/>
         </a>
+        <a t-attf-href="https://wa.me/?text=#{website_share_url}" class="btn border bg-white o_wslides_js_social_share"
+            social-key="whatsapp" aria-label="Share on Whatsapp" title="Share on Whatsapp" target="_blank">
+            <i class="fa fa-whatsapp fa-fw"/>
+        </a>
+        <a t-attf-href="http://pinterest.com/pin/create/button/?url=#{website_share_url}"
+            social-key="pinterest"
+            class="btn border bg-white o_wslides_js_social_share"
+            aria-label="Share on Pinterest" title="Share on Pinterest">
+            <i class="fa fa-pinterest fa-fw"/>
+        </a>
     </div>
 </template>
 
@@ -38,7 +48,8 @@
 <template id="slide_share_modal_header">
     <div class="modal-header">
         <h5 class="modal-title" id="slideChannelShareModalLabel">
-            Share
+            <t t-if="share_slide_modal_title" t-out="share_slide_modal_title"/>
+            <t t-else="">Share This Course</t>
         </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span>×</span>
@@ -48,9 +59,10 @@
 
 <template id="slide_share_modal_body">
     <div class="modal-body">
-        <h5>Share on Social Networks</h5>
-        <t t-call="website_slides.slide_share_social"/>
         <t t-call="website_slides.slide_share_link"/>
+        <h5 class="mt-3">Share on Social Media</h5>
+        <t t-call="website_slides.slide_share_social"/>
+        <t t-call="website_slides.slide_social_email"/>
         <t t-if="include_embed" t-call="website_slides.slide_social_embed"/>
     </div>
 </template>
@@ -60,13 +72,15 @@
         <t t-set="website_share_url"
            t-value="record.website_share_url if 'website_share_url' in record else record.website_url"/>
     </t>
-    <h5 class="mt-3">Share Link</h5>
+    <h5>Share Link</h5>
     <div class="input-group">
-        <input type="text" t-att-id="'wslides_share_link_id_%s' % record.id" class="form-control o_wslides_js_share_link" readonly="readonly" onclick="this.select();"
+        <input type="text" t-attf-id="wslides_share_link_id_{{record.id}}"
+            class="form-control o_wslides_js_share_link text-center"
+            readonly="readonly" onclick="this.select();"
             t-att-value="website_share_url"/>
         <div class="input-group-append">
             <button t-att-id="'share_link_clipboard_button_id_%s' % record.id" class="btn btn-sm btn-primary o_clipboard_button" >
-                <span class="fa fa-clipboard"> Copy Text</span>
+                <i class="fa fa-clipboard"/> Copy Text
             </button>
         </div>
     </div>

@@ -7,6 +7,7 @@ import { _t } from 'web.core';
 var ShareMail = publicWidget.Widget.extend({
     events: {
         'click button': '_sendMail',
+        'keypress input': '_onKeypress',
     },
 
     //--------------------------------------------------------------------------
@@ -14,24 +15,56 @@ var ShareMail = publicWidget.Widget.extend({
     //--------------------------------------------------------------------------
 
     /**
+     * Send the email(s) on 'Enter' key
+     *
      * @private
+     * @param {Event} ev
      */
+    _onKeypress: function (ev) {
+        if (ev.keyCode === $.ui.keyCode.ENTER) {
+            ev.preventDefault();
+            this._sendMail();
+        }
+    },
+
     _sendMail: function () {
         var self = this;
+        const channelID = this.$('button').data('channel-id');
         var input = this.$('input');
         var slideID = this.$('button').data('slide-id');
-        if (input.val() && input[0].checkValidity()) {
+        let resID;
+        let resModel;
+        let route;
+        if (slideID) {
+            resID = slideID;
+            resModel = 'slide.slide'
+            route = '/slides/send_share_email';
+        } else if (channelID) {
+            resID = channelID;
+            resModel = 'slide.channel'
+            route = '/slides/send_share_email';
+        }
+        if (input.val()) {
             this.$el.removeClass('o_has_error').find('.form-control, .custom-select').removeClass('is-invalid');
             this._rpc({
-                route: '/slides/slide/send_share_email',
+                route: route,
                 params: {
-                    slide_id: slideID,
-                    email: input.val(),
+                    emails: input.val(),
+                    res_id: resID,
+                    res_model: resModel,
                 },
-            }).then(function () {
-                self.$el.html($('<div class="alert alert-info" role="alert">' + _t('<strong>Thank you!</strong> Mail has been sent.') + '</div>'));
+            }).then((action) => {
+                if (action) {
+                    self.$('.alert-info').removeClass('d-none');
+                    self.$('.input-group').addClass('d-none');
+                } else {
+                    self.displayNotification({ message: _t('Please enter valid email(s)'), type: 'danger' });
+                    self.$el.addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
+                    input.focus();
+                }
             });
         } else {
+            this.displayNotification({ message: _t('Please enter valid email(s)'), type: 'danger' });
             this.$el.addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
             input.focus();
         }
