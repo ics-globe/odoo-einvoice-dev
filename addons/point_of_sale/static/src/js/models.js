@@ -127,9 +127,15 @@ exports.PosModel = Backbone.Model.extend({
         // We fetch the backend data on the server asynchronously. this is done only when the pos user interface is launched,
         // Any change on this data made on the server is thus not reflected on the point of sale until it is relaunched.
         // when all the data has loaded, we compute some stuff, and declare the Pos ready to be used.
-        this.ready = this.load_server_data().then(function(){
+        this.ready = this.load_server_data().then(async () => {
+            const [records, sortedIds, fields, loadingMetas] = await this.rpc({
+                model: 'pos.session',
+                method: 'load_pos_data',
+                args: [[odoo.pos_session_id]],
+            });
             return self.after_load_server_data();
         });
+
     },
     getDefaultSearchDetails: function() {
         return {

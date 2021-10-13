@@ -57,6 +57,7 @@ class PosController(http.Controller):
         context = {
             'session_info': session_info,
             'login_number': pos_session.login(),
+            'pos_session_id': pos_session.id,
         }
         response = request.render('point_of_sale.index', context)
         response.headers['Cache-Control'] = 'no-store'
