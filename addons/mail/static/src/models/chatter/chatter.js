@@ -400,6 +400,9 @@ function factory(dependencies) {
             compute: '_computeIsDisabled',
             default: false,
         }),
+        hasAttachmentUpload: attr({
+            default: false,
+        }),
         isShowingAttachmentsLoading: attr({
             default: false,
         }),

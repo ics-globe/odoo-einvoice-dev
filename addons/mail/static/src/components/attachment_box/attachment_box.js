@@ -55,8 +55,12 @@ export class AttachmentBox extends Component {
 }
 
 Object.assign(AttachmentBox, {
+    defaultProps: {
+        hasAttachmentUpload: false,
+    },
     props: {
         attachmentBoxViewLocalId: String,
+        hasAttachmentUpload: Boolean,
     },
     template: 'mail.AttachmentBox',
 });

@@ -26,7 +26,7 @@
                             t-on-o-attachment-removed="attachmentBoxView.onAttachmentRemoved"
                         />
                     </t>
-                    <button class="o_AttachmentBox_buttonAdd btn btn-link" type="button" t-on-click="attachmentBoxView.onClickAddAttachment">
+                    <button class="o_AttachmentBox_buttonAdd btn btn-link" type="button" t-on-click="attachmentBoxView.onClickAddAttachment" t-if="!attachmentBoxView.chatter.hasAttachmentUpload">
                         <i class="fa fa-plus-square"/>
                         Add attachments
                     </button>

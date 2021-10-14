@@ -4,6 +4,7 @@ import { getMessagingComponent } from "@mail/utils/messaging_component";
 
 import FormRenderer from 'web.FormRenderer';
 import { ComponentWrapper } from 'web.OwlCompatibility';
+import Domain from 'web.Domain';
 
 class ChatterContainerWrapperComponent extends ComponentWrapper {}
 
@@ -84,11 +85,13 @@ FormRenderer.include({
      * @returns {Object}
      */
     _makeChatterContainerProps() {
+        const hasAttachmentUpload = new Domain(this.chatterFields.hasAttachmentUpload).compute(this.state.evalContext);
         return {
             hasActivities: this.chatterFields.hasActivityIds,
             hasFollowers: this.chatterFields.hasMessageFollowerIds,
             hasMessageList: this.chatterFields.hasMessageIds,
             isAttachmentBoxVisibleInitially: this.chatterFields.isAttachmentBoxVisibleInitially,
+            hasAttachmentUpload: hasAttachmentUpload,
             threadId: this.state.res_id,
             threadModel: this.state.model,
         };

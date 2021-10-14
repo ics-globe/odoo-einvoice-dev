@@ -870,6 +870,36 @@ QUnit.test('Form view not scrolled when switching record', async function (asser
     );
 });
 
+QUnit.test('From view chatter cannot be uploaded document with option has_attachment_upload True', async function (assert) {
+    assert.expect(1);
+
+    this.data['res.partner'].records.push({ display_name: "second partner", id: 5, });
+    await this.createView({
+        data: this.data,
+        hasView: true,
+        View: FormView,
+        model: 'res.partner',
+        arch: `
+            <form string="Partners">
+                <sheet>
+                    <field name="name"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" options="{\'has_attachment_upload\': true}"/>
+                </div>
+            </form>
+        `,
+        res_id: 5,
+    });
+    await afterNextRender(() =>
+        document.querySelector('.o_ChatterTopbar_buttonAttachments').click()
+    );
+    assert.strictEqual(
+        document.querySelectorAll(`.o_AttachmentBox_buttonAdd`).length, 0,
+        "there should be no upload Attachment button"
+    );
+});
+
 QUnit.test('Attachments that have been unlinked from server should be visually unlinked from record', async function (assert) {
     // Attachments that have been fetched from a record at certain time and then
     // removed from the server should be reflected on the UI when the current
