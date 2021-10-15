@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { and, isAnyFieldTrue, firstDefinedFieldValue, isFieldDefined, isFieldDefinedAndEqualToAnyOf, isFieldDefinedAndIncluding, setOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one, one2many } from '@mail/model/model_field';
 import { clear, insert } from '@mail/model/model_field_command';
@@ -15,7 +16,6 @@ function factory(dependencies) {
             // Bind necessary until OWL supports arrow function in handlers: https://github.com/odoo/owl/issues/876
             this.onClickDownload = this.onClickDownload.bind(this);
         }
-
 
         //----------------------------------------------------------------------
         // Public
@@ -128,18 +128,6 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {string|undefined}
-         */
-        _computeDisplayName() {
-            const displayName = this.name || this.filename;
-            if (displayName) {
-                return displayName;
-            }
-            return clear();
-        }
-
-        /**
-         * @private
          * @returns {string}
          */
         _computeDownloadUrl() {
@@ -177,93 +165,6 @@ function factory(dependencies) {
                     (message.guestAuthor && message.guestAuthor === this.messaging.currentGuest)
                 ))
                 : true;
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsPdf() {
-            return this.mimetype === 'application/pdf';
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsImage() {
-            const imageMimetypes = [
-                'image/bmp',
-                'image/gif',
-                'image/jpeg',
-                'image/png',
-                'image/svg+xml',
-                'image/tiff',
-                'image/x-icon',
-            ];
-            return imageMimetypes.includes(this.mimetype);
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsText() {
-            const textMimeType = [
-                'application/javascript',
-                'application/json',
-                'text/css',
-                'text/html',
-                'text/plain',
-            ];
-            return textMimeType.includes(this.mimetype);
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsVideo() {
-            const videoMimeTypes = [
-                'audio/mpeg',
-                'video/x-matroska',
-                'video/mp4',
-                'video/webm',
-            ];
-            return videoMimeTypes.includes(this.mimetype);
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsUrl() {
-            return this.type === 'url' && this.url;
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsViewable() {
-            return this.isText || this.isImage || this.isVideo || this.isPdf || this.isUrlYoutube;
-        }
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsUrlYoutube() {
-            return !!this.url && this.url.includes('youtu');
-        }
-
-        /**
-         * @deprecated
-         * @private
-         * @returns {string}
-         */
-        _computeMediaType() {
-            return this.mimetype && this.mimetype.split('/').shift();
         }
 
         /**
@@ -330,7 +231,7 @@ function factory(dependencies) {
          */
         dialogRef: attr(),
         displayName: attr({
-            compute: '_computeDisplayName',
+            compute: setOrClear(firstDefinedFieldValue('name', 'filename')),
         }),
         downloadUrl: attr({
            compute: '_computeDownloadUrl',
@@ -350,23 +251,39 @@ function factory(dependencies) {
             compute: '_computeIsEditable',
         }),
         /**
-         * States id the attachment is an image.
+         * States whether the attachment is an image.
          */
         isImage: attr({
-            compute: '_computeIsImage',
+            compute: isFieldDefinedAndEqualToAnyOf('mimetype', [
+                'image/bmp',
+                'image/gif',
+                'image/jpeg',
+                'image/png',
+                'image/svg+xml',
+                'image/tiff',
+                'image/x-icon',
+            ]),
         }),
         is_main: attr(),
         /**
          * States if the attachment is a PDF file.
          */
         isPdf: attr({
-            compute: '_computeIsPdf',
+            compute: isFieldDefinedAndEqualToAnyOf('mimetype', [
+                'application/pdf',
+            ]),
         }),
         /**
          * States if the attachment is a text file.
          */
         isText: attr({
-            compute: '_computeIsText',
+            compute: isFieldDefinedAndEqualToAnyOf('mimetype', [
+                'application/javascript',
+                'application/json',
+                'text/css',
+                'text/html',
+                'text/plain',
+            ]),
         }),
         /**
          * True if an unlink RPC is pending, used to prevent multiple unlink attempts.
@@ -381,28 +298,30 @@ function factory(dependencies) {
          * States if the attachment is an url.
          */
         isUrl: attr({
-            compute: '_computeIsUrl',
+            compute: and(
+                isFieldDefinedAndEqualToAnyOf('type', ['url']),
+                isFieldDefined('url'),
+            ),
         }),
         /**
          * Determines if the attachment is a youtube url.
          */
         isUrlYoutube: attr({
-            compute: '_computeIsUrlYoutube',
+            compute: isFieldDefinedAndIncluding('url', 'youtu'),
         }),
         /**
          * States if the attachment is a video.
          */
         isVideo: attr({
-            compute: '_computeIsVideo',
+            compute: isFieldDefinedAndEqualToAnyOf('mimetype', [
+                'audio/mpeg',
+                'video/x-matroska',
+                'video/mp4',
+                'video/webm',
+            ]),
         }),
         isViewable: attr({
-            compute: '_computeIsViewable',
-        }),
-        /**
-         * @deprecated
-         */
-        mediaType: attr({
-            compute: '_computeMediaType',
+            compute: isAnyFieldTrue('isText', 'isImage', 'isVideo', 'isPdf', 'isUrlYoutube'),
         }),
         messages: many2many('mail.message', {
             inverse: 'attachments',

@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2one } from '@mail/model/model_field';
 import { clear, insertAndReplace, replace } from '@mail/model/model_field_command';
@@ -707,7 +708,7 @@ function factory(dependencies) {
          * States the thread that is displayed by this top bar.
          */
         thread: many2one('mail.thread', {
-            related: 'threadView.thread',
+            compute: replaceOrClear(fieldValue('threadView.thread')),
         }),
         /**
          * States the OWL ref of the "thread name" input of this top bar.

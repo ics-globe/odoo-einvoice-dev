@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
+import { fieldValue, firstDefinedFieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { many2many, many2one, one2many, one2one } from '@mail/model/model_field';
-import { clear, insertAndReplace, replace } from '@mail/model/model_field_command';
+import { insertAndReplace, replace } from '@mail/model/model_field_command';
 
 function factory(dependencies) {
 
@@ -11,22 +12,6 @@ function factory(dependencies) {
         //----------------------------------------------------------------------
         // Private
         //----------------------------------------------------------------------
-
-        /**
-         * @returns {mail.attachment[]}
-         */
-        _computeAttachments() {
-            if (this.message) {
-                return replace(this.message.attachments);
-            }
-            if (this.chatter && this.chatter.thread) {
-                return replace(this.chatter.thread.allAttachments);
-            }
-            if (this.composerView && this.composerView.composer) {
-                return replace(this.composerView.composer.attachments);
-            }
-            return clear();
-        }
 
         _computeAttachmentImages() {
             return insertAndReplace(this.imageAttachments.map(attachment => {
@@ -72,7 +57,11 @@ function factory(dependencies) {
          * States the attachments to be displayed by this attachment list.
          */
         attachments: many2many('mail.attachment', {
-            compute: '_computeAttachments',
+            compute: replaceOrClear(firstDefinedFieldValue(
+                'message.attachments',
+                'chatter.thread.allAttachments',
+                'composerView.composer.attachments',
+            )),
             inverse: 'attachmentLists',
         }),
         /**
@@ -119,7 +108,7 @@ function factory(dependencies) {
             compute: '_computeImageAttachments',
         }),
         message: many2one('mail.message', {
-            related: 'messageView.message'
+            compute: replaceOrClear(fieldValue('messageView.message')),
         }),
         /**
          * Link with a message view to handle attachments.

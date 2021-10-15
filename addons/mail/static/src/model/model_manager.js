@@ -1,11 +1,14 @@
 /** @odoo-module **/
 
+import { ComputeMethod, fieldValue } from '@mail/model/model_compute_method';
 import { registry } from '@mail/model/model_core';
 import { ModelField } from '@mail/model/model_field';
-import { FieldCommand, unlinkAll } from '@mail/model/model_field_command';
+import { clear, FieldCommand, replace, unlinkAll } from '@mail/model/model_field_command';
 import { Listener } from '@mail/model/model_listener';
 import { patchClassMethods, patchInstanceMethods } from '@mail/utils/utils';
 import { makeDeferred } from '@mail/utils/deferred/deferred';
+
+import { str_to_date } from 'web.time';
 
 /**
  * Object that manage models and records, notably their update cycle: whenever
@@ -44,8 +47,8 @@ export class ModelManager {
 
         /**
          * Set of records that have been created during the current update
-         * cycle and for which the compute/related methods still have to be
-         * executed a first time.
+         * cycle and for which the compute methods still have to be executed
+         * a first time.
          */
         this._createdRecordsComputes = new Set();
         /**
@@ -392,8 +395,7 @@ export class ModelManager {
     /**
      * Process an update on provided record with provided data. Updating
      * a record consists of applying direct updates first (i.e. explicit
-     * ones from `data`) and then indirect ones (i.e. compute/related fields
-     * and "after updates").
+     * ones from `data`) and then indirect ones (i.e. compute fields).
      *
      * @param {mail.model} record
      * @param {Object} data
@@ -467,7 +469,6 @@ export class ModelManager {
                             'dependencies',
                             'fieldType',
                             'readonly',
-                            'related',
                             'required',
                         ].includes(key)
                     );
@@ -485,7 +486,6 @@ export class ModelManager {
                             'inverse',
                             'isCausal',
                             'readonly',
-                            'related',
                             'relationType',
                             'required',
                             'to',
@@ -505,62 +505,11 @@ export class ModelManager {
                     }
                 }
                 // 3. Computed field.
-                if (field.compute && !(typeof field.compute === 'string')) {
-                    throw new Error(`Field "${Model}/${fieldName}" property "compute" must be a string (instance method name).`);
+                if (field.compute && !(typeof field.compute === 'string') && !(field.compute instanceof ComputeMethod)) {
+                    throw new Error(`Field "${Model}/${fieldName}" property "compute" must be a ComputeMethod or a string (instance method name).`);
                 }
-                if (field.compute && !(Model.prototype[field.compute])) {
+                if (field.compute && (typeof field.compute === 'string') && !(Model.prototype[field.compute])) {
                     throw new Error(`Field "${Model}/${fieldName}" property "compute" does not refer to an instance method of this Model.`);
-                }
-                // 4. Related field.
-                if (field.compute && field.related) {
-                    throw new Error(`Field "${Model}/${fieldName}" cannot be a related and compute field at the same time.`);
-                }
-                if (field.related) {
-                    if (!(typeof field.related === 'string')) {
-                        throw new Error(`Field "${Model}/${fieldName}" property "related" has invalid format.`);
-                    }
-                    const [relationName, relatedFieldName, other] = field.related.split('.');
-                    if (!relationName || !relatedFieldName || other) {
-                        throw new Error(`Field "${Model}/${fieldName}" property "related" has invalid format.`);
-                    }
-                    // find relation on self or parents.
-                    let relatedRelation;
-                    let TargetModel = Model;
-                    while (Models[TargetModel.modelName] && !relatedRelation) {
-                        if (TargetModel.fields) {
-                            relatedRelation = TargetModel.fields[relationName];
-                        }
-                        TargetModel = TargetModel.__proto__;
-                    }
-                    if (!relatedRelation) {
-                        throw new Error(`Related field "${Model}/${fieldName}" relates to unknown relation name "${relationName}".`);
-                    }
-                    if (relatedRelation.fieldType !== 'relation') {
-                        throw new Error(`Related field "${Model}/${fieldName}" relates to non-relational field "${relationName}".`);
-                    }
-                    // Assuming related relation is valid...
-                    // find field name on related model or any parents.
-                    const RelatedModel = Models[relatedRelation.to];
-                    let relatedField;
-                    TargetModel = RelatedModel;
-                    while (Models[TargetModel.modelName] && !relatedField) {
-                        if (TargetModel.fields) {
-                            relatedField = TargetModel.fields[relatedFieldName];
-                        }
-                        TargetModel = TargetModel.__proto__;
-                    }
-                    if (!relatedField) {
-                        throw new Error(`Related field "${Model}/${fieldName}" relates to unknown related model field "${relatedFieldName}".`);
-                    }
-                    if (relatedField.fieldType !== field.fieldType) {
-                        throw new Error(`Related field "${Model}/${fieldName}" has mismatch type with its related model field.`);
-                    }
-                    if (
-                        relatedField.fieldType === 'relation' &&
-                        relatedField.to !== field.to
-                    ) {
-                        throw new Error(`Related field "${Model}/${fieldName}" has mismatch target model name with its related model field.`);
-                    }
                 }
             }
         }
@@ -577,9 +526,6 @@ export class ModelManager {
                 const fieldName = field.fieldName;
                 if (!(['attribute', 'relation'].includes(field.fieldType))) {
                     throw new Error(`Field "${Model}/${fieldName}" has unsupported type ${field.fieldType}.`);
-                }
-                if (field.compute && field.related) {
-                    throw new Error(`Field "${Model}/${fieldName}" cannot be a related and compute field at the same time.`);
                 }
                 if (field.fieldType === 'attribute') {
                     continue;
@@ -612,20 +558,20 @@ export class ModelManager {
                         }" must define a model name in "to" (1st positional parameter of relation field helpers).`
                     );
                 }
-                const RelatedModel = Models[field.to];
-                if (!RelatedModel) {
+                const RelationModel = Models[field.to];
+                if (!RelationModel) {
                     throw new Error(
                         `Model name of relation "${Model}/${fieldName}" does not exist.`
                     );
                 }
-                const inverseField = RelatedModel.__fieldMap[field.inverse];
+                const inverseField = RelationModel.__fieldMap[field.inverse];
                 if (!inverseField) {
                     throw new Error(
                         `Relation "${
                             Model.modelName
                         }/${
                             fieldName
-                        }" has no inverse field "${RelatedModel}/${field.inverse}".`
+                        }" has no inverse field "${RelationModel}/${field.inverse}".`
                     );
                 }
                 if (inverseField.inverse !== fieldName) {
@@ -635,7 +581,7 @@ export class ModelManager {
                         }/${
                             fieldName
                         }" does not match with field name of relation "${
-                            RelatedModel.modelName
+                            RelationModel.modelName
                         }/${
                             inverseField.inverse
                         }".`
@@ -654,7 +600,7 @@ export class ModelManager {
                         }/${
                             fieldName
                         }" has inverse relation "${
-                            RelatedModel.modelName
+                            RelationModel.modelName
                         }/${
                             field.inverse
                         }" misconfigured (currently "${
@@ -678,7 +624,7 @@ export class ModelManager {
                         }" (${
                             field.relationType
                         }) and "${
-                            RelatedModel.modelName
+                            RelationModel.modelName
                         }/${
                             field.inverse
                         }" (${
@@ -699,10 +645,10 @@ export class ModelManager {
                     if (!(['one2one', 'many2one'].includes(field.relationType))) {
                         throw new Error(`Identifying field "${identifyingField}" on model "${Model}" has a relation of type "${field.relationType}" but identifying field is only supported for "one2one" and "many2one".`);
                     }
-                    const RelatedModel = Models[field.to];
-                    const inverseField = RelatedModel.__fieldMap[field.inverse];
+                    const RelationModel = Models[field.to];
+                    const inverseField = RelationModel.__fieldMap[field.inverse];
                     if (!inverseField.isCausal) {
-                        throw new Error(`Identifying field "${identifyingField}" on model "${Model}" has an inverse "${field.inverse}" not declared as "isCausal" on "${RelatedModel}".`);
+                        throw new Error(`Identifying field "${identifyingField}" on model "${Model}" has an inverse "${field.inverse}" not declared as "isCausal" on "${RelationModel}".`);
                     }
                 }
             }
@@ -844,11 +790,11 @@ export class ModelManager {
     _executeCreatedRecordsComputes() {
         const hasChanged = this._createdRecordsComputes.size > 0;
         for (const record of this._createdRecordsComputes) {
-            // Delete at every step to avoid recursion, indeed compute/related
-            // method might trigger an update cycle itself.
+            // Delete at every step to avoid recursion, indeed compute method
+            // might trigger an update cycle itself.
             this._createdRecordsComputes.delete(record);
             if (!record.exists()) {
-                throw Error(`Cannot start compute/related for already deleted ${record}.`);
+                throw Error(`Cannot start compute for already deleted ${record}.`);
             }
             const listeners = [];
             for (const field of record.constructor.__fieldList) {
@@ -858,21 +804,17 @@ export class ModelManager {
                         name: `compute ${field} of ${record}`,
                         onChange: (info) => {
                             this.startListening(listener);
-                            const res = record[field.compute]();
-                            this.stopListening(listener);
-                            this._update(record, { [field.fieldName]: res }, { allowWriteReadonly: true });
-                        },
-                    });
-                    listeners.push(listener);
-                }
-                if (field.related) {
-                    const listener = new Listener({
-                        isPartOfUpdateCycle: true,
-                        name: `related ${field} of ${record}`,
-                        onChange: (info) => {
-                            this.startListening(listener);
-                            const res = field.computeRelated(record);
-                            this.stopListening(listener);
+                            let res;
+                            try {
+                                res = (field.compute instanceof ComputeMethod)
+                                    ? this._parseAndExecuteCompute(record, field.compute)
+                                    : record[field.compute]();
+                            } catch (e) {
+                                console.error(`failed to execute ${listener}`, e);
+                                throw e;
+                            } finally {
+                                this.stopListening(listener);
+                            }
                             this._update(record, { [field.fieldName]: res }, { allowWriteReadonly: true });
                         },
                     });
@@ -976,12 +918,20 @@ export class ModelManager {
      * @private
      */
     _flushUpdateCycle(func) {
-        this._executeCreatedRecordsComputes();
-        this._notifyListenersInUpdateCycle();
-        this._executeUpdatedRecordsCheckRequired();
-        this._executeCreatedRecordsCreated();
-        this._executeCreatedRecordsOnChange();
-        this._notifyListenersAfterUpdateCycle();
+        try {
+            this._executeCreatedRecordsComputes();
+            this._notifyListenersInUpdateCycle();
+            this._executeUpdatedRecordsCheckRequired();
+            this._executeCreatedRecordsCreated();
+            this._executeCreatedRecordsOnChange();
+            this._notifyListenersAfterUpdateCycle();
+        } catch (e) {
+            // Helps debugging some silent errors, for example if they are
+            // caught in a stack (incorrectly) hiding them but on which we
+            // have no control (example: OWL rendering).
+            console.error(e);
+            throw e;
+        }
     }
 
     /**
@@ -1082,10 +1032,10 @@ export class ModelManager {
             const fieldName = typeof identifyingElement === 'string'
                 ? identifyingElement
                 : identifyingElement.reduce((fieldName, currentFieldName) => {
-                    const fieldValue = data[currentFieldName] !== undefined
+                    const value = data[currentFieldName] !== undefined
                         ? data[currentFieldName]
                         : Model.__fieldMap[currentFieldName].default;
-                    if (fieldValue === undefined) {
+                    if (value === undefined) {
                         return fieldName;
                     }
                     if (fieldName) {
@@ -1096,27 +1046,27 @@ export class ModelManager {
             if (!fieldName) {
                 throw new Error(`Identifying element "${identifyingElement}" on ${Model} is lacking a value.`);
             }
-            const fieldValue = data[fieldName] !== undefined
+            const value = data[fieldName] !== undefined
                 ? data[fieldName]
                 : Model.__fieldMap[fieldName].default;
-            if (fieldValue === undefined) {
+            if (value === undefined) {
                 throw new Error(`Identifying field "${fieldName}" on ${Model} is lacking a value.`);
             }
             const relationTo = Model.__fieldMap[fieldName].to;
             if (!relationTo) {
-                return `${fieldName}: ${fieldValue}`;
+                return `${fieldName}: ${value}`;
             }
             const OtherModel = this.models[relationTo];
-            if (fieldValue instanceof OtherModel) {
-                return `${fieldName}: ${this._getRecordIndex(OtherModel, fieldValue)}`;
+            if (value instanceof OtherModel) {
+                return `${fieldName}: ${this._getRecordIndex(OtherModel, value)}`;
             }
-            if (!(fieldValue instanceof FieldCommand)) {
+            if (!(value instanceof FieldCommand)) {
                 throw new Error(`Identifying element "${Model}/${fieldName}" is expecting a command for relational field.`);
             }
-            if (!['link', 'insert', 'replace', 'insert-and-replace'].includes(fieldValue._name)) {
-                throw new Error(`Identifying element "${Model}/${fieldName}" is expecting a command of type "insert-and-replace", "replace", "insert" or "link". "${fieldValue._name}" was given instead.`);
+            if (!['link', 'insert', 'replace', 'insert-and-replace'].includes(value._name)) {
+                throw new Error(`Identifying element "${Model}/${fieldName}" is expecting a command of type "insert-and-replace", "replace", "insert" or "link". "${value._name}" was given instead.`);
             }
-            const relationValue = fieldValue._value;
+            const relationValue = value._value;
             if (!relationValue) {
                 throw new Error(`Identifying element "${Model}/${fieldName}" is lacking a relation value.`);
             }
@@ -1228,7 +1178,7 @@ export class ModelManager {
      * which the `onChange` function was defined to be called while still in the
      * update cycle.
      *
-     * In particular this is the case of records with compute or related fields.
+     * In particular this is the case of records with compute fields.
      *
      * Note: A double loop is used because calling the `onChange` function might
      * lead to more listeners being flagged to be notified.
@@ -1243,6 +1193,155 @@ export class ModelManager {
         }
         if (hasChanged) {
             this._flushUpdateCycle();
+        }
+    }
+
+    /**
+     * Computes the given computeMethod on the given record.
+     *
+     * @param {mail.model} record
+     * @param {ComputeMethod|any} computeMethod
+     * @returns {any}
+     */
+    _parseAndExecuteCompute(record, computeMethod) {
+        if (!(computeMethod instanceof ComputeMethod)) {
+            return computeMethod;
+        }
+        const parsedValue = this._parseAndExecuteCompute(record, computeMethod.value);
+        switch (computeMethod.name) {
+            case 'and': {
+                const allRes = parsedValue.map(value => this._parseAndExecuteCompute(record, value));
+                return allRes.every(res => res);
+            }
+            case 'areFieldsDefinedAndEqual': {
+                const allRes = parsedValue.map(fieldPath =>
+                    this._parseAndExecuteCompute(record, fieldValue(
+                        this._parseAndExecuteCompute(record, fieldPath)
+                    ))
+                );
+                return allRes.every(res => res !== undefined && res === allRes[0]);
+            }
+            case 'branching': {
+                const condition = this._parseAndExecuteCompute(record, parsedValue[0]);
+                if (condition) {
+                    return this._parseAndExecuteCompute(record, parsedValue[1]);
+                }
+                return this._parseAndExecuteCompute(record, parsedValue[2]);
+            }
+            case 'clearIfTrue': {
+                return parsedValue ? clear() : undefined;
+            }
+            case 'dateToLocaleDateString': {
+                const date = this._parseAndExecuteCompute(record, parsedValue[0]);
+                const localeCode = this._parseAndExecuteCompute(record, parsedValue[1]);
+                const currentDate = new Date();
+                const options = { day: 'numeric', month: 'short' };
+                if (currentDate.getFullYear() !== date.getFullYear()) {
+                    options.year = 'numeric';
+                }
+                return date.toLocaleDateString(localeCode, options);
+            }
+            case 'fieldValue': {
+                const [fieldName, ...args] = parsedValue.split('.');
+                const field = record.constructor.__fieldMap[fieldName];
+                if (!field) {
+                    throw Error(`Field "${fieldName}" does not exist on "${record}".`);
+                }
+                const currentValue = record[field.fieldName];
+                if (currentValue === undefined || args.length === 0) {
+                    return currentValue;
+                }
+                const remainingRelations = args.join('.');
+                if ((['one2one', 'many2one'].includes(field.relationType))) {
+                    return this._parseAndExecuteCompute(currentValue, fieldValue(remainingRelations));
+                }
+                if (currentValue.length === 0) {
+                    return currentValue;
+                }
+                const targetField = currentValue[0].constructor.__fieldMap[args[0]];
+                const res = currentValue.map(resRecord => this._parseAndExecuteCompute(resRecord, fieldValue(remainingRelations)));
+                if (['one2many', 'many2many'].includes(targetField.relationType)) {
+                    return res.flat();
+                }
+                return res;
+            }
+            case 'firstDefinedFieldMapping': {
+                for (const [fieldPath, result] of parsedValue) {
+                    const value = this._parseAndExecuteCompute(record, fieldValue(
+                        this._parseAndExecuteCompute(record, fieldPath)
+                    ));
+                    if (value !== undefined) {
+                        return this._parseAndExecuteCompute(record, result);
+                    }
+                }
+                return;
+            }
+            case 'firstDefinedFieldValue': {
+                for (const fieldPath of parsedValue) {
+                    const value = this._parseAndExecuteCompute(record, fieldValue(
+                        this._parseAndExecuteCompute(record, fieldPath)
+                    ));
+                    if (value !== undefined) {
+                        return value;
+                    }
+                }
+                return;
+            }
+            case 'isAnyFieldTrue': {
+                const allRes = parsedValue.map(value =>
+                    this._parseAndExecuteCompute(record, fieldValue(
+                        this._parseAndExecuteCompute(record, value))
+                    )
+                );
+                return allRes.some(res => res);
+            }
+            case 'isDefined': {
+                return parsedValue !== undefined;
+            }
+            case 'isFieldDefined': {
+                return this._parseAndExecuteCompute(record, fieldValue(parsedValue)) !== undefined;
+            }
+            case 'isFieldDefinedAndEqualToAnyOf': {
+                const value = this._parseAndExecuteCompute(record, fieldValue(parsedValue[0]));
+                if (value === undefined) {
+                    return false;
+                }
+                const choices = parsedValue[1].map(value => this._parseAndExecuteCompute(record, value));
+                return choices.includes(value);
+            }
+            case 'isFieldDefinedAndIncluding': {
+                const value = this._parseAndExecuteCompute(record, fieldValue(parsedValue[0]));
+                if (value === undefined) {
+                    return false;
+                }
+                return value.includes(this._parseAndExecuteCompute(record, fieldValue(parsedValue[1])));
+            }
+            case 'localeFromUnderscoreToDash': {
+                return parsedValue.replace('_', '-');
+            }
+            case 'or': {
+                const allRes = parsedValue.map(value => this._parseAndExecuteCompute(record, value));
+                return allRes.some(res => res);
+            }
+            case 'replaceOrClear': {
+                return parsedValue !== undefined ? replace(parsedValue) : clear();
+            }
+            case 'setOrClear': {
+                return parsedValue !== undefined ? parsedValue : clear();
+            }
+            case 'sprintf': {
+                const [placeholderString, args] = parsedValue;
+                return _.str.sprintf(
+                    this._parseAndExecuteCompute(record, placeholderString).toString(),
+                    ...(args.map(arg => this._parseAndExecuteCompute(record, arg).toString())),
+                );
+            }
+            case 'stringToDate': {
+                return str_to_date(parsedValue);
+            }
+            default: {
+                throw Error(`Compute method "${computeMethod.name}" is not supported (on "${record}").`);
+            }
         }
     }
 
@@ -1284,10 +1383,10 @@ export class ModelManager {
                 if (field.inverse) {
                     continue;
                 }
-                const RelatedModel = Models[field.to];
+                const RelationModel = Models[field.to];
                 const inverseField = this._makeInverseRelationField(Model, field);
                 field.inverse = inverseField.fieldName;
-                RelatedModel.fields[inverseField.fieldName] = inverseField;
+                RelationModel.fields[inverseField.fieldName] = inverseField;
             }
         }
         /**

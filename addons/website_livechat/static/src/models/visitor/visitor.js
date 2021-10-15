@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
+import { firstDefinedFieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2many } from '@mail/model/model_field';
-import { insert, link, unlink } from '@mail/model/model_field_command';
+import { insert, unlink } from '@mail/model/model_field_command';
 
 function factory(dependencies) {
 
@@ -71,20 +72,6 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {mail.country}
-         */
-        _computeCountry() {
-            if (this.partner && this.partner.country) {
-                return link(this.partner.country);
-            }
-            if (this.country) {
-                return link(this.country);
-            }
-            return unlink();
-        }
-
-        /**
-         * @private
          * @returns {string}
          */
         _computeNameOrDisplayName() {
@@ -106,7 +93,7 @@ function factory(dependencies) {
          * Country of the visitor.
          */
         country: many2one('mail.country', {
-            compute: '_computeCountry',
+            compute: replaceOrClear(firstDefinedFieldValue('partner.country', 'country')),
         }),
         /**
          * Display name of the visitor.

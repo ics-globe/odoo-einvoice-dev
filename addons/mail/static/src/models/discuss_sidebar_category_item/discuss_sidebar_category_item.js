@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, setOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one } from '@mail/model/model_field';
 import { clear, link } from '@mail/model/model_field_command';
@@ -302,7 +303,7 @@ function factory(dependencies) {
          * Type of the related channel thread.
          */
         channelType: attr({
-            related: 'channel.channel_type',
+            compute: setOrClear(fieldValue('channel.channel_type')),
         }),
 
     };

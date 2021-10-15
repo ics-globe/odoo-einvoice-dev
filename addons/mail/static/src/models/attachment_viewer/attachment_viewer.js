@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one, one2one } from '@mail/model/model_field';
 
@@ -56,7 +57,7 @@ function factory(dependencies) {
         }),
         attachments: many2many('mail.attachment', {
             inverse: 'attachmentViewer',
-            related: 'attachmentList.viewableAttachments',
+            compute: replaceOrClear(fieldValue('attachmentList.viewableAttachments')),
         }),
         /**
          * Determines the dialog displaying this attachment viewer.

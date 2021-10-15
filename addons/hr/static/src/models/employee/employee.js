@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, one2one } from '@mail/model/model_field';
 import { insert, unlink } from '@mail/model/model_field_command';
@@ -176,7 +177,7 @@ function factory(dependencies) {
          */
         partner: one2one('mail.partner', {
             inverse: 'employee',
-            related: 'user.partner',
+            compute: replaceOrClear(fieldValue('user.partner')),
         }),
         /**
          * User related to this employee.

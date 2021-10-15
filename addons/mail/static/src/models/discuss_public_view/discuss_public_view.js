@@ -1,7 +1,8 @@
 /** @odoo-module **/
 
-import { attr, one2one } from '@mail/model/model_field';
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
+import { attr, one2one } from '@mail/model/model_field';
 import { clear, insertAndReplace, link } from '@mail/model/model_field_command';
 
 function factory(dependencies) {
@@ -81,7 +82,7 @@ function factory(dependencies) {
          */
         threadView: one2one('mail.thread_view', {
             readonly: true,
-            related: 'threadViewer.threadView',
+            compute: replaceOrClear(fieldValue('threadViewer.threadView')),
         }),
         /**
          * States the thread viewer linked to this discuss public view.

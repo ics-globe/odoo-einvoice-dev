@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2one } from '@mail/model/model_field';
 import { clear, insertAndReplace, link, unlink } from '@mail/model/model_field_command';
@@ -512,7 +513,7 @@ function factory(dependencies) {
          * States the `mail.thread_view` displaying `this.thread`.
          */
         threadView: one2one('mail.thread_view', {
-            related: 'threadViewer.threadView',
+            compute: replaceOrClear(fieldValue('threadViewer.threadView')),
         }),
         /**
          * Determines the `mail.thread_viewer` managing the display of `this.thread`.

@@ -21,7 +21,6 @@ export class ModelField {
         inverse,
         isCausal = false,
         readonly = false,
-        related,
         relationType,
         required = false,
         to,
@@ -60,29 +59,17 @@ export class ModelField {
         this.inverse = inverse;
         /**
          * This prop only makes sense in a relational field. If set, when this
-         * relation is removed, the related record is automatically deleted.
+         * relation is removed, the relation record is automatically deleted.
          */
         this.isCausal = isCausal;
         /**
          * Determines whether the field is read only. Read only field
          * can't be updated once the record is created.
          * An exception is made for computed fields (updated when the
-         * dependencies are updated) and related fields (updated when the
+         * dependencies are updated) and relation fields (updated when the
          * inverse relation changes).
          */
         this.readonly = readonly;
-        /**
-         * If set, this field acts as a related field, and this prop contains
-         * a string that references the related field. It should have the
-         * following format: '<relationName>.<relatedFieldName>', where
-         * <relationName> is a relational field name on this model or a parent
-         * model (note: could itself be computed or related), and
-         * <relatedFieldName> is the name of field on the records that are
-         * related to current record from this relation. When there are more
-         * than one record in the relation, it maps all related fields per
-         * record in relation.
-         */
-        this.related = related;
         /**
          * This prop only makes sense in a relational field. Determine which
          * type of relation there is between current record and other records.
@@ -183,49 +170,6 @@ export class ModelField {
             hasChanged = true;
         }
         return hasChanged;
-    }
-
-    /**
-     * Compute method when this field is related.
-     *
-     * @private
-     * @param {mail.model} record
-     */
-    computeRelated(record) {
-        const [relationName, relatedFieldName] = this.related.split('.');
-        const Model = record.constructor;
-        const relationField = Model.__fieldMap[relationName];
-        if (['one2many', 'many2many'].includes(relationField.relationType)) {
-            const newVal = [];
-            for (const otherRecord of record[relationName]) {
-                const otherValue = otherRecord[relatedFieldName];
-                if (otherValue) {
-                    if (otherValue instanceof Array) {
-                        for (const v of otherValue) {
-                            newVal.push(v);
-                        }
-                    } else {
-                        newVal.push(otherValue);
-                    }
-                }
-            }
-            if (this.fieldType === 'relation') {
-                return replace(newVal);
-            }
-            return newVal;
-        }
-        const otherRecord = record[relationName];
-        if (otherRecord) {
-            const newVal = otherRecord[relatedFieldName];
-            if (newVal === undefined) {
-                return clear();
-            }
-            if (this.fieldType === 'relation') {
-                return replace(newVal);
-            }
-            return newVal;
-        }
-        return clear();
     }
 
     /**
@@ -744,9 +688,9 @@ export class ModelField {
             if (hasToUpdateInverse) {
                 if (!recordToUnlink.exists()) {
                     // This case should never happen ideally, but the current
-                    // way of handling related relational fields make it so that
-                    // deleted records are not always reflected immediately in
-                    // these related fields.
+                    // way of handling computed relational fields make it so
+                    // that deleted records are not always reflected immediately
+                    // in these computed fields.
                     continue;
                 }
                 // apply causality
@@ -788,9 +732,9 @@ export class ModelField {
         if (hasToUpdateInverse) {
             if (!otherRecord.exists()) {
                 // This case should never happen ideally, but the current
-                // way of handling related relational fields make it so that
+                // way of handling computed relational fields make it so that
                 // deleted records are not always reflected immediately in
-                // these related fields.
+                // these computed fields.
                 return;
             }
             // apply causality
@@ -814,7 +758,7 @@ export class ModelField {
      *
      * @private
      * @param {mail.model} record
-     * @throws {Error} if record does not satisfy related model
+     * @throws {Error} if record does not satisfy relation model
      */
     _verifyRelationalValue(record) {
         if (!record) {

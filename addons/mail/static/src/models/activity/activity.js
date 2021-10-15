@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
+import { areFieldsDefinedAndEqual, clearIfTrue, fieldValue, isFieldDefinedAndEqualToAnyOf } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one } from '@mail/model/model_field';
-import { clear, insert, unlink, unlinkAll } from '@mail/model/model_field_command';
+import { insert, unlink, unlinkAll } from '@mail/model/model_field_command';
 
 function factory(dependencies) {
 
@@ -213,35 +214,6 @@ function factory(dependencies) {
             });
         }
 
-        //----------------------------------------------------------------------
-        // Private
-        //----------------------------------------------------------------------
-
-        /**
-         * @private
-         * @returns {boolean}
-         */
-        _computeIsCurrentPartnerAssignee() {
-            if (!this.assignee || !this.assignee.partner || !this.messaging.currentPartner) {
-                return false;
-            }
-            return this.assignee.partner === this.messaging.currentPartner;
-        }
-
-        /**
-         * Wysiwyg editor put `<p><br></p>` even without a note on the activity.
-         * This compute replaces this almost empty value by an actual empty
-         * value, to reduce the size the empty note takes on the UI.
-         *
-         * @private
-         * @returns {string|undefined}
-         */
-        _computeNote() {
-            if (this.note === '<p><br></p>') {
-                return clear();
-            }
-            return this.note;
-        }
     }
 
     Activity.fields = {
@@ -271,8 +243,7 @@ function factory(dependencies) {
             required: true,
         }),
         isCurrentPartnerAssignee: attr({
-            compute: '_computeIsCurrentPartnerAssignee',
-            default: false,
+            compute: areFieldsDefinedAndEqual('assignee.partner', 'messaging.currentPartner'),
         }),
         mailTemplates: many2many('mail.mail_template', {
             inverse: 'activities',
@@ -284,7 +255,12 @@ function factory(dependencies) {
          * directly from user input and not from server data as it's not escaped.
          */
         note: attr({
-            compute: '_computeNote',
+            /**
+             * Wysiwyg editor put `<p><br></p>` even without a note on the activity.
+             * This compute replaces this almost empty value by an actual empty
+             * value, to reduce the size the empty note takes on the UI.
+             */
+            compute: clearIfTrue(isFieldDefinedAndEqualToAnyOf('note', ['<p><br></p>', '<br>'])),
         }),
         /**
          * Determines that an activity is linked to a requesting partner or not.

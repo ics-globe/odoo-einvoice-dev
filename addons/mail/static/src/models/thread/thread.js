@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one, one2many, one2one } from '@mail/model/model_field';
 import { clear, insert, insertAndReplace, link, replace, unlink, unlinkAll } from '@mail/model/model_field_command';
@@ -2070,7 +2071,7 @@ function factory(dependencies) {
             compute: '_computeFetchMessagesUrl',
         }),
         followersPartner: many2many('mail.partner', {
-            related: 'followers.partner',
+            compute: replaceOrClear(fieldValue('followers.partner')),
         }),
         followers: one2many('mail.follower', {
             inverse: 'followedThread',

@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2one } from '@mail/model/model_field';
 import { clear, insertAndReplace, replace } from '@mail/model/model_field_command';
@@ -199,7 +200,7 @@ function factory(dependencies) {
          * States the message on which this action message list operates.
          */
         message: many2one('mail.message', {
-            related: 'messageView.message',
+            compute: replaceOrClear(fieldValue('messageView.message')),
         }),
         /**
          * States the message view that controls this message action list.

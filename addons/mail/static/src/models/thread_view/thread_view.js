@@ -1,9 +1,10 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear, setOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { RecordDeletedError } from '@mail/model/model_errors';
 import { attr, many2many, many2one, one2many, one2one } from '@mail/model/model_field';
-import { clear, insertAndReplace, link, replace, unlink, update } from '@mail/model/model_field_command';
+import { clear, insertAndReplace, link, replace, unlink } from '@mail/model/model_field_command';
 import { OnChange } from '@mail/model/model_onchange';
 
 function factory(dependencies) {
@@ -342,7 +343,7 @@ function factory(dependencies) {
 
     ThreadView.fields = {
         compact: attr({
-            related: 'threadViewer.compact',
+            compute: setOrClear(fieldValue('threadViewer.compact')),
         }),
         /**
          * States which channel invitation form is operating this thread view.
@@ -382,17 +383,17 @@ function factory(dependencies) {
          * Determines which extra class this thread view component should have.
          */
         extraClass: attr({
-            related: 'threadViewer.extraClass',
+            compute: setOrClear(fieldValue('threadViewer.extraClass')),
         }),
         hasComposerFocus: attr({
-            related: 'composerView.hasFocus',
+            compute: setOrClear(fieldValue('composerView.hasFocus')),
         }),
         /**
          * Determines whether this thread viewer has a member list.
          * Only makes sense if thread.hasMemberListFeature is true.
          */
         hasMemberList: attr({
-            related: 'threadViewer.hasMemberList',
+            compute: setOrClear(fieldValue('threadViewer.hasMemberList')),
         }),
         /**
          * Determines whether this thread view should squash close messages.
@@ -406,7 +407,7 @@ function factory(dependencies) {
          * Determines whether this thread view has a top bar.
          */
         hasTopbar: attr({
-            related: 'threadViewer.hasTopbar',
+            compute: setOrClear(fieldValue('threadViewer.hasTopbar')),
         }),
         /**
          * States whether `this.threadCache` is currently loading messages.
@@ -452,7 +453,7 @@ function factory(dependencies) {
          * Last message in the context of the currently displayed thread cache.
          */
         lastMessage: many2one('mail.message', {
-            related: 'thread.lastMessage',
+            compute: replaceOrClear(fieldValue('thread.lastMessage')),
         }),
         /**
          * Most recent message in this ThreadView that has been shown to the
@@ -460,7 +461,7 @@ function factory(dependencies) {
          */
         lastVisibleMessage: many2one('mail.message'),
         messages: many2many('mail.message', {
-            related: 'threadCache.messages',
+            compute: replaceOrClear(fieldValue('threadCache.messages')),
         }),
         /**
          * States the message views used to display this messages.
@@ -475,7 +476,7 @@ function factory(dependencies) {
          * Either 'asc', or 'desc'.
          */
         order: attr({
-            related: 'threadViewer.order',
+            compute: setOrClear(fieldValue('threadViewer.order')),
         }),
         /**
          * Determines the message that's currently being replied to.
@@ -503,7 +504,7 @@ function factory(dependencies) {
         thread: many2one('mail.thread', {
             inverse: 'threadViews',
             readonly: true,
-            related: 'threadViewer.thread',
+            compute: replaceOrClear(fieldValue('threadViewer.thread')),
         }),
         /**
          * States the `mail.thread_cache` currently displayed by `this`.
@@ -511,7 +512,7 @@ function factory(dependencies) {
         threadCache: many2one('mail.thread_cache', {
             inverse: 'threadViews',
             readonly: true,
-            related: 'threadViewer.threadCache',
+            compute: replaceOrClear(fieldValue('threadViewer.threadCache')),
         }),
         threadCacheInitialScrollHeight: attr({
             compute: '_computeThreadCacheInitialScrollHeight',
@@ -524,14 +525,14 @@ function factory(dependencies) {
          */
         threadCacheInitialScrollHeights: attr({
             default: {},
-            related: 'threadViewer.threadCacheInitialScrollHeights',
+            compute: setOrClear(fieldValue('threadViewer.threadCacheInitialScrollHeights')),
         }),
         /**
          * List of saved initial scroll positions of thread caches.
          */
         threadCacheInitialScrollPositions: attr({
             default: {},
-            related: 'threadViewer.threadCacheInitialScrollPositions',
+            compute: setOrClear(fieldValue('threadViewer.threadCacheInitialScrollPositions')),
         }),
         /**
          * Determines the `mail.thread_viewer` currently managing `this`.

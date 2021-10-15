@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one, one2one } from '@mail/model/model_field';
 import { clear, insertAndReplace } from '@mail/model/model_field_command';
@@ -132,7 +133,7 @@ function factory(dependencies) {
          * States the `mail.thread_cache` that should be displayed by `this`.
          */
         threadCache: many2one('mail.thread_cache', {
-            related: 'thread.cache',
+            compute: replaceOrClear(fieldValue('thread.cache')),
         }),
         /**
          * Determines the initial scroll height of thread caches, which is the

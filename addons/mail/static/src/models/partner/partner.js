@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { fieldValue, replaceOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one, one2many, one2one } from '@mail/model/model_field';
 import { insert, link, unlinkAll } from '@mail/model/model_field_command';
@@ -451,7 +452,7 @@ function factory(dependencies) {
         }),
         email: attr(),
         failureNotifications: one2many('mail.notification', {
-            related: 'messagesAsAuthor.failureNotifications',
+            compute: replaceOrClear(fieldValue('messagesAsAuthor.failureNotifications')),
         }),
         /**
          * Whether an attempt was already made to fetch the user corresponding

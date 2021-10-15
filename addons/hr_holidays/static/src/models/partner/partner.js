@@ -1,6 +1,7 @@
 odoo.define('hr_holidays/static/src/models/partner/partner.js', function (require) {
 'use strict';
 
+const { and, branching, dateToLocaleDateString, fieldValue, isFieldDefined, localeFromUnderscoreToDash, sprintf, stringToDate } = require('@mail/model/model_compute_method');
 const {
     registerClassPatchModel,
     registerFieldPatchModel,
@@ -9,7 +10,7 @@ const {
 const { attr } = require('@mail/model/model_field');
 const { clear } = require('@mail/model/model_field_command');
 
-const { str_to_date } = require('web.time');
+const { _lt } = require('@web/core/l10n/translation');
 
 registerClassPatchModel('mail.partner', 'hr_holidays/static/src/models/partner/partner.js', {
     /**
@@ -25,26 +26,6 @@ registerClassPatchModel('mail.partner', 'hr_holidays/static/src/models/partner/p
 });
 
 registerInstancePatchModel('mail.partner', 'hr_holidays/static/src/models/partner/partner.js', {
-    /**
-     * @private
-     */
-    _computeOutOfOfficeText() {
-        if (!this.outOfOfficeDateEnd) {
-            return clear();
-        }
-        if (!this.messaging.locale || !this.messaging.locale.language) {
-            return clear();
-        }
-        const currentDate = new Date();
-        const date = str_to_date(this.outOfOfficeDateEnd);
-        const options = { day: 'numeric', month: 'short' };
-        if (currentDate.getFullYear() !== date.getFullYear()) {
-            options.year = 'numeric';
-        }
-        const localeCode = this.messaging.locale.language.replace(/_/g, '-');
-        const formattedDate = date.toLocaleDateString(localeCode, options);
-        return _.str.sprintf(this.env._t("Out of office until %s"), formattedDate);
-    },
     /**
      * @override
      */
@@ -67,7 +48,20 @@ registerFieldPatchModel('mail.partner', 'hr/static/src/models/partner/partner.js
      * Text shown when partner is out of office.
      */
     outOfOfficeText: attr({
-        compute: '_computeOutOfOfficeText',
+        compute: branching(
+            and(
+                isFieldDefined('outOfOfficeDateEnd'),
+                isFieldDefined('messaging.locale.language'),
+            ),
+            sprintf(
+                _lt("Out of office until %s"),
+                dateToLocaleDateString(
+                    stringToDate(fieldValue('outOfOfficeDateEnd')),
+                    localeFromUnderscoreToDash(fieldValue('messaging.locale.language')),
+                ),
+            ),
+            clear(),
+        ),
     }),
 });
 

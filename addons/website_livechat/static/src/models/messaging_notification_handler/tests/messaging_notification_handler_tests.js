@@ -30,7 +30,7 @@ QUnit.module('messaging_notification_handler_tests.js', {
     },
 });
 
-QUnit.test('should open chat window on send chat request to website visitor', async function (assert) {
+QUnit.test('should open chat window on send chat request to website visitor [REQUIRE FOCUS]', async function (assert) {
     assert.expect(3);
 
     this.data['website.visitor'].records.push({

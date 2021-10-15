@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
+import { firstDefinedFieldMapping, setOrClear } from '@mail/model/model_compute_method';
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2one } from '@mail/model/model_field';
-import { clear, insert, insertAndReplace, replace } from '@mail/model/model_field_command';
+import { insert, insertAndReplace, replace } from '@mail/model/model_field_command';
 
 function factory(dependencies) {
 
@@ -75,25 +76,6 @@ function factory(dependencies) {
 
         /**
          * @private
-         * @returns {number}
-         */
-        _computeHeight() {
-            if (!this.attachmentList) {
-                return clear();
-            }
-            if (this.attachmentList.composerView) {
-                return 50;
-            }
-            if (this.attachmentList.chatter) {
-                return 160;
-            }
-            if (this.attachmentList.message) {
-                return 300;
-            }
-        }
-
-        /**
-         * @private
          * @returns {string}
          */
         _computeImageUrl() {
@@ -107,16 +89,6 @@ function factory(dependencies) {
             return `/web/image/${this.attachment.id}/${this.width}x${this.height}${accessToken}`;
         }
 
-        /**
-         * Returns an arbitrary high value, this is effectively a max-width and
-         * the height should be more constrained.
-         *
-         * @private
-         * @returns {number}
-         */
-        _computeWidth() {
-            return 1920;
-        }
     }
 
     AttachmentImage.fields = {
@@ -150,7 +122,11 @@ function factory(dependencies) {
          * Determines the max height of this attachment image in px.
          */
         height: attr({
-            compute: '_computeHeight',
+            compute: setOrClear(firstDefinedFieldMapping(
+                ['attachmentList.composerView', 50],
+                ['attachmentList.chatter', 160],
+                ['attachmentList.message', 300],
+            )),
             required: true,
         }),
         imageUrl: attr({
@@ -160,7 +136,11 @@ function factory(dependencies) {
          * Determines the max width of this attachment image in px.
          */
         width: attr({
-            compute: '_computeWidth',
+            /**
+             * Returns an arbitrary high value, this is effectively a max-width
+             * and the height should be more constrained.
+             */
+            compute: setOrClear(1920),
             required: true,
         }),
     };
