@@ -146,15 +146,13 @@ class SurveyQuestion(models.Model):
         if the specified conditional answer have been selected in a previous question""")
     triggering_question_id = fields.Many2one(
         'survey.question', string="Triggering Question", copy=False, compute="_compute_triggering_question_id",
-        store=True, readonly=False, help="Question containing the triggering answer to display the current question.",
-        domain="""[('survey_id', '=', survey_id),
-                 '&', ('question_type', 'in', ['simple_choice', 'multiple_choice']),
-                 '|',
-                     ('sequence', '<', sequence),
-                     '&', ('sequence', '=', sequence), ('id', '<', id)]""")
+        store=False, readonly=False, help="Question containing the triggering answer to display the current question.")
+    allowed_triggering_question_ids = fields.Many2many(
+        'survey.question', string="Allowed Triggering Questions", copy=False, compute="_compute_allowed_triggering_question_ids",
+        store=False, readonly=True)
     triggering_answer_id = fields.Many2one(
         'survey.question.answer', string="Triggering Answer", copy=False, compute="_compute_triggering_answer_id",
-        store=True, readonly=False, help="Answer that will trigger the display of the current question.",
+        store=False, readonly=False, help="Answer that will trigger the display of the current question.",
         domain="[('question_id', '=', triggering_question_id)]")
 
     _sql_constraints = [
@@ -222,7 +220,19 @@ class SurveyQuestion(models.Model):
             if question.question_type != 'char_box':
                 question.save_as_nickname = False
 
-    @api.depends('is_conditional')
+    @api.depends('survey_id', 'survey_id.question_ids')
+    def _compute_allowed_triggering_question_ids(self):
+        """ This field/function is required to fetch the right questions when
+        the child question does not yet exist as a question. """
+        for question in self:
+            question.allowed_triggering_question_ids = self.search([
+                ('survey_id', '=', (question.survey_id._origin.id
+                                    if isinstance(question.survey_id.id, models.NewId)
+                                    else question.survey_id.id)),
+                ('question_type', 'in', ['simple_choice', 'multiple_choice'])
+            ])
+
+    @api.depends('allowed_triggering_question_ids')
     def _compute_triggering_question_id(self):
         """ Used as an 'onchange' : Reset the triggering question if user uncheck 'Conditional Display'
             Avoid CacheMiss : set the value to False if the value is not set yet."""

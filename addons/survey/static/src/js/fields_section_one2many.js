@@ -148,6 +148,7 @@ var SectionFieldOne2Many = FieldOne2Many.extend({
         this._super.apply(this, arguments);
         this.sectionFieldName = "is_page";
         this.rendered = false;
+        this.disable_multiple_selection = false;
     },
     /**
      * Overridden to use our custom renderer
@@ -160,6 +161,7 @@ var SectionFieldOne2Many = FieldOne2Many.extend({
         }
         return this._super.apply(this, arguments);
     },
+
     /**
      * Overridden to allow different behaviours depending on
      * the object we want to add. Adding a section would be done inline
@@ -175,9 +177,118 @@ var SectionFieldOne2Many = FieldOne2Many.extend({
             var context = new Context(context_str).eval();
             if (context['default_' + this.sectionFieldName]) {
                 this.editable = "bottom";
+                this._super.apply(this, arguments);
+            } else {
+                var self = this;
+                var fnSuper = this._super;
+                var fnArguments = arguments;
+                ev.data = { 'disable_multiple_selection': false };
+                // ensures the survey exists
+                this.trigger_up('save_form_before_new_question', {
+                    callback: function () { fnSuper.apply(self, fnArguments); }
+                });
             }
+        } else {
+            this._super.apply(this, arguments);
         }
-        this._super.apply(this, arguments);
+    },
+
+    /**
+     * Overridden to save the survey after each question
+     * @private
+     * @param {*} data
+     * @override
+     */
+     _addCreateRecordRow(data) {
+        const self = this;
+        if (this.editable || data.forceEditable) {
+            if (!this.activeActions.create) {
+                if (data.onFail) {
+                    data.onFail();
+                }
+            } else if (!this.creatingRecord) {
+                this.creatingRecord = true;
+                this.trigger_up('edited_list', { id: this.value.id });
+                this._setValue({
+                    operation: 'CREATE',
+                    position: this.editable || data.forceEditable,
+                    context: data.context,
+                }, {
+                    allowWarning: data.allowWarning
+                }).then(function () {
+                    self.creatingRecord = false;
+                }).then(function (){
+                    if (data.onSuccess){
+                        data.onSuccess();
+                    }
+                }).guardedCatch(function() {
+                    self.creatingRecord = false;
+                });
+            }
+        } else {
+            this._openFormDialog({
+                context: data.context && data.context[0],
+                disable_multiple_selection: data.disable_multiple_selection,
+                on_saved: async function (record) {
+                    let that = this;
+                    self._setValue({operation: 'ADD', id: record.id});
+                    await self.renderer.commitChanges(record.id)
+                        .then(async function () {
+                        return await self._saveLine(record.id, that.parent)
+                    })
+                }
+            })
+        }
+    },
+    /**
+     * Saves the line associated to the given recordID. If the line is valid,
+     * it only has to be switched to readonly mode as all the line changes have
+     * already been notified to the model so that they can be saved in db if the
+     * parent view is actually saved. If the line is not valid, the line is to
+     * be discarded if the user agrees (this behavior is not a list editable
+     * one but a x2m one as it is made to replace the "discard" button which
+     * exists for list editable views).
+     *
+     * @private
+     * @override Overridden to make it run synchonously to have all previous data
+     *           at hand for the next questions (dependencies).
+     * @param {string} recordID
+     * @param controller
+     * @returns {Promise} resolved if the line was properly saved or discarded.
+     *                     rejected if the line could not be saved and the user
+     *                     did not agree to discard.
+     */
+    _saveLine: async function (recordID, controller) {
+        var self = this;
+        return await new Promise(async function (resolve, reject) {
+            var fieldNames = self.renderer.canBeSaved(recordID);
+            if (fieldNames.length) {
+                self.trigger_up('discard_changes', {
+                    recordID: recordID,
+                    onSuccess: resolve,
+                    onFailure: reject,
+                });
+            } else {
+                // Make that synchronous
+                return await self.renderer.setRowMode(recordID, 'readonly')
+                    .then(async function() {
+                        if (controller) {
+                            await controller._saveFormBeforeNewQuestion().then(resolve, reject);
+                        } else { // undefined when editing in tree view, so unnecessary as no special attributes are set.
+                            resolve();
+                        }
+                    });
+            }
+        }).then(async function () {
+            self._updateControlPanel({ size: self.value.count });
+            var newEval = self._evalColumnInvisibleFields();
+            if (!_.isEqual(self.currentColInvisibleFields, newEval)) {
+                self.currentColInvisibleFields = newEval;
+                self.renderer.updateState(self.value, {
+                    columnInvisibleFields: self.currentColInvisibleFields,
+                });
+            }
+        });
     },
 });
 
