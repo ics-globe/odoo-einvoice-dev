@@ -168,11 +168,12 @@ exports.PosModel = Backbone.Model.extend({
 
             return this.connect_to_proxy();
         }
-        if(this.config.limited_products_loading && this.config.product_load_background) {
+        if (this.config.limited_products_loading && this.config.product_load_background) {
             this.loadProductsBackground();
         }
-        if(this.config.limited_products_loading && this.config.partner_load_background )
+        if (this.config.limited_partners_loading && this.config.partner_load_background) {
             this.loadPartnersBackground();
+        }
         return Promise.resolve();
     },
     // releases ressources holds by the model at the end of life of the posmodel
@@ -963,22 +964,23 @@ exports.PosModel = Backbone.Model.extend({
         // same order as this background loading procedure.
         let i = 0;
 
-        let PartnerIds = [];
-        var fields = _.find(this.env.pos.models, function(model){ return model.label === 'load_partners'; }).fields;
+        let partners = [];
         do {
-            PartnerIds = await this.rpc({
-                model: 'res.partner',
-                method: 'search_read',
-                args: [[], fields],
+            partners = await this.rpc({
+                model: 'pos.session',
+                method: 'default_load_method',
+                args: [[odoo.pos_session_id], "res.partner", this.loadingMetas["res.partner"]],
                 kwargs: {
-                    limit: this.env.pos.config.limited_partners_amount,
-                    offset: this.env.pos.config.limited_partners_amount * i
+                    'search_options': {
+                        limit: this.env.pos.config.limited_partners_amount,
+                        offset: this.env.pos.config.limited_partners_amount * i,
+                    }
                 },
                 context: this.env.session.user_context,
             });
-            this.env.pos.db.add_partners(PartnerIds);
+            this.env.pos.db.add_partners(partners);
             i += 1;
-        } while(PartnerIds.length);
+        } while(partners.length);
     },
     set_start_order: function(){
         var orders = this.get('orders').models;
