@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo import models
+
+
+class PosSession(models.Model):
+    _inherit = "pos.session"
+
+    def _meta_product_product(self):
+        meta = super()._meta_product_product()
+        meta["fields"].append("optional_product_ids")
+        return meta
+
+    def _meta_pos_config(self):
+        meta = super()._meta_pos_config()
+        meta["fields"].append("iface_open_product_info")
+        return meta
