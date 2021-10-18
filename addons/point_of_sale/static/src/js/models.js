@@ -127,15 +127,17 @@ exports.PosModel = Backbone.Model.extend({
         // We fetch the backend data on the server asynchronously. this is done only when the pos user interface is launched,
         // Any change on this data made on the server is thus not reflected on the point of sale until it is relaunched.
         // when all the data has loaded, we compute some stuff, and declare the Pos ready to be used.
-        this.ready = this.load_server_data().then(async () => {
-            const [records, sortedIds, fields, loadingMetas] = await this.rpc({
+        this.ready = this.rpc({
                 model: 'pos.session',
                 method: 'load_pos_data',
                 args: [[odoo.pos_session_id]],
+            }).then(async ([records, sortedIds, fields, loadingMetas]) => {
+                const tmp = {}
+                for (const model of self.models) {
+                    await model.loaded(self, Object.values(records[model.model] || {}), tmp);
+                }
+                return self.after_load_server_data();
             });
-            return self.after_load_server_data();
-        });
-
     },
     getDefaultSearchDetails: function() {
         return {
@@ -242,7 +244,9 @@ exports.PosModel = Backbone.Model.extend({
         model:  'res.company',
         fields: [ 'currency_id', 'email', 'website', 'company_registry', 'vat', 'name', 'phone', 'partner_id' , 'country_id', 'state_id', 'tax_calculation_rounding_method'],
         ids:    function(self){ return [self.session.user_context.allowed_company_ids[0]]; },
-        loaded: function(self,companies){ self.company = companies[0]; },
+        loaded: function(self,companies){
+            self.company = companies[0];
+        },
     },{
         model:  'decimal.precision',
         fields: ['name','digits'],
@@ -331,7 +335,6 @@ exports.PosModel = Backbone.Model.extend({
             self.pos_session = pos_sessions[0];
             self.pos_session.login_number = odoo.login_number;
             self.config_id = self.config_id || self.pos_session && self.pos_session.config_id[0];
-            tmp.payment_method_ids = pos_sessions[0].payment_method_ids;
         },
     },{
         model: 'pos.config',
@@ -479,7 +482,7 @@ exports.PosModel = Backbone.Model.extend({
                 self.currency.decimals = 0;
             }
 
-            self.company_currency = currencies[1];
+            self.company_currency = currencies[1] || currencies[0];
         },
     },{
         model:  'pos.category',

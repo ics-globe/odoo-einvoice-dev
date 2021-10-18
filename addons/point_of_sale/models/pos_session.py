@@ -1576,8 +1576,9 @@ class PosSession(models.Model):
             Model = self.env[model]
         if ids:
             meta_copy.pop("domain")
-            return Model.browse(ids).read(load=False, **meta_copy)
-        return Model.search_read(load=False, **meta_copy)
+            # NOTE: Should add load=False as param in the read call to avoid loading the display_name of many2one field.
+            return Model.browse(ids).read(**meta_copy)
+        return Model.search_read(**meta_copy)
 
     def _exec_meta(self, model, meta, data):
         meta_method = getattr(self, meta["method"])
@@ -1735,6 +1736,13 @@ class PosSession(models.Model):
             "fields": [],
         }
 
+    @pos_loader.meta("pos.bill")
+    def _meta_pos_bill(self):
+        return {
+            "domain": [("id", "in", self.config_id.default_bill_ids.ids)],
+            "fields": ['name', 'value'],
+        }
+
     @pos_loader.meta("stock.picking.type")
     def _meta_stock_picking_type(self):
         return {
@@ -1827,6 +1835,7 @@ class PosSession(models.Model):
                 "write_date",
                 "available_in_pos",
                 "attribute_line_ids",
+                "active",
             ],
             "context": {
                 "display_default_code": False,
