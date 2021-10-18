@@ -171,7 +171,7 @@ exports.PosModel = Backbone.Model.extend({
         if(this.config.limited_products_loading && this.config.product_load_background) {
             this.loadProductsBackground();
         }
-        if(this.config.partner_load_background )
+        if(this.config.limited_products_loading && this.config.partner_load_background )
             this.loadPartnersBackground();
         return Promise.resolve();
     },
