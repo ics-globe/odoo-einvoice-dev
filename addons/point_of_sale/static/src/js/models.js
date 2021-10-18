@@ -132,6 +132,7 @@ exports.PosModel = Backbone.Model.extend({
                 method: 'load_pos_data',
                 args: [[odoo.pos_session_id]],
             }).then(async ([records, sortedIds, fields, loadingMetas]) => {
+                self.loadingMetas = loadingMetas;
                 const tmp = {}
                 for (const model of self.models) {
                     await model.loaded(self, Object.values(records[model.model] || {}), tmp);
@@ -167,10 +168,8 @@ exports.PosModel = Backbone.Model.extend({
 
             return this.connect_to_proxy();
         }
-        if(this.config.limited_products_loading) {
-            await this.loadLimitedProducts();
-            if(this.config.product_load_background)
-                this.loadProductsBackground();
+        if(this.config.limited_products_loading && this.config.product_load_background) {
+            this.loadProductsBackground();
         }
         if(this.config.partner_load_background )
             this.loadPartnersBackground();
@@ -939,33 +938,21 @@ exports.PosModel = Backbone.Model.extend({
             partnerModel.loaded(this, partners);
         }
     },
-    // Load the products following specific rules into the `db`
-    loadLimitedProducts: async function() {
-        let product_model = _.find(this.models, (model) => model.model === 'product.product');
-        const products = await this.rpc({
-            model: 'pos.config',
-            method: 'get_limited_products_loading',
-            args: [this.config_id, product_model.fields],
-            context: { ...this.session.user_context, ...product_model.context() },
-        });
-        product_model.loaded(this, products);
-        return products.length
-    },
     loadProductsBackground: async function() {
         let page = 0;
         let product_model = _.find(this.models, (model) => model.model === 'product.product');
         let products = [];
         do {
             products = await this.rpc({
-                model: 'product.product',
-                method: 'search_read',
+                model: 'pos.session',
+                method: 'default_load_method',
+                args: [[odoo.pos_session_id], "product.product", this.loadingMetas["product.product"]],
                 kwargs: {
-                    'domain': product_model.domain(this),
-                    'fields': product_model.fields,
-                    'offset': page * this.env.pos.config.limited_products_amount,
-                    'limit': this.env.pos.config.limited_products_amount
+                    'search_options': {
+                        'offset': page * this.env.pos.config.limited_products_amount,
+                        'limit': this.env.pos.config.limited_products_amount
+                    },
                 },
-                context: { ...this.session.user_context, ...product_model.context() },
             });
             product_model.loaded(this, products);
             page += 1;

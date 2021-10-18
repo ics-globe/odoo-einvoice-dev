@@ -1564,7 +1564,8 @@ class PosSession(models.Model):
             "products": result_products,
         }
 
-    def _default_load_method(self, model, meta_values):
+    def default_load_method(self, model, meta_values, search_options=None):
+        search_options = search_options or {}
         meta_copy = {**meta_values}
         meta_copy.pop("model", None)
         meta_copy.pop("ordered", None)
@@ -1578,7 +1579,7 @@ class PosSession(models.Model):
             meta_copy.pop("domain")
             # NOTE: Should add load=False as param in the read call to avoid loading the display_name of many2one field.
             return Model.browse(ids).read(**meta_copy)
-        return Model.search_read(**meta_copy)
+        return Model.search_read(**meta_copy, **search_options)
 
     def _exec_meta(self, model, meta, data):
         meta_method = getattr(self, meta["method"])
@@ -1596,7 +1597,7 @@ class PosSession(models.Model):
     def load_model(self, model, data, meta_result=False, load=False, post=False):
         _loader = pos_loader._loaders[model]
         meta = _loader.get("meta", False)
-        load = load or _loader.get("load", {"method": "_default_load_method", "requires": []})
+        load = load or _loader.get("load", {"method": "default_load_method", "requires": []})
         post = post or _loader.get("post", False)
         # 0. Initialize the result, to be populated at 2.
         result = {}
@@ -1854,6 +1855,12 @@ class PosSession(models.Model):
         if self.config_id.iface_tipproduct:
             domain = OR([domain, [("id", "=", self.config_id.tip_product_id.id)]])
         return domain
+
+    @pos_loader.load("product.product")
+    def _load_product_product(self, model, meta_values):
+        if not self.config_id.limited_products_loading:
+            return self.default_load_method(model, meta_values)
+        return self.config_id.get_limited_products_loading(meta_values.get('fields'))
 
     @pos_loader.meta("product.attribute")
     def _meta_product_attribute(self):
