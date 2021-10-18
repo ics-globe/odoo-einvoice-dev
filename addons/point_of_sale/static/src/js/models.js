@@ -918,27 +918,6 @@ exports.PosModel = Backbone.Model.extend({
         });
         productModel.loaded(this, products);
     },
-    async _loadMissingPartners(orders) {
-        const missingPartnerIds = new Set([]);
-        for (const order of orders) {
-            const partnerId = order.partner_id;
-            if(missingPartnerIds.has(partnerId)) continue;
-            if (partnerId && !this.db.get_partner_by_id(partnerId)) {
-                missingPartnerIds.add(partnerId);
-            }
-        }
-        const partnerModel = _.find(this.models, function(model){return model.model === 'res.partner';});
-        const fields = partnerModel.fields;
-        if(missingPartnerIds) {
-            const partners = await this.rpc({
-                model: 'res.partner',
-                method: 'read',
-                args: [[...missingPartnerIds], fields],
-                context: Object.assign(this.session.user_context, { display_default_code: false }),
-            });
-            partnerModel.loaded(this, partners);
-        }
-    },
     loadProductsBackground: async function() {
         let page = 0;
         let product_model = _.find(this.models, (model) => model.model === 'product.product');
