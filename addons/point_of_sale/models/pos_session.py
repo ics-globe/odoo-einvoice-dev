@@ -1688,6 +1688,13 @@ class PosSession(models.Model):
             ],
         }
 
+    @pos_loader.load("res.partner")
+    def _load_res_partner(self, model, meta_values):
+        if not self.config_id.limited_partners_loading:
+            return self.default_load_method(model, meta_values)
+        partner_ids = [res[0] for res in self.config_id.get_limited_partners_loading()]
+        return self.env[model].browse(partner_ids).read(meta_values.get('fields'))
+
     @pos_loader.meta("res.country.state")
     def _meta_res_country_state(self):
         return {

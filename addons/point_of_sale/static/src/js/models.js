@@ -959,7 +959,10 @@ exports.PosModel = Backbone.Model.extend({
         } while(products.length == this.config.limited_products_amount);
     },
     loadPartnersBackground: async function() {
-        let i = 1;
+        // Start at the first page since the first set of loaded partners are not actually in the
+        // same order as this background loading procedure.
+        let i = 0;
+
         let PartnerIds = [];
         var fields = _.find(this.env.pos.models, function(model){ return model.label === 'load_partners'; }).fields;
         do {
