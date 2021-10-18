@@ -1633,7 +1633,7 @@ class PosSession(models.Model):
                 sorted_ids[model] = ordered_ids
             loading_metas[model] = meta_result
             field_defs[model] = self.env[model].fields_get(meta_result.get('fields', []))
-            logger.info(f"Finished loading '{model}' model.")
+            logger.info(f"Finished loading '%s' model.", model)
 
         for model in ["pos.order", "pos.order.line", "pos.payment", "pos.pack.operation.lot"]:
             _fields = self.env[model].fields_get([])

@@ -19,7 +19,7 @@ class PosLoader:
                 self._sorted_models.insert(before_index, model)
 
             if not model in self._loaders:
-                self._loaders[model] = { 'model': model }
+                self._loaders[model] = {'model': model}
             self._loaders[model]['meta'] = {
                 'method': method.__name__,
                 'requires': requires or [],
