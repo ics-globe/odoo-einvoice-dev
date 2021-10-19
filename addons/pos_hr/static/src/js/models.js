@@ -40,24 +40,24 @@ models.load_models([{
 
 var posmodel_super = models.PosModel.prototype;
 models.PosModel = models.PosModel.extend({
-    load_server_data: function () {
+    after_load_server_data: function () {
         var self = this;
-        return posmodel_super.load_server_data.apply(this, arguments).then(function () {
-            var employee_ids = _.map(self.employees, function(employee){return employee.id;});
-            var records = self.rpc({
-                model: 'hr.employee',
-                method: 'get_barcodes_and_pin_hashed',
-                args: [employee_ids],
+        var employee_ids = _.map(self.employees, function(employee){return employee.id;});
+        var records = self.rpc({
+            model: 'hr.employee',
+            method: 'get_barcodes_and_pin_hashed',
+            args: [employee_ids],
+        });
+        return records.then(function (employee_data) {
+            self.employees.forEach(function (employee) {
+                var data = _.findWhere(employee_data, {'id': employee.id});
+                if (data !== undefined){
+                    employee.barcode = data.barcode;
+                    employee.pin = data.pin;
+                }
             });
-            return records.then(function (employee_data) {
-                self.employees.forEach(function (employee) {
-                    var data = _.findWhere(employee_data, {'id': employee.id});
-                    if (data !== undefined){
-                        employee.barcode = data.barcode;
-                        employee.pin = data.pin;
-                    }
-                });
-            });
+        }).then(() => {
+            return posmodel_super.after_load_server_data.apply(self, arguments);
         });
     },
     set_cashier: function(employee) {
