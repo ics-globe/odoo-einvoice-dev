@@ -5,18 +5,6 @@ var models = require('point_of_sale.models');
 
 models.load_models([{
     model:  'hr.employee',
-    fields: ['name', 'id', 'user_id'],
-    domain: function(self){
-        return self.config.employee_ids.length > 0
-            ? [
-                  '&',
-                  ['company_id', '=', self.config.company_id[0]],
-                  '|',
-                  ['user_id', '=', self.user.id],
-                  ['id', 'in', self.config.employee_ids],
-              ]
-            : [['company_id', '=', self.config.company_id[0]]];
-    },
     loaded: function(self, employees) {
         if (self.config.module_pos_hr) {
             self.employees = employees;

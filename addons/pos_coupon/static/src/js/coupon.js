@@ -186,10 +186,6 @@ odoo.define('pos_coupon.pos', function (require) {
     models.load_models([
         {
             model: 'coupon.program',
-            fields: [],
-            domain: function (self) {
-                return [['id', 'in', self.config.program_ids]];
-            },
             loaded: function (self, programs) {
                 self.programs = programs;
                 self.coupon_programs_by_id = {};

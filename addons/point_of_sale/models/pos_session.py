@@ -1661,7 +1661,7 @@ class PosSession(models.Model):
 
     @pos_loader.meta("uom.uom")
     def _meta_uom_uom(self):
-        return {"fields": [], "domain": []}
+        return {"fields": [], "domain": [], "context": {"active_test": False}}
 
     @pos_loader.meta("res.partner")
     def _meta_res_partner(self):
@@ -1733,7 +1733,7 @@ class PosSession(models.Model):
     def _meta_pos_session(self):
         return {
             "domain": [("id", "=", self.id)],
-            "fields": ["id", "name", "user_id", "config_id", "start_at", "stop_at", "sequence_number", "payment_method_ids", "cash_register_id", "state", "login_number"],
+            "fields": ["id", "name", "user_id", "config_id", "start_at", "stop_at", "sequence_number", "payment_method_ids", "cash_register_id", "state", "login_number", "update_stock_at_closing"],
         }
 
     @pos_loader.meta("pos.config")
@@ -1868,6 +1868,13 @@ class PosSession(models.Model):
         if not self.config_id.limited_products_loading:
             return self.default_load_method(model, meta_values)
         return self.config_id.get_limited_products_loading(meta_values.get('fields'))
+
+    @pos_loader.meta("product.packaging")
+    def _meta_product_packaging(self):
+        return {
+            "domain": [("barcode", "!=", "")],
+            "fields": ["name", "barcode", "product_id", "qty"],
+        }
 
     @pos_loader.meta("product.attribute")
     def _meta_product_attribute(self):
