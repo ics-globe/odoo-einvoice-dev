@@ -75,6 +75,7 @@ class PosController(http.Controller):
         session_info['user_context']['allowed_company_ids'] = pos_session.company_id.ids
         context = {
             'session_info': session_info,
+            'pos_session_id': pos_session.id,
         }
         return request.render('point_of_sale.qunit_suite', qcontext=context)
 
