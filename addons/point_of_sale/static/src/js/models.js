@@ -135,7 +135,7 @@ exports.PosModel = Backbone.Model.extend({
                 self.loadingMetas = loadingMetas;
                 const tmp = {}
                 for (const model of self.models) {
-                    await model.loaded(self, Object.values(records[model.model] || {}), tmp);
+                    await model.loaded(self, Object.values(records[model.model] || {}), tmp, sortedIds[model.model]);
                 }
                 return self.after_load_server_data();
             });
@@ -444,13 +444,14 @@ exports.PosModel = Backbone.Model.extend({
     },{
         model:  'product.pricelist.item',
         domain: function(self) { return [['pricelist_id', 'in', _.pluck(self.pricelists, 'id')]]; },
-        loaded: function(self, pricelist_items){
+        loaded: function(self, pricelist_items, tmp, pricelistItemsSortedIds){
             var pricelist_by_id = {};
             _.each(self.pricelists, function (pricelist) {
                 pricelist_by_id[pricelist.id] = pricelist;
             });
-
-            _.each(pricelist_items, function (item) {
+            pricelist_items = Object.fromEntries(pricelist_items.map(item => [item.id, item]));
+            _.each(pricelistItemsSortedIds, function (id) {
+                const item = pricelist_items[id];
                 var pricelist = pricelist_by_id[item.pricelist_id[0]];
                 pricelist.items.push(item);
                 item.base_pricelist = pricelist_by_id[item.base_pricelist_id[0]];

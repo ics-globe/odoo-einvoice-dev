@@ -1779,7 +1779,7 @@ class PosSession(models.Model):
             domain = [("id", "=", self.config_id.pricelist_id.id)]
         return {
             "domain": domain,
-            "fields": ["name", "display_name", "discount_policy", "item_ids"],
+            "fields": ["name", "display_name", "discount_policy"],
         }
 
     @pos_loader.meta("account.bank.statement")
@@ -1794,6 +1794,7 @@ class PosSession(models.Model):
         return {
             "domain": [("pricelist_id", "in", [*pricelists.keys()])],
             "fields": [],
+            "ordered": True,
         }
 
     @pos_loader.meta("product.category")
