@@ -135,6 +135,7 @@ exports.PosModel = Backbone.Model.extend({
                 self.loadingMetas = loadingMetas;
                 const tmp = {}
                 for (const model of self.models) {
+                    if (model.condition ? !model.condition(self) : false) continue;
                     await model.loaded(self, Object.values(records[model.model] || {}), tmp, sortedIds[model.model]);
                 }
                 return self.after_load_server_data();

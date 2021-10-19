@@ -1576,9 +1576,8 @@ class PosSession(models.Model):
         else:
             Model = self.env[model]
         if ids:
-            meta_copy.pop("domain")
             # NOTE: Should add load=False as param in the read call to avoid loading the display_name of many2one field.
-            return Model.browse(ids).read(**meta_copy)
+            return Model.browse(ids).read(meta_copy.get('fields', []))
         return Model.search_read(**meta_copy, **search_options)
 
     def _exec_meta(self, model, meta, data):
