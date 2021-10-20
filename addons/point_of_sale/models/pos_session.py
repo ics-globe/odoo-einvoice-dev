@@ -1617,33 +1617,74 @@ class PosSession(models.Model):
             ordered_ids = [record["id"] for record in load_result]
         return result, ordered_ids, meta_result
 
+    @api.model
+    def _pos_ui_models_to_load(self):
+        return ["product.product"]
+
+    def _get_pos_ui_product_product(self):
+        params = self._meta_product_product()
+        if not self.config_id.limited_products_loading:
+            products = self.env['product.product'].with_context(**params['context']).search_read(params['domain'], params["fields"], order=params['order'])
+        else:
+            products = self.config_id.get_limited_products_loading(params['fields'])
+        return products
+
+    def _meta_product_product(self):
+        domain = ["&", "&", ("sale_ok", "=", True), ("available_in_pos", "=", True), "|", ("company_id", "=", self.config_id.company_id.id), ("company_id", "=", False)]
+        if self.config_id.limit_categories and self.config_id.iface_available_categ_ids:
+            domain = AND(
+                [
+                    domain,
+                    [("pos_categ_id", "in", self.config_id.iface_available_categ_ids.ids)],
+                ]
+            )
+        if self.config_id.iface_tipproduct:
+            domain = OR([domain, [("id", "=", self.config_id.tip_product_id.id)]])
+        return {
+            "domain": domain,
+            "order": "sequence,default_code,name",
+            "ordered": True,
+            "fields": [
+                "display_name",
+                "lst_price",
+                "standard_price",
+                "categ_id",
+                "pos_categ_id",
+                "taxes_id",
+                "barcode",
+                "default_code",
+                "to_weight",
+                "uom_id",
+                "description_sale",
+                "description",
+                "product_tmpl_id",
+                "tracking",
+                "write_date",
+                "available_in_pos",
+                "attribute_line_ids",
+                "active",
+            ],
+            "context": {
+                "display_default_code": False,
+            },
+        }
+
+
+
     def load_pos_data(self):
         data = {}
-        sorted_ids = {}
-        field_defs = {}
-        loading_metas = {}
-        for model in pos_loader._sorted_models:
-            load_model_results = self.load_model(model, data)
-            if not load_model_results:
-                continue
-            loaded_records, ordered_ids, meta_result = load_model_results
+        models_to_load = self._pos_ui_models_to_load()
+        for model in models_to_load:
+            model_name = model.replace('.','_')
+            if hasattr(self, '_get_pos_ui_%s' % model_name):
+                loaded_records = getattr(self, '_get_pos_ui_%s' % model_name)()
+            else:
+                raise NotImplementedError(_("The function to load %s has not been implemented", model_name))
+
             data[model] = loaded_records
-            if ordered_ids:
-                sorted_ids[model] = ordered_ids
-            loading_metas[model] = meta_result
-            field_defs[model] = self.env[model].fields_get(meta_result.get('fields', []))
             logger.info("Finished loading '%s' model.", model)
 
-        for model in ["pos.order", "pos.order.line", "pos.payment", "pos.pack.operation.lot"]:
-            _fields = self.env[model].fields_get([])
-            _trimmed_fields = {}
-            for key in _fields.keys():
-                if _fields[key].get("related", False) or _fields[key].get("depends", False):
-                    continue
-                _trimmed_fields[key] = _fields[key]
-            field_defs[model] = _trimmed_fields
-
-        return (data, sorted_ids, field_defs, loading_metas)
+        return data
 
     @pos_loader.meta("res.company")
     def _meta_res_company(self):
@@ -1818,56 +1859,6 @@ class PosSession(models.Model):
             "ordered": True,
             "fields": ["id", "name", "parent_id", "child_id", "write_date"],
         }
-
-    @pos_loader.meta("product.product")
-    def _meta_product_product(self):
-        return {
-            "domain": self._get_product_product_domain(),
-            "order": "sequence,default_code,name",
-            "ordered": True,
-            "fields": [
-                "display_name",
-                "lst_price",
-                "standard_price",
-                "categ_id",
-                "pos_categ_id",
-                "taxes_id",
-                "barcode",
-                "default_code",
-                "to_weight",
-                "uom_id",
-                "description_sale",
-                "description",
-                "product_tmpl_id",
-                "tracking",
-                "write_date",
-                "available_in_pos",
-                "attribute_line_ids",
-                "active",
-            ],
-            "context": {
-                "display_default_code": False,
-            },
-        }
-
-    def _get_product_product_domain(self):
-        domain = ["&", "&", ("sale_ok", "=", True), ("available_in_pos", "=", True), "|", ("company_id", "=", self.config_id.company_id.id), ("company_id", "=", False)]
-        if self.config_id.limit_categories and self.config_id.iface_available_categ_ids:
-            domain = AND(
-                [
-                    domain,
-                    [("pos_categ_id", "in", self.config_id.iface_available_categ_ids.ids)],
-                ]
-            )
-        if self.config_id.iface_tipproduct:
-            domain = OR([domain, [("id", "=", self.config_id.tip_product_id.id)]])
-        return domain
-
-    @pos_loader.load("product.product")
-    def _load_product_product(self, model, meta_values):
-        if not self.config_id.limited_products_loading:
-            return self.default_load_method(model, meta_values)
-        return self.config_id.get_limited_products_loading(meta_values.get('fields'))
 
     @pos_loader.meta("product.packaging")
     def _meta_product_packaging(self):
