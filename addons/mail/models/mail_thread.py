@@ -1873,7 +1873,7 @@ class MailThread(models.AbstractModel):
         attachement_values = self._message_post_process_attachments(attachments, attachment_ids, msg_values)
         msg_values.update(attachement_values)  # attachement_ids, [body]
 
-        new_message = self._message_create(msg_values)
+        new_message = self._message_create([msg_values])
 
         # Set main attachment field if necessary
         self._message_set_main_attachment_id(msg_values['attachment_ids'])
@@ -1903,36 +1903,68 @@ class MailThread(models.AbstractModel):
     # MESSAGE POST API / WRAPPERS
     # ------------------------------------------------------------
 
-    def _message_compose_with_view(self, views_or_xmlid, message_log=False, **kwargs):
-        """ Helper method to send a mail / post a message / log a note using
-        a view_id to render using the ir.qweb engine. This method is stand
-        alone, because there is nothing in template and composer that allows
-        to handle views in batch. This method should probably disappear when
-        templates handle ir ui views. """
-        values = kwargs.pop('values', None) or dict()
+    def message_post_with_view(self, views_or_xmlid, values=None,
+                               message_type='notification', subtype_id=False,
+                               **kwargs):
+        """ Helper method to post a message using a view to render using the
+        ir.qweb engine. This method is stand alone because there is nothing in
+        template and composer that allows to handle views in batch.
+
+        :param views_or_xmlid: either an xmlid of a view (template), either directly
+          an ir.ui.view record:
+        :param values: additional rendering value for qcontext;
+
+        :return: posted messages
+        """
+        render_values, views = self._message_with_view_common(views_or_xmlid, values=values)
+        if not views:
+            return
+
+        if not subtype_id:
+            subtype_id = self.env['ir.model.data']._xmlid_to_res_id('mail.mt_comment')
+
+        messages = self.env['mail.message']
+        for record in self:
+            render_values['object'] = record
+            rendered_template = views._render(render_values, engine='ir.qweb', minimal_qcontext=True)
+            kwargs.pop('body', None)
+            messages += record.message_post(
+                body=rendered_template, message_type=message_type,
+                subtype_id=subtype_id, **kwargs)
+        return messages
+
+    def _message_log_with_view(self, views_or_xmlid, values=None, message_type='notification', **kwargs):
+        """ Helper method to log a message using a view to render using the
+        ir.qweb engine. This method is stand alone because there is nothing in
+        template and composer that allows to handle views in batch.
+        """
+        render_values, views = self._message_with_view_common(views_or_xmlid, values=values)
+        if not views:
+            return
+
+        rendered_templates = dict()
+        for record in self:
+            render_values['object'] = record
+            rendered_templates[record.id] = views._render(render_values, engine='ir.qweb', minimal_qcontext=True)
+
+        return self._message_log_batch(bodies=rendered_templates, message_type=message_type)
+
+    def _message_with_view_common(self, views_or_xmlid, values=None):
+        render_values = values if values is not None else dict()
         try:
             from odoo.addons.http_routing.models.ir_http import slug
-            values['slug'] = slug
+            render_values['slug'] = slug
         except ImportError:
-            values['slug'] = lambda self: self.id
+            render_values['slug'] = lambda self: self.id
+
         if isinstance(views_or_xmlid, str):
             views = self.env.ref(views_or_xmlid, raise_if_not_found=False)
         else:
             views = views_or_xmlid
         if not views:
-            return
-        for record in self:
-            values['object'] = record
-            rendered_template = views._render(values, engine='ir.qweb', minimal_qcontext=True)
-            if message_log:
-                return record._message_log(body=rendered_template, **kwargs)
-            else:
-                kwargs['body'] = rendered_template
-                return record.message_post_with_template(False, **kwargs)
+            return {}, views
 
-    def message_post_with_view(self, views_or_xmlid, **kwargs):
-        """ Helper method to send a mail / post a message using a view_id """
-        self._message_compose_with_view(views_or_xmlid, **kwargs)
+        return render_values, views
 
     def message_post_with_template(self, template_id, email_layout_xmlid=None, auto_commit=False, **kwargs):
         """ Helper method to send a mail with a template
@@ -2003,51 +2035,42 @@ class MailThread(models.AbstractModel):
         if 'email_add_signature' not in msg_values:
             msg_values['email_add_signature'] = True
 
-        new_message = MailThread._message_create(msg_values)
+        new_message = MailThread._message_create([msg_values])
         MailThread._notify_thread(new_message, msg_values, **notif_kwargs)
         return new_message
 
-    def _message_log_with_view(self, views_or_xmlid, **kwargs):
-        """ Helper method to log a note using a view_id without notifying followers. """
-        return self._message_compose_with_view(views_or_xmlid, message_log=True, **kwargs)
-
     def _message_log(self, *, body='', author_id=None, email_from=None, subject=False, message_type='notification', **kwargs):
-        """ Shortcut allowing to post note on a document. It does not perform
-        any notification and pre-computes some values to have a short code
+        """ Shortcut allowing to post note on a document. See ``_message_log_batch``
+        for more details. """
+        self.ensure_one()
+
+        return self._message_log_batch(
+            {self.id: body}, author_id=author_id, email_from=email_from,
+            subject=subject, message_type=message_type,
+            **kwargs
+        )
+
+    def _message_log_batch(self, bodies, author_id=None, email_from=None, subject=False, message_type='notification', **kwargs):
+        """ Shortcut allowing to post notes on a batch of documents. It does not
+        perform any notification and pre-computes some values to have a short code
         as optimized as possible. This method is private as it does not check
         access rights and perform the message creation as sudo to speedup
         the log process. This method should be called within methods where
-        access rights are already granted to avoid privilege escalation. """
-        self.ensure_one()
-        author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=False)
+        access rights are already granted to avoid privilege escalation.
 
-        msg_values = {
-            'subject': subject,
-            'body': body,
-            'author_id': author_id,
-            'email_from': email_from,
-            'message_type': message_type,
-            'model': kwargs.get('model', self._name),
-            'res_id': self.ids[0] if self.ids else False,
-            'subtype_id': self.env['ir.model.data']._xmlid_to_res_id('mail.mt_note'),
-            'is_internal': True,
-            'record_name': False,
-            'reply_to': self.env['mail.thread']._notify_get_reply_to(default=email_from)[False],
-            'message_id': tools.generate_tracking_message_id('message-notify'),  # why? this is all but a notify
-            'email_add_signature': False,  # False as no notification -> no need to compute signature
-        }
-        msg_values.update(kwargs)
-        return self.sudo()._message_create(msg_values)
+        :param bodies: dict {record_id: body}
 
-    def _message_log_batch(self, bodies, author_id=None, email_from=None, subject=False, message_type='notification'):
-        """ Shortcut allowing to post notes on a batch of documents. It achieve the
-        same purpose as _message_log, done in batch to speedup quick note log.
-
-          :param bodies: dict {record_id: body}
+        :return: created mail.message (as sudo)
         """
+        # protect against side-effect prone usage
+        if 'subtype_id' in kwargs or 'reply_to' in kwargs:
+            raise ValueError(_('Invalid parameters given to _message_log_batch.'))
+        if len(self) > 1 and ('tracking_value_ids' in kwargs or 'notification_ids' in kwargs):
+            raise ValueError(_('Batch log cannot support 2many fields.'))
+
         author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=False)
 
-        base_message_values = {
+        base_msg_values = {
             'subject': subject,
             'author_id': author_id,
             'email_from': email_from,
@@ -2058,9 +2081,11 @@ class MailThread(models.AbstractModel):
             'record_name': False,
             'reply_to': self.env['mail.thread']._notify_get_reply_to(default=email_from)[False],
             'message_id': tools.generate_tracking_message_id('message-notify'),  # why? this is all but a notify
-            'email_add_signature': False,
+            'email_add_signature': False,  # False as no notification -> no need to compute signature
         }
-        values_list = [dict(base_message_values,
+        base_msg_values.update(kwargs)
+
+        values_list = [dict(base_msg_values,
                             res_id=record.id,
                             body=bodies.get(record.id, ''))
                        for record in self]
@@ -2118,8 +2143,6 @@ class MailThread(models.AbstractModel):
         return parent_id
 
     def _message_create(self, values_list):
-        if not isinstance(values_list, (list)):
-            values_list = [values_list]
         create_values_list = []
         for values in values_list:
             create_values = dict(values)
@@ -2128,8 +2151,11 @@ class MailThread(models.AbstractModel):
                 create_values.pop(x, None)
             create_values['partner_ids'] = [Command.link(pid) for pid in create_values.get('partner_ids', [])]
             create_values_list.append(create_values)
+
+        # protect against default values
         if 'default_child_ids' in self._context:
-            ctx = {key: val for key, val in self._context.items() if key != 'default_child_ids'}
+            ctx = dict(self._context)
+            ctx.pop('default_child_ids')
             self = self.with_context(ctx)
         return self.env['mail.message'].create(create_values_list)
 

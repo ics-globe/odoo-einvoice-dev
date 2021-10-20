@@ -626,13 +626,13 @@ class Post(models.Model):
                 post.parent_id.message_post_with_view(
                     'website_forum.forum_post_template_new_answer',
                     subject=_('Re: %s', post.parent_id.name),
-                    partner_ids=[(4, p.id) for p in tag_partners],
+                    partner_ids=tag_partners.ids,
                     subtype_id=self.env['ir.model.data']._xmlid_to_res_id('website_forum.mt_answer_new'))
             elif post.state == 'active' and not post.parent_id:
                 post.message_post_with_view(
                     'website_forum.forum_post_template_new_question',
                     subject=post.name,
-                    partner_ids=[(4, p.id) for p in tag_partners],
+                    partner_ids=tag_partners.ids,
                     subtype_id=self.env['ir.model.data']._xmlid_to_res_id('website_forum.mt_question_new'))
             elif post.state == 'pending' and not post.parent_id:
                 # TDE FIXME: in master, you should probably use a subtype;

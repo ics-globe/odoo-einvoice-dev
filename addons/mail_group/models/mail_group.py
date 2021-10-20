@@ -310,7 +310,7 @@ class MailGroup(models.Model):
         attachement_values = Mailthread._message_post_process_attachments(attachments, attachment_ids, values)
         values.update(attachement_values)
 
-        mail_message = Mailthread._message_create(values)
+        mail_message = Mailthread._message_create([values])
 
         # Find the <mail.group.message> parent
         group_message_parent_id = False

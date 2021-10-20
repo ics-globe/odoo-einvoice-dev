@@ -75,7 +75,7 @@ class PortalShare(models.TransientModel):
                 subject=_("You are invited to access %s", self.resource_ref.display_name),
                 subtype_id=note.id,
                 email_layout_xmlid='mail.mail_notification_light',
-                partner_ids=[(6, 0, partner.ids)])
+                partner_ids=partner.ids)
             self = self.with_context(lang=saved_lang)
 
     def _send_signup_link(self, note, partners=None):
@@ -94,7 +94,7 @@ class PortalShare(models.TransientModel):
                 subject=_("You are invited to access %s", self.resource_ref.display_name),
                 subtype_id=note.id,
                 email_layout_xmlid='mail.mail_notification_light',
-                partner_ids=[(6, 0, partner.ids)])
+                partner_ids=partner.ids)
             self = self.with_context(lang=saved_lang)
 
     def action_send_mail(self):
