@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+
+    <t t-name="web.Picker" owl="1">
+        <div class="bootstrap-datetimepicker-widget dropdown-menu usetwentyfour bottom">
+            <ul class="list-unstyled">
+                <li class="collapse show">
+                    <div class="datepicker">
+                        <div t-attf-class="datepicker-{{ state.view }}">
+                            <t t-if="state.view === 'days'">
+                                <t t-set="prevTitle">Previous Month</t>
+                                <t t-set="mainTitle">Select Month</t>
+                                <t t-set="nextTitle">Next Month</t>
+                                <t t-set="subHeader">
+                                    <tr>
+                                        <th class="cw">#</th>
+                                        <th t-foreach="daysOfWeek" t-as="day" t-key="day" class="dow" t-esc="day" />
+                                    </tr>
+                                </t>
+                                <t t-set="body">
+                                    <tr t-foreach="state.weeks" t-as="week" t-key="week.number">
+                                        <td class="cw" t-esc="week.number" />
+                                        <td t-foreach="week.days" t-as="day" t-key="day.date" class="day" t-att-class="{
+                                                active: day.isActive,
+                                                today: day.isToday,
+                                                weekend: day.isWeekend,
+                                            }"
+                                            t-on-click="selectDay(day.date)"
+                                            t-esc="day.number"
+                                        />
+                                    </tr>
+                                </t>
+                            </t>
+                            <t t-elif="state.view === 'months'">
+                                <t t-set="prevTitle">Previous Year</t>
+                                <t t-set="mainTitle">Select Year</t>
+                                <t t-set="nextTitle">Next Year</t>
+                                <t t-set="body">
+                                </t>
+                            </t>
+                            <t t-elif="state.view === 'years'">
+                                <t t-set="prevTitle">Previous Decade</t>
+                                <t t-set="mainTitle">Select Decade</t>
+                                <t t-set="nextTitle">Next Decade</t>
+                                <t t-set="body">
+                                </t>
+                            </t>
+                            <t t-elif="state.view === 'decades'">
+                                <t t-set="prevTitle">Previous Century</t>
+                                <t t-set="nextTitle">Next Century</t>
+                                <t t-set="body">
+                                </t>
+                            </t>
+                            <t t-call="web.Picker.Content" />
+                        </div>
+                    </div>
+                </li>
+                <li class="picker-switch accordion-toggle"></li>
+                <li class="collapse"></li>
+            </ul>
+        </div>
+    </t>
+
+    <t t-name="web.Picker.Content" owl="1">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th class="prev" t-on-click="previous">
+                        <span class="fa fa-chevron-left" t-att-title="prevTitle" />
+                    </th>
+                    <th class="picker-switch" colspan="6" t-att-title="mainTitle" t-on-click="pickerSwitch" t-esc="getPickerHeader()" />
+                    <th class="next" t-on-click="next">
+                        <span class="fa fa-chevron-right" t-att-title="nextTitle" />
+                    </th>
+                </tr>
+                <t t-out="subHeader or ''" />
+            </thead>
+            <body>
+                <t t-out="body or ''" />
+            </body>
+        </table>
+    </t>
+
+</templates>
