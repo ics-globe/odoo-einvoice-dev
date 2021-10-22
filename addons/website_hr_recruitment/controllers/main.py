@@ -3,36 +3,41 @@
 
 from odoo import http, _
 from odoo.addons.http_routing.models.ir_http import slug
+from odoo.osv.expression import AND
 from odoo.http import request
 from werkzeug.exceptions import NotFound
 
 
 class WebsiteHrRecruitment(http.Controller):
+    _jobs_per_page = 12
+
     def sitemap_jobs(env, rule, qs):
         if not qs or qs.lower() in '/jobs':
             yield {'loc': '/jobs'}
 
     @http.route([
         '/jobs',
+        '/jobs/page/<int:page>',
         '/jobs/country/<model("res.country"):country>',
+        '/jobs/country/<model("res.country"):country>/page/<int:page>',
         '/jobs/department/<model("hr.department"):department>',
+        '/jobs/department/<model("hr.department"):department>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>',
+        '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/page/<int:page>',
         '/jobs/office/<int:office_id>',
+        '/jobs/office/<int:office_id>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/office/<int:office_id>',
+        '/jobs/country/<model("res.country"):country>/office/<int:office_id>/page/<int:page>',
         '/jobs/department/<model("hr.department"):department>/office/<int:office_id>',
+        '/jobs/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>',
+        '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
     ], type='http', auth="public", website=True, sitemap=sitemap_jobs)
-    def jobs(self, country=None, department=None, office_id=None, **kwargs):
+    def jobs(self, country=None, department=None, office_id=None, page=1, search=None, **kwargs):
         env = request.env(context=dict(request.env.context, show_address=True, no_tag_br=True))
 
         Country = env['res.country']
         Jobs = env['hr.job']
-
-        # List jobs available to current UID
-        domain = request.website.website_domain()
-        job_ids = Jobs.search(domain, order="is_published desc, sequence, no_of_recruitment desc").ids
-        # Browse jobs as superuser, because address is restricted
-        jobs = Jobs.sudo().browse(job_ids)
 
         # Default search by user country
         if not (country or department or office_id or kwargs.get('all_countries')):
@@ -40,39 +45,41 @@ class WebsiteHrRecruitment(http.Controller):
             if country_code:
                 countries_ = Country.search([('code', '=', country_code)])
                 country = countries_[0] if countries_ else None
-                if not any(j for j in jobs if j.address_id and j.address_id.country_id == country):
-                    country = False
+                if country:
+                    country_count = Jobs.search_count(AND([
+                        request.website.website_domain(),
+                        [('address_id.country_id', '=', country.id)]
+                    ]))
+                    if not country_count:
+                        country = False
 
-        # Filter job / office for country
-        if country and not kwargs.get('all_countries'):
-            jobs = [j for j in jobs if j.address_id is None or j.address_id.country_id and j.address_id.country_id.id == country.id]
-            offices = set(j.address_id for j in jobs if j.address_id is None or j.address_id.country_id and j.address_id.country_id.id == country.id)
-        else:
-            offices = set(j.address_id for j in jobs if j.address_id)
+        options = {
+            'displayDescription': True,
+            'allowFuzzy': not request.params.get('noFuzzy'),
+            'country': str(country.id) if country else None,
+            'department': str(department.id) if department else None,
+            'office_id': office_id,
+        }
+        total, details, fuzzy_search_term = request.website._search_with_fuzzy("jobs", search,
+            limit=page * self._jobs_per_page, order="is_published desc, sequence, no_of_recruitment desc", options=options)
+        # Browse jobs as superuser, because address is restricted
+        jobs = details[0].get('results', Jobs).sudo()
 
-        # Deduce departments and countries offices of those jobs
+        # Deduce offices, departments and countries offices of those jobs
+        offices = set(j.address_id for j in jobs if j.address_id)
         departments = set(j.department_id for j in jobs if j.department_id)
         countries = set(o.country_id for o in offices if o.country_id)
 
-        if department:
-            jobs = [j for j in jobs if j.department_id and j.department_id.id == department.id]
-        if office_id and office_id in [x.id for x in offices]:
-            jobs = [j for j in jobs if j.address_id and j.address_id.id == office_id]
-        else:
-            office_id = False
-
-        # pager - TO DO
-        # url = '/jobs'
-        # if department:
-        #     url += '/department/%s' % department.id
-        # if country:
-        #     url += '/country/%s' % country.id
-        # if office_id:
-        #     url += '/office/%s' % office_id
-        # pager = request.website.pager(
-        #     url=url, total=partner_count, page=page, step=self._references_per_page,
-        #     scope=12, url_args=post
-        # )
+        total = len(jobs)
+        pager = request.website.pager(
+            url=request.httprequest.path.partition('/page/')[0],
+            url_args={'search': search},
+            total=total,
+            page=page,
+            step=self._jobs_per_page,
+        )
+        offset = pager['offset']
+        jobs = jobs[offset:offset + self._jobs_per_page]
 
         # Render page
         return request.render("website_hr_recruitment.index", {
@@ -89,6 +96,10 @@ class WebsiteHrRecruitment(http.Controller):
             'office_id': office_id,
             'current_office_id': office_id if office_id else 0,
             'current_office': office_id or False,
+            'pager': pager,
+            'search': fuzzy_search_term or search,
+            'search_count': total,
+            'original_search': fuzzy_search_term and search,
         })
 
     @http.route('/jobs/add', type='http', auth="user", website=True)

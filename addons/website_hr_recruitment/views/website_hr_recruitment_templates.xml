@@ -42,12 +42,19 @@
                     <ul class="o_jobs_topbar_filters flex-md-nowrap nav pl-md-3"/>
                 </t>
                 <!-- Search bar -->
+                <t t-call="website.website_search_box_input">
+                    <t t-set="_classes" t-valuef="my-1"/>
+                    <t t-set="search_type" t-valuef="jobs"/>
+                    <t t-set="display_description" t-valuef="true"/>
+                </t>
+                <!-- Old search - on delete, also delete search_box
                 <div class="d-flex align-items-center justify-content-end w-md-100 w-lg-25 pl-lg-3 pr-0">
                     <t t-call="website_hr_recruitment.search_box">
                         <t t-set="_searches" t-value="searches"/>
                         <t t-set="_placeholder">Search a job...</t>
                     </t>
                 </div>
+                -->
             </div>
         </div>
     </nav>

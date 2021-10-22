@@ -4,6 +4,7 @@
 from werkzeug import urls
 
 from odoo import api, fields, models, _
+from odoo.addons.http_routing.models.ir_http import unslug
 from odoo.tools.translate import html_translate
 
 
@@ -47,7 +48,12 @@ class Applicant(models.Model):
 class Job(models.Model):
 
     _name = 'hr.job'
-    _inherit = ['hr.job', 'website.seo.metadata', 'website.published.multi.mixin']
+    _inherit = [
+        'hr.job',
+        'website.seo.metadata',
+        'website.published.multi.mixin',
+        'website.searchable.mixin',
+    ]
 
     def _get_default_website_description(self):
         default_description = self.env.ref("website_hr_recruitment.default_website_description", raise_if_not_found=False)
@@ -67,3 +73,37 @@ class Job(models.Model):
 
     def get_backend_menu_id(self):
         return self.env.ref('hr_recruitment.menu_hr_recruitment_root').id
+
+    @api.model
+    def _search_get_detail(self, website, order, options):
+        with_description = options['displayDescription']
+        country_id = options.get('country')
+        department_id = options.get('department')
+        office_id = options.get('office_id')
+
+        domain = [website.website_domain()]
+        if country_id:
+            domain.append([('address_id.country_id', '=', unslug(country_id)[1])])
+        if department_id:
+            domain.append([('department_id', '=', unslug(department_id)[1])])
+        if office_id:
+            domain.append([('address_id', '=', office_id)])
+
+        search_fields = ['name']
+        fetch_fields = ['name', 'website_url']
+        mapping = {
+            'name': {'name': 'name', 'type': 'text', 'match': True},
+            'website_url': {'name': 'website_url', 'type': 'text'},
+        }
+        if with_description:
+            search_fields.append('description')
+            fetch_fields.append('description')
+            mapping['description'] = {'name': 'description', 'type': 'text', 'html': True, 'match': True}
+        return {
+            'model': 'hr.job',
+            'base_domain': domain,
+            'search_fields': search_fields,
+            'fetch_fields': fetch_fields,
+            'mapping': mapping,
+            'icon': 'fa-briefcase',
+        }
