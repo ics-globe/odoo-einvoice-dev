@@ -147,7 +147,7 @@ class TestMailAlias(TestMailCommon):
             'alias_contact': 'followers',
             'company_id': self.env.user.company_id.id,
         })
-        self.assertEqual(record.alias_domain, self.alias_domain)
+        self.assertEqual(record.alias_domain, self.alias_domain_c2_name)
         self.assertEqual(record.company_id, self.company_2)
 
         record.write({'company_id': self.company_admin.id})

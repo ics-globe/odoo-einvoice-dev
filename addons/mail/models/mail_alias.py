@@ -54,7 +54,8 @@ class Alias(models.Model):
         'Record Thread ID',
         help="Optional ID of a thread (record) to which all incoming messages will be attached, even "
              "if they did not reply to it. If set, this will disable the creation of new records completely.")
-    alias_domain = fields.Char('Alias domain', compute='_compute_alias_domain')
+    alias_domain_id = fields.Many2one('mail.alias.domain', string='Alias Domain', ondelete='restrict')
+    alias_domain = fields.Char('Alias domain name', related='alias_domain_id.name')
     alias_parent_model_id = fields.Many2one(
         'ir.model', 'Parent Model',
         help="Parent model holding the alias. The model holding the alias reference "
@@ -93,9 +94,24 @@ class Alias(models.Model):
                     alias.alias_name,
                 ))
 
-    @api.depends('alias_name')
-    def _compute_alias_domain(self):
-        self.alias_domain = self._alias_get_domain()
+    @api.constrains('alias_parent_model_id', 'alias_parent_thread_id', 'alias_model_id', 'alias_force_thread_id')
+    def _constrains_alias_domain_id(self):
+        """ Raise invalid alias domains based on company configuration """
+        for alias in self.filtered(lambda alias: alias.alias_domain_id):
+            if alias.alias_parent_model_id and alias.alias_parent_thread_id:
+                ParentModel = self.env[alias.alias_parent_model_id.model]
+                parent_company_field = ParentModel._mail_get_company_field()
+                if parent_company_field:
+                    parent = ParentModel.browse(alias.alias_parent_thread_id)
+                    if parent[parent_company_field] and parent[parent_company_field].alias_domain_id != alias.alias_domain_id:
+                        raise ValidationError(_("Invalid company setup"))
+            if alias.alias_model_id and alias.alias_force_thread_id:
+                Model = self.env[alias.alias_model_id.model]
+                aliased_company_field = Model._mail_get_company_field()
+                if aliased_company_field:
+                    aliased = Model.browse(alias.alias_force_thread_id)
+                    if aliased[aliased_company_field] and aliased[aliased_company_field].alias_domain_id != alias.alias_domain_id:
+                        raise ValidationError(_("Invalid company setup"))
 
     @api.constrains('alias_defaults')
     def _check_alias_defaults(self):

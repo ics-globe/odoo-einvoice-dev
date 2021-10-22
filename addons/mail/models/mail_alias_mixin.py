@@ -3,7 +3,7 @@
 
 import logging
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -21,12 +21,22 @@ class AliasMixin(models.AbstractModel):
     alias_id = fields.Many2one('mail.alias', string='Alias', ondelete="restrict", required=True)
 
     # --------------------------------------------------
+    # COMPUTES
+    # --------------------------------------------------
+
+    @api.depends(lambda self: [self._mail_get_company_field()] if self._mail_get_company_field() else [])
+    def _onchange_alias_domain_configuration(self):
+        print('tagatouk')
+        # return super(AliasMixin, self)._compute_alias_domain_id()
+
+    # --------------------------------------------------
     # CRUD
     # --------------------------------------------------
 
     @api.model_create_multi
     def create(self, vals_list):
-        """ Create a record with each ``vals`` or ``vals_list`` and create a corresponding alias. """
+        """ Create a record with each ``vals`` in ``vals_list`` and create a
+        corresponding alias if not given. """
         # prepare all alias values
         alias_vals_list, record_vals_list = [], []
         for vals in vals_list:
@@ -56,8 +66,13 @@ class AliasMixin(models.AbstractModel):
 
         records = super(AliasMixin, self).create(valid_vals_list)
 
+        # update alias values with values coming from record, post-create to have
+        # access to all its values (notably its ID)
         for record in records:
-            record.alias_id.sudo().write(record._alias_get_creation_values())
+            alias_update_vals = record._alias_get_creation_values()
+            if not record.alias_domain_id:
+                alias_update_vals.update(**record._alias_ensure_domain_values())
+            record.alias_id.sudo().write(alias_update_vals)
 
         return records
 
@@ -67,6 +82,12 @@ class AliasMixin(models.AbstractModel):
         alias_vals, record_vals = self._alias_filter_fields(vals, filters=self.ALIAS_WRITEABLE_FIELDS)
         if record_vals:
             super(AliasMixin, self).write(record_vals)
+
+        # check company is updated on record: propagate only if changed
+        company_field = self._mail_get_company_field()
+        if company_field and vals.get(company_field) and self:
+            alias_vals.update(**self[0]._alias_ensure_domain_values())
+
         if alias_vals and (record_vals or self.check_access_rights('write', raise_exception=False)):
             self.mapped('alias_id').sudo().write(alias_vals)
 
@@ -122,6 +143,14 @@ class AliasMixin(models.AbstractModel):
             'alias_parent_thread_id': self.id if self.id else False,
             'alias_parent_model_id': self.env['ir.model']._get(self._name).id,
         }
+
+    def _alias_ensure_domain_values(self):
+        # link alias to record company
+        self.ensure_one()
+        company_field = self._mail_get_company_field()
+        if company_field and self[company_field]:
+            return {'alias_domain_id': self[company_field].alias_domain_id.id}
+        return {}
 
     def _alias_filter_fields(self, values, filters=False):
         """ Split the vals dict into two dictionnary of vals, one for alias
