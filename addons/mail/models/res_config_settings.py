@@ -12,8 +12,13 @@ class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     fail_counter = fields.Integer('Fail Mail', readonly=True)
-    alias_domain = fields.Char('Alias Domain', help="If you have setup a catch-all email domain redirected to "
-                               "the Odoo server, enter the domain name here.", config_parameter='mail.catchall.domain')
+    external_email_server_default = fields.Boolean(
+        "Custom Email Servers",
+        config_parameter='base_setup.default_external_email_server')
+    alias_domain_id = fields.Many2one(
+        'mail.alias.domain', 'Alias Domain',
+        readonly=False, related='company_id.alias_domain_id',
+        help="If you have setup a catch-all email domain redirected to the Odoo server, enter the domain name here.")
     restrict_template_rendering = fields.Boolean(
         'Restrict Template Rendering',
         config_parameter='mail.restrict.template.rendering',
