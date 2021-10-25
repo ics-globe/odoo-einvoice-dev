@@ -5,6 +5,7 @@ from odoo import http, _
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.osv.expression import AND
 from odoo.http import request
+from odoo.tools.misc import groupby
 from werkzeug.exceptions import NotFound
 
 
@@ -61,7 +62,7 @@ class WebsiteHrRecruitment(http.Controller):
             'office_id': office_id,
         }
         total, details, fuzzy_search_term = request.website._search_with_fuzzy("jobs", search,
-            limit=page * self._jobs_per_page, order="is_published desc, sequence, no_of_recruitment desc", options=options)
+            limit=1000, order="is_published desc, sequence, no_of_recruitment desc", options=options)
         # Browse jobs as superuser, because address is restricted
         jobs = details[0].get('results', Jobs).sudo()
 
@@ -71,6 +72,17 @@ class WebsiteHrRecruitment(http.Controller):
         countries = set(o.country_id for o in offices if o.country_id)
 
         total = len(jobs)
+
+        count_per_country = {'all': total}
+        for c, jobs_list in groupby(jobs, lambda job: job.address_id.country_id):
+            count_per_country[c] = len(jobs_list)
+        count_per_department = {'all': total}
+        for d, jobs_list in groupby(jobs, lambda job: job.department_id):
+            count_per_department[d] = len(jobs_list)
+        count_per_office = {'all': total}
+        for o, jobs_list in groupby(jobs, lambda job: job.address_id):
+            count_per_office[o] = len(jobs_list)
+
         pager = request.website.pager(
             url=request.httprequest.path.partition('/page/')[0],
             url_args={'search': search},
@@ -81,6 +93,8 @@ class WebsiteHrRecruitment(http.Controller):
         offset = pager['offset']
         jobs = jobs[offset:offset + self._jobs_per_page]
 
+        office = env['res.partner'].browse(office_id) if office_id else None
+
         # Render page
         return request.render("website_hr_recruitment.index", {
             'jobs': jobs,
@@ -88,18 +102,15 @@ class WebsiteHrRecruitment(http.Controller):
             'departments': departments,
             'offices': offices,
             'country_id': country,
-            'current_country_id': country.name if country else 0,
-            'current_country': country or False,
             'department_id': department,
-            'current_department_id': department.name if department else 0,
-            'current_department': department or False,
-            'office_id': office_id,
-            'current_office_id': office_id if office_id else 0,
-            'current_office': office_id or False,
+            'office_id': office,
             'pager': pager,
             'search': fuzzy_search_term or search,
             'search_count': total,
             'original_search': fuzzy_search_term and search,
+            'count_per_country': count_per_country,
+            'count_per_department': count_per_department,
+            'count_per_office': count_per_office,
         })
 
     @http.route('/jobs/add', type='http', auth="user", website=True)

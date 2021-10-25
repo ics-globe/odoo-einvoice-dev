@@ -83,21 +83,21 @@
         <li class="nav-item dropdown mr-2 my-1">
             <a href="#" role="button" class="btn dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-map-marker"/>
-                <t t-if="current_country" t-out="current_country_id"/>
-                <t t-else="">All Countries</t>
+                <t t-if="country_id" t-out="country_id.name"/>
+                <t t-else=""><span t-attf-class="#{(opt_jobs_filter_departments or opt_jobs_filter_offices) and 'd-none d-md-inline-block'}">All Countries</span></t>
             </a>
             <div class="dropdown-menu">
-                <a  t-attf-href="/jobs#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id if office_id else '' }?all_countries=1"
+                <a  t-attf-href="/jobs#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id.id if office_id else '' }?all_countries=1"
                     t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if country_id else ' active'}">
                     All Countries
-                    <span class="badge badge-pill badge-primary ml-2" t-out="countries_ or '0'"/>
+                    <span class="badge badge-pill badge-primary ml-2" t-out="count_per_country.get('all', '0')"/>
                 </a>
                 <t t-foreach="countries" t-as="country">
                     <t t-if="len(countries)" class="nav-item">
-                        <a  t-attf-href="/jobs/country/#{ slug(country) }#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id if office_id else '' }"
+                        <a  t-attf-href="/jobs/country/#{ slug(country) }#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id.id if office_id else '' }"
                             t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if country_id and country_id.id == country.id else ''}">
                             <t t-out="country.name"/>
-                            <span class="badge badge-pill badge-primary ml-2" t-out="countries_ or '0'"/>
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_country.get(country, '0')"/>
                         </a>
                     </t>
                 </t>
@@ -112,21 +112,21 @@
         <li class="nav-item dropdown mr-2 my-1">
             <a href="#" role="button" class="btn dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-sitemap"/>
-                <t t-if="current_department" t-out="current_department_id"/>
-                <t t-else="">All Departments</t>
+                <t t-if="department_id" t-out="department_id.name"/>
+                <t t-else=""><span t-attf-class="#{(opt_jobs_filter_countries or opt_jobs_filter_offices) and 'd-none d-md-inline-block'}">All Departments</span></t>
             </a>
             <div class="dropdown-menu">
-                <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/office/%s' % office_id if office_id else ''}"
+                <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/office/%s' % office_id.id if office_id else ''}"
                     t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if department_id else ' active'}">
                     All Departments
-                    <span class="badge badge-pill badge-primary ml-2" t-out="department_id or '0'"/>
+                    <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get('all', '0')"/>
                 </a>
                 <t t-foreach="departments" t-as="department">
                     <t t-if="len(countries)" class="nav-item">
-                        <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }/department/#{ slug(department) }#{ '/office/%s' % office_id if office_id else '' }"
+                        <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }/department/#{ slug(department) }#{ '/office/%s' % office_id.id if office_id else '' }"
                             t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if department_id and department_id.id == department.id else ''}">
                             <t t-out="department.name"/>
-                            <span class="badge badge-pill badge-primary ml-2" t-out="department_id or '0'"/>
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(department, '0')"/>
                         </a>
                     </t>
                 </t>
@@ -141,21 +141,23 @@
         <li class="nav-item dropdown mr-2 my-1">
             <a href="#" role="button" class="btn dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-building"/>
-                <t t-if="current_office" t-out="current_office_id"/>
-                <t t-else="">All Offices</t>
+                <t t-if="office_id">
+                    <t t-out="office_id.city"/><t t-if="office_id.country_id">, <t t-out="office_id.country_id.name"/></t>
+                </t>
+                <t t-else=""><span t-attf-class="#{(opt_jobs_filter_countries or opt_jobs_filter_departments) and 'd-none d-md-inline-block'}">All Offices</span></t>
             </a>
             <div class="dropdown-menu">
                 <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/department/%s' % slug(department_id) if department_id else '' }"
                     t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if office_id else ' active'}">
                     All Offices
-                    <span class="badge badge-pill badge-primary ml-2" t-out="office or '0'"/>
+                    <span class="badge badge-pill badge-primary ml-2" t-out="count_per_office.get('all', '0')"/>
                 </a>
                 <t t-foreach="offices" t-as="thisoffice">
                     <t t-if="len(offices)" class="nav-item">
                         <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/department/%s' % slug(department_id) if department_id else '' }/office/#{ thisoffice.id }"
-                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if office_id == thisoffice.id else ''}">
+                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if office_id and office_id.id == thisoffice.id else ''}">
                             <t t-out="thisoffice.city"/><t t-if="thisoffice.country_id">, <t t-out="thisoffice.country_id.name"/></t>
-                            <span class="badge badge-pill badge-primary ml-2" t-out="office or '0'"/>
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_office.get(thisoffice, '0')"/>
                         </a>
                     </t>
                 </t>

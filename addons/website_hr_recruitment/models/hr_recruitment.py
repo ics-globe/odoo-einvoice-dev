@@ -76,6 +76,7 @@ class Job(models.Model):
 
     @api.model
     def _search_get_detail(self, website, order, options):
+        requires_sudo = False
         with_description = options['displayDescription']
         country_id = options.get('country')
         department_id = options.get('department')
@@ -84,10 +85,16 @@ class Job(models.Model):
         domain = [website.website_domain()]
         if country_id:
             domain.append([('address_id.country_id', '=', unslug(country_id)[1])])
+            requires_sudo = True
         if department_id:
             domain.append([('department_id', '=', unslug(department_id)[1])])
         if office_id:
             domain.append([('address_id', '=', office_id)])
+
+        if requires_sudo and not self.env.user.has_group('hr_recruitment.group_hr_recruitment_user'):
+            # Rule must be reinforced because of sudo.
+            domain.append([('website_published', '=', True)])
+
 
         search_fields = ['name']
         fetch_fields = ['name', 'website_url']
@@ -101,6 +108,7 @@ class Job(models.Model):
             mapping['description'] = {'name': 'description', 'type': 'text', 'html': True, 'match': True}
         return {
             'model': 'hr.job',
+            'requires_sudo': requires_sudo,
             'base_domain': domain,
             'search_fields': search_fields,
             'fetch_fields': fetch_fields,
