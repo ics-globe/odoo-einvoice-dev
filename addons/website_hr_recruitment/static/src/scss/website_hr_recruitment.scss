@@ -1,36 +1,27 @@
 .o_website_hr_recruitment_jobs_list {
-    #jobs_grid_left {
+    #jobs_grid {
+        .o_job_infos {
+            .fa {
+                color: theme-color('secondary');
+                margin-right: .5rem;
+            }
+        }
+        .card {
+            padding: $card-spacer-x;
+            &, * {
+                transition: all .1s;
+            }
+            &:hover {
+                box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 2px 0 rgba(0, 0, 0, 0.05);
+            }
+        }
+    }
+    #jobs_grid_right {
         ul.flex-column > li.nav-item > a {
             padding: .5rem 1rem;
             border-radius: 0.125rem;
         }
     }
-    .card {
-        padding: 15px;
-        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.17);
-
-        &:hover {
-            transition: box-shadow 0.3s cubic-bezier(0.55, 0, 0.1, 1);
-            box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-        .o_job_infos {
-            .fa {
-                color: theme-color('primary');
-                margin-right: 8px;
-            }
-        }
-    }
-    .o_recruitment_not_card {
-        border-radius: 1.25rem;
-        word-break: break-word;
-        transition: .3s;
-
-        &:hover {
-            box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-
-    }
-
     .o_website_hr_recruitment_job_description {
         //The ellipsis may not be supported on all platforms, the text will just break for them
         max-height: 60px; //Limit to 3 lines
@@ -77,10 +68,6 @@
             color: theme-color('primary');
         }
     }
-}
-
-.o_hr_index_banner {
-    background: linear-gradient(150deg, #875a7b 20%, #62495b 80%) !important;
 }
 
 .s_image_gallery {
