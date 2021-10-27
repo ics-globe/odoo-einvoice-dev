@@ -393,7 +393,7 @@ class Project(models.Model):
     def _compute_alias_value(self):
         for project in self:
             if not project.alias_name or not project.alias_domain:
-                project.alias_value = ''
+                project.alias_value = ''  # TDE FIXME
             else:
                 project.alias_value = "%s@%s" % (project.alias_name, project.alias_domain)
 
