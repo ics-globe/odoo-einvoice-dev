@@ -934,8 +934,22 @@ class MailCommon(common.TransactionCase, MailCase):
             groups='base.group_user',
             company_id=cls.company_2.id,
             company_ids=[(4, cls.company_2.id)],
+            email='enguerrand@example.com',
             name='Enguerrand Employee C2',
             notification_type='inbox',
             signature='--\nEnguerrand'
         )
         cls.partner_employee_c2 = cls.user_employee_c2.partner_id
+
+        # test erp manager employee
+        cls.user_erp_manager = mail_new_test_user(
+            cls.env,
+            company_id=cls.company_2.id,
+            company_ids=[(6, 0, (cls.company_admin + cls.company_2).ids)],
+            email='etchenne@example.com',
+            groups='base.group_user,base.group_erp_manager,mail.group_mail_template_editor',
+            login='erp_manager',
+            name='Etchenne Doukte',
+            notification_type='inbox',
+            signature='--\nEtchenne'
+        )

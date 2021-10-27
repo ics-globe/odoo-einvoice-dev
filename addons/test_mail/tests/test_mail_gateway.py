@@ -94,8 +94,14 @@ class TestEmailParsing(TestMailCommon):
         self.env['mail.thread'].message_parse(self.from_string(test_mail_data.MAIL_XHTML))
 
 
-@tagged('mail_gateway')
+@tagged('mail_gateway', 'mail_alias')
 class TestMailAlias(TestMailCommon):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestMailAlias, cls).setUpClass()
+        cls._activate_multi_company()
+        cls._init_mail_gateway()
 
     @users('employee')
     def test_alias_creation(self):
@@ -104,6 +110,7 @@ class TestMailAlias(TestMailCommon):
             'alias_name': 'alias.test',
             'alias_contact': 'followers',
         })
+        self.assertFalse(record.company_id)
         self.assertEqual(record.alias_id.alias_model_id, self.env['ir.model']._get('mail.test.container'))
         self.assertEqual(record.alias_id.alias_force_thread_id, record.id)
         self.assertEqual(record.alias_id.alias_parent_model_id, self.env['ir.model']._get('mail.test.container'))
@@ -131,6 +138,27 @@ class TestMailAlias(TestMailCommon):
         with self.assertRaises(exceptions.ValidationError):
             record.write({'alias_defaults': "{'custom_field': brokendict"})
 
+    @users('erp_manager')
+    def test_alias_creation_mc(self):
+        """ Test company change does not impact anything at alias domain level """
+        record = self.env['mail.test.container'].create({
+            'name': 'Test Record',
+            'alias_name': 'alias.test',
+            'alias_contact': 'followers',
+            'company_id': self.env.user.company_id.id,
+        })
+        self.assertEqual(record.alias_domain, self.alias_domain)
+        self.assertEqual(record.company_id, self.company_2)
+
+        record.write({'company_id': self.company_admin.id})
+        self.assertEqual(record.alias_domain, self.alias_domain)
+        self.assertEqual(record.company_id, self.company_admin)
+
+        record.write({'company_id': False})
+        self.assertEqual(record.alias_domain, self.alias_domain)
+        self.assertFalse(record.company_id)
+
+    @users('admin')
     def test_alias_sanitize(self):
         alias = self.env['mail.alias'].create({
             'alias_model_id': self.env['ir.model']._get('mail.test.container').id,
@@ -138,6 +166,7 @@ class TestMailAlias(TestMailCommon):
         })
         self.assertEqual(alias.alias_name, 'bidule.inc', 'Emails cannot start or end with a dot, there cannot be a sequence of dots.')
 
+    @users('admin')
     def test_alias_setup(self):
         alias = self.env['mail.alias'].create({
             'alias_model_id': self.env['ir.model']._get('mail.test.container').id,
@@ -148,6 +177,7 @@ class TestMailAlias(TestMailCommon):
         with self.assertRaises(exceptions.ValidationError):
             alias.write({'alias_defaults': "{'custom_field': brokendict"})
 
+    @users('admin')
     def test_alias_name_unique(self):
         alias_model_id = self.env['ir.model']._get('mail.test.gateway').id
         catchall_alias = self.env['ir.config_parameter'].sudo().get_param('mail.catchall.alias')
@@ -187,8 +217,14 @@ class TestMailAlias(TestMailCommon):
             self.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', new_mail_alias.alias_name)
 
 
-@tagged('mail_gateway')
+@tagged('mail_gateway', 'mail_alias')
 class TestMailAliasMixin(TestMailCommon):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestMailAliasMixin, cls).setUpClass()
+        cls._activate_multi_company()
+        cls._init_mail_gateway()
 
     @users('employee')
     def test_alias_mixin_copy_content(self):
@@ -217,6 +253,8 @@ class TestMailgateway(TestMailCommon):
     @classmethod
     def setUpClass(cls):
         super(TestMailgateway, cls).setUpClass()
+        cls._activate_multi_company()
+
         cls.test_model = cls.env['ir.model']._get('mail.test.gateway')
         cls.email_from = '"Sylvie Lelitre" <test.sylvie.lelitre@agrolait.com>'
 

@@ -112,6 +112,7 @@ class MailTestContainer(models.Model):
     name = fields.Char()
     description = fields.Text()
     customer_id = fields.Many2one('res.partner', 'Customer')
+    company_id = fields.Many2one('res.company', 'Company')
     alias_id = fields.Many2one(
         'mail.alias', 'Alias',
         delegate=True)
