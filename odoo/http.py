@@ -184,6 +184,20 @@ babel.core.LOCALE_ALIASES['nb'] = 'nb_NO'
 # The request mimetypes that transport JSON in their body
 JSON_MIMETYPES = ('application/json', 'application/json-rpc')
 
+# The @route arguments to propagate from the decorated method to the
+# routing rule
+ROUTING_KEYS = {
+    'defaults', 'subdomain', 'build_only', 'strict_slashes', 'redirect_to',
+    'alias', 'host', 'methods',
+}
+
+# The cache duration for static content from the filesystem, one week.
+STATIC_CACHE = 60 * 60 * 24 * 7
+
+# The cache duration for content where the url uniquely identify the
+# content (usually using a hash), one year.
+STATIC_CACHE_LONG = 60 * 60 * 24 * 365
+
 
 #----------------------------------------------------------
 # Helpers
@@ -241,9 +255,21 @@ def db_filter(dbs, httprequest=None):
 
     return list(dbs)
 
+def send_file(filepath_or_fp, **send_file_kwargs):
+    warnings.warn(
+        "http.send_file is a deprecated alias to http.request.send_file",
+        DeprecationWarning, stacklevel=2)
+
+    if isinstance(filepath_or_fp, str):  # file-path
+        return request.send_filepath(filepath_or_fp, **send_file_kwargs)
+    else:  # file-object
+        return request.send_file(filepath_or_fp, **send_file_kwargs)
+
+
 #----------------------------------------------------------
 # Controller and routes
 #----------------------------------------------------------
+addons_manifest = {}  # TODO @juc, move to odoo.modules.module
 
 class Controller:
     """
@@ -394,6 +420,95 @@ class Request:
     #------------------------------------------------------
     # HTTP Controllers
     #------------------------------------------------------
+    def send_filepath(self, path, **send_file_kwargs):
+        """
+        High-level file streaming utility, it takes a path to a file on
+        the filesystem.
+
+        Never pass filenames to this function from user sources without
+        checking them first.
+
+        :param path-like path: The path to the file.
+        :return werkzeug.Response: The HTTP response that streams the file.
+
+        See :meth:`~odoo.http.request.send_file`: for the complete list
+        of parameters.
+        """
+        fd = open(path, 'rb')  # closed by werkzeug
+        return self.send_file(fd, **send_file_kwargs)
+
+    def send_file(self, file, filename=None, mimetype=None, mtime=None, as_attachment=False, cache_timeout=STATIC_CACHE):
+        """
+        Low-level file streaming utility with mime and cache handling,
+        it takes a file-object or immediately the content as bytes/str.
+
+        Sends the contents of a file to the client. This will use the
+        most efficient method available and configured. By default it
+        will try to use the WSGI server's file_wrapper support.
+
+        If filename of file.name is provided it will try to guess the
+        mimetype for you, but you can also explicitly provide one.
+
+        For extra security you probably want to send certain files as
+        attachment (e.g. HTML).
+
+        :param Union[io.BaseIO,bytes,str] file: fileobject to read from
+            or the content as bytes or str.
+        :param str filename: optional if file has a 'name' attribute,
+            used for attachment name and mimetype guess.
+        :param str mimetype: the mimetype of the file if provided,
+            otherwise auto detection happens based on the name.
+        :param datetime mtime: optional if file has a 'name' attribute,
+            last modification time used for contitional response.
+        :param bool as_attachment: set to `True` if you want to send
+            this file with a ``Content-Disposition: attachment`` header.
+        :param int cache_timeout: set to `False` to disable etags and
+            conditional response handling (last modified and etags)
+        :return: the HTTP response that streams the file.
+        """
+        if isinstance(file, str):
+            file = file.encode('utf8')
+        if isinstance(file, bytes):
+            file = io.BytesIO(file)
+
+        # Only used when filename or mtime argument is not provided
+        path = getattr(file, 'name', 'file.bin')
+
+        if not filename:
+            filename = os.path.basename(path)
+
+        if not mimetype:
+            mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+        if not mtime:
+            with contextlib.suppress(Exception):
+                mtime = datetime.fromtimestamp(os.path.getmtime(path))
+
+        file.seek(0, 2)
+        size = file.tell()
+        file.seek(0)
+
+        data = werkzeug.wsgi.wrap_file(self.httprequest.environ, file)
+
+        res = werkzeug.wrappers.Response(data, mimetype=mimetype, direct_passthrough=True)
+        res.content_length = size
+
+        if as_attachment:
+            res.headers.add('Content-Disposition', 'attachment', filename=filename)
+
+        if cache_timeout:
+            if mtime:
+                res.last_modified = mtime
+            crc = zlib.adler32(filename.encode('utf-8') if isinstance(filename, str) else filename) & 0xffffffff
+            etag = f'odoo-{mtime}-{size}-{crc}'
+            if not werkzeug.http.is_resource_modified(self.httprequest.environ, etag, last_modified=mtime):
+                res = werkzeug.wrappers.Response(status=304)
+            else:
+                res.cache_control.public = True
+                res.cache_control.max_age = cache_timeout
+                res.set_etag(etag)
+        return res
+
     def _http_dispatch(self, ...):
         """
         Perform http-related actions such as deserializing the request
@@ -435,6 +550,15 @@ class Request:
     #------------------------------------------------------
     def _serve_static(self):
         """ Serve a static file from the file system. """
+        module, _, path = self.httprequest.path[1:].partition('/static/')
+        try:
+            directory = self.app.statics[module]
+            filepath = werkzeug.security.safe_join(directory, path)
+            return self.send_filepath(filepath)
+        except KeyError:
+            raise NotFound(f'Module "{module}" not found.\n')
+        except OSError:  # cover both missing file and invalid permissions
+            raise NotFound(f'File "{path}" not found in module {module}.\n')
 
     def _serve_nodb(self):
         """
@@ -468,6 +592,28 @@ class Application(object):
     """ Odoo WSGI application """
     # See also: https://www.python.org/dev/peps/pep-3333
 
+    def __init__(self):
+        self.statics = None  # {module: /path/to/module/static}
+
+    def load_statics(self):
+        """
+        Populate the statics mapping, automatically called upon first
+        request.
+        """
+        self.statics = {}
+        for addons_path in odoo.addons.__path__:
+            for module in sorted(os.listdir(str(addons_path))):
+                if module not in addons_manifest:
+                    manifest = read_manifest(addons_path, module)
+                    if not manifest or (not manifest.get('installable', True) and 'assets' not in manifest):
+                        continue
+                    manifest['addons_path'] = addons_path
+                    addons_manifest[module] = manifest  # TODO @juc, magic "addons_manifest" set here, should be moved to odoo.modules.module
+                    path_static = opj(addons_path, module, 'static')
+                    if os.path.isdir(path_static):
+                        _logger.debug("Loading %s", module)
+                        self.statics[module] = path_static
+
     def __call__(self, environ, start_response):
         """
         WSGI application entry point.
@@ -479,6 +625,9 @@ class Application(object):
             server that this application must call in order to send the
             HTTP response status line and the response headers.
         """
+        if self.statics is None:
+            self.load_statics()
+
         httprequest = werkzeug.wrappers.Request(environ)
         httprequest.parameter_storage_class = (
             werkzeug.datastructures.ImmutableOrderedMultiDict)
