@@ -858,17 +858,19 @@ class MailThread(models.AbstractModel):
         email_from = message_dict['email_from']
         email_from_localpart = (tools.email_split(email_from) or [''])[0].split('@', 1)[0].lower()
         email_to = message_dict['to']
-        email_to_localparts = [
-            e.split('@', 1)[0].lower()
-            for e in (tools.email_split(email_to) or [''])
+        email_to_list = [
+            (e.split('@', 1)[0].lower(),
+             e.split('@', 1)[1].lower()
+            ) for e in (tools.email_split(email_to) or [''])
         ]
         # Delivered-To is a safe bet in most modern MTAs, but we have to fallback on To + Cc values
         # for all the odd MTAs out there, as there is no standard header for the envelope's `rcpt_to` value.
-        rcpt_tos_localparts = [
-            e.split('@')[0].lower()
-            for e in tools.email_split(message_dict['recipients'])
+        rcpt_tos_list = [
+            (e.split('@', 1)[0].lower(),
+             e.split('@', 1)[1].lower()
+            ) for e in tools.email_split(message_dict['recipients'])
         ]
-        rcpt_tos_valid_localparts = [to for to in rcpt_tos_localparts]
+        rcpt_tos_list_valid = [to for to in rcpt_tos_list]
 
         # 0. Handle bounce: verify whether this is a bounced email and use it to collect bounce data and update notifications for customers
         #    Bounce alias: if any To contains bounce_alias@domain
