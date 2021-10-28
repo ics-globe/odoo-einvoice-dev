@@ -258,6 +258,12 @@ def db_filter(dbs, httprequest=None):
 
     return list(dbs)
 
+def is_cors_preflight(endpoint):
+    return (_request_stack.top
+        and request.httprequest.method == 'OPTIONS'
+        and 'cors' in endpoint.routing
+    )
+
 def send_file(filepath_or_fp, **send_file_kwargs):
     warnings.warn(
         "http.send_file is a deprecated alias to http.request.send_file",
@@ -373,6 +379,8 @@ def route(route=None, **routing):
                 _logger.warning("%s called ignoring args %s", fname, params_ko)
 
             result = endpoint(self, **params_ok)
+            if routing['type'] == 'http':  # _generate_routing_rules() ensures type is set
+                return Response.load(result, fname=fname)
             return result
 
         route_wrapper.original_routing = routing
@@ -476,7 +484,80 @@ request = _request_stack()
 class Response(werkzeug.wrappers.Response):
     """
     Outgoing HTTP response with body, status, headers and qweb support.
+    In addition to the :class:`werkzeug.wrappers.Response` parameters,
+    this class's constructor can take the following additional
+    parameters for QWeb Lazy Rendering.
+
+    :param basestring template: template to render
+    :param dict qcontext: Rendering context to use
+    :param int uid: User id to use for the ir.ui.view render call,
+        ``None`` to use the request's user (the default)
+
+    these attributes are available as parameters on the Response object
+    and can be altered at any time before rendering
+
+    Also exposes all the attributes and methods of
+    :class:`werkzeug.wrappers.Response`.
     """
+    default_mimetype = 'text/html'
+    def __init__(self, *args, **kw):
+        template = kw.pop('template', None)
+        qcontext = kw.pop('qcontext', None)
+        uid = kw.pop('uid', None)
+        super(Response, self).__init__(*args, **kw)
+        self.set_default(template, qcontext, uid)
+
+    @classmethod
+    def load(cls, result, fname="<function>"):
+        """
+        Convert the return value of an endpoint into a Response.
+
+        :param result: The endpoint return value to load the Response from.
+        :type result: Union[Response, werkzeug.wrappers.BaseResponse,
+            werkzeug.exceptions.HTTPException, str, bytes, NoneType]
+        :param str fname: The enpoint function name where the result
+            emanated from, used for logging.
+        """
+        if isinstance(result, Response):
+            return result
+
+        if isinstance(result, werkzeug.exceptions.HTTPException):
+            _logger.warning("%s returns an HTTPException instead of raising it.", fname)
+            raise result
+
+        if isinstance(result, werkzeug.wrappers.BaseResponse):
+            response = cls.force_type(result)
+            response.set_default()
+            return response
+
+        if isinstance(result, (bytes, str, type(None))):
+            return cls(result)
+
+        raise TypeError(f"{fname} returns an invalid value: {result}")
+
+    def set_default(self, template=None, qcontext=None, uid=None):
+        self.template = template
+        self.qcontext = qcontext or dict()
+        self.qcontext['response_template'] = self.template
+        self.uid = uid
+
+    @property
+    def is_qweb(self):
+        return self.template is not None
+
+    def render(self):
+        """ Renders the Response's template, returns the result. """
+        self.qcontext['request'] = request
+        return request.env["ir.ui.view"]._render_template(self.template, self.qcontext)
+
+    def flatten(self):
+        """
+        Forces the rendering of the response's template, sets the result
+        as response body and unsets :attr:`.template`
+        """
+        if self.template:
+            self.response.append(self.render())
+            self.template = None
 
 class FutureResponse:
     """ werkzeug.Response mock class that only serves as placeholder for
@@ -502,6 +583,9 @@ class Request:
         self.httprequest = httprequest
         self.type = 'json' if httprequest.mimetype in JSON_MIMETYPES else 'http'
         self.future_response = FutureResponse()
+        self.params = {}
+
+        self.db = None
 
     #------------------------------------------------------
     # Session
@@ -644,12 +728,28 @@ class Request:
                 res.set_etag(etag)
         return res
 
-    def _http_dispatch(self, ...):
+    def _http_dispatch(self, endpoint, args):
         """
         Perform http-related actions such as deserializing the request
         body and query-string or checking cors/csrf while dispatching a
         request to a ``type='http'`` route.
+
+        See :meth:`~odoo.http.Response.load`: method for the compatible
+        endpoint return types.
         """
+        self.params = dict(
+            self.httprequest.args,
+            **self.httprequest.form,
+            **self.httprequest.files,
+            **args,
+        )
+
+        # Check for CSRF token for relevant requests
+        if self.httprequest.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE') and endpoint.routing.get('csrf', True):
+            if not self.db:
+                return self.redirect('/web/database/selector')
+
+        return endpoint(**self.params)
 
     def _http_handle_error(self, exc):
         """
