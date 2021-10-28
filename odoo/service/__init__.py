@@ -7,6 +7,9 @@ from . import model
 from . import wsgi_server
 from . import server
 
+import logging
+import threading
+
 #.apidoc title: RPC Services
 
 """ Classes of this module implement the network protocols that the
@@ -17,3 +20,22 @@ from . import server
     implement an extension to the network protocols, or need to debug some
     low-level behavior of the wire.
 """
+
+_dispatchers = {
+    'common': common.dispatch,
+    'db': db.dispatch,
+    'object': model.dispatch,
+}
+
+def dispatch_rpc(service_name, method, params):
+    """ Handle a RPC call.
+
+    This is pure Python code, the actual marshalling (from/to XML/JSON)
+    is done in a upper layer.
+    """
+    threading.current_thread().uid = None
+    threading.current_thread().dbname = None
+
+    dispatch = _dispatchers[service_name]
+
+    return dispatch(method, params)
