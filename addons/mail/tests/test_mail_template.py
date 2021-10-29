@@ -4,8 +4,10 @@
 from odoo.tests import Form, users
 from odoo.exceptions import AccessError
 from odoo.addons.mail.tests.common import MailCommon
+from odoo.tests import tagged
 
 
+@tagged('mail_template')
 class TestMailTemplate(MailCommon):
     @classmethod
     def setUpClass(cls):

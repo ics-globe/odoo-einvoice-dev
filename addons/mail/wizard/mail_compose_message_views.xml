@@ -16,6 +16,7 @@
                         <field name="is_log" invisible="1"/>
                         <field name="parent_id" invisible="1"/>
                         <field name="mail_server_id" invisible="1"/>
+                        <field name="record_name" invisible="1"/>
                         <!-- visible wizard -->
                         <field name="email_from"
                             attrs="{'invisible':[('composition_mode', '!=', 'mass_mail')]}"/>

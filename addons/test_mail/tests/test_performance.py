@@ -298,7 +298,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
             #voip module read activity_type during create leading to one less query in enterprise on action_feedback
             _category = activity.activity_type_id.category
 
-        with self.assertQueryCount(__system__=21, employee=23):
+        with self.assertQueryCount(__system__=23, employee=25):
             activity.action_feedback(feedback='Zizisse Done !')
 
     @users('__system__', 'employee')
@@ -315,7 +315,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
 
         record.write({'name': 'Dupe write'})
 
-        with self.assertQueryCount(__system__=22, employee=25):
+        with self.assertQueryCount(__system__=24, employee=27):
             record.action_close('Dupe feedback')
 
         self.assertEqual(record.activity_ids, self.env['mail.activity'])
@@ -358,7 +358,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
         self._create_test_records()
         test_record = self.env['mail.test.ticket'].browse(self.test_record_full.id)
         customer_id = self.customer.id
-        with self.assertQueryCount(__system__=4, employee=4):
+        with self.assertQueryCount(__system__=6, employee=6):
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'comment',
                 'default_model': test_record._name,
@@ -430,7 +430,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
         self._create_test_records()
         test_record = self.env['mail.test.ticket'].browse(self.test_record_full.id)
         customer_id = self.customer.id
-        with self.assertQueryCount(__system__=4, employee=4):
+        with self.assertQueryCount(__system__=6, employee=6):
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'comment',
                 'default_model': test_record._name,
@@ -481,7 +481,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
 
         test_record = self.env['mail.test.ticket'].browse(self.test_record_full.id)
         test_template = self.env['mail.template'].browse(self.test_template_full.id)
-        with self.assertQueryCount(__system__=14, employee=15):
+        with self.assertQueryCount(__system__=15, employee=16):
             composer = self.env['mail.compose.message'].with_context({
                 'default_composition_mode': 'comment',
                 'default_model': test_record._name,
