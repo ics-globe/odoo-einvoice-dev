@@ -843,14 +843,13 @@ class IrModelFields(models.Model):
         # discard the removed fields from field triggers
         def discard_fields(tree):
             # discard fields from the tree's root node
-            tree.get(None, set()).difference_update(fields)
+            tree.fields.difference_update(fields)
             # discard subtrees labelled with any of the fields
             for field in fields:
                 tree.pop(field, None)
             # discard fields from remaining subtrees
-            for field, subtree in tree.items():
-                if field is not None:
-                    discard_fields(subtree)
+            for subtree in tree.values():
+                discard_fields(subtree)
 
         discard_fields(triggers)
         self.pool.registry_invalidated = True

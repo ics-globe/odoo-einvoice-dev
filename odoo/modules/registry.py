@@ -21,7 +21,7 @@ from .. import SUPERUSER_ID
 from odoo.sql_db import TestCursor
 from odoo.tools import (config, existing_tables, ignore,
                         lazy_classproperty, lazy_property, sql,
-                        Collector, OrderedSet)
+                        Collector, OrderedSet, TriggerTree)
 from odoo.tools.lru import LRU
 
 _logger = logging.getLogger(__name__)
@@ -354,13 +354,10 @@ class Registry(Mapping):
             return traverse(field)
 
         # determine triggers based on transitive dependencies
-        triggers = {}
+        triggers = TriggerTree()
         for field in dependencies:
             for path in transitive_dependencies(field):
-                tree = triggers
-                for label in reversed(path):
-                    tree = tree.setdefault(label, {})
-                tree.setdefault(None, OrderedSet()).add(field)
+                triggers.extend(reversed(path)).fields.add(field)
 
         return triggers
 

@@ -1114,6 +1114,35 @@ class LastOrderedSet(OrderedSet):
         OrderedSet.add(self, elem)
 
 
+class TriggerTree(dict):
+    __slots__ = ['fields']
+
+    def __init__(self):
+        super().__init__()
+        self.fields = OrderedSet()
+
+    def __bool__(self):
+        return bool(self.fields) or bool(super().__len__())
+
+    def extend(self, labels):
+        tree = self
+        for label in labels:
+            tree = tree._extend(label)
+        return tree
+
+    def _extend(self, label):
+        try:
+            return self[label]
+        except KeyError:
+            subtree = self[label] = TriggerTree()
+            return subtree
+
+    def merge(self, tree):
+        self.fields.update(tree.fields)
+        for label, subtree in tree.items():
+            self._extend(label).merge(subtree)
+
+
 class Callbacks:
     """ A simple queue of callback functions.  Upon run, every function is
     called (in addition order), and the queue is emptied.

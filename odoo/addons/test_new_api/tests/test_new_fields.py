@@ -219,18 +219,18 @@ class TestFields(TransactionCaseWithUserDemo):
         invalid_depends = fields["x_computed_custom_invalid_depends"]
         invalid_transitive_depends = fields["x_computed_custom_invalid_transitive_depends"]
         # `x_computed_custom_valid_depends` in the triggers of the field `value1`
-        self.assertTrue(valid_depends in triggers[value1][None])
+        self.assertTrue(valid_depends in triggers[value1].fields)
         # `x_computed_custom_valid_transitive_depends` in the triggers `x_computed_custom_valid_depends` and `value1`
-        self.assertTrue(valid_transitive_depends in triggers[valid_depends][None])
-        self.assertTrue(valid_transitive_depends in triggers[value1][None])
+        self.assertTrue(valid_transitive_depends in triggers[valid_depends].fields)
+        self.assertTrue(valid_transitive_depends in triggers[value1].fields)
         # `x_computed_custom_invalid_depends` not in any triggers, as it was invalid and was skipped
         self.assertEqual(
-            sum(invalid_depends in field_triggers.get(None, []) for field_triggers in triggers.values()), 0
+            sum(invalid_depends in field_triggers.fields for field_triggers in triggers.values()), 0
         )
         # `x_computed_custom_invalid_transitive_depends` in the triggers of `x_computed_custom_invalid_depends` only
-        self.assertTrue(invalid_transitive_depends in triggers[invalid_depends][None])
+        self.assertTrue(invalid_transitive_depends in triggers[invalid_depends].fields)
         self.assertEqual(
-            sum(invalid_transitive_depends in field_triggers.get(None, []) for field_triggers in triggers.values()), 1
+            sum(invalid_transitive_depends in field_triggers.fields for field_triggers in triggers.values()), 1
         )
 
     @mute_logger('odoo.fields')

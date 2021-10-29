@@ -55,7 +55,7 @@ from .exceptions import AccessError, MissingError, ValidationError, UserError
 from .osv.query import Query
 from .tools import frozendict, lazy_classproperty, ormcache, \
                    Collector, LastOrderedSet, OrderedSet, IterableGenerator, \
-                   groupby, discardattr, partition
+                   groupby, discardattr, partition, TriggerTree
 from .tools.config import config
 from .tools.func import frame_codeinfo
 from .tools.misc import CountingStream, clean_context, DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT, get_lang
@@ -134,16 +134,6 @@ def fix_import_export_id_paths(fieldname):
     fixed_db_id = re.sub(r'([^/])\.id', r'\1/.id', fieldname)
     fixed_external_id = re.sub(r'([^/]):id', r'\1/id', fixed_db_id)
     return fixed_external_id.split('/')
-
-def trigger_tree_merge(node1, node2):
-    """ Merge two trigger trees. """
-    for key, val in node2.items():
-        if key is None:
-            node1.setdefault(None, OrderedSet())
-            node1[None].update(val)
-        else:
-            node1.setdefault(key, {})
-            trigger_tree_merge(node1[key], node2[key])
 
 
 class MetaModel(api.Meta):
@@ -5974,15 +5964,13 @@ Fields:
         #  - mark H to recompute on inverse(X, records),
         #  - mark I to recompute on inverse(W, inverse(X, records)),
         #  - mark J to recompute on inverse(Y, records).
-        if len(fnames) == 1:
-            tree = self.pool.field_triggers.get(self._fields[next(iter(fnames))])
-        else:
-            # merge dependency trees to evaluate all triggers at once
-            tree = {}
-            for fname in fnames:
-                node = self.pool.field_triggers.get(self._fields[fname])
-                if node:
-                    trigger_tree_merge(tree, node)
+
+        # merge dependency trees to evaluate all triggers at once
+        tree = TriggerTree()
+        for fname in fnames:
+            node = self.pool.field_triggers.get(self._fields[fname])
+            if node:
+                tree.merge(node)
 
         if tree:
             # determine what to compute (through an iterator)
@@ -6028,14 +6016,12 @@ Fields:
             return
 
         # first yield what to compute
-        for field in tree.get(None, ()):
+        for field in tree.fields:
             yield field, self, create
 
         # then traverse dependencies backwards, and proceed recursively
         for key, val in tree.items():
-            if key is None:
-                continue
-            elif create and key.type in ('many2one', 'many2one_reference'):
+            if create and key.type in ('many2one', 'many2one_reference'):
                 # upon creation, no other record has a reference to self
                 continue
             else:
@@ -6128,13 +6114,13 @@ Fields:
 
     def _dependent_fields(self, field):
         """ Return an iterator on the fields that depend on ``field``. """
-        def traverse(node):
-            for key, val in node.items():
-                if key is None:
-                    yield from val
-                else:
-                    yield from traverse(val)
-        return traverse(self.pool.field_triggers.get(field, {}))
+        def traverse(tree):
+            yield from tree.fields
+            for subtree in tree.values():
+                yield from traverse(subtree)
+
+        tree = self.pool.field_triggers.get(field)
+        return traverse(tree) if tree else ()
 
     def _has_onchange(self, field, other_fields):
         """ Return whether ``field`` should trigger an onchange event in the
