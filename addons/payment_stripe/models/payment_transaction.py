@@ -10,7 +10,7 @@ from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment_stripe import utils as stripe_utils
-from odoo.addons.payment_stripe.const import INTENT_STATUS_MAPPING, PAYMENT_METHOD_TYPES
+from odoo.addons.payment_stripe.const import STATUS_MAPPING, PAYMENT_METHOD_TYPES
 from odoo.addons.payment_stripe.controllers.main import StripeController
 
 
@@ -195,6 +195,95 @@ class PaymentTransaction(models.Model):
         )
         self._handle_notification_data('stripe', notification_data)
 
+    def _stripe_create_payment_intent(self):
+        """ Create and return a PaymentIntent.
+
+        Note: self.ensure_one()
+
+        :return: The Payment Intent
+        :rtype: dict
+        """
+        if not self.token_id.stripe_payment_method:  # Pre-SCA token -> migrate it
+            self.token_id._stripe_sca_migrate_customer()
+
+        response = self.acquirer_id._stripe_make_request(
+            'payment_intents',
+            payload=self._stripe_prepare_payment_intent_payload(),
+            offline=self.operation == 'offline',
+        )
+        if 'error' not in response:
+            payment_intent = response
+        else:  # A processing error was returned in place of the payment intent
+            error_msg = response['error'].get('message')
+            self._set_error("Stripe: " + _(
+                "The communication with the API failed.\n"
+                "Stripe gave us the following info about the problem:\n'%s'", error_msg
+            ))  # Flag transaction as in error now as the intent status might have a valid value
+            payment_intent = response['error'].get('payment_intent')  # Get the PI from the error
+
+        return payment_intent
+
+    def _stripe_prepare_payment_intent_payload(self):
+        """ Prepare the payload for the creation of a payment intent in Stripe format.
+
+        Note: This method serves as a hook for modules that would fully implement Stripe Connect.
+        Note: self.ensure_one()
+
+        :return: The Stripe-formatted payload for the payment intent request
+        :rtype: dict
+        """
+        return {
+            'amount': payment_utils.to_minor_currency_units(self.amount, self.currency_id),
+            'currency': self.currency_id.name.lower(),
+            'confirm': True,
+            'customer': self.token_id.acquirer_ref,
+            'off_session': True,
+            'payment_method': self.token_id.stripe_payment_method,
+            'description': self.reference,
+            'capture_method': 'manual' if self.acquirer_id.capture_manually else 'automatic',
+        }
+
+    def _send_refund_request(self, amount_to_refund=None, create_refund_transaction=True):
+        """ Override of payment to send a refund request to Stripe.
+
+        Note: self.ensure_one()
+
+        :param float amount_to_refund: The amount to refund.
+        :param bool create_refund_transaction: Whether a refund transaction should be created or
+                                               not.
+        :return: The refund transaction, if any.
+        :rtype: recordset of `payment.transaction`
+        """
+        if self.provider != 'stripe':
+            return super()._send_refund_request(
+                amount_to_refund=amount_to_refund,
+                create_refund_transaction=create_refund_transaction,
+            )
+        refund_tx = super()._send_refund_request(
+            amount_to_refund=amount_to_refund, create_refund_transaction=True
+        )
+
+        # Make the refund request to stripe.
+        data = self.acquirer_id._stripe_make_request(
+            'refunds', payload={
+                'charge': self.acquirer_reference,
+                'amount': payment_utils.to_minor_currency_units(
+                    -refund_tx.amount,  # Refund transactions' amount is negative, inverse it.
+                    refund_tx.currency_id,
+                ),
+            }
+        )
+        _logger.info(
+            "Refund request response for transaction wih reference %s:\n%s",
+            self.reference, pprint.pformat(data)
+        )
+        # Handle the refund request response.
+        notification_data = {}
+        StripeController._include_refund_in_notification_data(data, notification_data)
+        refund_tx._handle_notification_data('stripe', notification_data)
+
+        return refund_tx
+
     def _send_capture_request(self):
         """ Override of payment to send a capture request to Stripe.
 
@@ -249,54 +338,6 @@ class PaymentTransaction(models.Model):
         )
         self._handle_notification_data('stripe', notification_data)
 
-    def _stripe_create_payment_intent(self):
-        """ Create and return a PaymentIntent.
-
-        Note: self.ensure_one()
-
-        :return: The Payment Intent
-        :rtype: dict
-        """
-        if not self.token_id.stripe_payment_method:  # Pre-SCA token -> migrate it
-            self.token_id._stripe_sca_migrate_customer()
-
-        response = self.acquirer_id._stripe_make_request(
-            'payment_intents',
-            payload=self._stripe_prepare_payment_intent_payload(),
-            offline=self.operation == 'offline',
-        )
-        if 'error' not in response:
-            payment_intent = response
-        else:  # A processing error was returned in place of the payment intent
-            error_msg = response['error'].get('message')
-            self._set_error("Stripe: " + _(
-                "The communication with the API failed.\n"
-                "Stripe gave us the following info about the problem:\n'%s'", error_msg
-            ))  # Flag transaction as in error now as the intent status might have a valid value
-            payment_intent = response['error'].get('payment_intent')  # Get the PI from the error
-
-        return payment_intent
-
-    def _stripe_prepare_payment_intent_payload(self):
-        """ Prepare the payload for the creation of a payment intent in Stripe format.
-
-        Note: This method serves as a hook for modules that would fully implement Stripe Connect.
-        Note: self.ensure_one()
-
-        :return: The Stripe-formatted payload for the payment intent request
-        :rtype: dict
-        """
-        return {
-            'amount': payment_utils.to_minor_currency_units(self.amount, self.currency_id),
-            'currency': self.currency_id.name.lower(),
-            'confirm': True,
-            'customer': self.token_id.acquirer_ref,
-            'off_session': True,
-            'payment_method': self.token_id.stripe_payment_method,
-            'description': self.reference,
-            'capture_method': 'manual' if self.acquirer_id.capture_manually else 'automatic',
-        }
-
     def _get_tx_from_notification_data(self, provider, notification_data):
         """ Override of payment to find the transaction based on Stripe data.
 
@@ -312,10 +353,20 @@ class PaymentTransaction(models.Model):
             return tx
 
         reference = notification_data.get('reference')
-        if not reference:
-            raise ValidationError("Stripe: " + _("Received data with missing merchant reference"))
+        if reference:
+            tx = self.search([('reference', '=', reference), ('provider', '=', 'stripe')])
+        else:
+            if notification_data.get('stripe_object', {'object':''})['object'] == 'refund':
+                refund_id = notification_data['stripe_object']['id']
+                tx = self.search([
+                    ('acquirer_reference', '=', refund_id),
+                    ('provider', '=', 'stripe'),
+                ])
+            else:
+                raise ValidationError(
+                    "Stripe: " + _("Received data with missing merchant reference")
+                )
 
-        tx = self.search([('reference', '=', reference), ('provider', '=', 'stripe')])
         if not tx:
             raise ValidationError(
                 "Stripe: " + _("No transaction found matching reference %s.", reference)
@@ -339,33 +390,47 @@ class PaymentTransaction(models.Model):
         if self.provider != 'stripe':
             return
 
-        if 'charge' in notification_data:
-            self.acquirer_reference = notification_data['charge']['id']
-
-        # Handle the intent status
+        # Handle the acquirer reference and the status.
         if self.operation == 'validation':
             intent_status = notification_data.get('setup_intent', {}).get('status')
+        elif self.operation == 'refund':
+            self.acquirer_reference = notification_data['refund']['id']
+            intent_status = notification_data['refund']['status']
         else:  # 'online_redirect', 'online_token', 'offline'
+            if 'charge' in notification_data:  # The online_redirect operation may include a charge.
+                self.acquirer_reference = notification_data['charge']['id']
             intent_status = notification_data.get('payment_intent', {}).get('status')
         if not intent_status:
             raise ValidationError(
                 "Stripe: " + _("Received data with missing intent status.")
             )
 
-        if intent_status in INTENT_STATUS_MAPPING['draft']:
+        if intent_status in STATUS_MAPPING['draft']:
             pass
-        elif intent_status in INTENT_STATUS_MAPPING['pending']:
+        elif intent_status in STATUS_MAPPING['pending']:
             self._set_pending()
-        elif intent_status in INTENT_STATUS_MAPPING['authorized']:
+        elif intent_status in STATUS_MAPPING['authorized']:
             if self.tokenize:
                 self._stripe_tokenize_from_notification_data(notification_data)
             self._set_authorized()
-        elif intent_status in INTENT_STATUS_MAPPING['done']:
+        elif intent_status in STATUS_MAPPING['done']:
             if self.tokenize:
                 self._stripe_tokenize_from_notification_data(notification_data)
+
             self._set_done()
-        elif intent_status in INTENT_STATUS_MAPPING['cancel']:
+
+            # Immediately post-process the transaction if it is a refund, as the post-processing
+            # will not be triggered by a customer browsing the transaction from the portal.
+            if self.operation == 'refund':
+                self.env.ref('payment.cron_post_process_payment_tx')._trigger()
+        elif intent_status in STATUS_MAPPING['cancel']:
             self._set_canceled()
+        elif intent_status in STATUS_MAPPING['error']:
+            if self.operation == 'refund':
+                self._set_error("Stripe: " + _(
+                    "The refund did not go through. Please log into your Stripe Dashboard to get "
+                    "more information on that matter, and address any accounting discrepancies."
+                ))
         else:  # Classify unknown intent statuses as `error` tx state
             _logger.warning(
                 "received invalid payment status (%s) for transaction with reference %s",
