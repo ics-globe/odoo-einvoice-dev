@@ -103,6 +103,7 @@ class TestChatterTweaks(TestMailCommon, TestRecipients):
         self.assertTrue(record.name)
 
 
+@tagged('mail_thread')
 class TestDiscuss(TestMailCommon, TestRecipients):
 
     @classmethod
@@ -239,7 +240,9 @@ class TestDiscuss(TestMailCommon, TestRecipients):
             partner_ids=[self.user_employee.partner_id.id]
         )
         self.assertFalse(message.has_error)
-        with self.mock_mail_gateway(sim_error='connect_smtp_notfound'):
+
+        self.env['ir.mail_server'].sudo().search([]).unlink()
+        with self.mock_mail_gateway():
             self.user_admin.notification_type = 'email'
             message2 = self.test_record.with_user(self.user_employee).message_post(
                 body='Test', message_type='comment', subtype_xmlid='mail.mt_comment',

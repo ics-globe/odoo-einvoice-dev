@@ -15,6 +15,7 @@ from odoo.tools import mute_logger
 class TestIrMailServer(TransactionCase, MockSmtplibCase):
 
     def setUp(self):
+        self._init_mail_config()
         self._init_mail_servers()
 
     def _build_email(self, mail_from, return_path=None):
@@ -231,7 +232,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         self.assertEqual(len(self.emails), 1)
 
         self.assert_email_sent_smtp(
-            smtp_from='bounce@xn--9caaaaaaa.com',
+            smtp_from='bounce.test@xn--9caaaaaaa.com',
             smtp_to_list=['dest@xn--example--i1a.com'],
             message_from='test@=?utf-8?b?w6nDqcOpw6nDqcOpw6k=?=.com',
             from_filter=False,
@@ -336,7 +337,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         self.assertFalse(self.env['ir.mail_server'].search([]))
 
         # Use an email in the domain of the "from_filter"
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             message = self._build_email(mail_from='specific_user@test.com')
             IrMailServer.send_email(message)
 
@@ -348,7 +349,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         )
 
         # Test if the domain name is normalized before comparison
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             message = self._build_email(mail_from='specific_user@test.com')
             IrMailServer.send_email(message)
 
@@ -362,7 +363,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         # Use an email outside of the domain of the "from_filter"
         # So we will use the notifications email in the headers and the bounce address
         # in the envelop because the "from_filter" allows to use the entire domain
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             message = self._build_email(mail_from='test@unknown_domain.com')
             IrMailServer.send_email(message)
 
@@ -389,7 +390,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         self.assertFalse(self.env['ir.mail_server'].search([]))
 
         # Use an email in the domain of the "from_filter"
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             smtp_session = IrMailServer.connect(smtp_from='specific_user@test.com')
             message = self._build_email(mail_from='specific_user@test.com')
             IrMailServer.send_email(message, smtp_session=smtp_session)
@@ -404,7 +405,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         # Use an email outside of the domain of the "from_filter"
         # So we will use the notifications email in the headers and the bounce address
         # in the envelop because the "from_filter" allows to use the entire domain
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             smtp_session = IrMailServer.connect(smtp_from='test@unknown_domain.com')
             message = self._build_email(mail_from='test@unknown_domain.com')
             IrMailServer.send_email(message, smtp_session=smtp_session)
@@ -431,7 +432,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         self.assertFalse(IrMailServer.search([]))
 
         # Use an email in the domain of the config parameter "mail.default.from_filter"
-        with self.mock_smtplib_connection():
+        with self.mock_smtplib_connection(config_smtp_server='localhost'):
             message = self._build_email(mail_from='specific_user@example.com')
             IrMailServer.send_email(message)
 

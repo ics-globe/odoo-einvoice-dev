@@ -5,6 +5,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from odoo.tests.common import TransactionCase, HttpCase
+from odoo.tools.config import config
 from odoo import Command
 
 
@@ -207,9 +208,11 @@ class MockSmtplibCase:
     sending of emails. Unlike "MockEmail" which mocks mainly the <ir.mail_server> methods,
     here we mainly mock the smtplib to be able to test the <ir.mail_server> model.
     """
+
     @contextmanager
-    def mock_smtplib_connection(self):
+    def mock_smtplib_connection(self, config_smtp_server=False):
         self.emails = []
+        self.config_smtp_server = config_smtp_server
 
         origin = self
 
@@ -251,15 +254,23 @@ class MockSmtplibCase:
 
         self.testing_smtp_session = TestingSMTPSession()
 
+        get_origin = config.get
         IrMailServer = self.env['ir.mail_server']
-        connect = IrMailServer.connect
-        find_mail_server = IrMailServer._find_mail_server
+        connect_origin = IrMailServer.connect
+        find_mail_server_origin = IrMailServer._find_mail_server
 
-        with patch.object(type(IrMailServer), '_is_test_mode', lambda self: False), \
-             patch('smtplib.SMTP_SSL', side_effect=lambda *args, **kwargs: self.testing_smtp_session), \
+        def config_get(*args, **kwargs):
+            if args[0] == 'smtp_server':
+                return self.config_smtp_server
+            return get_origin(*args, **kwargs)
+
+        with patch('smtplib.SMTP_SSL', side_effect=lambda *args, **kwargs: self.testing_smtp_session), \
              patch('smtplib.SMTP', side_effect=lambda *args, **kwargs: self.testing_smtp_session), \
-             patch.object(type(IrMailServer), 'connect', side_effect=connect) as connect_mocked, \
-             patch.object(type(IrMailServer), '_find_mail_server', side_effect=find_mail_server) as find_mail_server_mocked:
+             patch.object(config, 'get', side_effect=config_get) as config_mocked, \
+             patch.object(type(IrMailServer), '_is_test_mode', lambda self: False), \
+             patch.object(type(IrMailServer), 'connect', wraps=IrMailServer, side_effect=connect_origin) as connect_mocked, \
+             patch.object(type(IrMailServer), '_find_mail_server', side_effect=find_mail_server_origin) as find_mail_server_mocked:
+            self.config_mocked = config_mocked
             self.connect_mocked = connect_mocked
             self.find_mail_server_mocked = find_mail_server_mocked
             yield
@@ -298,14 +309,16 @@ class MockSmtplibCase:
         )
 
     @classmethod
-    def _init_mail_servers(cls):
-        cls.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', 'test.com')
-        cls.env['ir.config_parameter'].sudo().set_param('mail.default.from', 'notifications')
-        cls.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', 'bounce')
-
-        cls.alias_bounce = 'bounce'
+    def _init_mail_config(cls):
+        cls.alias_bounce = 'bounce.test'
         cls.alias_domain = 'test.com'
+        cls.default_from = 'notifications'
+        cls.env['ir.config_parameter'].sudo().set_param('mail.catchall.domain', cls.alias_domain)
+        cls.env['ir.config_parameter'].sudo().set_param('mail.default.from', cls.default_from)
+        cls.env['ir.config_parameter'].sudo().set_param('mail.bounce.alias', cls.alias_bounce)
 
+    @classmethod
+    def _init_mail_servers(cls):
         cls.env['ir.mail_server'].search([]).unlink()
 
         ir_mail_server_values = {

@@ -13,8 +13,8 @@ from lxml import html
 from unittest.mock import patch
 from smtplib import SMTPServerDisconnected
 
-from odoo import exceptions
 from odoo.addons.base.models.ir_mail_server import IrMailServer, MailDeliveryException
+from odoo.addons.base.tests.common import MockSmtplibCase
 from odoo.addons.bus.models.bus import ImBus, json_dump
 from odoo.addons.mail.models.mail_mail import MailMail
 from odoo.addons.mail.models.mail_message import Message
@@ -22,10 +22,14 @@ from odoo.addons.mail.models.mail_notification import MailNotification
 from odoo.tests import common, new_test_user
 from odoo.tools import formataddr, pycompat
 
-mail_new_test_user = partial(new_test_user, context={'mail_create_nolog': True, 'mail_create_nosubscribe': True, 'mail_notrack': True, 'no_reset_password': True})
+mail_new_test_user = partial(new_test_user, context={'mail_create_nolog': True,
+                                                     'mail_create_nosubscribe': True,
+                                                     'mail_notrack': True,
+                                                     'no_reset_password': True,
+                                                     'mail_channel_nosubscribe': True})
 
 
-class MockEmail(common.BaseCase):
+class MockEmail(common.BaseCase, MockSmtplibCase):
     """ Tools, helpers and asserts for mailgateway-related tests
 
     Useful reminders
@@ -39,36 +43,18 @@ class MockEmail(common.BaseCase):
     # ------------------------------------------------------------
 
     @contextmanager
-    def mock_mail_gateway(self, mail_unlink_sent=False, sim_error=None):
+    def mock_mail_gateway(self, mail_unlink_sent=False, config_smtp_server=False):
         build_email_origin = IrMailServer.build_email
+        send_email_origin = IrMailServer.send_email
         mail_create_origin = MailMail.create
         mail_unlink_origin = MailMail.unlink
         self.mail_unlink_sent = mail_unlink_sent
         self._init_mail_mock()
 
-        def _ir_mail_server_connect(model, *args, **kwargs):
-            if sim_error and sim_error == 'connect_smtp_notfound':
-                raise exceptions.UserError(
-                    "Missing SMTP Server\nPlease define at least one SMTP server, or provide the SMTP parameters explicitly.")
-            if sim_error and sim_error == 'connect_failure':
-                raise Exception("Some exception")
-            return None
-
         def _ir_mail_server_build_email(model, *args, **kwargs):
             self._mails.append(kwargs)
             self._mails_args.append(args)
             return build_email_origin(model, *args, **kwargs)
-
-        def _ir_mail_server_send_email(model, message, *args, **kwargs):
-            if '@' not in message['To']:
-                raise AssertionError(model.NO_VALID_RECIPIENT)
-            if sim_error and sim_error == 'send_assert':
-                raise AssertionError('AssertionError')
-            elif sim_error and sim_error == 'send_disconnect':
-                raise SMTPServerDisconnected('SMTPServerDisconnected')
-            elif sim_error and sim_error == 'send_delivery':
-                raise MailDeliveryException('MailDeliveryException')
-            return message['Message-Id']
 
         def _mail_mail_create(model, *args, **kwargs):
             res = mail_create_origin(model, *args, **kwargs)
@@ -80,11 +66,13 @@ class MockEmail(common.BaseCase):
                 return mail_unlink_origin(model, *args, **kwargs)
             return True
 
-        with patch.object(IrMailServer, 'connect', autospec=True, wraps=IrMailServer, side_effect=_ir_mail_server_connect) as ir_mail_server_connect_mock, \
-                patch.object(IrMailServer, 'build_email', autospec=True, wraps=IrMailServer, side_effect=_ir_mail_server_build_email) as ir_mail_server_build_email_mock, \
-                patch.object(IrMailServer, 'send_email', autospec=True, wraps=IrMailServer, side_effect=_ir_mail_server_send_email) as ir_mail_server_send_email_mock, \
-                patch.object(MailMail, 'create', autospec=True, wraps=MailMail, side_effect=_mail_mail_create) as _mail_mail_create_mock, \
-                patch.object(MailMail, 'unlink', autospec=True, wraps=MailMail, side_effect=_mail_mail_unlink) as mail_mail_unlink_mock:
+        with self.mock_smtplib_connection(config_smtp_server=config_smtp_server), \
+             patch.object(IrMailServer, 'build_email', autospec=True, wraps=IrMailServer, side_effect=_ir_mail_server_build_email) as build_email_mocked, \
+             patch.object(IrMailServer, 'send_email', autospec=True, wraps=IrMailServer, side_effect=send_email_origin) as send_email_mocked, \
+             patch.object(MailMail, 'create', autospec=True, wraps=MailMail, side_effect=_mail_mail_create), \
+             patch.object(MailMail, 'unlink', autospec=True, wraps=MailMail, side_effect=_mail_mail_unlink):
+            self.build_email_mocked = build_email_mocked
+            self.send_email_mocked = send_email_mocked
             yield
 
     def _init_mail_mock(self):
@@ -107,6 +95,20 @@ class MockEmail(common.BaseCase):
         cls.env['ir.config_parameter'].set_param('mail.catchall.alias', cls.alias_catchall)
         cls.env['ir.config_parameter'].set_param('mail.default.from', cls.default_from)
         cls.mailer_daemon_email = formataddr(('MAILER-DAEMON', '%s@%s' % (cls.alias_bounce, cls.alias_domain)))
+
+    @classmethod
+    def _init_outgoing_gateway(cls):
+        cls.env['ir.mail_server'].search([]).unlink()
+        cls.mail_server_domain, cls.mail_server_global = cls.env['ir.mail_server'].create([
+            {'from_filter': 'test.com',
+             'name': 'Domain Based Server',
+             'smtp_host': 'smtp_host',
+             'smtp_encryption': 'none',},
+            {'from_filter': False,
+             'name': 'No FromFilter Server',
+             'smtp_host': 'smtp_host',
+             'smtp_encryption': 'none',}
+        ])
 
     def format(self, template, to='groups@example.com, other@gmail.com', subject='Frogs',
                email_from='Sylvie Lelitre <test.sylvie.lelitre@agrolait.com>', return_path='', cc='',
@@ -316,7 +318,7 @@ class MockEmail(common.BaseCase):
     # ------------------------------------------------------------
 
     def assertMailMail(self, recipients, status,
-                       check_mail_mail=True, mail_message=None, author=None,
+                       mail_message=None, author=None,
                        content=None, fields_values=None, email_values=None):
         """ Assert mail.mail records are created and maybe sent as emails. Allow
         asserting their content. Records to check are the one generated when
@@ -335,8 +337,6 @@ class MockEmail(common.BaseCase):
         :param email_values: if given, should be a dictionary of keys / values
           allowing to check sent email additional values (if any).
           See ``assertSentEmail``;
-
-        :param check_mail_mail: deprecated, use ``assertSentEmail`` if False
         """
         found_mail = self._find_mail_mail_wpartners(recipients, status, mail_message=mail_message, author=author)
         self.assertTrue(bool(found_mail))
@@ -370,8 +370,6 @@ class MockEmail(common.BaseCase):
         :param email_values: if given, should be a dictionary of keys / values
           allowing to check sent email additional values (if any).
           See ``assertSentEmail``;
-
-        :param check_mail_mail: deprecated, use ``assertSentEmail`` if False
         """
         for email_to in emails:
             found_mail = self._find_mail_mail_wemail(email_to, status, mail_message=mail_message, author=author)
@@ -410,6 +408,16 @@ class MockEmail(common.BaseCase):
                 found_mail[fname], fvalue,
                 'Mail: expected %s for %s, got %s' % (fvalue, fname, found_mail[fname]))
 
+    def assertMessageFields(self, message, fields_values):
+        """ Just a quick helper to check a mail.message content by giving directly
+        a dict for fields. Allows to hide a lot of assertEqual under a simple
+        call with a dictionary of expected values. """
+        for fname, fvalue in fields_values.items():
+            self.assertEqual(
+                message[fname], fvalue,
+                'Message: expected %s for %s, got %s' % (fvalue, fname, message[fname])
+            )
+
     def assertNoMail(self, recipients, mail_message=None, author=None):
         """ Check no mail.mail and email was generated during gateway mock. """
         try:
@@ -435,8 +443,11 @@ class MockEmail(common.BaseCase):
         :param values: dictionary of additional values to check email content;
         """
         base_expected = {}
-        for fname in ['reply_to', 'subject', 'attachments', 'body', 'references',
-                      'body_content', 'body_alternative_content', 'references_content']:
+        for fname in ['author_id', 'reply_to',
+                      'subject', 'body', 'body_content', 'body_alternative_content',
+                      'references', 'references_content',
+                      'attachments'
+                     ]:
             if fname in values:
                 base_expected[fname] = values[fname]
 
@@ -461,9 +472,13 @@ class MockEmail(common.BaseCase):
         debug_info = '-'.join('From: %s-To: %s' % (mail['email_from'], mail['email_to']) for mail in self._mails) if not bool(sent_mail) else ''
         self.assertTrue(bool(sent_mail), 'Expected mail from %s to %s not found in %s' % (expected['email_from'], expected['email_to'], debug_info))
 
-        for val in ['reply_to', 'subject', 'references', 'attachments']:
+        for val in ['reply_to', 'subject', 'references']:
             if val in expected:
                 self.assertEqual(expected[val], sent_mail[val], 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
+        for val in ['attachments']:
+            if val in expected:
+                self.assertEqual(len(expected[val]), len(sent_mail[val]), 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
+                self.assertEqual(set(expected[val]), set(sent_mail[val]), 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
         if 'attachments_info' in values:
             attachments = sent_mail['attachments']
             for attachment_info in values['attachments_info']:
@@ -507,7 +522,7 @@ class MailCase(MockEmail):
         return record.with_context(
             mail_create_nolog=False,
             mail_create_nosubscribe=False,
-            mail_notrack=False
+            mail_notrack=False,
         )
 
     def flush_tracking(self):
@@ -627,19 +642,19 @@ class MailCase(MockEmail):
     # ------------------------------------------------------------
 
     @contextmanager
-    def assertSinglePostNotifications(self, recipients_info, message_info=None, mail_unlink_sent=False, sim_error=None):
+    def assertSinglePostNotifications(self, recipients_info, message_info=None, mail_unlink_sent=False):
         """ Shortcut to assertMsgNotifications when having a single message to check. """
         r_info = dict(message_info if message_info else {})
         r_info.setdefault('content', '')
         r_info['notif'] = recipients_info
-        with self.assertPostNotifications([r_info], mail_unlink_sent=mail_unlink_sent, sim_error=sim_error):
+        with self.assertPostNotifications([r_info], mail_unlink_sent=mail_unlink_sent):
             yield
 
     @contextmanager
-    def assertPostNotifications(self, recipients_info, mail_unlink_sent=False, sim_error=None):
+    def assertPostNotifications(self, recipients_info, mail_unlink_sent=False):
         """ Check content of notifications. """
         try:
-            with self.mock_mail_gateway(mail_unlink_sent=mail_unlink_sent, sim_error=sim_error), self.mock_bus(), self.mock_mail_app():
+            with self.mock_mail_gateway(mail_unlink_sent=mail_unlink_sent), self.mock_bus(), self.mock_mail_app():
                 yield
         finally:
             done_msgs, done_notifs = self.assertMailNotifications(self._new_msgs, recipients_info)
@@ -659,7 +674,7 @@ class MailCase(MockEmail):
     @contextmanager
     def assertNoNotifications(self):
         try:
-            with self.mock_mail_gateway(mail_unlink_sent=False, sim_error=None), self.mock_bus(), self.mock_mail_app():
+            with self.mock_mail_gateway(mail_unlink_sent=False), self.mock_bus(), self.mock_mail_app():
                 yield
         finally:
             self.assertFalse(bool(self._new_msgs))
@@ -891,6 +906,7 @@ class MailCommon(common.TransactionCase, MailCase):
         super(MailCommon, cls).setUpClass()
         # give default values for all email aliases and domain
         cls._init_mail_gateway()
+        cls._init_outgoing_gateway()
         # ensure admin configuration
         cls.user_admin = cls.env.ref('base.user_admin')
         cls.user_admin.write({'notification_type': 'inbox'})
@@ -939,11 +955,25 @@ class MailCommon(common.TransactionCase, MailCase):
             groups='base.group_user',
             company_id=cls.company_2.id,
             company_ids=[(4, cls.company_2.id)],
+            email='enguerrand@example.com',
             name='Enguerrand Employee C2',
             notification_type='inbox',
             signature='--\nEnguerrand'
         )
         cls.partner_employee_c2 = cls.user_employee_c2.partner_id
+
+        # test erp manager employee
+        cls.user_erp_manager = mail_new_test_user(
+            cls.env,
+            company_id=cls.company_2.id,
+            company_ids=[(6, 0, (cls.company_admin + cls.company_2).ids)],
+            email='etchenne@example.com',
+            groups='base.group_user,base.group_erp_manager,mail.group_mail_template_editor',
+            login='erp_manager',
+            name='Etchenne Tchagada',
+            notification_type='inbox',
+            signature='--\nEtchenne',
+        )
 
     @classmethod
     def _activate_multi_lang(cls, lang_code='es_ES', layout_arch_db=None, test_record=False, test_template=False):
@@ -1097,15 +1127,18 @@ class MailCommon(common.TransactionCase, MailCase):
         })
         cls.env['ir.translation'].create(translations_tocreate)
 
-    def _generate_attachments_data(self, count, res_model=None, res_id=None):
+    def _generate_attachments_data(self, count, res_model=None, res_id=None, attach_values=None):
         # attachment visibility depends on what they are attached to
+        attach_values = attach_values if attach_values else {}
         if res_model is None:
             res_model = self.template._name
         if res_id is None:
             res_id = self.template.id
         return [{
-            'name': '%02d.txt' % x,
-            'datas': base64.b64encode(b'Att%02d' % x),
+            'datas': base64.b64encode(b'AttContent_%02d' % x),
+            'name': 'AttFileName_%02d.txt' % x,
+            'mimetype': 'text/plain',
             'res_model': res_model,
             'res_id': res_id,
+            **attach_values,
         } for x in range(count)]
