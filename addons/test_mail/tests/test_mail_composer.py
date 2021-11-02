@@ -260,8 +260,7 @@ class TestComposerInternals(TestMailComposer):
 
             # changing template should update its email_from
             composer.write({'template_id': self.template.id, 'author_id': self.env.user.partner_id})
-            # currently onchange necessary
-            composer._onchange_template_id_wrapper()
+
             self.assertEqual(composer.author_id, self.env.user.partner_id,
                              'MailComposer: should take value given by user')
             if composition_mode == 'comment':
@@ -825,7 +824,6 @@ class TestComposerResultsMass(TestMailComposer):
             # template is sent directly using customer field, meaning we have recipients
             self.assertMailMail(record.customer_id, 'sent',
                                 mail_message=message,
-                                author=self.partner_employee,
                                 email_values={
                                     'email_from': self.partner_employee_2.email_formatted,
                                 })
@@ -833,7 +831,9 @@ class TestComposerResultsMass(TestMailComposer):
             # message content
             self.assertEqual(message.subject, 'TemplateSubject %s' % record.name)
             self.assertEqual(message.body, '<p>TemplateBody %s</p>' % record.name)
-            self.assertEqual(message.author_id, self.user_employee.partner_id)
+            # authorship
+            self.assertEqual(message.author_id, self.partner_employee)
+            self.assertEqual(message.email_from, record.user_id.email_formatted)
             # post-related fields are void
             self.assertEqual(message.subtype_id, self.env['mail.message.subtype'])
             self.assertEqual(message.partner_ids, self.env['res.partner'])
@@ -898,7 +898,6 @@ class TestComposerResultsMass(TestMailComposer):
             self.assertMailMail(record.customer_id + new_partners + self.partner_admin,
                                 'sent',
                                 mail_message=message,
-                                author=self.partner_employee,
                                 email_values={
                                     'body_content': 'TemplateBody %s' % record.name,
                                     'email_from': self.partner_employee_2.email_formatted,
@@ -925,7 +924,7 @@ class TestComposerResultsMass(TestMailComposer):
                                   default_template_id=self.template.id)
         ))
         composer = composer_form.save()
-        self.assertEqual(composer.author_id, self.env.user.partner_id)
+        self.assertEqual(composer.author_id, self.partner_employee)
         self.assertEqual(composer.email_from, self.template.email_from)
 
         with self.mock_mail_gateway(mail_unlink_sent=True):
@@ -948,7 +947,9 @@ class TestComposerResultsMass(TestMailComposer):
             # message content
             self.assertEqual(message.subject, 'TemplateSubject %s' % record.name)
             self.assertEqual(message.body, '<p>TemplateBody %s</p>' % record.name)
-            self.assertEqual(message.author_id, self.user_employee.partner_id)
+            # authorship
+            self.assertEqual(message.author_id, self.partner_employee)
+            self.assertEqual(message.email_from, self.partner_employee_2.email_formatted)
             # post-related fields are void
             self.assertEqual(message.subtype_id, self.env['mail.message.subtype'])
             self.assertEqual(message.partner_ids, self.env['res.partner'])
