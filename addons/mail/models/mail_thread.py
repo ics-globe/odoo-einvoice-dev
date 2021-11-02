@@ -1835,7 +1835,7 @@ class MailThread(models.AbstractModel):
             author_id, email_from = False, False
         else:
             author_guest_id = False
-            author_id, email_from = self._message_compute_author(author_id, email_from, raise_exception=True)
+            author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=True)
 
         if subtype_xmlid:
             subtype_id = self.env['ir.model.data']._xmlid_to_res_id(subtype_xmlid)
@@ -1977,7 +1977,7 @@ class MailThread(models.AbstractModel):
         msg_kwargs = dict((key, val) for key, val in kwargs.items() if key in self.env['mail.message']._fields)
         notif_kwargs = dict((key, val) for key, val in kwargs.items() if key not in msg_kwargs)
 
-        author_id, email_from = self._message_compute_author(author_id, email_from, raise_exception=True)
+        author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=True)
 
         if not partner_ids:
             _logger.warning('Message notify called without recipient_ids, skipping')
@@ -2024,7 +2024,7 @@ class MailThread(models.AbstractModel):
         the log process. This method should be called within methods where
         access rights are already granted to avoid privilege escalation. """
         self.ensure_one()
-        author_id, email_from = self._message_compute_author(author_id, email_from, raise_exception=False)
+        author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=False)
 
         msg_values = {
             'subject': subject,
@@ -2050,7 +2050,7 @@ class MailThread(models.AbstractModel):
 
           :param bodies: dict {record_id: body}
         """
-        author_id, email_from = self._message_compute_author(author_id, email_from, raise_exception=False)
+        author_id, email_from = self._message_compute_author(author_id, email_from, raise_on_email=False)
 
         base_message_values = {
             'subject': subject,
@@ -2075,10 +2075,15 @@ class MailThread(models.AbstractModel):
     # MAIL.MESSAGE HELPERS
     # ------------------------------------------------------------
 
-    def _message_compute_author(self, author_id=None, email_from=None, raise_exception=True):
+    def _message_compute_author(self, author_id=None, email_from=None, raise_on_email=True):
         """ Tool method computing author information for messages. Purpose is
         to ensure maximum coherence between author / current user / email_from
-        when sending emails. """
+        when sending emails.
+
+        :param raise_on_email: if not email_from is found, raise an UserError
+
+        :return tuple: res.partner ID (may be False or None), email_from
+        """
         if author_id is None:
             if email_from:
                 author = self._mail_find_partner_from_emails([email_from])[0]
@@ -2093,7 +2098,7 @@ class MailThread(models.AbstractModel):
                 email_from = author.email_formatted
 
         # superuser mode without author email -> probably public user; anyway we don't want to crash
-        if not email_from and not self.env.su and raise_exception:
+        if not email_from and not self.env.su and raise_on_email:
             raise exceptions.UserError(_("Unable to log message, please configure the sender's email address."))
 
         return author_id, email_from
