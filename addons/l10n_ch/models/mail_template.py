@@ -9,19 +9,19 @@ from odoo import models
 class MailTemplate(models.Model):
     _inherit = 'mail.template'
 
-    def _generate_template(self, res_ids, render_fields):
+    def _generate_template_attachments(self, res_ids, render_fields, render_results=None):
         """ Method overridden in order to add an attachment containing the ISR
         to the draft message when opening the 'send by mail' wizard on an invoice.
         This attachment generation will only occur if all the required data are
         present on the invoice. Otherwise, no ISR attachment will be created, and
         the mail will only contain the invoice (as defined in the mother method).
         """
-        result = super(MailTemplate, self)._generate_template(res_ids, render_fields)
+        render_res = super(MailTemplate, self)._generate_template_attachments(res_ids, render_fields, render_results=render_results)
 
         if self.model != 'account.move':
-            return result
-        if 'attachments' not in render_fields or 'attachment_ids' not in render_fields:
-            return result
+            return render_res
+        if 'attachments' not in render_fields:
+            return render_res
 
         for record in self.env[self.model].browse(res_ids):
             inv_print_name = self._render_field('report_name', record.ids, compute_lang=True)[record.id]
@@ -41,10 +41,6 @@ class MailTemplate(models.Model):
                 qr_pdf = base64.b64encode(qr_pdf)
                 new_attachments.append((qr_report_name, qr_pdf))
 
-            attachments_list = result[record.id].get('attachments', False)
-            if attachments_list:
-                attachments_list.extend(new_attachments)
-            else:
-                result[record.id]['attachments'] = new_attachments
+            render_res[record.id]['attachments'] += new_attachments
 
-        return result
+        return render_res
