@@ -461,7 +461,6 @@ class TestMailAPIPerformance(BaseMailPerformance):
                 'default_res_id': test_record.id,
                 'default_template_id': test_template.id,
             }).create({})
-            composer._onchange_template_id_wrapper()
 
         with self.assertQueryCount(__system__=34, employee=40):
             composer._action_send_mail()
@@ -488,7 +487,6 @@ class TestMailAPIPerformance(BaseMailPerformance):
                 'default_res_id': test_record.id,
                 'default_template_id': test_template.id,
             }).create({})
-            composer._onchange_template_id_wrapper()
 
         with self.assertQueryCount(__system__=42, employee=59):
             composer._action_send_mail()
