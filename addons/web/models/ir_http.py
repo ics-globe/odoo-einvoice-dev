@@ -1,20 +1,50 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import base64
 import hashlib
 import json
+import logging
 
 import odoo
 from odoo import api, http, models
 from odoo.http import request
 from odoo.tools import file_open, image_process, ustr
-
+from odoo.tools.misc import str2bool
 from odoo.addons.web.controllers.main import HomeStaticTemplateHelpers
 
 
+_logger = logging.getLogger(__name__)
+
+"""
+Debug mode is stored in session and should always be a string.
+It can be activated with an URL query string `debug=<mode>` where mode
+is either:
+- 'tests' to load tests assets
+- 'assets' to load assets non minified
+- any other truthy value to enable simple debug mode (to show some
+  technical feature, to show complete traceback in frontend error..)
+- any falsy value to disable debug mode
+
+You can use any truthy/falsy value from `str2bool` (eg: 'on', 'f'..)
+Multiple debug modes can be activated simultaneously, separated with a
+comma (eg: 'tests, assets').
+"""
+ALLOWED_DEBUG_MODES = ['', '1', 'assets', 'tests']
+
 class Http(models.AbstractModel):
     _inherit = 'ir.http'
+
+    @classmethod
+    def _pre_dispatch(cls, rule, args):
+        super()._pre_dispatch(rule, args)
+        debug = request.httprequest.args.get('debug', '')
+        if debug:
+            request.session.debug = ','.join(
+                    mode if mode in ALLOWED_DEBUG_MODES
+                else '1' if str2bool(mode, mode)
+                else ''
+                for mode in debug.split(',')
+            )
 
     def webclient_rendering_context(self):
         return {
@@ -23,45 +53,47 @@ class Http(models.AbstractModel):
         }
 
     def session_info(self):
-        user = request.env.user
+        uid = request.session.uid
+        if uid is not None:
+            user = request.env.user
+
         version_info = odoo.service.common.exp_version()
 
-        user_context = request.session.get_context() if request.session.uid else {}
         IrConfigSudo = self.env['ir.config_parameter'].sudo()
         max_file_upload_size = int(IrConfigSudo.get_param(
             'web.max_file_upload_size',
             default=128 * 1024 * 1024,  # 128MiB
         ))
         mods = odoo.conf.server_wide_modules or []
-        lang = user_context.get("lang")
-        translation_hash = request.env['ir.translation'].sudo().get_web_translations_hash(mods, lang)
         session_info = {
-            "uid": request.session.uid,
-            "is_system": user._is_system() if request.session.uid else False,
-            "is_admin": user._is_admin() if request.session.uid else False,
-            "user_context": request.session.get_context() if request.session.uid else {},
-            "db": request.session.db,
+            "uid": uid,
+            "is_system": user._is_system() if uid else False,
+            "is_admin": user._is_admin() if uid else False,
+            "user_context": dict(request.env.context) if uid else {},
+            "db": request.db,
             "server_version": version_info.get('server_version'),
             "server_version_info": version_info.get('server_version_info'),
             "support_url": "https://www.odoo.com/buy",
-            "name": user.name,
-            "username": user.login,
-            "partner_display_name": user.partner_id.display_name,
-            "company_id": user.company_id.id if request.session.uid else None,  # YTI TODO: Remove this from the user context
-            "partner_id": user.partner_id.id if request.session.uid and user.partner_id else None,
+            "name": user.name if uid else '',
+            "username": user.login if uid else '',
+            "partner_display_name": user.partner_id.display_name if uid else '',
+            "company_id": user.company_id.id if uid else None,  # YTI TODO: Remove this from the user context
+            "partner_id": user.partner_id.id if uid else None,
             "web.base.url": IrConfigSudo.get_param('web.base.url', default=''),
             "active_ids_limit": int(IrConfigSudo.get_param('web.active_ids_limit', default='20000')),
             'profile_session': request.session.profile_session,
             'profile_collectors': request.session.profile_collectors,
             'profile_params': request.session.profile_params,
             "max_file_upload_size": max_file_upload_size,
-            "home_action_id": user.action_id.id,
+            "home_action_id": user.action_id.id if uid else None,
             "cache_hashes": {
-                "translations": translation_hash,
+                "translations": request.env['ir.translation'].sudo().get_web_translations_hash(
+                    mods, request.env.context['lang'] if uid else ''
+                ),
             },
             "currencies": self.sudo().get_currencies(),
         }
-        if self.env.user.has_group('base.group_user'):
+        if uid and user.has_group('base.group_user'):
             # the following is only useful in the context of a webclient bootstrapping
             # but is still included in some other calls (e.g. '/web/session/authenticate')
             # to avoid access errors and unnecessary information, it is only included for users
@@ -94,18 +126,22 @@ class Http(models.AbstractModel):
 
     @api.model
     def get_frontend_session_info(self):
+        uid = request.session.uid
+        if uid is not None:
+            user = self.env.user
+
         session_info = {
-            'is_admin': request.session.uid and self.env.user._is_admin() or False,
-            'is_system': request.session.uid and self.env.user._is_system() or False,
-            'is_website_user': request.session.uid and self.env.user._is_public() or False,
-            'user_id': request.session.uid and self.env.user.id or False,
+            'is_admin': user._is_admin() if uid else False,
+            'is_system': user._is_system() if uid else False,
+            'is_website_user': user._is_public() if uid else False,
+            'user_id': uid,
             'is_frontend': True,
             'profile_session': request.session.profile_session,
             'profile_collectors': request.session.profile_collectors,
             'profile_params': request.session.profile_params,
             'show_effect': request.env['ir.config_parameter'].sudo().get_param('base_setup.show_effect'),
         }
-        if request.session.uid:
+        if uid:
             version_info = odoo.service.common.exp_version()
             session_info.update({
                 'server_version': version_info.get('server_version'),
