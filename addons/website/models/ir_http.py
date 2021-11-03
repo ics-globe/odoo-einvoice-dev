@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import contextlib
 import logging
 from lxml import etree
 import os
@@ -64,8 +64,7 @@ class Http(models.AbstractModel):
 
     @classmethod
     def routing_map(cls, key=None):
-        key = key or (request and request.website_routing)
-        return super(Http, cls).routing_map(key=key)
+        return super(Http, cls).routing_map(key=key or request.website_routing)
 
     @classmethod
     def clear_caches(cls):
@@ -81,11 +80,6 @@ class Http(models.AbstractModel):
         return adapter.build(endpoint, kw) + (qs and '?%s' % qs or '')
 
     @classmethod
-    def _match(cls, path_info, key=None):
-        key = key or (request and request.website_routing)
-        return super(Http, cls)._match(path_info, key=key)
-
-    @classmethod
     def _generate_routing_rules(cls, modules, converters):
         website_id = request.website_routing
         logger.debug("_generate_routing_rules for website: %s", website_id)
@@ -94,25 +88,24 @@ class Http(models.AbstractModel):
         rewrites = dict([(x.url_from, x) for x in request.env['website.rewrite'].sudo().search(domain)])
         cls._rewrite_len[website_id] = len(rewrites)
 
-        for url, endpoint, routing in super(Http, cls)._generate_routing_rules(modules, converters):
-            routing = dict(routing)
+        for url, endpoint in super(Http, cls)._generate_routing_rules(modules, converters):
             if url in rewrites:
                 rewrite = rewrites[url]
                 url_to = rewrite.url_to
                 if rewrite.redirect_type == '308':
                     logger.debug('Add rule %s for %s' % (url_to, website_id))
-                    yield url_to, endpoint, routing  # yield new url
+                    yield url_to, endpoint  # yield new url
 
                     if url != url_to:
                         logger.debug('Redirect from %s to %s for website %s' % (url, url_to, website_id))
                         _slug_matching = partial(cls._slug_matching, endpoint=endpoint)
-                        routing['redirect_to'] = _slug_matching
-                        yield url, endpoint, routing  # yield original redirected to new url
+                        endpoint.routing['redirect_to'] = _slug_matching
+                        yield url, endpoint  # yield original redirected to new url
                 elif rewrite.redirect_type == '404':
                     logger.debug('Return 404 for %s for website %s' % (url, website_id))
                     continue
             else:
-                yield url, endpoint, routing
+                yield url, endpoint
 
     @classmethod
     def _get_converters(cls):
@@ -128,15 +121,17 @@ class Http(models.AbstractModel):
     def _auth_method_public(cls):
         """ If no user logged, set the public user of current website, or default
             public user as request uid.
-            After this method `request.env` can be called, since the `request.uid` is
-            set. The `env` lazy property of `request` will be correct.
+            After this method `request.env` can be called, since the `request.env.uid`
+            is set. The `env` lazy property of `request` will be correct.
         """
         if not request.session.uid:
-            env = api.Environment(request.cr, SUPERUSER_ID, request.context)
-            website = env['website'].get_current_website()
-            request.uid = website and website._get_cached('user_id')
+            website = request.env(user=SUPERUSER_ID)['website'].get_current_website()  # sudo
+            if website:
+                uid = website._get_cached('user_id')
+                if uid:
+                    request.update_env(user=uid)
 
-        if not request.uid:
+        if not request.env.uid:
             super(Http, cls)._auth_method_public()
 
     @classmethod
@@ -159,104 +154,77 @@ class Http(models.AbstractModel):
         return False
 
     @classmethod
-    def _postprocess_args(cls, arguments, rule):
-        processing = super()._postprocess_args(arguments, rule)
-        if processing:
-            return processing
+    def _match(cls, path):
+        if not hasattr(request, 'website_routing'):
+            website = request.env['website'].sudo().get_current_website()
+            request.website_routing = website.id
+
+        return super()._match(path)
+
+    @classmethod
+    def _pre_dispatch(cls, rule, arguments):
+        super()._pre_dispatch(rule, arguments)
 
         for record in arguments.values():
             if isinstance(record, models.BaseModel) and hasattr(record, 'can_access_from_current_website'):
                 try:
                     if not record.can_access_from_current_website():
-                        return request.env['ir.http']._handle_exception(werkzeug.exceptions.NotFound())
+                        raise werkzeug.exceptions.NotFound()
                 except AccessError:
-                    # record.website_id might not be readable as unpublished `event.event` due to ir.rule,
-                    # return 403 instead of using `sudo()` for perfs as this is low level
-                    return request.env['ir.http']._handle_exception(werkzeug.exceptions.Forbidden())
+                    # record.website_id might not be readable as
+                    # unpublished `event.event` due to ir.rule, return
+                    # 403 instead of using `sudo()` for perfs as this is
+                    # low level.
+                    raise werkzeug.exceptions.Forbidden()
 
     @classmethod
-    def _dispatch(cls):
-        """
-        In case of rerouting for translate (e.g. when visiting odoo.com/fr_BE/),
-        _dispatch calls reroute() that returns _dispatch with altered request properties.
-        The second _dispatch will continue until end of process. When second _dispatch is finished, the first _dispatch
-        call receive the new altered request and continue.
-        At the end, 2 calls of _dispatch (and this override) are made with exact same request properties, instead of one.
-        As the response has not been sent back to the client, the visitor cookie does not exist yet when second _dispatch call
-        is treated in _handle_webpage_dispatch, leading to create 2 visitors with exact same properties.
-        To avoid this, we check if, !!! before calling super !!!, we are in a rerouting request. If not, it means that we are
-        handling the original request, in which we should create the visitor. We ignore every other rerouting requests.
-        """
-        is_rerouting = hasattr(request, 'routing_iteration')
+    def _frontend_pre_dispatch(cls):
+        super()._frontend_pre_dispatch()
 
-        if request.session.db:
-            reg = registry(request.session.db)
-            with reg.cursor() as cr:
-                env = api.Environment(cr, SUPERUSER_ID, {})
-                request.website_routing = env['website'].get_current_website().id
+        if not request.env.context.get('tz'):
+            with contextlib.suppress(pytz.UnknownTimeZoneError):
+                tz = request.session.get('geoip', {}).get('time_zone', '')
+                request.update_context(tz=pytz.timezone(tz).zone)
 
-        response = super(Http, cls)._dispatch()
+        website = request.env['website'].get_current_website()
+        user = request.env.user
 
-        if not is_rerouting:
-            cls._register_website_track(response)
+        # This is mainly to avoid access errors in website controllers
+        # where there is no context (eg: /shop), and it's not going to
+        # propagate to the global context of the tab. If the company of
+        # the website is not in the allowed companies of the user, set
+        # the main company of the user.
+        request.update_context(
+            website_id=website.id,
+            allowed_company_ids=([website.company_id.id] if website.company_id in user.company_ids else user.company_id.ids)
+        )
+
+        request.website = website.with_context(request.env.context)
+
+    @classmethod
+    def _dispatch(cls, endpoint):
+        response = super(Http, cls)._dispatch(endpoint)
+        cls._register_website_track(response)
         return response
 
     @classmethod
-    def _add_dispatch_parameters(cls, func):
-
-        # DEPRECATED for /website/force/<website_id> - remove me in master~saas-14.4
-        # Force website with query string paramater, typically set from website selector in frontend navbar and inside tests
-        force_website_id = request.httprequest.args.get('fw')
-        if (force_website_id and request.session.get('force_website_id') != force_website_id
-                and request.env.user.has_group('website.group_multi_website')
-                and request.env.user.has_group('website.group_website_publisher')):
-            request.env['website']._force_website(request.httprequest.args.get('fw'))
-
-        context = {}
-        if not request.context.get('tz'):
-            context['tz'] = request.session.get('geoip', {}).get('time_zone')
-            try:
-                pytz.timezone(context['tz'] or '')
-            except pytz.UnknownTimeZoneError:
-                context.pop('tz')
-
-        request.website = request.env['website'].get_current_website()  # can use `request.env` since auth methods are called
-        context['website_id'] = request.website.id
-        # This is mainly to avoid access errors in website controllers where there is no
-        # context (eg: /shop), and it's not going to propagate to the global context of the tab
-        # If the company of the website is not in the allowed companies of the user, set the main
-        # company of the user.
-        website_company_id = request.website._get_cached('company_id')
-        if website_company_id in request.env.user.company_ids.ids:
-            context['allowed_company_ids'] = [website_company_id]
-        else:
-            context['allowed_company_ids'] = request.env.user.company_id.ids
-
-        # modify bound context
-        request.context = dict(request.context, **context)
-
-        super(Http, cls)._add_dispatch_parameters(func)
-
-        if request.routing_iteration == 1:
-            request.website = request.website.with_context(request.context)
-
-    @classmethod
     def _get_frontend_langs(cls):
-        if get_request_website():
+        if getattr(request, 'is_frontend', True):
             return [code for code, *_ in request.env['res.lang'].get_available()]
         else:
             return super()._get_frontend_langs()
 
     @classmethod
     def _get_default_lang(cls):
-        if getattr(request, 'website', False):
-            return request.env['res.lang'].browse(request.website._get_cached('default_lang_id'))
+        if getattr(request, 'is_frontend', True):
+            website = request.env['website'].sudo().get_current_website()
+            return request.env['res.lang'].browse([website.default_lang_id.id])
         return super(Http, cls)._get_default_lang()
 
     @classmethod
     def _get_translation_frontend_modules_name(cls):
         mods = super(Http, cls)._get_translation_frontend_modules_name()
-        installed = request.registry._init_modules | set(odoo.conf.server_wide_modules)
+        installed = request.registry._init_modules.union(odoo.conf.server_wide_modules)
         return mods + [mod for mod in installed if mod.startswith('website')]
 
     @classmethod
@@ -289,7 +257,6 @@ class Http(models.AbstractModel):
                 page.cache_time  # cache > 0
                 and request.httprequest.method == "GET"
                 and request.env.user._is_public()    # only cache for unlogged user
-                and 'nocache' not in request.params  # allow bypass cache / debug
                 and not request.session.debug
                 and len(cache_key) and cache_key[-1] is not None  # nocache via expr
             ):
@@ -333,22 +300,29 @@ class Http(models.AbstractModel):
         return request.env['website.rewrite'].sudo().search(domain, limit=1)
 
     @classmethod
-    def _serve_fallback(cls, exception):
+    def _serve_fallback(cls):
         # serve attachment before
-        parent = super(Http, cls)._serve_fallback(exception)
+        parent = super(Http, cls)._serve_fallback()
         if parent:  # attachment
             return parent
-        if not request.is_frontend:
-            return False
+
+        if not request.env.user:
+            # grant the public user
+            cls._auth_method_public()
+
+        if not hasattr(request, 'website'):
+            # setup website on the request
+            cls._frontend_pre_dispatch()
+
         website_page = cls._serve_page()
         if website_page:
+            website_page.flatten()
+            cls._register_website_track(website_page)
             return website_page
 
         redirect = cls._serve_redirect()
         if redirect:
             return request.redirect(_build_url_w_params(redirect.url_to, request.params), code=redirect.redirect_type)
-
-        return False
 
     @classmethod
     def _get_exception_code_values(cls, exception):
@@ -388,7 +362,7 @@ class Http(models.AbstractModel):
                     )
                     values['view'] = values['view'] and values['view'][0]
         # Needed to show reset template on translated pages (`_prepare_qcontext` will set it for main lang)
-        values['editable'] = request.uid and request.website.is_publisher()
+        values['editable'] = request.env.uid and request.website.is_publisher()
         return values
 
     @classmethod
