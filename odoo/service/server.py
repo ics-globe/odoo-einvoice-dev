@@ -77,6 +77,10 @@ def memory_info(process):
 
 
 def set_limit_memory_hard():
+    # macOS Monterey (12.0+) prevents from modifying the rlimit at runtime
+    if platform.system() == 'Darwin' and int(platform.mac_ver()[0].split('.')[0]) >= 12:
+        return
+
     if os.name == 'posix' and config['limit_memory_hard']:
         rlimit = resource.RLIMIT_RSS if platform.system() == 'Darwin' else resource.RLIMIT_AS
         soft, hard = resource.getrlimit(rlimit)
