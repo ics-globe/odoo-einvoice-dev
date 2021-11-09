@@ -331,10 +331,12 @@ class Registry(Mapping):
             if Model._abstract:
                 continue
             for field in Model._fields.values():
-                # dependencies of custom fields may not exist; ignore that case
-                exceptions = (Exception,) if field.base_field.manual else ()
-                with ignore(*exceptions):
+                try:
                     dependencies[field] = OrderedSet(field.resolve_depends(self))
+                except Exception:
+                    # dependencies of custom fields may not exist; ignore that case
+                    if not field.base_field.manual:
+                        raise
 
         # determine transitive dependencies
         def transitive_dependencies(field, seen=[]):
