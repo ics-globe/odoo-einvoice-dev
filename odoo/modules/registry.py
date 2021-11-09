@@ -339,23 +339,28 @@ class Registry(Mapping):
                         raise
 
         # determine transitive dependencies
-        def transitive_dependencies(field, seen=[]):
-            if field in seen:
-                return
-            for seq1 in dependencies.get(field, ()):
-                yield seq1
-                for seq2 in transitive_dependencies(seq1[-1], seen + [field]):
-                    yield seq1[:-1] + seq2
+        def transitive_dependencies(field):
+            seen = set()
+
+            def traverse(field):
+                seen.add(field)
+                for seq1 in dependencies.get(field, ()):
+                    yield seq1
+                    if seq1[-1] not in seen:
+                        for seq2 in traverse(seq1[-1]):
+                            yield seq1[:-1] + seq2
+                seen.discard(field)
+
+            return traverse(field)
 
         # determine triggers based on transitive dependencies
         triggers = {}
         for field in dependencies:
             for path in transitive_dependencies(field):
-                if path:
-                    tree = triggers
-                    for label in reversed(path):
-                        tree = tree.setdefault(label, {})
-                    tree.setdefault(None, OrderedSet()).add(field)
+                tree = triggers
+                for label in reversed(path):
+                    tree = tree.setdefault(label, {})
+                tree.setdefault(None, OrderedSet()).add(field)
 
         return triggers
 
