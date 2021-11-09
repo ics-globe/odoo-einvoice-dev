@@ -345,15 +345,7 @@ class Registry(Mapping):
             for seq1 in dependencies.get(field, ()):
                 yield seq1
                 for seq2 in transitive_dependencies(seq1[-1], seen + [field]):
-                    yield concat(seq1[:-1], seq2)
-
-        def concat(seq1, seq2):
-            if seq1 and seq2:
-                f1, f2 = seq1[-1], seq2[0]
-                if f1.type == 'one2many' and f2.type == 'many2one' and \
-                        f1.model_name == f2.comodel_name and f1.inverse_name == f2.name:
-                    return concat(seq1[:-1], seq2[1:])
-            return seq1 + seq2
+                    yield seq1[:-1] + seq2
 
         # determine triggers based on transitive dependencies
         triggers = {}
