@@ -398,6 +398,14 @@ class Partner(models.Model):
         if self.country_id and self.country_id != self.state_id.country_id:
             self.state_id = False
 
+    @api.onchange('parent_id')
+    def _onchange_parent_id_sync_user(self):
+        '''
+        When changing the parent on a partner, attempt to synchronize the user_id if we're on a person
+        '''
+        if not self.user_id and self.parent_id.user_id and self.company_type == 'person':
+            self.user_id = self.parent_id.user_id
+
     @api.onchange('state_id')
     def _onchange_state(self):
         if self.state_id.country_id:
@@ -498,8 +506,9 @@ class Partner(models.Model):
         return res
 
     def _fields_sync(self, values):
-        """ Sync commercial fields and address fields from company and to children after create/update,
-        just as if those were all modeled as fields.related to the parent """
+        """ Sync commercial fields, address fields from company and to children after create/update,
+        just as if those were all modeled as fields.related to the parent.
+        In addition, we also sync the Sales person from the parent."""
         # 1. From UPSTREAM: sync from parent
         if values.get('parent_id') or values.get('type') == 'contact':
             # 1a. Commercial fields: sync if parent changed
@@ -512,6 +521,9 @@ class Partner(models.Model):
 
         # 2. To DOWNSTREAM: sync children
         self._children_sync(values)
+        # sync salesperson with parent
+        if 'user_id' not in values and values.get('parent_id'):
+            self._onchange_parent_id_sync_user()
 
     def _children_sync(self, values):
         if not self.child_ids:
