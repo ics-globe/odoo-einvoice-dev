@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="l10n_gcc_pos.ArabicEnglishOrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="primary" owl="1">
+        <xpath expr="//div[hasclass('pos-receipt')]" position="attributes">
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-receipt-contact')]" position="after">
+            <br/>
+            <br/>
+            <div class="pos-receipt-header">
+                <span id="title_english" t-translation="off">Tax Invoice</span>
+            </div>
+            <div class="pos-receipt-header">
+                <span id="title_arabic" t-translation="off">الفاتورة الضريبية</span>
+            </div>
+        </xpath>
+
+         <xpath expr="//div[hasclass('cashier')]/div[2]" position="attributes">
+             <attribute name="t-translation">off</attribute>
+         </xpath>
+
+        <xpath expr="//div[hasclass('cashier')]/div[2]" position="inside">
+            خدم بواسطة
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-receipt-amount')][1]" position="attributes">
+            <attribute name="class" add="pos-receipt-amount-arabic" separator=" "/>
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('pos-receipt-amount')][2]" position="attributes">
+            <attribute name="class" add="pos-receipt-amount-arabic" separator=" "/>
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.rounding_applied)']/.." position="attributes">
+            <attribute name="class" add="pos-receipt-amount-arabic" separator=" "/>
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.change)']/.." position="attributes">
+            <attribute name="class" add="pos-receipt-amount-arabic" separator=" "/>
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.subtotal)']" position="before">
+            /الإجمالي الفرعي
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_with_tax)']" position="before">
+            /الإجمالي
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.rounding_applied)']" position="before">
+            /التقريب
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_rounded)']" position="before">
+            /للسداد
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.change)']" position="before">
+            /الباقي
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_discount)']/.." position="attributes">
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_discount)']" position="before">
+            /الخصومات
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_tax)']/.." position="attributes">
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_tax)']" position="before">
+            /إجمالي الضرائب
+        </xpath>
+    </t>
+
+    <t t-inherit="point_of_sale.OrderLinesReceipt" t-inherit-mode="extension" owl="1">
+        <xpath expr="//span[hasclass('price_display')][1]" position="replace">
+            <div class="price_display pos-receipt-right-align">
+                <span t-esc="env.pos.format_currency_no_symbol(line.tax)" style="margin-right: 15px;"/>
+                <span t-esc="env.pos.format_currency_no_symbol(line.price_display)"/>
+            </div>
+        </xpath>
+
+        <xpath expr="//t[@t-esc='line.discount']/.." position="attributes">
+            <attribute name="t-translation">off</attribute>
+        </xpath>
+
+        <!-- replace is needed because in RTL it becomes  Discount: /الخصم if we just do a before xpath -->
+        <xpath expr="//t[@t-esc='line.discount']/.." position="replace">
+            <div class="pos-receipt-left-padding" style="display: inline-flex;">
+                <div>Discount/الخصم</div>: <t t-esc="line.discount" />%
+            </div>
+        </xpath>
+
+        <xpath expr="//span[hasclass('price_display')][1]" position="replace">
+            <div class="price_display pos-receipt-right-align">
+                <span t-esc="env.pos.format_currency_no_symbol(line.tax)" style="margin-right: 15px;"/>
+                <span t-esc="env.pos.format_currency_no_symbol(line.price_display)"/>
+            </div>
+        </xpath>
+    </t>
+</templates>
