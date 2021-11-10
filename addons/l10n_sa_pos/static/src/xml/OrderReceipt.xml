@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-inherit="l10n_gcc_pos.ArabicEnglishOrderReceipt" t-inherit-mode="extension" owl="1">
+        <xpath expr="//img[hasclass('pos-receipt-logo')]" position="after">
+            <div t-if="receipt.qr_code" id="qrcode" class="pos-receipt-logo"/>
+            <br/>
+        </xpath>
+
+        <xpath expr="//span[@id='title_english']" position="replace">
+            <span id="title_english">Simplified Tax Invoice</span>
+        </xpath>
+
+        <xpath expr="//span[@id='title_arabic']" position="replace">
+            <span id="title_arabic">فاتورة ضريبية مبسطة</span>
+        </xpath>
+    </t>
+</templates>
