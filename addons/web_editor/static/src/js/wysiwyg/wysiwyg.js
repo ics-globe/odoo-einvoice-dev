@@ -29,6 +29,7 @@ const isBlock = OdooEditorLib.isBlock;
 const rgbToHex = OdooEditorLib.rgbToHex;
 const preserveCursor = OdooEditorLib.preserveCursor;
 const closestElement = OdooEditorLib.closestElement;
+const nextLeaf = OdooEditorLib.nextLeaf;
 
 var id = 0;
 const faZoomClassRegex = RegExp('fa-[0-9]x');
@@ -1318,7 +1319,11 @@ const Wysiwyg = Widget.extend({
     _getSelectedColor($, eventName) {
         const selection = this.odooEditor.document.getSelection();
         const range = selection.rangeCount && selection.getRangeAt(0);
-        const targetNode = range && range.startContainer;
+        const targetNode = range && (
+            range.startContainer.length === range.startOffset && !selection.isCollapsed
+            ? nextLeaf(range.startContainer)
+            : range.startContainer
+        );
         const targetElement = targetNode && targetNode.nodeType === Node.ELEMENT_NODE
             ? targetNode
             : targetNode && targetNode.parentNode;
