@@ -8,7 +8,7 @@ import {
 } from '@mail/utils/utils';
 
 const { Component } = owl;
-const { useRef } = owl.hooks;
+const { useRef } = owl;
 
 export class Composer extends Component {
 

@@ -105,6 +105,7 @@
             'web/static/src/legacy/legacy_rpc_error_handler.js',
             'web/static/src/legacy/utils.js',
             'web/static/src/legacy/xml/base.xml',
+            'mail/static/owl.iife.js',  # last to override owl in the global scope
         ],
         'web._assets_primary_variables': [
             'mail/static/src/scss/variables/primary_variables.scss',

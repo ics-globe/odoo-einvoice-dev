@@ -60,16 +60,17 @@ owl.Component.env = legacyEnv;
             autofetchPartnerImStatus: false,
         },
     }));
-    await owl.mount(MainComponentsContainer, { env, target: document.body });
-    createAndMountDiscussPublicView();
+    // await owl.mount(MainComponentsContainer, document.body);
+    createAndMountDiscussPublicView(templates);
 })();
 
-async function createAndMountDiscussPublicView() {
+async function createAndMountDiscussPublicView(templates) {
     const messaging = await owl.Component.env.services.messaging.get();
     // needed by the attachment viewer
-    const DialogManager = getMessagingComponent('DialogManager');
-    const dialogManagerComponent = new DialogManager(null, {});
-    await dialogManagerComponent.mount(document.body);
+    // const app1 = new owl.App(getMessagingComponent('DialogManager'));
+    // app1.configure({ env: legacyEnv });
+    // app1.addTemplates(templates);
+    // await app1.mount(document.body);
     messaging.models['mail.thread'].insert(messaging.models['mail.thread'].convertData(data.channelData));
     const discussPublicView = messaging.models['mail.discuss_public_view'].create(data.discussPublicViewData);
     if (discussPublicView.shouldDisplayWelcomeViewInitially) {
@@ -77,9 +78,12 @@ async function createAndMountDiscussPublicView() {
     } else {
         discussPublicView.switchToThreadView();
     }
-    const DiscussPublicView = getMessagingComponent('DiscussPublicView');
-    const discussPublicViewComponent = new DiscussPublicView(null, {
+    const app2 = new owl.App(getMessagingComponent('DiscussPublicView'), {
         localId: discussPublicView.localId,
     });
-    await discussPublicViewComponent.mount(document.body);
+    app2.configure({
+        env: legacyEnv,
+    });
+    app2.addTemplates(templates);
+    await app2.mount(document.body);
 }

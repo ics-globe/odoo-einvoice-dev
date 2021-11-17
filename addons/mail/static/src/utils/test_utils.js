@@ -34,7 +34,7 @@ const {
     unpatch: legacyUnpatch,
 } = mock;
 const { Component } = owl;
-const { EventBus } = owl.core;
+const { EventBus } = owl;
 
 //------------------------------------------------------------------------------
 // Private
