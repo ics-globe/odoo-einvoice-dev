@@ -227,10 +227,9 @@ export class Dropdown extends Component {
                 this.state.open = false;
             }
         } else {
-            // Another dropdown is now open ? Close myself and notify the world (i.e. siblings).
-            if (this.state.open && args.newState.open) {
-                this.close();
-            }
+            // Another dropdown group is now open.
+            this.state.groupIsOpen = false;
+            this.state.open = false;
         }
     }
 
