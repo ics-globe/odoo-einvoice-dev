@@ -54,6 +54,8 @@ odoo.define('pos_coupon.pos', function (require) {
          * @param {number?} coupon_id id of the coupon.coupon the generates this reward
          * @param {boolean=true} awarded identifies this object as 'awarded' or not.
          * @param {string?} reason reason why this reward is 'unawarded'.
+         * @param {boolean?} shouldAddActualFreeProduct flag to use if the actual reward
+         *  product should also be added.
          */
         constructor({
             product,
@@ -64,6 +66,7 @@ odoo.define('pos_coupon.pos', function (require) {
             coupon_id = undefined,
             awarded = true,
             reason = undefined,
+            shouldAddActualFreeProduct = false,
         }) {
             this.product = product;
             this.unit_price = unit_price;
@@ -72,6 +75,7 @@ odoo.define('pos_coupon.pos', function (require) {
             this.tax_ids = tax_ids;
             this.coupon_id = coupon_id;
             this._discountAmount = Math.abs(unit_price * quantity);
+            this.shouldAddActualFreeProduct = shouldAddActualFreeProduct;
             this.status = {
                 awarded,
                 reason,
@@ -286,8 +290,9 @@ odoo.define('pos_coupon.pos', function (require) {
         },
         set_orderline_options: function (orderline, options) {
             _order_super.set_orderline_options.apply(this, [orderline, options]);
-            if (options && options.is_program_reward) {
-                orderline.is_program_reward = true;
+            if (options && (options.is_program_reward || options.is_free_product)) {
+                orderline.is_program_reward = options.is_program_reward;
+                orderline.is_free_product = options.is_free_product;
                 orderline.program_id = options.program_id;
                 orderline.coupon_id = options.coupon_id;
             }
@@ -311,11 +316,11 @@ odoo.define('pos_coupon.pos', function (require) {
         },
         _getRegularOrderlines: function () {
             const orderlines = _order_super.get_orderlines.apply(this, arguments);
-            return orderlines.filter((line) => !line.is_program_reward && !line.refunded_orderline_id);
+            return orderlines.filter((line) => !line.isProgramRewardOrFreeProduct() && !line.refunded_orderline_id);
         },
         _getRewardLines: function () {
             const orderlines = _order_super.get_orderlines.apply(this, arguments);
-            return orderlines.filter((line) => line.is_program_reward);
+            return orderlines.filter((line) => line.isProgramRewardOrFreeProduct());
         },
         wait_for_push_order: function () {
             return (
@@ -336,7 +341,7 @@ odoo.define('pos_coupon.pos', function (require) {
         get_last_orderline: function () {
             const regularLines = _order_super.get_orderlines
                 .apply(this, arguments)
-                .filter((line) => !line.is_program_reward);
+                .filter((line) => !line.isProgramRewardOrFreeProduct());
             return regularLines[regularLines.length - 1];
         },
 
@@ -458,23 +463,38 @@ odoo.define('pos_coupon.pos', function (require) {
          */
         _getLinesToAdd: function (rewardsContainer) {
             this.assert_editable();
-            return rewardsContainer
-                .getAwarded()
-                .map(({ product, unit_price, quantity, program, tax_ids, coupon_id }) => {
-                    const options = {
+            const toBeAwarded = rewardsContainer.getAwarded();
+            const result = [];
+            for (const { product, unit_price, quantity, program, tax_ids, coupon_id, shouldAddActualFreeProduct } of toBeAwarded) {
+                // 'product' here corresponds to the virtual product that negates the actual product.
+                const options = {
+                    quantity: quantity,
+                    price: unit_price,
+                    lst_price: unit_price,
+                    is_program_reward: true,
+                    program_id: program.id,
+                    tax_ids: tax_ids,
+                    coupon_id: coupon_id,
+                };
+                const line = new models.Orderline({}, { pos: this.pos, order: this, product });
+                this.fix_tax_included_price(line);
+                this.set_orderline_options(line, options);
+                result.push(line);
+
+                if (shouldAddActualFreeProduct) {
+                    const freeProduct = this.pos.db.get_product_by_id(program.reward_product_id[0])
+                    const freeProductLine = new models.Orderline({}, { pos: this.pos, order: this, product: freeProduct });
+                    this.fix_tax_included_price(freeProductLine);
+                    this.set_orderline_options(freeProductLine, {
                         quantity: quantity,
-                        price: unit_price,
-                        lst_price: unit_price,
-                        is_program_reward: true,
+                        merge: false,
                         program_id: program.id,
-                        tax_ids: tax_ids,
-                        coupon_id: coupon_id,
-                    };
-                    const line = new models.Orderline({}, { pos: this.pos, order: this, product });
-                    this.fix_tax_included_price(line);
-                    this.set_orderline_options(line, options);
-                    return line;
-                });
+                        is_free_product: true,
+                    });
+                    result.push(freeProductLine);
+                }
+            }
+            return result;
         },
         /**
          * Sets the programs ids that will generate coupons based on the `rewardsContainer`.
@@ -868,11 +888,18 @@ odoo.define('pos_coupon.pos', function (require) {
                 })
                 .reduce((quantity, line) => quantity + line.quantity, 0);
 
-            const freeQuantity = computeFreeQuantity(
-                totalQuantity,
-                program.rule_min_quantity,
-                program.reward_product_quantity
-            );
+            let freeQuantity;
+            let shouldAddActualFreeProduct = false;
+            if (program.valid_product_ids.size == 1 && program.valid_product_ids.has(program.reward_product_id[0])) {
+                freeQuantity = computeFreeQuantity(
+                    totalQuantity,
+                    program.rule_min_quantity,
+                    program.reward_product_quantity
+                );
+            } else {
+                freeQuantity = Math.trunc(totalQuantity * program.reward_product_quantity / program.rule_min_quantity)
+                shouldAddActualFreeProduct = true;
+            }
             if (freeQuantity === 0) {
                 return [[], 'Zero free product quantity.'];
             } else {
@@ -887,6 +914,7 @@ odoo.define('pos_coupon.pos', function (require) {
                             program: program,
                             tax_ids: rewardProduct.taxes_id,
                             coupon_id: coupon_id,
+                            shouldAddActualFreeProduct,
                         }),
                     ],
                     null,
@@ -1005,6 +1033,8 @@ odoo.define('pos_coupon.pos', function (require) {
          */
         _considerProductRewards: function (amountsToDiscount, productIdsToAccount, productRewards) {
             for (let reward of productRewards) {
+                // We should skip the reward that will add the real product in the order.
+                if (reward.shouldAddActualFreeProduct) continue;
                 if (reward.rewardedProductId && productIdsToAccount.has(reward.rewardedProductId)) {
                     const key = reward.tax_ids.join(',');
                     amountsToDiscount[key] += reward.quantity * reward.unit_price;
@@ -1039,12 +1069,14 @@ odoo.define('pos_coupon.pos', function (require) {
         export_as_JSON: function () {
             var result = _orderline_super.export_as_JSON.apply(this);
             result.is_program_reward = this.is_program_reward;
+            result.is_free_product = this.is_free_product;
             result.program_id = this.program_id;
             result.coupon_id = this.coupon_id;
             return result;
         },
         init_from_JSON: function (json) {
-            if (json.is_program_reward) {
+            if (json.is_program_reward || json.is_free_product) {
+                this.is_free_product = json.is_free_product;
                 this.is_program_reward = json.is_program_reward;
                 this.program_id = json.program_id;
                 this.coupon_id = json.coupon_id;
@@ -1057,9 +1089,9 @@ odoo.define('pos_coupon.pos', function (require) {
             // This function removes an order line if we set the quantity to 'remove'
             // We extend its functionality so that if a reward line is removed,
             // other reward lines from the same program are also deleted.
-            if (quantity === 'remove' && this.is_program_reward) {
+            if (quantity === 'remove' && this.isProgramRewardOrFreeProduct()) {
                 let related_rewards = this.order.orderlines.filter(
-                    (line) => line.is_program_reward && line.program_id === this.program_id
+                    (line) => line.isProgramRewardOrFreeProduct() && line.program_id === this.program_id
                 );
                 for (let line of related_rewards) {
                     line.order.remove_orderline(line);
@@ -1069,6 +1101,13 @@ odoo.define('pos_coupon.pos', function (require) {
                 }
             }
             return result;
+        },
+        can_be_merged_with: function(line) {
+            const result = _orderline_super.can_be_merged_with.apply(this, arguments);
+            return result && !(this.is_free_product || line.is_free_product);
+        },
+        isProgramRewardOrFreeProduct: function () {
+            return this.is_program_reward || this.is_free_product;
         },
     });
 });

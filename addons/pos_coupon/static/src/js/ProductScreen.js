@@ -18,7 +18,11 @@ odoo.define('pos_coupon.ProductScreen', function (require) {
             }
             async _updateSelectedOrderline(event) {
                 const selectedLine = this.currentOrder.get_selected_orderline();
-                if (selectedLine && selectedLine.is_program_reward && event.detail.key === 'Backspace') {
+                if (
+                    selectedLine &&
+                    selectedLine.isProgramRewardOrFreeProduct() &&
+                    event.detail.key === 'Backspace'
+                ) {
                     const program = this.env.pos.coupon_programs_by_id[selectedLine.program_id]
                     const { confirmed } = await this.showPopup('ConfirmPopup', {
                         title: this.env._t('Deactivating program'),
@@ -52,13 +56,13 @@ odoo.define('pos_coupon.ProductScreen', function (require) {
                 const selectedLine = this.currentOrder.get_selected_orderline();
                 if (
                     !selectedLine ||
-                    !selectedLine.is_program_reward ||
-                    (selectedLine.is_program_reward && ['', 'remove'].includes(val))
+                    !selectedLine.isProgramRewardOrFreeProduct() ||
+                    (selectedLine.isProgramRewardOrFreeProduct() && ['', 'remove'].includes(val))
                 ) {
                     super._setValue(val);
                 }
                 if (!selectedLine) return;
-                if (selectedLine.is_program_reward && val === 'remove') {
+                if (selectedLine.isProgramRewardOrFreeProduct() && val === 'remove') {
                     if (selectedLine.coupon_id) {
                         const coupon_code = Object.values(selectedLine.order.bookedCouponCodes).find(
                             (couponCode) => couponCode.coupon_id === selectedLine.coupon_id
@@ -77,7 +81,7 @@ odoo.define('pos_coupon.ProductScreen', function (require) {
                         );
                     }
                 }
-                if (!selectedLine.is_program_reward || (selectedLine.is_program_reward && val === 'remove')) {
+                if (!selectedLine.isProgramRewardOrFreeProduct() || (selectedLine.isProgramRewardOrFreeProduct() && val === 'remove')) {
                     selectedLine.order.trigger('update-rewards');
                 }
             }
