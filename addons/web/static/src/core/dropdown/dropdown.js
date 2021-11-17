@@ -226,7 +226,7 @@ export class Dropdown extends Component {
             if (this.state.open && args.newState.open) {
                 this.state.open = false;
             }
-        } else {
+        } else if (args.newState.open) {
             // Another dropdown group is now open.
             this.state.groupIsOpen = false;
             this.state.open = false;
