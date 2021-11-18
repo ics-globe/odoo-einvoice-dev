@@ -882,28 +882,61 @@ odoo.define('pos_coupon.pos', function (require) {
          * @returns {[Reward[], string | null]}
          */
         _getProductRewards: function (program, coupon_id) {
-            const totalQuantity = this._getRegularOrderlines()
-                .filter((line) => {
-                    return program.valid_product_ids.has(line.product.id);
-                })
-                .reduce((quantity, line) => quantity + line.quantity, 0);
+            const rewardProduct = this.pos.db.get_product_by_id(program.reward_product_id[0]);
+            const orderlines = this._getRegularOrderlines().filter((line) => program.valid_product_ids.has(line.product.id));
+            const totalQuantity = orderlines.reduce((quantity, line) => quantity + line.quantity, 0);
+            const totalAmount = orderlines.reduce((amount, line) => {
+                const { priceWithTax, priceWithoutTax } = line.get_all_prices();
+                if (program.rule_minimum_amount_tax_inclusion == 'tax_included') {
+                    amount += priceWithTax;
+                } else {
+                    amount += priceWithoutTax;
+                }
+                return amount;
+            }, 0);
 
+            let freeQuantityFromMinAmount = Math.Infinity;
+            let freeQuantityFromMinQuantity;
             let freeQuantity;
             let shouldAddActualFreeProduct = false;
+
             if (program.valid_product_ids.size == 1 && program.valid_product_ids.has(program.reward_product_id[0])) {
-                freeQuantity = computeFreeQuantity(
+                freeQuantityFromMinQuantity = computeFreeQuantity(
                     totalQuantity,
                     program.rule_min_quantity,
                     program.reward_product_quantity
                 );
+                if (program.rule_minimum_amount !== 0) {
+                    // Normalize the values based on amount to be able to utilize computeFreeQuantity.
+                    const rewardProductAmount = program.reward_product_quantity * rewardProduct.lst_price;
+                    const freeAmount = computeFreeQuantity(
+                        totalAmount,
+                        program.rule_minimum_amount,
+                        rewardProductAmount
+                    );
+                    freeQuantityFromMinAmount = Math.trunc(freeAmount / rewardProduct.lst_price);
+                }
             } else {
-                freeQuantity = Math.trunc(totalQuantity * program.reward_product_quantity / program.rule_min_quantity)
                 shouldAddActualFreeProduct = true;
+                freeQuantityFromMinQuantity = Math.trunc(
+                    (totalQuantity * program.reward_product_quantity) / program.rule_min_quantity
+                );
+                if (program.rule_minimum_amount !== 0) {
+                    freeQuantityFromMinAmount = Math.trunc(
+                        (totalAmount * program.reward_product_quantity) / program.rule_minimum_amount
+                    );
+                }
             }
+
+            if (freeQuantityFromMinAmount < freeQuantityFromMinQuantity) {
+                freeQuantity = freeQuantityFromMinAmount;
+            } else {
+                freeQuantity = freeQuantityFromMinQuantity;
+            }
+
             if (freeQuantity === 0) {
                 return [[], 'Zero free product quantity.'];
             } else {
-                const rewardProduct = this.pos.db.get_product_by_id(program.reward_product_id[0]);
                 const discountLineProduct = this.pos.db.get_product_by_id(program.discount_line_product_id[0]);
                 return [
                     [
