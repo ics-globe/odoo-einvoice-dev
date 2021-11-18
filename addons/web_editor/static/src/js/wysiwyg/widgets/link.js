@@ -119,6 +119,8 @@ const Link = Widget.extend({
         if (/(?:s_website_form_send|o_submit)/.test(this.data.className)) {
             this.isButton = true;
         }
+
+        this._setLinkContent = !/o_image/.test(this.data.iniClassName);
     },
     /**
      * @override

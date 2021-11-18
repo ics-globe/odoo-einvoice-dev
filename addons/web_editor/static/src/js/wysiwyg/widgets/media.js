@@ -472,9 +472,14 @@ var FileWidget = SearchableMediaWidget.extend({
             if (!img.public && img.access_token) {
                 href += _.str.sprintf('access_token=%s&', img.access_token);
             }
-            href += 'unique=' + img.checksum + '&download=true';
+            href += 'unique=' + img.checksum;
             this.$media.attr('href', href);
-            this.$media.addClass('o_image').attr('title', img.name);
+            this.$media.attr('title', img.name);
+            this.media.dataset.fileName = img.name;
+            this.media.textContent = img.name;
+            // The document behaviour is by default set to open in a new tab.
+            // This behaviour is configurable with an option in the Link Tools.
+            this.media.target = '_blank';
         }
 
         this.$media.attr('alt', img.alt || img.description || '');

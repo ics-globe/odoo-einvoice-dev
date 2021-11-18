@@ -58,7 +58,11 @@ const LinkTools = Link.extend({
         this.options.wysiwyg.odooEditor.observerUnactive();
         this.$link.addClass('oe_edited_link');
         this.$button.addClass('active');
-        return this._super(...arguments);
+        return this._super(...arguments).then(() => {
+            if (this.noFocusUrl && this.scrollIntoView) {
+                this._scrollIntoView();
+            }
+        });
     },
     destroy: function () {
         if (!this.el) {
@@ -125,8 +129,13 @@ const LinkTools = Link.extend({
      * @override
      */
     focusUrl() {
-        this.el.scrollIntoView();
-        this._super();
+        this._scrollIntoView();
+        if (this.fileName) {
+            // The url should not be focused in case of a document, as the
+            // input is read-only.
+            return;
+        }
+        return this._super();
     },
 
     //--------------------------------------------------------------------------
@@ -524,7 +533,18 @@ const LinkTools = Link.extend({
         }
         this._updateOptionsUI();
         this._adaptPreview();
+        this._scrollIntoView();
     },
+    /**
+     * As link tools are displayed under the toolbar, at the bottom of the
+     * SnippetsMenu, this method allows to scroll so that they are visible for
+     * the user.
+     *
+     * @private
+     */
+    _scrollIntoView() {
+        this.el.scrollIntoView();
+    }
 });
 
 return LinkTools;

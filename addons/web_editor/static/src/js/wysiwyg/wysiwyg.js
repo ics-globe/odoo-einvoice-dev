@@ -1023,6 +1023,8 @@ const Wysiwyg = Widget.extend({
      * @param {boolean} [options.forceDialog] force to open the dialog
      * @param {boolean} [options.link] The anchor element to edit if it is known.
      * @param {boolean} [options.noFocusUrl=false] Disable the automatic focusing of the URL field.
+     * @param {boolean} [options.scrollIntoView=false] Additional parameter to
+     *      scroll into the link tools without focusing the url.
      */
     toggleLinkTools(options = {}) {
         const linkEl = getInSelection(this.odooEditor.document, 'a');
@@ -1037,6 +1039,7 @@ const Wysiwyg = Widget.extend({
                     this.linkTools = new weWidgets.LinkTools(this, {wysiwyg: this, noFocusUrl: options.noFocusUrl}, this.odooEditor.editable, linkToolsData, $btn, options.link || this.lastMediaClicked);
                 }
                 this.linkTools.noFocusUrl = options.noFocusUrl;
+                this.linkTools.scrollIntoView = options.scrollIntoView;
                 const _onMousedown = ev => {
                     if (
                         !ev.target.closest('.oe-toolbar, .ui-autocomplete, .o_technical_modal') &&
@@ -1153,7 +1156,10 @@ const Wysiwyg = Widget.extend({
                 this.odooEditor.unbreakableStepUnactive();
                 this.odooEditor.historyStep();
             } else if (element) {
-                this.odooEditor.execCommand('insertHTML', element.outerHTML);
+                const insertedNodes = this.odooEditor.execCommand('insertHTML', element.outerHTML);
+                if (insertedNodes[0].tagName === 'A') {
+                    this.toggleLinkTools({link: insertedNodes[0], noFocusUrl: true, scrollIntoView: true});
+                }
             }
         });
         mediaDialog.on('closed', this, function () {
