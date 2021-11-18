@@ -9,7 +9,8 @@ GCC POS Localization
 =======================================================
     """,
     'license': 'LGPL-3',
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale', 'l10n_gcc_invoice'],
+    'auto_install': True,
     'data': [
     ],
     'assets': {

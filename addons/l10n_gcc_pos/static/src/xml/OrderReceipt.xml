@@ -21,60 +21,74 @@
             </t>
         </xpath>
 
-        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.subtotal)']/.." position="replace">
-            <div>
-                Subtotal<t t-if="receipt.is_gcc_country">/الإجمالي الفرعي</t>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.subtotal)']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.subtotal)']/.." position="after">
+            <div t-if="receipt.is_gcc_country">
+                Subtotal/الإجمالي الفرعي
                 <span t-esc="env.pos.format_currency(receipt.subtotal)" class="pos-receipt-right-align"/>
             </div>
         </xpath>
 
-        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_with_tax)']/.." position="replace">
-            <div>
-                TOTAL<t t-if="receipt.is_gcc_country">/الإجمالي</t>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_with_tax)']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_with_tax)']/.." position="after">
+            <div t-if="receipt.is_gcc_country">
+                TOTAL/الإجمالي
                 <span t-esc="env.pos.format_currency(receipt.total_with_tax)" class="pos-receipt-right-align"/>
             </div>
         </xpath>
 
-        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.change)']/.." position="replace">
-            <div>
-                CHANGE<t t-if="receipt.is_gcc_country">/الباقي</t>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.change)']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.change)']/.." position="after">
+            <div t-if="receipt.is_gcc_country">
+                CHANGE/الباقي
                 <span t-esc="env.pos.format_currency(receipt.change)" class="pos-receipt-right-align"/>
             </div>
         </xpath>
 
-        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_discount)']/.." position="replace">
-            <div>
-                Discounts<t t-if="receipt.is_gcc_country">/الخصومات</t>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_discount)']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_discount)']/.." position="after">
+            <div t-if="receipt.is_gcc_country">
+                Discounts/الخصومات
                 <span t-esc="env.pos.format_currency(receipt.total_discount)" class="pos-receipt-right-align"/>
             </div>
         </xpath>
 
-        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_tax)']/.." position="replace">
-            <div>
-                Total Taxes<t t-if="receipt.is_gcc_country">/إجمالي الضرائب</t>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_tax)']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[@t-esc='env.pos.format_currency(receipt.total_tax)']/.." position="after">
+            <div t-if="receipt.is_gcc_country">
+                Total Taxes/إجمالي الضرائب
                 <span t-esc="env.pos.format_currency(receipt.total_tax)" class="pos-receipt-right-align"/>
             </div>
         </xpath>
     </t>
 
     <t t-inherit="point_of_sale.OrderLinesReceipt" t-inherit-mode="extension" owl="1">
-        <xpath expr="//span[hasclass('price_display')][1]" position="replace">
-            <div class="price_display pos-receipt-right-align">
-                <span t-esc="env.pos.format_currency_no_symbol(line.tax)" style="margin-right: 15px;" t-if="receipt.is_gcc_country"/>
+        <xpath expr="//span[hasclass('price_display')][1]" position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
+        </xpath>
+        <xpath expr="//span[hasclass('price_display')][1]" position="after">
+            <div class="price_display pos-receipt-right-align" t-if="receipt.is_gcc_country">
+                <span t-esc="env.pos.format_currency_no_symbol(line.tax)" style="margin-right: 15px;"/>
                 <span t-esc="env.pos.format_currency_no_symbol(line.price_display)"/>
             </div>
         </xpath>
 
-        <xpath expr="//t[@t-esc='line.discount']/.." position="replace">
-            <div class="pos-receipt-left-padding" style="display: inline-flex;">
-                <div>Discount<t t-if="receipt.is_gcc_country">/الخصم</t></div>: <t t-esc="line.discount" />%
-            </div>
+        <xpath expr="//t[@t-esc='line.discount']/.." position="attributes">
+            <attribute name="t-if">!receipt.is_gcc_country</attribute>
         </xpath>
-
-        <xpath expr="//span[hasclass('price_display')][1]" position="replace">
-            <div class="price_display pos-receipt-right-align">
-                <span t-esc="env.pos.format_currency_no_symbol(line.tax)" style="margin-right: 15px;" t-if="receipt.is_gcc_country"/>
-                <span t-esc="env.pos.format_currency_no_symbol(line.price_display)"/>
+        <xpath expr="//t[@t-esc='line.discount']/.." position="after">
+            <div class="pos-receipt-left-padding" style="display: inline-flex;" t-if="receipt.is_gcc_country">
+                <div>Discount/الخصم</div>: <t t-esc="line.discount" />%
             </div>
         </xpath>
     </t>
