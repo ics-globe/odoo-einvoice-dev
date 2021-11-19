@@ -35,6 +35,12 @@ const DynamicSnippetCarousel = DynamicSnippet.extend({
             this._super.apply(this, arguments),
             {
                 interval: parseInt(this.$target[0].dataset.carouselInterval),
+                rowPerSlide: parseInt(
+                    config.device.isMobile
+                        ? 1 // Mobile version should just be 1
+                        : this.$target[0].dataset.rowPerSlide || 1
+                ),
+                arrowPosition: this.$target[0].dataset.arrowPosition || '',
             },
         );
     },
