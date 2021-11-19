@@ -225,6 +225,18 @@ function factory(dependencies) {
 
         /**
          * @private
+         * @returns {Object}
+         */
+        _setThreadValue() {
+            return {
+                'hasActivities': this.hasActivities ? true : undefined,
+                'id': this.threadId,
+                'model': this.threadModel,
+            }
+        }
+
+        /**
+         * @private
          */
         _onThreadIdOrThreadModelChanged() {
             if (this.threadId) {
@@ -233,13 +245,11 @@ function factory(dependencies) {
                 }
                 this.update({
                     attachmentBoxView: this.isAttachmentBoxVisibleInitially ? insertAndReplace() : clear(),
-                    thread: insert({
+                    thread: insert(
                         // If the thread was considered to have the activity
                         // mixin once, it will have it forever.
-                        hasActivities: this.hasActivities ? true : undefined,
-                        id: this.threadId,
-                        model: this.threadModel,
-                    }),
+                        this._setThreadValue()
+                    ),
                 });
                 if (this.hasActivities) {
                     this.thread.refreshActivities();
