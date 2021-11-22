@@ -25,6 +25,7 @@ class SlideChannelInvite(models.TransientModel):
     channel_id = fields.Many2one('slide.channel', string='Course', required=True)
     channel_invite_url = fields.Char('Course Invitation URL', compute='_compute_channel_invite_url')
     visibility = fields.Selection(related="channel_id.visibility", string='Course Visibility')
+    enroll_members = fields.Boolean('Enroll invited partners', readonly=True)
 
     @api.depends('channel_id')
     def _compute_channel_invite_url(self):
@@ -58,7 +59,7 @@ class SlideChannelInvite(models.TransientModel):
 
         mail_values = []
         for partner_id in self.partner_ids:
-            slide_channel_partner = self.channel_id._action_add_members(partner_id, add_member_mode='invite')
+            slide_channel_partner = self.channel_id._action_add_members(partner_id, self.enroll_members)
             if slide_channel_partner:
                 mail_values.append(self._prepare_mail_values(slide_channel_partner))
 

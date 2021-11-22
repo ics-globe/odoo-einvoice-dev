@@ -111,7 +111,7 @@ class ChannelUsersRelation(models.Model):
             self.env['slide.slide.partner'].search(removed_slide_partner_domain).unlink()
         return super(ChannelUsersRelation, self).unlink()
 
-    def action_channel_partner_invite(self, channel_id=False):
+    def action_channel_partner_invite(self, enroll_members=False, channel_id=False):
         """ Used in js file to add invite button to slide channel partner tree view """
         template = self.env.ref('website_slides.mail_template_slide_channel_invite', raise_if_not_found=False)
 
@@ -123,11 +123,12 @@ class ChannelUsersRelation(models.Model):
                 'default_use_template': bool(template),
                 'default_template_id': template and template.id or False,
                 'default_channel_id': channel_id,
+                'default_enroll_members': enroll_members,
                 'notif_layout': 'website_slides.mail_notification_channel_invite',
             },
             'views': [[False, 'form']],
             'view_type': 'form',
-            'name': _('Share a Course'),
+            'name': _('Invite Members to a Course') if enroll_members else _('Share a Course'),
         }
 
     def _set_as_completed(self):
@@ -666,15 +667,14 @@ class Channel(models.Model):
 
         return added_to_invited_course or bool((self - courses_invited)._action_add_members(self.env.user.partner_id, **member_values))
 
-    def _action_add_members(self, target_partners, add_member_mode='enroll', **member_values):
-        """ Adds the target_partners as members of the channel(s), with given add_member_mode.
-        'add_member_mode' can take two values:
-            1) 'enroll' : This is default value and behaviour. The partners will be added as
-                          enrolled members. This will make the content (slides) of the channel
-                          available to that partner.
-            2) 'invite' : This is used when inviting partners. The partners are added as invited
-                          members (member_status = 'invite_sent') This will make the channel
-                          accessible but not the slides until they enroll themselves.
+    def _action_add_members(self, target_partners, enroll_members=True, **member_values):
+        """ Adds the target_partners as members of the channel(s), with boolean enroll_members:
+            1) True : This is default value and behaviour. The partners will be added as
+                      enrolled members. This will make the content (slides) of the channel
+                      available to that partner.
+            2) False : This is used when inviting partners. The partners are added as invited
+                       members (member_status = 'invite_sent') This will make the channel
+                       accessible but not the slides until they enroll themselves.
         Uses:
             - Back-end:
                 1) On course access request approval: enroll partner
@@ -685,7 +685,7 @@ class Channel(models.Model):
 
         Returns the union of new partners if any and of the invited partners having
         enrolled themselves to courses if any."""
-        member_values['member_status'] = 'invite_sent' if add_member_mode == 'invite' else 'joined'
+        member_values['member_status'] = 'joined' if enroll_members else 'invite_sent'
 
         # Channels on which the current user has the rights to write.
         channels_to_join = self._filter_add_members(target_partners, **member_values)
@@ -707,7 +707,7 @@ class Channel(models.Model):
             for partner in target_partners:
                 if partner.id not in existing_channel_partners_map[channel.id]:
                     to_create_partners_values.append(dict(channel_id=channel.id, partner_id=partner.id, **member_values))
-                elif add_member_mode == 'enroll':
+                elif enroll_members:
                     existing_partner = existing_channel_partners.filtered(lambda cp: cp.partner_id.id == partner.id and cp.channel_id.id == channel.id)
                     if existing_partner.member_status == 'invite_sent':
                         confirmed_invitation_patners_sudo |= existing_partner

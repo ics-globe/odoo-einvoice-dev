@@ -10,12 +10,21 @@ var SlideChannelPartnerInviteListController = ListController.extend({
     renderButtons: function() {
         this._super.apply(this, arguments);
         if (this.$buttons) {
-            this.$buttons.on('click', '.o_button_slide_channel_partner_invite', () => {
-                const channelId = this.model.loadParams.context.search_default_channel_id;
+            const channelId = this.model.loadParams.context.search_default_channel_id;
+            this.$buttons.on('click', '.o_button_slide_channel_partner_share', () => {
                 this._rpc({
                     model: 'slide.channel.partner',
                     method: 'action_channel_partner_invite',
-                    args: ["", channelId | false]
+                    args: ["", false, channelId | false]
+                }).then(action =>
+                    this.do_action(action, {on_close: () => this.reload()})
+                );
+            });
+            this.$buttons.on('click', '.o_button_slide_channel_partner_invite', () => {
+                this._rpc({
+                    model: 'slide.channel.partner',
+                    method: 'action_channel_partner_invite',
+                    args: ["", true, channelId | false]
                 }).then(action =>
                     this.do_action(action, {on_close: () => this.reload()})
                 );
