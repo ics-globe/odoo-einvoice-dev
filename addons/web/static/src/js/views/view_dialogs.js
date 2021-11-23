@@ -105,6 +105,7 @@ var FormViewDialog = ViewDialog.extend({
         this.shouldSaveLocally = options.shouldSaveLocally;
         this.readonly = options.readonly;
         this.deletable = options.deletable;
+        this.editable = options.editable;
         this.disable_multiple_selection = options.disable_multiple_selection;
         var oBtnRemove = 'o_btn_remove';
 
@@ -209,6 +210,7 @@ var FormViewDialog = ViewDialog.extend({
                 parentID: self.parentID,
                 recordID: self.recordID,
                 isFromFormViewDialog: true,
+                editable: self.editable
             });
             return formview.getController(self);
         }).then(function (formView) {
