@@ -420,7 +420,7 @@ class Field(MetaField('DummyField', (object,), {})):
             attrs['store'] = store = attrs.get('store', False)
             attrs['compute_sudo'] = attrs.get('compute_sudo', attrs.get('related_sudo', True))
             attrs['copy'] = attrs.get('copy', False)
-            attrs['readonly'] = attrs.get('readonly', not attrs.get('inverse'))
+            attrs['readonly'] = attrs.get('readonly', True)
         if attrs.get('precompute'):
             if not attrs.get('compute') and not attrs.get('related'):
                 warnings.warn(f"precompute attribute doesn't make any sense on non computed field {self}")
@@ -582,7 +582,7 @@ class Field(MetaField('DummyField', (object,), {})):
 
         # determine dependencies, compute, inverse, and search
         self.compute = self._compute_related
-        if self.inherited or self.inverse:
+        if self.inherited or not (self.readonly or field.readonly):
             self.inverse = self._inverse_related
         if field._description_searchable:
             # allow searching on self only if the related field is searchable
