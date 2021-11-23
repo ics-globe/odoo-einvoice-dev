@@ -47,6 +47,13 @@ class ProductProduct(models.Model):
     combination_indices = fields.Char(compute='_compute_combination_indices', store=True, index=True)
     is_product_variant = fields.Boolean(compute='_compute_is_product_variant')
 
+    # Allows for a custom description for each variant of the product.
+    description_sale = fields.Text('Sales Description', translate=True,
+                                   help="A description of the Product that you want to "
+                                          "communicate to your customers. This description will be "
+                                          "copied to every Sales Order, Delivery Order and Customer"
+                                          " Invoice/Credit Note")
+
     standard_price = fields.Float(
         'Cost', company_dependent=True,
         digits='Product Price',
