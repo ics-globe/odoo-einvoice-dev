@@ -121,6 +121,8 @@ class IrAsset(models.Model):
 
         asset_paths = AssetPaths()
         self._fill_asset_paths(bundle, addons, installed, css, js, xml, asset_paths, [])
+        import pprint
+        _logger.warning('\n<jucassetdebug>\n%s\n%s\n</jucassetdebug>', bundle, pprint.pformat(asset_paths.list))
         return asset_paths.list
 
     def _fill_asset_paths(self, bundle, addons, installed, css, js, xml, asset_paths, seen):
