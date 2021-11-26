@@ -86,7 +86,7 @@ class IrActions(models.Model):
     def get_bindings(self, model_name):
         return self._get_bindings(model_name, bool(request) and request.session.debug)
 
-    @tools.ormcache('frozenset(self.env.user.groups_id.ids)', 'model_name', 'debug')
+    @tools.ormcache('self.env.user._get_group_ids()', 'model_name', 'debug')
     def _get_bindings(self, model_name, debug=False):
         """ Retrieve the list of actions bound to the given model.
 

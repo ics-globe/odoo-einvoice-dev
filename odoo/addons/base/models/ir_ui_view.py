@@ -535,8 +535,8 @@ actual arch.
                         values['arch_updated'] = False
             values.update(self._compute_defaults(values))
 
-        self.clear_caches()
         result = super(View, self.with_context(ir_ui_view_partial_validation=True)).create(vals_list)
+        self.clear_caches()
         return result.with_env(self.env)
 
     def write(self, vals):
@@ -551,7 +551,6 @@ actual arch.
         if custom_view:
             custom_view.unlink()
 
-        self.clear_caches()
         if 'arch_db' in vals and not self.env.context.get('no_save_prev'):
             vals['arch_prev'] = self.arch_db
 
@@ -568,6 +567,7 @@ actual arch.
             # instead of the traceback dialog.
             self._validate_fields(['arch_db'])
 
+        self.clear_caches()
         return res
 
     def unlink(self):
@@ -586,6 +586,7 @@ actual arch.
 
     # default view selection
     @api.model
+    @tools.ormcache('model', 'view_type')
     def default_view(self, model, view_type):
         """ Fetches the default view for the provided (model, view_type) pair:
          primary view with the lowest priority.
@@ -601,10 +602,6 @@ actual arch.
     #------------------------------------------------------
     # Inheritance mecanism
     #------------------------------------------------------
-    @api.model
-    def _get_inheriting_views_domain(self):
-        """ Return a domain to filter the sub-views to inherit from. """
-        return [('active', '=', True)]
 
     @api.model
     def _get_filter_xmlid_query(self):
@@ -616,21 +613,32 @@ actual arch.
 
     def _get_inheriting_views(self):
         """
-        Determine the views that inherit from the current recordset, and return
+        Determine the views that inherit from the current record, and return
         them as a recordset, ordered by priority then by id.
         """
+        self.ensure_one()
         self.check_access_rights('read')
-        domain = self._get_inheriting_views_domain()
-        e = expression(domain, self.env['ir.ui.view'])
-        from_clause, where_clause, where_params = e.query.get_sql()
-        assert from_clause == '"ir_ui_view"', f"Unexpected from clause: {from_clause}"
 
-        self._flush_search(domain, fields=['inherit_id', 'priority', 'model', 'mode'], order='id')
+        root = self
+        view_ids = []
+        while True:
+            view_ids.append(root.id)
+            if not root.inherit_id:
+                break
+            root = root.inherit_id
+
+        from_clause, where_clause, where_params = self._where_calc([]).get_sql()
+        assert from_clause == '"ir_ui_view"', f"Unexpected from clause: {from_clause}"
+        if where_clause:
+            where_clause = f"AND ({where_clause})"
+
+        self._flush_search([], fields=['inherit_id', 'priority', 'model', 'mode'], order='id')
         query = f"""
             WITH RECURSIVE ir_ui_view_inherits AS (
                 SELECT id, inherit_id, priority, mode, model
                 FROM ir_ui_view
-                WHERE id IN %s AND ({where_clause})
+                WHERE id IN %s
+                {where_clause}
             UNION
                 SELECT ir_ui_view.id, ir_ui_view.inherit_id, ir_ui_view.priority,
                        ir_ui_view.mode, ir_ui_view.model
@@ -638,13 +646,13 @@ actual arch.
                 INNER JOIN ir_ui_view_inherits parent ON parent.id = ir_ui_view.inherit_id
                 WHERE coalesce(ir_ui_view.model, '') = coalesce(parent.model, '')
                       AND ir_ui_view.mode = 'extension'
-                      AND ({where_clause})
+                      {where_clause}
             )
             SELECT
                 v.id, v.inherit_id, v.mode,
                 ARRAY(SELECT r.group_id FROM ir_ui_view_group_rel r WHERE r.view_id=v.id)
             FROM ir_ui_view_inherits v
-            ORDER BY v.priority, v.id
+            ORDER BY v.inherit_id NULLS FIRST, v.priority, v.id
         """
         # ORDER BY v.priority, v.id:
         # 1/ sort by priority: abritrary value set by developers on some
@@ -654,26 +662,26 @@ actual arch.
         # 2/ sort by view id: the order the views were inserted in the
         #    database. e.g. base views are placed before stock ones.
 
-        self.env.cr.execute(query, [tuple(self.ids)] + where_params + where_params)
+        self.env.cr.execute(query, [tuple(view_ids)] + where_params + where_params)
         rows = self.env.cr.fetchall()
-
-        # filter out forbidden views
-        if any(row[3] for row in rows):
-            user_groups = set(self.env.user.groups_id.ids)
-            rows = [row for row in rows if not (row[3] and user_groups.isdisjoint(row[3]))]
 
         views = self.browse(row[0] for row in rows)
 
         # optimization: fill in cache of inherit_id and mode
         self.env.cache.update(views, type(self).inherit_id, [row[1] for row in rows])
         self.env.cache.update(views, type(self).mode, [row[2] for row in rows])
-
-        # During an upgrade, we can only use the views that have been
-        # fully upgraded already.
-        if self.pool._init and not self._context.get('load_all_views'):
-            views = views._filter_loaded_views()
+        self.env.cache.update(views, type(self).groups_id, [row[3] for row in rows])
 
         return views
+
+    @tools.ormcache('self.id', 'model')
+    def _get_depend_group_ids(self, model):
+        group_ids = self.env['ir.model.access'].search([('model_id.model', '=', model)]).group_id.ids
+        if self:
+            views = self._get_inheriting_views()
+            group_ids += views.groups_id.ids
+        return tuple(sorted(set(group_ids)))
+
 
     def _filter_loaded_views(self):
         """
@@ -955,27 +963,24 @@ actual arch.
 
     def _get_combined_arch(self):
         """ Return the arch of ``self`` (as an etree) combined with its inherited views. """
-        root = self
-        view_ids = []
-        while True:
-            view_ids.append(root.id)
-            if not root.inherit_id:
-                break
-            root = root.inherit_id
+        tree_views = self._get_inheriting_views()
+        root = tree_views[0]
 
-        views = self.browse(view_ids)
-
-        # Add inherited views to the list of loading forced views
-        # Otherwise, inherited views could not find elements created in
-        # their direct parents if that parent is defined in the same module
-        # introduce check_view_ids in context
-        if 'check_view_ids' not in views.env.context:
-            views = views.with_context(check_view_ids=[])
-        views.env.context['check_view_ids'].extend(view_ids)
+        # During an upgrade, we can only use the views that have been
+        # fully upgraded already.
+        if self.pool._init and not self._context.get('load_all_views'):
+            # Add inherited views to the list of loading forced views
+            # Otherwise, inherited views could not find elements created in
+            # their direct parents if that parent is defined in the same module
+            # introduce check_view_ids in context
+            if 'check_view_ids' not in self.env.context:
+                tree_views = tree_views.with_context(check_view_ids=[])
+            tree_views.env.context['check_view_ids'].extend(tree_views.ids)
+            tree_views = tree_views._filter_loaded_views()
 
         # Map each node to its children nodes. Note that all children nodes are
         # part of a single prefetch set, which is all views to combine.
-        tree_views = views._get_inheriting_views()
+        tree_views = tree_views.filtered(lambda view: not view.groups_id or any(group.id in self.env.user.groups_id.ids for group in view.groups_id))
         hierarchy = collections.defaultdict(list)
         for view in tree_views:
             hierarchy[view.inherit_id].append(view)

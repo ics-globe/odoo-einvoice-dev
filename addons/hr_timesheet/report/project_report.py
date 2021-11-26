@@ -27,8 +27,8 @@ class ReportProjectTaskUser(models.Model):
             """
 
     @api.model
-    def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        result = super(ReportProjectTaskUser, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+    def _fields_view_get(self, view, view_type='form'):
+        node = super(ReportProjectTaskUser, self)._fields_view_get(view, view_type=view_type)
         if view_type in ['pivot', 'graph'] and self.env.company.timesheet_encode_uom_id == self.env.ref('uom.product_uom_day'):
-            result['arch'] = self.env['account.analytic.line']._apply_time_label(result['arch'], related_model=self._name)
-        return result
+            node = self.env['account.analytic.line']._apply_time_label(node, related_model=self._name)
+        return node

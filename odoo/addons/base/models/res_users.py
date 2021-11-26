@@ -826,6 +826,10 @@ class Users(models.Model):
     # for a few places explicitly clearing the has_group cache
     has_group.clear_cache = _has_group.clear_cache
 
+    @tools.ormcache('self._uid')
+    def _get_group_ids(self):
+        return tuple(self.env.user.groups_id.ids)
+
     def _action_show(self):
         """If self is a singleton, directly access the form view. If it is a recordset, open a tree view"""
         view_id = self.env.ref('base.view_users_form').id

@@ -378,7 +378,7 @@ class TestCowViewSaving(TestViewSavingCommon):
         self.assertEqual(len(inherit_views.filtered(lambda v: v.website_id.id == 1)), 1)
 
         # read in backend should be unaffected
-        arch = self.base_view.get_combined_arch()
+        arch = self.base_view.with_context(website_id=None).get_combined_arch()
         self.assertEqual(arch, '<div>modified content</div>')
         # read on website should reflect change
         arch = self.base_view.with_context(website_id=1).get_combined_arch()
@@ -1348,7 +1348,7 @@ class Crawler(HttpCase):
             'model': 'theme.ir.ui.view',
             'res_id': called_theme_view.id,
         })
-        view_from_theme_view_on_w2.write({'arch': '<t t-call="_theme_kea_sale.t_called_view"/>'})
+        view_from_theme_view_on_w2.write({'arch': '<xpath expr="//body" position="replace"><t t-call="_theme_kea_sale.t_called_view"/></xpath>'})
 
         # ##################################################### ir.ui.view ###############################################
         # id |        name        | website_id | inherit |             key               |          xml_id               |

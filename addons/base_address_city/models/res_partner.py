@@ -25,12 +25,11 @@ class Partner(models.Model):
             self.state_id = False
 
     @api.model
-    def _fields_view_get_address(self, arch):
-        arch = super(Partner, self)._fields_view_get_address(arch)
+    def _fields_view_get_address(self, node):
+        doc = super(Partner, self)._fields_view_get_address(node)
         # render the partner address accordingly to address_view_id
-        doc = etree.fromstring(arch)
         if doc.xpath("//field[@name='city_id']"):
-            return arch
+            return doc
 
         replacement_xml = """
             <div>
@@ -90,8 +89,7 @@ class Partner(models.Model):
             parent = city_node.getparent()
             parent.remove(city_node)
 
-        arch = etree.tostring(doc, encoding='unicode')
-        return arch
+        return doc
 
     @api.model
     def _address_fields(self):

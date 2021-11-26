@@ -210,14 +210,10 @@ class TestViewInheritance(ViewCase):
         )
         self.assertEqual(
             self.view_ids['A21']._get_inheriting_views(),
-            self.get_views(['A21']),
+            self.get_views('A A1 A2 A12 A21 A22 A221'.split()),
         )
         self.assertEqual(
             self.view_ids['A11']._get_inheriting_views(),
-            self.get_views(['A11', 'A111']),
-        )
-        self.assertEqual(
-            (self.view_ids['A11'] + self.view_ids['A'])._get_inheriting_views(),
             self.get_views('A A1 A2 A11 A111 A12 A21 A22 A221'.split()),
         )
 
@@ -3078,6 +3074,24 @@ class TestAccessRights(common.TransactionCase):
         # unless he does not have access to the model
         with self.assertRaises(AccessError):
             self.env['ir.ui.view'].fields_view_get(view_type='form')
+
+    def test_attribute_groups(self):
+        arch = """
+            <form string="View">
+                <field name="name" groups="base.group_system"/>
+            </form>
+        """
+        view = self.env['ir.ui.view'].create({
+            'mode': 'primary',
+            'arch': arch,
+            'model': 'res.partner.title',
+        })
+        user_admin = self.ref('base.user_admin')
+        user_demo = self.ref('base.user_demo')
+        arch_admin = etree.fromstring(self.env['res.partner.title'].with_user(user_admin).fields_view_get(view_id=view.id)['arch'])
+        arch_demo = etree.fromstring(self.env['res.partner.title'].with_user(user_demo).fields_view_get(view_id=view.id)['arch'])
+        self.assertEqual(arch_admin.xpath('//field[@name="name"]')[0].get('invisible'), None, 'The name field for the admin user should be visible')
+        self.assertEqual(arch_demo.xpath('//field[@name="name"]')[0].get('invisible'), '1', 'The name field for the demo user should be invisible')
 
 @common.tagged('post_install', '-at_install', '-standard', 'migration')
 class TestAllViews(common.TransactionCase):

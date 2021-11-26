@@ -36,6 +36,7 @@ try:
 except ImportError:
     InvalidStateError = NotImplementedError
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, date
 from itertools import zip_longest as izip_longest
 from unittest.mock import patch
@@ -1853,6 +1854,7 @@ class Form(object):
         else:
             view_id = view or False
         fvg = recordp.fields_view_get(view_id, 'form')
+        fvg = deepcopy(fvg)
         fvg['tree'] = etree.fromstring(fvg['arch'])
 
         object.__setattr__(self, '_view', fvg)
@@ -1886,6 +1888,7 @@ class Form(object):
         submodel = self._env[descr['relation']]
         views = submodel.with_context(**refs) \
             .load_views([(False, 'tree'), (False, 'form')])['fields_views']
+        views = deepcopy(views)
         # embedded views should take the priority on externals
         views.update(descr['views'])
         # re-set all resolved views on the descriptor

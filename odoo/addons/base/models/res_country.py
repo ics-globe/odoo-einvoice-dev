@@ -106,6 +106,8 @@ class Country(models.Model):
     def write(self, vals):
         if vals.get('code'):
             vals['code'] = vals['code'].upper()
+        if 'address_view_id' in vals:
+            self.env["ir.ui.view"].clear_caches()
         return super(Country, self).write(vals)
 
     def get_address_fields(self):
