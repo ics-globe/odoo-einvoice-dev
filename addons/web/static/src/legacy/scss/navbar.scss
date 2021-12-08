@@ -26,7 +26,7 @@
   // boostrap values.
   // --------------------------------------------------------------------------
   $-backend-font-weight-bold: 500;
-  $-backend-entry-hover-bg: rgba(0, 0, 0, .08);
+  $-backend-entry-hover-bg: rgba(0, 0, 0, .08) !default;
   $-backend-h3-font-size: 17px;
   $-backend-h2-font-size: 20px;
   $-backend-entry-hpadding: 20px;
