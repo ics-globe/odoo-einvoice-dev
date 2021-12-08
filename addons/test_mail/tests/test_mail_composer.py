@@ -438,6 +438,7 @@ class TestComposerInternals(TestMailComposer):
 
     def test_mail_composer_rights_portal(self):
         portal_user = self._create_portal_user()
+        self.test_record.message_subscribe(partner_ids=portal_user.partner_id.ids)
 
         with patch.object(MailTestTicket, 'check_access_rights', return_value=True):
             self.env['mail.compose.message'].with_user(portal_user).with_context(
