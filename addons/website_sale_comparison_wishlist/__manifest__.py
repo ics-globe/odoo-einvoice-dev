@@ -20,6 +20,6 @@ It allows for comparing products from the wishlist
             'website_sale_comparison_wishlist/static/src/**/*',
         ],
     },
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

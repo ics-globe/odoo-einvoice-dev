@@ -7,9 +7,9 @@
     'category': 'Accounting/Accounting',
     'summary': 'Debit Notes',
     'description': """
-In a lot of countries, a debit note is used as an increase of the amounts of an existing invoice 
-or in some specific cases to cancel a credit note. 
-It is like a regular invoice, but we need to keep track of the link with the original invoice.  
+In a lot of countries, a debit note is used as an increase of the amounts of an existing invoice
+or in some specific cases to cancel a credit note.
+It is like a regular invoice, but we need to keep track of the link with the original invoice.
 The wizard used is similar as the one for the credit note.
     """,
     'depends': ['account'],
@@ -19,6 +19,6 @@ The wizard used is similar as the one for the credit note.
         'security/ir.model.access.csv',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

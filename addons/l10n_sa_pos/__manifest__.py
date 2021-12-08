@@ -21,5 +21,5 @@ K.S.A. POS Localization
             'l10n_sa_pos/static/src/js/OrderReceipt.js',
         ]
     },
-    'auto_install': True,
+    'auto-install': True,
 }

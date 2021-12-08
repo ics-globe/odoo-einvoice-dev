@@ -20,7 +20,7 @@ This is a bridge module that adds multi-website support for payment acquirers.
         'views/snippets/snippets.xml',
         'views/snippets/s_donation.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'website.assets_wysiwyg': [
             'website_payment/static/src/snippets/s_donation/options.js',

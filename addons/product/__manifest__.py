@@ -47,7 +47,7 @@ Print product labels with barcode.
         'data/product_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'product/static/src/js/**/*',

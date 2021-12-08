@@ -14,7 +14,7 @@ Module holding mail improvements for website. It holds the follow widget.
         'views/website_mail_templates.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             'website_mail/static/src/js/follow.js',

@@ -30,6 +30,6 @@ If the automated inventory valuation is active, the necessary accounting entries
         'data/mrp_account_demo.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

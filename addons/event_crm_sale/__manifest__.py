@@ -12,6 +12,6 @@
         'views/event_lead_rule_views.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

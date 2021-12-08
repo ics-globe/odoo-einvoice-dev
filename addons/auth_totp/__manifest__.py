@@ -16,7 +16,7 @@ can setup API keys to replace their main password.
     """,
     'depends': ['web'],
     'category': 'Extra Tools',
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',

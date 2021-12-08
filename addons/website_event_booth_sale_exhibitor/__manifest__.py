@@ -9,7 +9,7 @@
     """,
     'depends': ['website_event_exhibitor', 'website_event_booth_sale'],
     'data': [],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_tests': [
             'website_event_booth_sale_exhibitor/static/tests/tours/website_event_booth_sale_exhibitor.js',

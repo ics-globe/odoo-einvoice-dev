@@ -27,7 +27,7 @@
     ],
     'installable': True,
     'application': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'note/static/src/scss/note.scss',

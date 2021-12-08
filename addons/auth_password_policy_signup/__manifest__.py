@@ -2,7 +2,7 @@
     'name': "Password Policy support for Signup",
     'depends': ['auth_password_policy', 'auth_signup'],
     'category': 'Hidden/Tools',
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'views/signup_templates.xml',
     ],

@@ -10,6 +10,6 @@
     'depends': ['website_sms', 'crm'],
     'data': [],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

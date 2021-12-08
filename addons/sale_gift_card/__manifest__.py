@@ -8,7 +8,7 @@
     'category': 'Sales/Sales',
     'version': '1.0',
     'depends': ['gift_card', 'sale'],
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'data/gift_card_data.xml',
         'data/mail_template_data.xml',

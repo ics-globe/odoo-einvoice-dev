@@ -10,6 +10,6 @@ United Arab Emirates POS Localization
     """,
     'depends': ['l10n_ae', 'point_of_sale'],
     'qweb': ['static/src/xml/Screens/ReceiptScreen/OrderReceipt.xml'],
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

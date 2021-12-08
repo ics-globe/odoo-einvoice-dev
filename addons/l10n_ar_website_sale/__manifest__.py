@@ -18,7 +18,7 @@
         'demo/website_demo.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'application': False,
     'license': 'LGPL-3',
 }

@@ -26,6 +26,6 @@ This module allows you to easily add extra costs on pickings and decide the spli
         'views/res_config_settings_views.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

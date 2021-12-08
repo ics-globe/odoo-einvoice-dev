@@ -21,7 +21,7 @@ Display your booths on your website for the users to register.
     'demo': [
         'data/event_demo.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             '/website_event_booth/static/src/js/booth_register.js',

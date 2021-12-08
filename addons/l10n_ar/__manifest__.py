@@ -122,7 +122,7 @@ Master Data:
         'demo/res_users_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': False,
     'assets': {
         'web.assets_backend': [

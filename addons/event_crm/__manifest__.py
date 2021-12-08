@@ -21,6 +21,6 @@
         'data/event_crm_demo.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

@@ -7,7 +7,7 @@
     'category': 'Website/Website',
     'version': '1.0',
     'depends': ['website_sale_delivery', 'sale_coupon_delivery'],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             'website_sale_coupon_delivery/static/**/*',

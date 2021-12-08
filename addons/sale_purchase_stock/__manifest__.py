@@ -13,6 +13,6 @@ Add relation information between Sale Orders and Purchase Orders if Make to Orde
     'data': [],
     'demo': [],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

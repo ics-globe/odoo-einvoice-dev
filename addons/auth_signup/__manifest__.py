@@ -9,7 +9,7 @@ Allow users to sign up and reset their password
     """,
     'version': '1.0',
     'category': 'Hidden/Tools',
-    'auto_install': True,
+    'auto-install': True,
     'depends': [
         'base_setup',
         'mail',

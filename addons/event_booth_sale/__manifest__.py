@@ -21,7 +21,7 @@ Sell your event booths and track payments on sale orders.
         'views/event_booth_views.xml',
         'wizard/event_booth_configurator_views.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_backend': [
             'event_booth_sale/static/src/js/event_booth_configurator_form_controller.js',

@@ -17,7 +17,7 @@ Sell event tickets through eCommerce app.
         'security/ir.model.access.csv',
         'security/website_event_sale_security.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_tests': [
             'website_event_sale/static/tests/**/*',

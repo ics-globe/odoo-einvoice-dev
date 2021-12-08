@@ -8,7 +8,7 @@
     'version': '1.0',
     'depends': ['website_slides', 'survey'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'security/ir.model.access.csv',
         'views/slide_channel_views.xml',

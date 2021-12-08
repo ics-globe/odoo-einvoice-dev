@@ -9,7 +9,7 @@
     'depends': ['mail_bot', 'hr'],
     'application': False,
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'views/res_users_views.xml',
     ],

@@ -38,7 +38,7 @@
         'data/hr_recruitment_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': True,
     'assets': {
         'web.assets_backend': [

@@ -21,6 +21,6 @@
         'privacy_policy': ['s_faq_collapse'],
     },
     'application': False,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

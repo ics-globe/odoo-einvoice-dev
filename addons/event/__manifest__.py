@@ -43,7 +43,7 @@ Key Features
         'data/event_registration_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'event/static/src/scss/event.scss',

@@ -24,7 +24,7 @@ The module adds following features:
 """,
     'depends': ['l10n_fr', 'point_of_sale'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'application': False,
     'data': [
         'views/account_views.xml',

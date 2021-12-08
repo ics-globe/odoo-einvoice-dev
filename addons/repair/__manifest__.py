@@ -38,7 +38,7 @@ The following topics are covered by this module:
     'demo': ['data/repair_demo.xml'],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': True,
     'license': 'LGPL-3',
 }

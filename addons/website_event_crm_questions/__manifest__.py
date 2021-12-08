@@ -13,6 +13,6 @@
     'depends': ['website_event_crm', 'website_event_questions'],
     'data': [],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

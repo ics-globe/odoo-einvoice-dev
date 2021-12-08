@@ -9,7 +9,7 @@
     'category': 'Hidden',
     'version': '1.0',
     'depends': ['website_sale_stock', 'sale_product_configurator'],
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'views/product_configurator_templates.xml',
     ],

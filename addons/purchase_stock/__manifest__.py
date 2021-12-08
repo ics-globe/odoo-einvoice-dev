@@ -31,7 +31,7 @@
         'data/purchase_stock_demo.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'post_init_hook': '_create_buy_rules',
     'assets': {
         'web.assets_backend': [

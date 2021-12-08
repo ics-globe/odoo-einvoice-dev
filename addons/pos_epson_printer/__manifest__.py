@@ -17,7 +17,7 @@ Use Epson ePOS Printers without the IoT Box in the Point of Sale
         'views/pos_config_views.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'point_of_sale.assets': [
             'pos_epson_printer/static/src/js/**/*',

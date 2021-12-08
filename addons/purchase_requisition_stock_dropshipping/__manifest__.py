@@ -17,6 +17,6 @@ and link with originating sale order.
         'views/purchase_views.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

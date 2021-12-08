@@ -136,6 +136,6 @@ Odoo Web Editor widget.
             'web_editor/static/tests/**/*',
         ],
     },
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

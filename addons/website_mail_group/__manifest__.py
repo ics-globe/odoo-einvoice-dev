@@ -7,7 +7,7 @@
     'description': "",
     'version': '1.0',
     'depends': ['mail_group', 'website'],
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'views/snippets/s_group.xml',
         'views/snippets/snippets.xml',

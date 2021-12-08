@@ -16,6 +16,6 @@ Bridge module adding UX requirements to ease mass mailing of course members.
     'data': [
         'views/slide_channel_views.xml'
     ],
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

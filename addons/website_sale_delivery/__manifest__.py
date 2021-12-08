@@ -18,7 +18,7 @@ Configure your own methods with a pricing grid or integrate with carriers for a 
         'data/website_sale_delivery_demo.xml'
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             'website_sale_delivery/static/src/**/*',

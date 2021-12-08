@@ -8,6 +8,6 @@
         'l10n_din5008',
         'purchase',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

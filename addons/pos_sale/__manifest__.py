@@ -25,7 +25,7 @@ This module adds a custom Sales Team for the Point of Sale. This enables you to 
         'views/stock_template.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'point_of_sale.assets': [
             'pos_sale/static/src/css/pos_sale.css',

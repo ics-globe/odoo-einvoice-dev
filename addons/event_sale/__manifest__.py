@@ -34,7 +34,7 @@ this event.
     ],
     'demo': ['data/event_demo.xml'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_backend': [
             'event_sale/static/src/**/*',

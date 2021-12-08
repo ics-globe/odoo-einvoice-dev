@@ -14,7 +14,7 @@ Generate tasks in Project app from a form published on your website. This module
         'data/website_form_project_data.xml',
         ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'website.assets_editor': [
             'website_form_project/static/src/**/*',

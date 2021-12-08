@@ -17,6 +17,6 @@ enable payment.
         'views/account_portal_templates.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

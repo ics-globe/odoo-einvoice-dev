@@ -17,6 +17,6 @@ This widget allows to display gauges using d3 library.
             'web_kanban_gauge/static/tests/**/*',
         ],
     },
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

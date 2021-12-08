@@ -33,7 +33,7 @@ following:
         'data/pos_mercury_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'point_of_sale.assets': [
             'pos_mercury/static/src/js/pos_mercury.js',

@@ -11,6 +11,6 @@
     'depends': ['mail_bot', 'im_livechat'],
     'installable': True,
     'application': False,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

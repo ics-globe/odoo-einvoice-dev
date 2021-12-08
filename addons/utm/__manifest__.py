@@ -18,7 +18,7 @@ Enable management of UTM trackers: campaign, medium, source.
     'demo': [
         'data/utm_demo.xml',
     ],
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'utm/static/src/**/*',

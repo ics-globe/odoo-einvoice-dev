@@ -9,7 +9,7 @@ Functional
 
 This module adds accounting features for Ecuadorian localization, which
 represent the minimum requirements to operate a business in Ecuador in compliance
-with local regulation bodies such as the ecuadorian tax authority -SRI- and the 
+with local regulation bodies such as the ecuadorian tax authority -SRI- and the
 Superintendency of Companies -Super Intendencia de Compañías-
 
 Follow the next configuration steps:
@@ -76,6 +76,6 @@ Master Data:
         "demo/demo_company.xml",
     ],
     "installable": True,
-    "auto_install": False,
+    "auto-install": False,
     "application": False,
 }

@@ -14,7 +14,7 @@
     'demo': [
         'data/product_demo.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'point_of_sale.assets': [
             'l10n_in_pos/static/src/js/**/*',

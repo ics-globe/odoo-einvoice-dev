@@ -72,7 +72,7 @@
     'css': ['static/src/css/crm.css'],
     'installable': True,
     'application': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_qweb': [
             'crm/static/src/xml/forecast_kanban.xml',

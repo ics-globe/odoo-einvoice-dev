@@ -7,6 +7,6 @@
     'version': '0.1',
     'depends': ['sale_stock', 'sale_margin'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

@@ -8,7 +8,7 @@
     'category': 'Sales/Sales',
     'version': '1.0',
     'depends': ['gift_card', 'point_of_sale'],
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'data/gift_card_data.xml',
         'views/gift_card_views.xml',

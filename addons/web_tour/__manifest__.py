@@ -41,6 +41,6 @@ Odoo Web tours.
             'web_tour/static/tests/**/*',
         ],
     },
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

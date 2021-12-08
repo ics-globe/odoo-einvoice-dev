@@ -46,7 +46,7 @@ This module contains all the common features of Sales Management and eCommerce.
         'data/sale_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'sale/static/src/scss/sale_onboarding.scss',

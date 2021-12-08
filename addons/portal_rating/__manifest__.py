@@ -18,7 +18,7 @@ inclusion of rating directly within the customer portal discuss widget.
         'views/portal_templates.xml',
         'views/rating_templates.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             'portal_rating/static/src/scss/portal_rating.scss',

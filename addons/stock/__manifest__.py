@@ -88,7 +88,7 @@
     ],
     'installable': True,
     'application': True,
-    'auto_install': False,
+    'auto-install': False,
     'pre_init_hook': 'pre_init_hook',
     'post_init_hook': '_assign_default_mail_template_picking_id',
     'assets': {

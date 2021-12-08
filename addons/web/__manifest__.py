@@ -12,7 +12,7 @@ Odoo Web core module.
 This module provides the core of the Odoo Web Client.
 """,
     'depends': ['base'],
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'security/ir.model.access.csv',
         'views/webclient_templates.xml',

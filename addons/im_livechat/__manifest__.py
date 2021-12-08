@@ -40,7 +40,7 @@ Help your customers with this chat, and analyse their feedback.
     ],
     'depends': ["mail", "rating", "digest"],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': True,
     'assets': {
         'mail.assets_discuss_public': [

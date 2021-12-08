@@ -24,6 +24,6 @@ that have no counterpart in the general financial accounts.
         'data/analytic_account_demo.xml',
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

@@ -20,7 +20,7 @@
     ],
     'application': False,
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_frontend': [
             'website_event_track_live_quiz/static/src/js/**/*',

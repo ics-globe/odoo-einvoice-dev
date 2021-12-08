@@ -18,7 +18,7 @@ Badge received are displayed on the user profile.
         'views/gamification_views.xml',
         'views/hr_employee_views.xml',
         ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_backend': [
             'hr_gamification/static/**/*',

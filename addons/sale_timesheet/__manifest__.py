@@ -36,7 +36,7 @@ have real delivered quantities in sales orders.
     'demo': [
         'data/sale_service_demo.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'uninstall_hook': 'uninstall_hook',
     'assets': {
         'web.assets_frontend': [

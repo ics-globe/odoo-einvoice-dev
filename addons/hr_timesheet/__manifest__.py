@@ -44,7 +44,7 @@ up a management by affair.
     ],
     'installable': True,
     'application': False,
-    'auto_install': False,
+    'auto-install': False,
     'post_init_hook': 'create_internal_project',
     'uninstall_hook': '_uninstall_hook',
     'assets': {

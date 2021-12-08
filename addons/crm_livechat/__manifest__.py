@@ -13,7 +13,7 @@
         'im_livechat'
     ],
     'description': 'Create new lead with using /lead command in the channel',
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
     'assets': {
         'mail.assets_discuss_public': [

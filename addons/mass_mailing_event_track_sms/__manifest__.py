@@ -21,6 +21,6 @@ speakers..
     ],
     'data': [
     ],
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

@@ -17,7 +17,7 @@
         ],
     'demo': [],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'web.assets_backend': [
             'google_calendar/static/src/js/google_calendar_popover.js',

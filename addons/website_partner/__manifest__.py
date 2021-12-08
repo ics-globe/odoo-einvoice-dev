@@ -17,6 +17,6 @@ This is a base module. It holds website-related stuff for Contact model (res.par
     ],
     'demo': ['data/website_partner_demo.xml'],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'license': 'LGPL-3',
 }

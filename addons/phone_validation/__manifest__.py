@@ -28,6 +28,6 @@ records numbers. """,
         'base',
         'mail',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }

@@ -19,7 +19,7 @@ The actual till still requires one user but an unlimited number of employees can
         'views/pos_order_report_view.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'point_of_sale.assets': [
             'pos_hr/static/src/css/pos.css',

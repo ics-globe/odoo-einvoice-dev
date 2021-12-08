@@ -8,7 +8,7 @@
     'category': 'Inventory/Inventory',
     'depends': ['repair', 'mrp'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'application': False,
     'license': 'LGPL-3',
 }

@@ -12,7 +12,7 @@ This module adds features depending on both modules.
 """,
     'depends': ['point_of_sale', 'sale_product_configurator'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'data': [
         'views/pos_config_views.xml',
     ],

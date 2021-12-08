@@ -10,7 +10,7 @@
     'data': [
         'views/res_config_settings_view.xml',
         ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web_editor.assets_wysiwyg': [
             'web_unsplash/static/src/js/unsplashapi.js',

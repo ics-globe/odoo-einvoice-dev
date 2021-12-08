@@ -39,7 +39,7 @@ Preferences
     ],
     'demo': ['data/sale_order_demo.xml'],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_backend': [
             'sale_stock/static/src/js/**/*',

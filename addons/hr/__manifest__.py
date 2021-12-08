@@ -47,7 +47,7 @@
     ],
     'installable': True,
     'application': True,
-    'auto_install': False,
+    'auto-install': False,
     'assets': {
         'mail.assets_discuss_public': [
             'hr/static/src/models/*/*.js',

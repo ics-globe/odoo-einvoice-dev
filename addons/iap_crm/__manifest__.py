@@ -14,7 +14,7 @@
     ],
     'application': False,
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'data': [
     ],
     'license': 'LGPL-3',

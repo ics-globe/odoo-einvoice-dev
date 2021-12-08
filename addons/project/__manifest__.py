@@ -55,7 +55,7 @@
     'test': [
     ],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': True,
     'post_init_hook': '_project_post_init',
     'assets': {

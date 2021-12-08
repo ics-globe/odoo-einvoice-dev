@@ -17,7 +17,7 @@
         ],
     'demo': [],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'post_init_hook': 'init_initiating_microsoft_uuid',
     'assets': {
         'web.assets_backend': [

@@ -32,7 +32,7 @@ You can assign several contracts per employee.
     ],
     'demo': ['data/hr_contract_demo.xml'],
     'installable': True,
-    'auto_install': False,
+    'auto-install': False,
     'application': True,
     'assets': {
         'web.assets_backend': [

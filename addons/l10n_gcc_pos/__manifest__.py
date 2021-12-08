@@ -21,5 +21,5 @@ GCC POS Localization
             'l10n_gcc_pos/static/src/css/OrderReceipt.css',
         ]
     },
-    'auto_install': True,
+    'auto-install': True,
 }

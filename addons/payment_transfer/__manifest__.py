@@ -12,7 +12,7 @@
         'views/payment_transfer_templates.xml',
         'data/payment_acquirer_data.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'uninstall_hook': 'uninstall_hook',
     'license': 'LGPL-3',
 }

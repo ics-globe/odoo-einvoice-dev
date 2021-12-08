@@ -24,7 +24,7 @@ This module includes contact phone and mobile numbers validation.""",
         'views/website_templates_contactus.xml',
     ],
     'installable': True,
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'website.assets_editor': [
             'website_crm/static/src/**/*',

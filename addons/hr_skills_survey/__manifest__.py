@@ -18,7 +18,7 @@ This module adds certification to resumé for employees.
         'views/hr_templates.xml',
         'data/hr_resume_data.xml',
     ],
-    'auto_install': True,
+    'auto-install': True,
     'assets': {
         'web.assets_qweb': [
             'hr_skills_survey/static/src/xml/**/*',

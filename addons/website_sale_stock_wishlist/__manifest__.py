@@ -22,6 +22,6 @@ Allow the user to select if he wants to receive email notifications when a produ
             'website_sale_stock_wishlist/static/src/**/*',
         ],
     },
-    'auto_install': True,
+    'auto-install': True,
     'license': 'LGPL-3',
 }
