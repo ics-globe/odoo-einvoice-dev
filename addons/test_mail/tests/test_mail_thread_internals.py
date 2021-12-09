@@ -265,7 +265,6 @@ class TestDiscuss(TestMailCommon, TestRecipients):
         channel = self.env['mail.channel'].create({'name': 'testChannel'})
         channel.message_notify(
             body='test',
-            message_type='user_notification',
             partner_ids=[self.partner_2.id],
             author_id=2
         )
