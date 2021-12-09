@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.tools.misc import formatLang
 
 
@@ -255,11 +255,12 @@ class SaleOrder(models.Model):
         return coupon
 
     def _send_reward_coupon_mail(self):
+        # TDE FIXME: this is non sense, posting on a order with model = coupon...
         template = self.env.ref('sale_coupon.mail_template_sale_coupon', raise_if_not_found=False)
         if template:
-            for order in self:
-                for coupon in order.generated_coupon_ids:
-                    order.message_post_with_template(
+            for order_su in self.with_user(SUPERUSER_ID):
+                for coupon in order_su.generated_coupon_ids:
+                    order_su.message_post_with_template(
                         template.id, composition_mode='comment',
                         model='coupon.coupon', res_id=coupon.id,
                         email_layout_xmlid='mail.mail_notification_light',
