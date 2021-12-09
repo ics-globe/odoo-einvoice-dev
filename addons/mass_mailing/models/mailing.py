@@ -68,6 +68,7 @@ class MassMailing(models.Model):
     subject = fields.Char('Subject', help='Subject of your Mailing', required=True, translate=False)
     preview = fields.Char(
         'Preview', translate=False,
+        render_engine='qweb', render_options={'post_process': True},
         help='Catchy preview sentence that encourages recipients to open this email.\n'
              'In most inboxes, this is displayed next to the subject.\n'
              'Keep it empty if you prefer the first characters of your email content to appear instead.')
@@ -88,7 +89,9 @@ class MassMailing(models.Model):
         help="Date at which the mailing was or will be sent.")
     # don't translate 'body_arch', the translations are only on 'body_html'
     body_arch = fields.Html(string='Body', translate=False, sanitize=False)
-    body_html = fields.Html(string='Body converted to be sent by mail', sanitize=False)
+    body_html = fields.Html(
+        string='Body converted to be sent by mail', sanitize=False,
+        render_engine='qweb', render_options={'post_process': True})
     is_body_empty = fields.Boolean(compute="_compute_is_body_empty",
                                    help='Technical field used to determine if the mail body is empty')
     attachment_ids = fields.Many2many('ir.attachment', 'mass_mailing_ir_attachments_rel',
