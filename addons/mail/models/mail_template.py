@@ -137,7 +137,7 @@ class MailTemplate(models.Model):
     # MESSAGE/EMAIL VALUES GENERATION
     # ------------------------------------------------------------
 
-    def generate_recipients(self, results, res_ids):
+    def _generate_recipients(self, results, res_ids):
         """Generates the recipients of the template. Default values can ben generated
         instead of the template values if requested by template or context.
         Emails (email_to, email_cc) can be transformed into partners if requested
@@ -174,33 +174,29 @@ class MailTemplate(models.Model):
             results[res_id]['partner_ids'] = partner_ids
         return results
 
-    def generate_email(self, res_ids, fields):
-        """Generates an email from the template for given the given model based on
-        records given by res_ids.
+    def _generate_template(self, res_ids, render_fields):
+        """Render values based on template 'self', returning values to create
+        a mail.mail / mail.message. Model is defined on template and records
+        are defined by res_ids.
 
-        :param res_id: id of the record to use for rendering the template (model
-                       is taken from template definition)
+        :param list res_ids: ids of the records to use for rendering the template;
         :returns: a dict containing all relevant fields for creating a new
                   mail.mail entry, with one extra key ``attachments``, in the
                   format [(report_name, data)] where data is base64 encoded.
         """
         self.ensure_one()
-        multi_mode = True
-        if isinstance(res_ids, int):
-            res_ids = [res_ids]
-            multi_mode = False
 
         results = dict()
-        for lang, (template, template_res_ids) in self._classify_per_lang(res_ids).items():
-            for field in fields:
+        for _lang, (template, template_res_ids) in self._classify_per_lang(res_ids).items():
+            for field in render_fields:
                 generated_field_values = template._render_field(
                     field, template_res_ids
                 )
                 for res_id, field_value in generated_field_values.items():
                     results.setdefault(res_id, dict())[field] = field_value
             # compute recipients
-            if any(field in fields for field in ['email_to', 'partner_to', 'email_cc']):
-                results = template.generate_recipients(results, template_res_ids)
+            if any(field in render_fields for field in ['email_to', 'partner_to', 'email_cc']):
+                results = template._generate_recipients(results, template_res_ids)
             # update values for all res_ids
             for res_id in template_res_ids:
                 values = results[res_id]
@@ -224,24 +220,24 @@ class MailTemplate(models.Model):
                     report_service = report.report_name
 
                     if report.report_type in ['qweb-html', 'qweb-pdf']:
-                        result, format = report._render_qweb_pdf([res_id])
+                        result, report_format = report._render_qweb_pdf([res_id])
                     else:
                         res = report._render([res_id])
                         if not res:
                             raise UserError(_('Unsupported report type %s found.', report.report_type))
-                        result, format = res
+                        result, report_format = res
 
-                    # TODO in trunk, change return format to binary to match message_post expected format
+                    # TODO in trunk, change return report_format to binary to match message_post expected format
                     result = base64.b64encode(result)
                     if not report_name:
                         report_name = 'report.' + report_service
-                    ext = "." + format
+                    ext = "." + report_format
                     if not report_name.endswith(ext):
                         report_name += ext
                     attachments.append((report_name, result))
                     results[res_id]['attachments'] = attachments
 
-        return multi_mode and results or results[res_ids[0]]
+        return results
 
     # ------------------------------------------------------------
     # EMAIL
@@ -273,7 +269,10 @@ class MailTemplate(models.Model):
         Attachment = self.env['ir.attachment']  # TDE FIXME: should remove default_type from context
 
         # create a mail_mail based on values, without attachments
-        values = self.generate_email(res_id, ['subject', 'body_html', 'email_from', 'email_to', 'partner_to', 'email_cc', 'reply_to', 'scheduled_date'])
+        values = self._generate_template(
+            [res_id], ['subject', 'body_html',
+                       'email_from', 'email_to', 'partner_to', 'email_cc', 'reply_to',
+                       'scheduled_date'])[res_id]
         values['recipient_ids'] = [Command.link(pid) for pid in values.get('partner_ids', list())]
         values['attachment_ids'] = [Command.link(aid) for aid in values.get('attachment_ids', list())]
         values.update(email_values or {})

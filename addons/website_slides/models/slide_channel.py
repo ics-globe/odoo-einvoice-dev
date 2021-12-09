@@ -114,7 +114,7 @@ class ChannelUsersRelation(models.Model):
                 records += record
 
         for template, records in template_to_records.items():
-            record_email_values = template.generate_email(self.ids, ['subject', 'body_html', 'email_from', 'partner_to'])
+            record_email_values = template._generate_template(self.ids, ['subject', 'body_html', 'email_from', 'partner_to'])
 
         mail_mail_values = []
         for record in self:
