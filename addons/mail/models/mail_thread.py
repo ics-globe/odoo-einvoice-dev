@@ -1809,6 +1809,7 @@ class MailThread(models.AbstractModel):
 
         # preliminary value safety check
         partner_ids = set(partner_ids or [])
+        attachment_ids = set(attachment_ids or [])
         if self._name == 'mail.thread' or not self.id or message_type == 'user_notification':
             raise ValueError(_('Posting a message should be done on a business document. Use message_notify to send a notification to an user.'))
         if 'channel_ids' in kwargs:
@@ -1819,6 +1820,8 @@ class MailThread(models.AbstractModel):
             raise ValueError(_("message_post does not support subtype parameter anymore. Please give a valid subtype_id or subtype_xmlid value instead."))
         if any(not isinstance(pc_id, int) for pc_id in partner_ids):
             raise ValueError(_('message_post partner_ids and must be integer list, not commands.'))
+        if any(not isinstance(attach_id, int) for attach_id in attachment_ids):
+            raise ValueError(_('message_post attachment_ids and must be integer list, not commands.'))
 
         self = self._fallback_lang() # add lang to context immediately since it will be useful in various flows latter.
 
@@ -1867,7 +1870,6 @@ class MailThread(models.AbstractModel):
         })
 
         attachments = attachments or []
-        attachment_ids = attachment_ids or []
         attachement_values = self._message_post_process_attachments(attachments, attachment_ids, msg_values)
         msg_values.update(attachement_values)  # attachement_ids, [body]
 
