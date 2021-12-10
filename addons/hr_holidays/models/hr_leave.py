@@ -1404,8 +1404,12 @@ class HolidaysRequest(models.Model):
         if not self.can_cancel:
             raise ValidationError(_('This time off cannot be canceled.'))
 
+        self._force_cancel(reason, 'mail.mt_note')
+
+    def _force_cancel(self, reason, msg_subtype='mail.mt_comment'):
         self.message_post(
-            body=_('The time off has been canceled: %s', reason)
+            body=_('The time off has been canceled: %s', reason),
+            subtype_xmlid=msg_subtype
         )
 
         leave_sudo = self.sudo()
@@ -1422,7 +1426,6 @@ class HolidaysRequest(models.Model):
             'view_mode': 'kanban',
             'domain': domain
         }
-
 
     def _check_approval_update(self, state):
         """ Check if target state is achievable. """
@@ -1520,6 +1523,19 @@ class HolidaysRequest(models.Model):
     ####################################################
     # Messaging methods
     ####################################################
+
+    def _notify_change(self, message, subtype_xmlid='mail.mt_note'):
+        for leave in self:
+            leave.message_post(body=message, subtype_xmlid=subtype_xmlid)
+
+            recipient = None
+            if leave.user_id:
+                recipient = leave.user_id.partner_id.id
+            elif leave.employee_id:
+                recipient = leave.employee_id.address_home_id.id
+
+            if recipient:
+                self.env['mail.thread'].sudo().message_notify(body=message, partner_ids=[recipient])
 
     def _track_subtype(self, init_values):
         if 'state' in init_values and self.state == 'validate':
