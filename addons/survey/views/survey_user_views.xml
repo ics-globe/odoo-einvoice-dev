@@ -148,6 +148,15 @@
         </field>
     </record>
 
+    <record id="action_survey_certified_user_input" model="ir.actions.server">
+        <field name="name">survey digest action</field>
+        <field name="model_id" ref="model_survey_survey"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.sudo().action_survey_certified_user_input()
+        </field>
+    </record>
+
     <!-- USER INPUT LINES
         .. note:: these views are useful mainly for technical users/administrators -->
     <record id="survey_user_input_line_view_form" model="ir.ui.view">
