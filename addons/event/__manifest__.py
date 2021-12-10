@@ -17,16 +17,18 @@ Key Features
 * Manage your Events and Registrations
 * Use emails to automatically confirm and send acknowledgments for any event registration
 """,
-    'depends': ['base_setup', 'mail', 'portal', 'utm'],
+    'depends': ['base_setup', 'mail', 'portal', 'utm', 'digest'],
     'data': [
         'security/event_security.xml',
         'security/ir.model.access.csv',
+        'views/digest_views.xml',
         'views/event_menu_views.xml',
         'views/event_ticket_views.xml',
         'views/event_views.xml',
         'views/event_stage_views.xml',
         'report/event_event_templates.xml',
         'report/event_event_reports.xml',
+        'data/digest_data.xml',
         'data/ir_cron_data.xml',
         'data/mail_template_data.xml',
         'data/event_data.xml',
