@@ -61,10 +61,12 @@
                         <em t-else="" class="text-warning">Unnamed</em>
                     </a>
                 </li>
-                <li t-else="" class="breadcrumb-item active">
-                    <t t-if="breadcrumb.name" t-esc="breadcrumb.name"/>
-                    <em t-else="" class="text-warning">Unnamed</em>
-                </li>
+                <t t-else="1">
+                    <li class="breadcrumb-item active">
+                        <t t-if="breadcrumb.name" t-esc="breadcrumb.name"/>
+                        <em t-else="" class="text-warning">Unnamed</em>
+                    </li>
+                </t>
             </t>
         </ol>
     </t>
