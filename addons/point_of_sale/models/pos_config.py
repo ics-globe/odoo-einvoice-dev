@@ -463,7 +463,7 @@ class PosConfig(models.Model):
             forbidden_fields = []
             for key in self._get_forbidden_change_fields():
                 if key in vals.keys():
-                    field_name = self._fields[key].get_description(self.env)["string"]
+                    field_name = self.fields_get([key])[key]['string']
                     forbidden_fields.append(field_name)
             if len(forbidden_fields) > 0:
                 raise UserError(_(

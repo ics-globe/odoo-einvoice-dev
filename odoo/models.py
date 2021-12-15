@@ -3118,6 +3118,24 @@ class BaseModel(metaclass=MetaModel):
         cls._init_constraints_onchanges()
 
     @api.model
+    @ormcache('self._name', 'self.env.lang')
+    def _fields_get(self):
+        res = {}
+        for fname, field in self._fields.items():
+            description = {'type': field.type}
+            for attr, prop in field.description_attrs:
+                if attr in ['domain']:
+                    continue
+                value = getattr(field, prop)
+                if callable(value):
+                    value = value(self.env)
+                if value is not None:
+                    description[attr] = value
+            description['name'] = fname
+            res[fname] = frozendict(description)
+        return frozendict(res)
+
+    @api.model
     def fields_get(self, allfields=None, attributes=None):
         """ fields_get([fields][, attributes])
 
@@ -3134,14 +3152,17 @@ class BaseModel(metaclass=MetaModel):
         readonly = not (has_access('write') or has_access('create'))
 
         res = {}
-        for fname, field in self._fields.items():
+        for fname, description in self._fields_get().items():
+            field = self._fields[fname]
             if allfields and fname not in allfields:
                 continue
             if field.groups and not self.env.su and not self.user_has_groups(field.groups):
                 continue
 
-            description = field.get_description(self.env)
+            description = dict(description)
             description['name'] = fname
+            if 'domain' in field.description_attrs:
+                description['domain'] = field._description_domain(self.env)
             if readonly:
                 description['readonly'] = True
                 description['states'] = {}

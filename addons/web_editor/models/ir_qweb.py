@@ -348,7 +348,7 @@ class Selection(models.AbstractModel):
     @api.model
     def from_html(self, model, field, element):
         value = element.text_content().strip()
-        selection = field.get_description(self.env)['selection']
+        selection = self.env[field.model_name].fields_get([field.name])[field.name]['selection']
         for k, v in selection:
             if isinstance(v, str):
                 v = ustr(v)
