@@ -22,7 +22,6 @@ class TestACL(TransactionCaseWithUserDemo):
     def _set_field_groups(self, model, field_name, groups):
         field = model._fields[field_name]
         self.patch(field, 'groups', groups)
-        self.env["ir.ui.view"].clear_caches()
 
     def test_field_visibility_restriction(self):
         """Check that model-level ``groups`` parameter effectively restricts access to that

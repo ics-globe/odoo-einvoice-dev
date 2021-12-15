@@ -55,7 +55,7 @@ from .exceptions import AccessError, MissingError, ValidationError, UserError
 from .osv.query import Query
 from .tools import frozendict, lazy_classproperty, ormcache, ormcache_context, \
                    LastOrderedSet, OrderedSet, IterableGenerator, \
-                   groupby, discardattr, partition
+                   discardattr, partition
 from .tools.config import config
 from .tools.func import frame_codeinfo
 from .tools.misc import CountingStream, clean_context, DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT, get_lang
@@ -1664,8 +1664,8 @@ class BaseModel(metaclass=MetaModel):
         return node
 
     @api.model
-    @ormcache_context('self._name', 'self.env.company.id', 'view.id', 'view_type', 'group_ids', keys=('lang',))
-    def _fields_view_get_postprocess(self, view, view_type='form', group_ids=None):
+    @ormcache_context('self._name', 'self.env.company.id', 'view.id', 'group_ids', 'view_type', keys=('lang',))
+    def _fields_view_get_postprocess(self, view, group_ids, view_type='form'):
         # Get the view arch and all other attributes describing the composition of the view
         node = self._fields_view_get(view, view_type=view_type)
 
@@ -1678,7 +1678,7 @@ class BaseModel(metaclass=MetaModel):
             'model': self._name,
             'field_parent': False,
             'arch': arch,
-            'fields': fields,
+            'fields': frozendict(fields),
         }
 
         if view:
@@ -1696,7 +1696,7 @@ class BaseModel(metaclass=MetaModel):
             except AttributeError:
                 raise UserError(_("No default view of type '%s' could be found !", view_type))
 
-        return result
+        return frozendict(result)
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
@@ -1744,11 +1744,15 @@ class BaseModel(metaclass=MetaModel):
 
         view = View.browse(view_id)
 
-        group_ids = view._get_depend_group_ids(self._name)
+        group_ids = view._get_depend_group_ids()
         if group_ids:
-            group_ids = set(self.env.user._get_group_ids()).intersection(group_ids)
+            group_ids = tuple(set(self.env.user._get_group_ids()).intersection(group_ids))
 
-        result = self._fields_view_get_postprocess(view, view_type=view_type, group_ids=tuple(group_ids))
+        result = dict(self._fields_view_get_postprocess(view, group_ids, view_type=view_type))
+        result['fields'] = dict(result['fields'])
+        node = etree.fromstring(result['arch'])
+        View._postprocess_access_rights(node, result['fields'], self)
+        result['arch'] = etree.tostring(node, encoding='unicode')
 
         # Add related action information if asked
         if toolbar:

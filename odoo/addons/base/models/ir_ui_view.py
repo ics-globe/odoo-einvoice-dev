@@ -674,14 +674,14 @@ actual arch.
 
         return views
 
-    @tools.ormcache('self.id', 'model')
-    def _get_depend_group_ids(self, model):
-        group_ids = self.env['ir.model.access'].search([('model_id.model', '=', model)]).group_id.ids
+    @tools.ormcache('self.id')
+    def _get_depend_group_ids(self):
+        self and self.ensure_one()
+        group_ids = []
         if self:
             views = self._get_inheriting_views()
-            group_ids += views.groups_id.ids
-        return tuple(sorted(set(group_ids)))
-
+            group_ids = views.groups_id.ids
+        return tuple(sorted(group_ids))
 
     def _filter_loaded_views(self):
         """
@@ -989,20 +989,6 @@ actual arch.
         arch = root.with_prefetch(tree_views._prefetch_ids)._combine(hierarchy)
         return arch
 
-    def _apply_groups(self, node, name_manager, node_info):
-        #pylint: disable=unused-argument
-        """ Apply group restrictions: elements with a 'groups' attribute should
-        be made invisible to people who are not members.
-        """
-        if node.get('groups'):
-            can_see = self.user_has_groups(groups=node.get('groups'))
-            if not can_see:
-                node.set('invisible', '1')
-                node_info['modifiers']['invisible'] = True
-                if 'attrs' in node.attrib:
-                    del node.attrib['attrs']    # avoid making field visible later
-            del node.attrib['groups']
-
     #------------------------------------------------------
     # Postprocessing: translation, groups and modifiers
     #------------------------------------------------------
@@ -1069,7 +1055,6 @@ actual arch.
                     # the node has been removed, stop processing here
                     continue
 
-            self._apply_groups(node, name_manager, node_info)
             transfer_node_to_modifiers(node, node_info['modifiers'], self._context)
             transfer_modifiers_to_node(node_info['modifiers'], node)
 
@@ -1078,7 +1063,6 @@ actual arch.
                 stack.append((child, node_info['editable']))
 
         name_manager.update_available_fields()
-        self._postprocess_access_rights(root, model.sudo(False))
 
         return name_manager
 
@@ -1110,7 +1094,7 @@ actual arch.
                     if not node.get('on_change'):
                         node.set('on_change', '1')
 
-    def _postprocess_access_rights(self, node, model):
+    def _postprocess_access_rights(self, node, fields, model):
         """ Compute and set on node access rights based on view type. Specific
         views can add additional specific rights like creating columns for
         many2one-based grouping views. """
@@ -1135,6 +1119,23 @@ actual arch.
                             not self._context.get(action, True) and is_base_model):
                         node.set(action, 'false')
 
+        for element in node.xpath('//field'):
+            field = model._fields.get(element.get('name'))
+            if field and field.groups and not self.user_has_groups(groups=field.groups):
+                element.getparent().remove(element)
+                fields.pop(field.name, None)
+                for element in node.xpath(f'//label[@for="{field.name}"]'):
+                    element.getparent().remove(element)
+
+        for element in node.xpath('//*[@groups]'):
+            can_see = self.user_has_groups(groups=element.get('groups'))
+            if not can_see:
+                element.set('invisible', '1')
+                transfer_modifiers_to_node({'invisible': True}, element)
+                if 'attrs' in element.attrib:
+                    del element.attrib['attrs']    # avoid making field visible later
+            del element.attrib['groups']
+
     #------------------------------------------------------
     # Specific node postprocessors
     #------------------------------------------------------
@@ -1152,10 +1153,6 @@ actual arch.
             field = name_manager.model._fields.get(node.get('name'))
             if field:
                 # apply groups (no tested)
-                if field.groups and not self.user_has_groups(groups=field.groups):
-                    node.getparent().remove(node)
-                    # no point processing view-level ``groups`` anymore, return
-                    return
                 views = {}
                 for child in node:
                     if child.tag in ('form', 'tree', 'graph', 'kanban', 'calendar'):
@@ -1209,12 +1206,6 @@ actual arch.
                 'fields': dict(sub_name_manager.available_fields),
             }
         }})
-
-    def _postprocess_tag_label(self, node, name_manager, node_info):
-        if node.get('for'):
-            field = name_manager.model._fields.get(node.get('for'))
-            if field and field.groups and not self.user_has_groups(groups=field.groups):
-                node.getparent().remove(node)
 
     def _postprocess_tag_search(self, node, name_manager, node_info):
         searchpanel = [child for child in node if child.tag == 'searchpanel']
