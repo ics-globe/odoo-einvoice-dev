@@ -114,6 +114,7 @@ class Website(Home):
                 # redirect to correct domain for a correct routing map
                 url_to = werkzeug.urls.url_join(website.domain, '/website/force/%s?isredir=1&path=%s' % (website.id, path))
                 return request.redirect(url_to)
+
         website._force()
         return request.redirect(path)
 
