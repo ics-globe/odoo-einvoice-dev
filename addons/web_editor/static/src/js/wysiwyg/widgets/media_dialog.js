@@ -52,30 +52,29 @@ var MediaDialog = Dialog.extend({
             save_text: _t("Add"),
         }, options));
 
-        if (!options.noImages) {
-            this.imageWidget = new MediaModules.ImageWidget(this, media, options);
-        }
-        if (!options.noDocuments) {
-            this.documentWidget = new MediaModules.DocumentWidget(this, media, options);
-        }
-        if (!options.noIcons) {
-            this.iconWidget = new MediaModules.IconWidget(this, media, options);
-        }
-        if (!options.noVideos) {
-            this.videoWidget = new MediaModules.VideoWidget(this, media, options);
+        // Mapping 'tab name' -> widget. The tab name is also used by options
+        // like 'activeTab'.
+        this.tabWidgets = {
+            images: options.noImages ? null : new MediaModules.ImageWidget(this, media, options),
+            documents: options.noDocuments ? null : new MediaModules.DocumentWidget(this, media, options),
+            icons: options.noIcons ? null : new MediaModules.IconWidget(this, media, options),
+            videos: options.noVideos ? null : new MediaModules.VideoWidget(this, media, options),
+        };
+
+        if (options.activeTab && this.tabWidgets[options.activeTab]) {
+            this.activeWidget = this.tabWidgets[options.activeTab];
+        } else if (this.tabWidgets.images && $media.is('img')) {
+            this.activeWidget = this.tabWidgets.images;
+        } else if (this.tabWidgets.documents && $media.is('a.o_image')) {
+            this.activeWidget = this.tabWidgets.documents;
+        } else if (this.tabWidgets.videos && $media.is('.media_iframe_video, .o_bg_video_iframe')) {
+            this.activeWidget = this.tabWidgets.videos;
+        } else if (this.tabWidgets.icons && $media.is('span, i')) {
+            this.activeWidget = this.tabWidgets.icons;
+        } else {
+            this.activeWidget = Object.values(this.tabWidgets).find(w => !!w);
         }
 
-        if (this.imageWidget && $media.is('img')) {
-            this.activeWidget = this.imageWidget;
-        } else if (this.documentWidget && $media.is('a.o_image')) {
-            this.activeWidget = this.documentWidget;
-        } else if (this.videoWidget && $media.is('.media_iframe_video, .o_bg_video_iframe')) {
-            this.activeWidget = this.videoWidget;
-        } else if (this.iconWidget && $media.is('span, i')) {
-            this.activeWidget = this.iconWidget;
-        } else {
-            this.activeWidget = [this.imageWidget, this.documentWidget, this.videoWidget, this.iconWidget].find(w => !!w);
-        }
         this.initiallyActiveWidget = this.activeWidget;
     },
     /**
@@ -88,17 +87,17 @@ var MediaDialog = Dialog.extend({
         var promises = [this._super.apply(this, arguments)];
         this.$modal.find('.modal-dialog').addClass('o_select_media_dialog');
 
-        if (this.imageWidget) {
-            promises.push(this.imageWidget.appendTo(this.$("#editor-media-image")));
+        if (this.tabWidgets.images) {
+            promises.push(this.tabWidgets.images.appendTo(this.$("#editor-media-image")));
         }
-        if (this.documentWidget) {
-            promises.push(this.documentWidget.appendTo(this.$("#editor-media-document")));
+        if (this.tabWidgets.documents) {
+            promises.push(this.tabWidgets.documents.appendTo(this.$("#editor-media-document")));
         }
-        if (this.iconWidget) {
-            promises.push(this.iconWidget.appendTo(this.$("#editor-media-icon")));
+        if (this.tabWidgets.icons) {
+            promises.push(this.tabWidgets.icons.appendTo(this.$("#editor-media-icon")));
         }
-        if (this.videoWidget) {
-            promises.push(this.videoWidget.appendTo(this.$("#editor-media-video")));
+        if (this.tabWidgets.videos) {
+            promises.push(this.tabWidgets.videos.appendTo(this.$("#editor-media-video")));
         }
 
         this.opened(() => this.$('input.o_we_search:visible:first').focus());
@@ -116,7 +115,7 @@ var MediaDialog = Dialog.extend({
      * @returns {boolean}
      */
     isDocumentActive: function () {
-        return this.activeWidget === this.documentWidget;
+        return this.activeWidget === this.tabWidgets.documents;
     },
     /**
      * Returns whether the icon widget is currently active.
@@ -124,7 +123,7 @@ var MediaDialog = Dialog.extend({
      * @returns {boolean}
      */
     isIconActive: function () {
-        return this.activeWidget === this.iconWidget;
+        return this.activeWidget === this.tabWidgets.icons;
     },
     /**
      * Returns whether the image widget is currently active.
@@ -132,7 +131,7 @@ var MediaDialog = Dialog.extend({
      * @returns {boolean}
      */
     isImageActive: function () {
-        return this.activeWidget === this.imageWidget;
+        return this.activeWidget === this.tabWidgets.images;
     },
     /**
      * Returns whether the video widget is currently active.
@@ -140,7 +139,7 @@ var MediaDialog = Dialog.extend({
      * @returns {boolean}
      */
     isVideoActive: function () {
-        return this.activeWidget === this.videoWidget;
+        return this.activeWidget === this.tabWidgets.videos;
     },
     /**
      * Saves the currently selected media from the currently active widget.
@@ -182,15 +181,11 @@ var MediaDialog = Dialog.extend({
      * was created from them.
      */
     _clearWidgets: function () {
-        [   this.imageWidget,
-            this.documentWidget,
-            this.iconWidget,
-            this.videoWidget
-        ].forEach( (widget) => {
-            if (widget !== this.activeWidget) {
-                widget && widget.clear();
+        for (const widget of Object.values(this.tabWidgets)) {
+            if (widget && widget !== this.activeWidget) {
+                widget.clear();
             }
-        });
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -203,7 +198,7 @@ var MediaDialog = Dialog.extend({
      * @private
      */
     _onClickDocumentTab: function () {
-        this.activeWidget = this.documentWidget;
+        this.activeWidget = this.tabWidgets.documents;
     },
     /**
      * Sets the icon widget as the active widget.
@@ -211,7 +206,7 @@ var MediaDialog = Dialog.extend({
      * @private
      */
     _onClickIconTab: function () {
-        this.activeWidget = this.iconWidget;
+        this.activeWidget = this.tabWidgets.icons;
     },
     /**
      * Sets the image widget as the active widget.
@@ -219,7 +214,7 @@ var MediaDialog = Dialog.extend({
      * @private
      */
     _onClickImageTab: function () {
-        this.activeWidget = this.imageWidget;
+        this.activeWidget = this.tabWidgets.images;
     },
     /**
      * Sets the video widget as the active widget.
@@ -227,7 +222,7 @@ var MediaDialog = Dialog.extend({
      * @private
      */
     _onClickVideoTab: function () {
-        this.activeWidget = this.videoWidget;
+        this.activeWidget = this.tabWidgets.videos;
     },
     /**
      * Handles hide request from child widgets.
