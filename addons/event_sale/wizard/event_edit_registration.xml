@@ -6,8 +6,16 @@
             <field name="model">registration.editor</field>
             <field name="arch" type="xml">
                 <form string="Registration">
-                    <p>Before confirming <field name="sale_order_id" readonly="1" class="oe_inline"/>
-                    please give details about the registrations</p>
+                    <field name="seats_available_insufficient" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('seats_available_insufficient', '=', False)]}">
+                        <p class="my-0">
+                            <strong>Too many registrations requested</strong><br/>
+                            <span>Therefore, all registrations were created as "unconfirmed" even though the seats were free.</span><br/>
+                            <span>If applicable, you can update the event/ticket limits before confirming.</span>
+                        </p>
+                    </div>
+                    <p>Before updating the linked registrations of <field name="sale_order_id" readonly="1" class="oe_inline"/>
+                    please give attendee details.</p>
                     <field name="event_registration_ids">
                         <tree string="Registration" editable="top" create="false" delete="false">
                             <field name="event_id" readonly='1' force_save="1"/>
@@ -21,8 +29,8 @@
                         </tree>
                     </field>
                     <footer>
-                        <button string="Confirm" name="action_make_registration" type="object" class="btn-primary" data-hotkey="q"/>
-                        <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
+                        <button string="Create/Update registrations" name="action_make_registration" type="object" class="btn-primary" data-hotkey="q"/>
+                        <button string="Skip" class="btn-secondary" special="cancel" data-hotkey="z"/>
                     </footer>
                 </form>
             </field>
