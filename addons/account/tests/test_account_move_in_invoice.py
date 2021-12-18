@@ -1565,12 +1565,37 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
     def test_in_invoice_duplicate_supplier_reference(self):
-        ''' Ensure two vendor bills can't share the same vendor reference. '''
-        self.invoice.ref = 'a supplier reference'
-        invoice2 = self.invoice.copy(default={'invoice_date': self.invoice.invoice_date})
-        invoice2.ref = 'a supplier reference'
+        """ Ensure duplicated ref are computed correctly, and that an error is raised on post if same invoice_date """
+        invoice_1 = self.invoice
+        invoice_1.ref = 'a unique supplier reference that will be copied'
+        invoice_2 = invoice_1.copy(default={'invoice_date': invoice_1.invoice_date})
+        # ensure no Error is raised
+        invoice_2.ref = invoice_1.ref
+        self.assertRecordValues(invoice_2, [{'duplicated_ref_ids': invoice_1.ids}])
+
+        # ensure it's also working with Form
+        move_form = Form(self.env['account.move'].with_context(default_move_type='in_invoice'))
+        move_form.partner_id = self.partner_a
+        move_form.invoice_date = invoice_1.invoice_date
+        move_form.ref = invoice_1.ref
+        with move_form.invoice_line_ids.new() as line_form:
+            line_form.product_id = self.product_a
+        with move_form.invoice_line_ids.new() as line_form:
+            line_form.product_id = self.product_b
+        invoice_3 = move_form.save()
+
+        # reassign to trigger the compute method
+        invoice_2.ref = invoice_1.ref
+        invoice_3.ref = invoice_2.ref
+        self.assertRecordValues(invoice_1, [{'duplicated_ref_ids': (invoice_2 + invoice_3).ids}])
+        self.assertRecordValues(invoice_2, [{'duplicated_ref_ids': (invoice_1 + invoice_3).ids}])
+        self.assertRecordValues(invoice_3, [{'duplicated_ref_ids': (invoice_1 + invoice_2).ids}])
+
+        invoice_1.action_post()
         with self.assertRaises(ValidationError):
-            invoice2.action_post()
+            invoice_2.action_post()
+        with self.assertRaises(ValidationError):
+            invoice_3.action_post()
 
     def test_in_invoice_switch_in_refund_1(self):
         # Test creating an account_move with an in_invoice_type and switch it in an in_refund.

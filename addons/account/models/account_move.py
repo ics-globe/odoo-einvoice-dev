@@ -379,6 +379,7 @@ class AccountMove(models.Model):
         help="Technical field used for tracking the status of the currency")
     tax_country_id = fields.Many2one(comodel_name='res.country', compute='_compute_tax_country_id', help="Technical field to filter the available taxes depending on the fiscal country and fiscal position.")
     tax_country_code = fields.Char(compute="_compute_tax_country_code")
+    duplicated_ref_ids = fields.Many2many('account.move', compute='_compute_duplicated_ref_ids')
     # Technical field to hide Reconciled Entries stat button
     has_reconciled_entries = fields.Boolean(compute="_compute_has_reconciled_entries")
     show_reset_to_draft_button = fields.Boolean(compute='_compute_show_reset_to_draft_button')
@@ -1793,6 +1794,75 @@ class AccountMove(models.Model):
         msg += ': %s' % formatLang(self.env, updated_credit, currency_obj=record.company_id.currency_id)
         return msg
 
+    @api.depends('ref', 'move_type', 'partner_id', 'invoice_date')
+    def _compute_duplicated_ref_ids(self):
+        # The computed field only appears in the move view form and thus is supposed
+        # to only be computed for one move at a time which makes the search in loop "ok"
+        move_to_duplicate_move = self._fetch_duplicate_supplier_reference()
+        for move in self:
+            move.duplicated_ref_ids = move_to_duplicate_move.get(move, self.env['account.move'])
+
+
+    def _fetch_duplicate_supplier_reference(self, only_posted=False):
+        move_to_duplicate_moves = defaultdict(lambda x: self.env['account.move'])
+        moves = self.filtered(lambda m: m.is_purchase_document() and m.ref)
+        if not moves:
+            return move_to_duplicate_moves
+
+        # this case deals with a move created in UI having id being a NEW_ID object
+        if len(moves) == 1 and not moves.id:
+            duplicates = self.env["account.move"].search(
+                [
+                    ('company_id', '=', moves.company_id.id),
+                    ('move_type', '=', moves.move_type),
+                    ('commercial_partner_id', '=', moves.commercial_partner_id.id),
+                    ('ref', '=', moves.ref)
+                ]
+                + [
+                    ('invoice_date', '=', moves.invoice_date),
+                    ('state', '=', 'posted'),
+                ] if only_posted else []
+            )
+            move_to_duplicate_moves.update({
+                moves: duplicates
+            })
+            return move_to_duplicate_moves
+
+        self.env["account.move"].flush([
+            "company_id",
+            "partner_id",
+            "commercial_partner_id",
+            "ref",
+            "move_type",
+            "invoice_date",
+            "state",
+        ])
+        self.env.cr.execute("""
+            SELECT
+                   move.id,
+                   array_agg(duplicate_move.id)
+              FROM account_move move
+              JOIN account_move AS duplicate_move ON
+                   move.company_id = duplicate_move.company_id
+               AND move.commercial_partner_id = duplicate_move.commercial_partner_id
+               AND move.ref = duplicate_move.ref
+               AND move.move_type = duplicate_move.move_type
+               AND move.id != duplicate_move.id
+               AND (move.invoice_date = duplicate_move.invoice_date OR NOT %(only_posted)s)
+               AND (duplicate_move.state = 'posted' OR NOT %(only_posted)s)
+             WHERE move.id IN (%(moves)s)
+             GROUP BY move.id
+        """, {
+            "only_posted": only_posted,
+            "moves": tuple(moves.ids),
+        })
+        res = dict(self.env.cr.fetchall())
+        move_to_duplicate_moves.update({
+            self.env['account.move'].browse(move): self.env['account.move'].browse(duplicate_moves)
+            for move, duplicate_moves in res.items()
+        })
+        return move_to_duplicate_moves
+
     # -------------------------------------------------------------------------
     # BUSINESS MODELS SYNCHRONIZATION
     # -------------------------------------------------------------------------
@@ -1845,41 +1915,16 @@ class AccountMove(models.Model):
 
     @api.constrains('ref', 'move_type', 'partner_id', 'journal_id', 'invoice_date', 'state')
     def _check_duplicate_supplier_reference(self):
-        moves = self.filtered(lambda move: move.state == 'posted' and move.is_purchase_document() and move.ref)
-        if not moves:
-            return
-
-        self.env["account.move"].flush([
-            "ref", "move_type", "invoice_date", "journal_id",
-            "company_id", "partner_id", "commercial_partner_id",
-        ])
-        self.env["account.journal"].flush(["company_id"])
-        self.env["res.partner"].flush(["commercial_partner_id"])
-
-        # /!\ Computed stored fields are not yet inside the database.
-        self._cr.execute('''
-            SELECT move2.id
-            FROM account_move move
-            JOIN account_journal journal ON journal.id = move.journal_id
-            JOIN res_partner partner ON partner.id = move.partner_id
-            INNER JOIN account_move move2 ON
-                move2.ref = move.ref
-                AND move2.company_id = journal.company_id
-                AND move2.commercial_partner_id = partner.commercial_partner_id
-                AND move2.move_type = move.move_type
-                AND (move.invoice_date is NULL OR move2.invoice_date = move.invoice_date)
-                AND move2.id != move.id
-            WHERE move.id IN %s
-        ''', [tuple(moves.ids)])
-        duplicated_moves = self.browse([r[0] for r in self._cr.fetchall()])
-        if duplicated_moves:
-            raise ValidationError(_('Duplicated vendor reference detected. You probably encoded twice the same vendor bill/credit note:\n%s') % "\n".join(
-                duplicated_moves.mapped(lambda m: "%(partner)s - %(ref)s - %(date)s" % {
-                    'ref': m.ref,
-                    'partner': m.partner_id.display_name,
-                    'date': format_date(self.env, m.invoice_date),
-                })
-            ))
+        """ Assert the move which is about to be posted isn't a duplicated move from another posted entry"""
+        move_to_duplicate_moves = self.filtered(lambda m: m.state == 'posted')._fetch_duplicate_supplier_reference(only_posted=True)
+        if move_to_duplicate_moves:
+            raise ValidationError(
+                _('Duplicated vendor reference detected. You probably encoded twice the same vendor bill/credit note:\n%s')
+                % "\n".join(
+                    "\n".join(duplicates.mapped(lambda m: f"  {m.partner_id.display_name} - {m.ref} - {format_date(self.env, m.invoice_date)}"))
+                    for duplicates in move_to_duplicate_moves.values()
+                )
+            )
 
     def _check_balanced(self):
         ''' Assert the move is fully balanced debit = credit.
@@ -2707,6 +2752,18 @@ class AccountMove(models.Model):
             'domain': [('id', 'in', self.tax_cash_basis_created_move_ids.ids)],
             'views': [(self.env.ref('account.view_move_tree').id, 'tree'), (False, 'form')],
         }
+
+    def open_duplicated_ref_bill_view(self):
+        moves = self.mapped('duplicated_ref_ids')
+        action = self.env["ir.actions.actions"]._for_xml_id("account.action_move_line_form")
+        if len(moves) > 1:
+            action['domain'] = [('id', 'in', moves.ids)]
+        elif len(moves) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')] + [(state, view) for state, view in action['views'] if view != 'form']
+            action['res_id'] = moves.id
+        else:
+            action = {'type': 'ir.actions.act_window_close'}
+        return action
 
     def post(self):
         warnings.warn(
