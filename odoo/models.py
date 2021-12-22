@@ -1645,6 +1645,11 @@ class BaseModel(metaclass=MetaModel):
         }
         result['fields'] = self.fields_get()
 
+        for _, values in result['fields_views'].items():
+            for fname, field_values in values['fields'].items():
+                values['fields'][fname] = dict(result['fields'].get(fname, {}), views=field_values.get('views'))
+
+
         if options.get('load_filters'):
             result['filters'] = self.env['ir.filters'].get_filters(self._name, options.get('action_id'))
 
