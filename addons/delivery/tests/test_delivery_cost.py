@@ -45,10 +45,11 @@ class TestDeliveryCost(common.TransactionCase):
         # as the tests hereunder assume all the prices in USD, we must ensure
         # that the company actually uses USD
         # We do an invalidate_cache so the cache is aware of it too.
+        self.env.company.flush()
+        self.env.company.invalidate_cache()
         self.env.cr.execute(
             "UPDATE res_company SET currency_id = %s WHERE id = %s",
             [self.env.ref('base.USD').id, self.env.company.id])
-        self.env.company.invalidate_cache()
         self.pricelist.currency_id = self.env.ref('base.USD').id
 
     def test_00_delivery_cost(self):

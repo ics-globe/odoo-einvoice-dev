@@ -24,7 +24,7 @@ class TestLeadConvertMass(crm_common.TestLeadConvertMassCommon):
         with self.assertQueryCount(user_sales_manager=0):
             test_leads = self.env['crm.lead'].browse(test_leads.ids)
 
-        with self.assertQueryCount(user_sales_manager=173):  # crm only: 170 (often), sometimes +3 on runbot
+        with self.assertQueryCount(user_sales_manager=185):  # crm only: 183 (often), sometimes +3 on runbot
             test_leads._handle_salesmen_assignment(user_ids=user_ids, team_id=False)
 
         self.assertEqual(test_leads.team_id, self.sales_team_convert | self.sales_team_1)
