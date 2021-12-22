@@ -66,8 +66,8 @@ def transfer_field_to_modifiers(field, modifiers):
     state_exceptions = {}
     for attr in ('invisible', 'readonly', 'required'):
         state_exceptions[attr] = []
-        default_values[attr] = bool(field.get(attr))
-    for state, modifs in field.get("states", {}).items():
+        default_values[attr] = bool(getattr(field, attr))
+    for state, modifs in (getattr(field, 'states', None) or {}).items():
         for modif in modifs:
             if default_values[modif[0]] != modif[1]:
                 state_exceptions[modif[0]].append(state)
@@ -1072,7 +1072,6 @@ actual arch.
             for child in reversed(node_info.get('children', node)):
                 stack.append((child, node_info['editable']))
 
-        name_manager.update_available_fields()
         self._postprocess_access_rights(root, model.sudo(False))
 
         return name_manager
@@ -1172,12 +1171,9 @@ actual arch.
                     can_write = comodel.check_access_rights('write', raise_exception=False)
                     node.set('can_create', 'true' if can_create else 'false')
                     node.set('can_write', 'true' if can_write else 'false')
+                transfer_field_to_modifiers(field, node_info['modifiers'])
 
             name_manager.has_field(node.get('name'), attrs)
-
-            field_info = name_manager.field_info.get(node.get('name'))
-            if field_info:
-                transfer_field_to_modifiers(field_info, node_info['modifiers'])
 
     def _postprocess_tag_form(self, node, name_manager, node_info):
         result = name_manager.model.view_header_get(False, node.tag)
@@ -1394,7 +1390,7 @@ actual arch.
                 for fname, use in sub_manager.mandatory_parent_fields.items():
                     name_manager.must_have_field(fname, use)
 
-        elif validate and name not in name_manager.field_info:
+        elif validate and name not in name_manager.model._fields:
             msg = _(
                 'Field "%(field_name)s" does not exist in model "%(model_name)s"',
                 field_name=name, model_name=name_manager.model._name,
@@ -2201,16 +2197,12 @@ class NameManager:
 
     def __init__(self, model):
         self.model = model
-        self.available_fields = collections.defaultdict(dict)   # {field_name: field_info}
+        self.available_fields = collections.defaultdict(dict)
         self.available_actions = set()
         self.available_names = set()
         self.mandatory_fields = dict()          # {field_name: use}
         self.mandatory_parent_fields = dict()   # {field_name: use}
         self.mandatory_names = dict()           # {name: use}
-
-    @lazy_property
-    def field_info(self):
-        return self.model.fields_get()
 
     def has_field(self, name, info=frozendict()):
         self.available_fields[name].update(info)
@@ -2245,7 +2237,7 @@ class NameManager:
                 view._raise_view_error(msg)
 
         for name in self.available_fields:
-            if name not in self.model._fields and name not in self.field_info:
+            if name not in self.model._fields:
                 message = _("Field `%(name)s` does not exist", name=name)
                 view._raise_view_error(message)
 
@@ -2271,7 +2263,3 @@ class NameManager:
                     name=name, use=use,
                 )
                 view._raise_view_error(msg)
-
-    def update_available_fields(self):
-        for name, info in self.available_fields.items():
-            info.update(self.field_info.get(name, ()))

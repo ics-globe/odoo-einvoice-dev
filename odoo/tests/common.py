@@ -1852,7 +1852,8 @@ class Form(object):
             view_id = env.ref(view).id
         else:
             view_id = view or False
-        fvg = recordp.fields_view_get(view_id, 'form')
+
+        fvg = recordp.load_views([(view_id, 'form')])['fields_views']['form']
         fvg['tree'] = etree.fromstring(fvg['arch'])
 
         object.__setattr__(self, '_view', fvg)
@@ -1887,7 +1888,7 @@ class Form(object):
         views = submodel.with_context(**refs) \
             .load_views([(False, 'tree'), (False, 'form')])['fields_views']
         # embedded views should take the priority on externals
-        views.update(descr['views'])
+        views.update(descr.get('views', {}))
         # re-set all resolved views on the descriptor
         descr['views'] = views
         # if the default view is a kanban or a non-editable list, the
@@ -1984,7 +1985,7 @@ class Form(object):
         return v
 
     def _get_modifier(self, field, modifier, default=False, modmap=None, vals=None):
-        d = (modmap or self._view['modifiers'])[field].get(modifier, default)
+        d = (modmap or self._view['modifiers']).get(field, {}).get(modifier, default)
         if isinstance(d, bool):
             return d
 

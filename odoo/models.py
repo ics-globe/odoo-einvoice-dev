@@ -1648,6 +1648,12 @@ class BaseModel(metaclass=MetaModel):
         for _, values in result['fields_views'].items():
             for fname, field_values in values['fields'].items():
                 values['fields'][fname] = dict(result['fields'].get(fname, {}), views=field_values.get('views'))
+                if values['fields'][fname]['views']:
+                    for view_type, sub_view_values in values['fields'][fname]['views'].items():
+                        sub_fields = self.env[self._fields[fname].comodel_name].fields_get()
+                        for sub_fname, sub_field_values in sub_view_values['fields'].items():
+                            sub_view_values['fields'][sub_fname] = dict(sub_fields.get(sub_fname, {}), views=sub_field_values.get('views'))
+
 
 
         if options.get('load_filters'):
