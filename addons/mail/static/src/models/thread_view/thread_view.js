@@ -223,7 +223,7 @@ function factory(dependencies) {
                 // See task-2277543
                 return;
             }
-            if (this.messaging.currentGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             this.thread.markAsSeen(this.thread.lastNonTransientMessage).catch(e => {

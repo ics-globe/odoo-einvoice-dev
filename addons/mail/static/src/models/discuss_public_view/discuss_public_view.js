@@ -68,6 +68,11 @@ function factory(dependencies) {
         isChannelTokenSecret: attr({
             default: true,
         }),
+        messaging: one2one('mail.messaging', {
+            inverse: 'discussPublicView',
+            required: true,
+            readonly: true,
+        }),
         shouldAddGuestAsMemberOnJoin: attr({
             default: false,
             readonly: true,

@@ -902,7 +902,7 @@ function factory(dependencies) {
          * @param {mail.message} message the message to be considered as last seen.
          */
         async markAsSeen(message) {
-            if (this.messaging.currentGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             if (this.model !== 'mail.channel') {
@@ -959,6 +959,9 @@ function factory(dependencies) {
         async notifyPinStateToServer() {
             if (this.channel_type === 'channel') {
                 await this.leave();
+                return;
+            }
+            if (!this.uuid) {
                 return;
             }
             await this.messaging.models['mail.thread'].performRpcChannelPin({
@@ -1043,7 +1046,7 @@ function factory(dependencies) {
          */
         async pin() {
             this.update({ isPendingPinned: true });
-            if (this.messaging.currentGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             await this.notifyPinStateToServer();
@@ -1228,7 +1231,7 @@ function factory(dependencies) {
          */
         async unpin() {
             this.update({ isPendingPinned: false });
-            if (this.messaging.currentGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             await this.notifyPinStateToServer();

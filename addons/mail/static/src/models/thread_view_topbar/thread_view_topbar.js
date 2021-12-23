@@ -101,7 +101,7 @@ function factory(dependencies) {
                 return;
             }
             // Guests cannot edit thread name
-            if (this.messaging.isCurrentUserGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             const selection = window.getSelection();
@@ -126,7 +126,7 @@ function factory(dependencies) {
                 return;
             }
             // Guests cannot edit description
-            if (this.messaging.isCurrentUserGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             const selection = window.getSelection();
@@ -382,7 +382,7 @@ function factory(dependencies) {
                     channelInvitationForm: replace(this.threadView.channelInvitationForm),
                 }),
             });
-            if (this.messaging.isCurrentUserGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             this.threadView.channelInvitationForm.update({ doFocusOnSearchInput: true });
@@ -451,7 +451,10 @@ function factory(dependencies) {
                 }
                 return `/mail/channel/${this.thread.id}/guest/${this.messaging.currentGuest.id}/avatar_128?unique=${this.messaging.currentGuest.name}`;
             }
-            return this.messaging.currentPartner.avatarUrl;
+            if (this.messaging.currentPartner) {
+                return this.messaging.currentPartner.avatarUrl;
+            }
+            return '';
         }
 
         /**

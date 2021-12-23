@@ -276,7 +276,7 @@ function factory(dependencies) {
          * @private
          */
         _onChangeMarkAllAsRead() {
-            if (this.messaging.currentGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             if (

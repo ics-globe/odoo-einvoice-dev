@@ -129,8 +129,8 @@ function factory(dependencies) {
             if (this.guest && this.guest.volumeSetting) {
                 this.guest.volumeSetting.update({ volume });
             }
-            if (this.messaging.isCurrentUserGuest) {
-                return;
+            if (this.messaging.userSetting.id === -1) {
+                return; // guest or user setting record not yet known
             }
             this.messaging.userSetting.saveVolumeSetting({
                 partnerId: this.partner && this.partner.id,

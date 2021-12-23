@@ -310,7 +310,6 @@ export class ModelManager {
      **/
     async getMessaging() {
         await this.messagingCreatedPromise;
-        await this.messagingInitializedPromise;
         return this.messaging;
     }
 

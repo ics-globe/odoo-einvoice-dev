@@ -231,9 +231,11 @@ function factory(dependencies) {
          * Will be used to update the current guest's name when joining the
          * channel by clicking on the 'joinButton'.
          */
-        pendingGuestName: attr(),
+        pendingGuestName: attr({
+            default: "",
+        }),
     };
-    WelcomeView.identifyingFields = ['messaging'];
+    WelcomeView.identifyingFields = ['discussPublicView'];
     WelcomeView.modelName = 'mail.welcome_view';
 
     return WelcomeView;

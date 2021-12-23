@@ -37,19 +37,32 @@ function factory(dependencies) {
                     name: this.env._t("Starred"),
                 }),
             });
-            const device = this.messaging.device;
-            device.start();
-            const discuss = this.messaging.discuss;
-            const data = await this.async(() => this.env.services.rpc({
-                route: '/mail/init_messaging',
-            }, { shadow: true }));
-            await this.async(() => this._init(data));
-            if (discuss.isOpen) {
-                discuss.openInitThread();
+            this.messaging.device.start();
+            if (this.env.session.uid) { // not guest
+                this.messaging.update({
+                    currentPartner: insertAndReplace({
+                        id: this.env.session.partner_id,
+                        name: this.env.session.name,
+                        user: insertAndReplace({ id: this.env.session.uid }),
+                    }),
+                    currentUser: insertAndReplace({ id: this.env.session.uid }),
+                });
             }
             if (this.messaging.autofetchPartnerImStatus) {
                 this.messaging.models['mail.partner'].startLoopFetchImStatus();
             }
+            const data = await this.env.services.rpc({
+                route: '/mail/init_messaging',
+            }, { shadow: true });
+            if (!this.exists()) {
+                return;
+            }
+            await this._init(data);
+            if (!this.exists()) {
+                return;
+            }
+            this.messaging.update({ isInitialized: true });
+            this.messaging.initializedPromise.resolve();
         }
 
         //----------------------------------------------------------------------
@@ -87,8 +100,6 @@ function factory(dependencies) {
             shortcodes = [],
             starred_counter = 0
         }) {
-            const discuss = this.messaging.discuss;
-            // partners first because the rest of the code relies on them
             this._initPartners({
                 currentGuest,
                 current_partner,
@@ -96,34 +107,20 @@ function factory(dependencies) {
                 partner_root,
                 public_partners,
             });
-            // mailboxes after partners and before other initializers that might
-            // manipulate threads or messages
             this._initMailboxes({
                 needaction_inbox_counter,
                 starred_counter,
             });
-            // init mail user settings
             if (current_user_settings) {
                 this._initResUsersSettings(current_user_settings);
-            } else {
-                this.messaging.update({
-                    userSetting: insertAndReplace({
-                        id: -1, // fake id for guest
-                    }),
-                });
             }
-            // various suggestions in no particular order
             this._initCannedResponses(shortcodes);
-            // FIXME: guests should have (at least some) commands available
-            if (!this.messaging.isCurrentUserGuest) {
+            if (this.messaging.currentUser) {
                 this._initCommands();
             }
-            // channels when the rest of messaging is ready
-            await this.async(() => this._initChannels(channels));
-            // failures after channels
+            this._initChannels(channels);
             this._initMailFailures(mail_failures);
-            discuss.update({ menu_id });
-            // company related data
+            this.messaging.discuss.update({ menu_id });
             this.messaging.update({ companyName });
         }
 
@@ -256,31 +253,8 @@ function factory(dependencies) {
                     volumeSettings: volume_settings,
                 }),
             });
-            this.messaging.discuss.update({
-                categoryChannel: insertAndReplace({
-                    autocompleteMethod: 'channel',
-                    commandAddTitleText: this.env._t("Add or join a channel"),
-                    hasAddCommand: true,
-                    hasViewCommand: true,
-                    isServerOpen: is_discuss_sidebar_category_channel_open,
-                    name: this.env._t("Channels"),
-                    newItemPlaceholderText: this.env._t("Find or create a channel..."),
-                    serverStateKey: 'is_discuss_sidebar_category_channel_open',
-                    sortComputeMethod: 'name',
-                    supportedChannelTypes: ['channel'],
-                }),
-                categoryChat: insertAndReplace({
-                    autocompleteMethod: 'chat',
-                    commandAddTitleText: this.env._t("Start a conversation"),
-                    hasAddCommand: true,
-                    isServerOpen: is_discuss_sidebar_category_chat_open,
-                    name: this.env._t("Direct Messages"),
-                    newItemPlaceholderText: this.env._t("Find or start a conversation..."),
-                    serverStateKey: 'is_discuss_sidebar_category_chat_open',
-                    sortComputeMethod: 'last_action',
-                    supportedChannelTypes: ['chat', 'group'],
-                }),
-            });
+            this.messaging.discuss.categoryChannel.update({ isServerOpen: is_discuss_sidebar_category_channel_open });
+            this.messaging.discuss.categoryChat.update({ isServerOpen: is_discuss_sidebar_category_chat_open });
         }
 
         /**
@@ -300,6 +274,9 @@ function factory(dependencies) {
         }) {
             if (currentGuest) {
                 this.messaging.update({ currentGuest: insert(currentGuest) });
+                if (this.messaging.discussPublicView && this.messaging.discussPublicView.welcomeView) {
+                    this.messaging.discussPublicView.welcomeView.update({ pendingGuestName: this.messaging.currentGuest.name });
+                }
             }
             if (current_partner) {
                 const partnerData = this.messaging.models['mail.partner'].convertData(current_partner);

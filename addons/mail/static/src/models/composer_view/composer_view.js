@@ -86,7 +86,7 @@ function factory(dependencies) {
             if (!this.composer.thread) {
                 return; // not supported for non-thread composer (eg. messaging editing)
             }
-            if (this.messaging.isCurrentUserGuest) {
+            if (!this.messaging.currentPartner) {
                 return; // not supported for guests
             }
             if (
@@ -793,7 +793,7 @@ function factory(dependencies) {
          * @private
          */
         _onChangeUpdateSuggestionList() {
-            if (this.messaging.isCurrentUserGuest) {
+            if (!this.messaging.currentUser) {
                 return;
             }
             // Update the suggestion list immediately for a reactive UX...

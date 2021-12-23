@@ -266,10 +266,12 @@ function factory(dependencies) {
         }),
         discussAsChannel: one2one('mail.discuss', {
             inverse: 'categoryChannel',
+            isCausal: true,
             readonly: true,
         }),
         discussAsChat: one2one('mail.discuss', {
             inverse: 'categoryChat',
+            isCausal: true,
             readonly: true,
         }),
         /**

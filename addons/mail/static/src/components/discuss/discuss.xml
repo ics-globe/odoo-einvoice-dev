@@ -8,7 +8,7 @@
                 'o-mobile': messaging ? messaging.device.isMobile : false,
             }"
         >
-            <t t-if="!discuss or !messaging.isInitialized">
+            <t t-if="!discuss">
                 <div class="o_Discuss_messagingNotInitialized"><i class="o_Discuss_messagingNotInitializedIcon fa fa-circle-o-notch fa-spin"/>Please wait...</div>
             </t>
             <t t-else="">

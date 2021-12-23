@@ -3,7 +3,7 @@
 import { registerNewModel } from '@mail/model/model_core';
 import { attr, many2many, many2one, one2many, one2one } from '@mail/model/model_field';
 import { OnChange } from '@mail/model/model_onchange';
-import { insertAndReplace, replace, link, unlink } from '@mail/model/model_field_command';
+import { insertAndReplace, link, unlink } from '@mail/model/model_field_command';
 import { makeDeferred } from '@mail/utils/deferred/deferred';
 
 const { EventBus } = owl.core;
@@ -35,10 +35,8 @@ function factory(dependencies) {
          */
         async start() {
             this.env.services['bus_service'].on('window_focus', null, this._handleGlobalWindowFocus);
-            await this.async(() => this.initializer.start());
+            this.initializer.start();
             this.notificationHandler.start();
-            this.update({ isInitialized: true });
-            this.initializedPromise.resolve();
         }
 
         //----------------------------------------------------------------------
@@ -292,6 +290,10 @@ function factory(dependencies) {
             isCausal: true,
             readonly: true,
         }),
+        discussPublicView: one2one('mail.discuss_public_view', {
+            inverse: 'messaging',
+            isCausal: true,
+        }),
         focusedRtcSession: one2one('mail.rtc_session'),
         /**
          * Mailbox History.
@@ -314,6 +316,15 @@ function factory(dependencies) {
             isCausal: true,
             readonly: true,
         }),
+        /**
+         * States whether the current user is a guest, not logged in, and for
+         * which the guest record is known. Useful to ignore old guest
+         * information when a guest is now logged in. This field only makes
+         * sense when its value is true, which guarantees the current user is
+         * not logged in and the guest record is known. The negation of this
+         * field is not necessarily a logged in user, it could also be the guest
+         * record not yet known.
+         */
         isCurrentUserGuest: attr({
             compute: '_computeIsCurrentUserGuest',
         }),
@@ -402,7 +413,11 @@ function factory(dependencies) {
          */
         starred: one2one('mail.thread'),
         userSetting: one2one('mail.user_setting', {
+            default: insertAndReplace({
+                id: -1, // fake id for guest or user setting record not yet known
+            }),
             isCausal: true,
+            required: true,
         }),
     };
     Messaging.identifyingFields = [];
