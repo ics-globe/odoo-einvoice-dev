@@ -1002,7 +1002,7 @@ actual arch.
     #------------------------------------------------------
     # TODO: remove group processing from ir_qweb
     #------------------------------------------------------
-    def postprocess_and_fields(self, node, model=None):
+    def postprocess_and_fields(self, nodes, model=None, editable=True):
         """ Return an architecture and a description of all the fields.
 
         The field description combines the result of fields_get() and
@@ -1017,12 +1017,23 @@ actual arch.
         """
         self and self.ensure_one()      # self is at most one view
 
-        name_manager = self._postprocess_view(node, model or self.model)
+        if model not in self.env:
+            raise ValidationError(_('Model not found: %(model)s', model=model))
+        model = self.env[model]
 
-        arch = etree.tostring(node, encoding="unicode").replace('\t', '')
-        return arch, dict(name_manager.available_fields)
+        fields = model.fields_get()
 
-    def _postprocess_view(self, node, model_name, editable=True):
+        result = []
+        for node in nodes:
+            name_manager = self._postprocess_view(node, model, fields, editable=editable)
+            result.append((
+                etree.tostring(node, encoding="unicode").replace('\t', ''),
+                dict(name_manager.available_fields),
+            ))
+
+        return result, fields
+
+    def _postprocess_view(self, node, model, fields, editable=True):
         """ Process the given architecture, modifying it in-place to add and
         remove stuff.
 
@@ -1034,13 +1045,9 @@ actual arch.
         """
         root = node
 
-        if model_name not in self.env:
-            self._raise_view_error(_('Model not found: %(model)s', model=model_name), root)
-        model = self.env[model_name]
-
         self._postprocess_on_change(root, model)
 
-        name_manager = NameManager(model)
+        name_manager = NameManager(model, fields)
 
         # use a stack to recursively traverse the tree
         stack = [(root, editable)]
@@ -1151,18 +1158,19 @@ actual arch.
                     # no point processing view-level ``groups`` anymore, return
                     return
                 views = {}
+                childs = []
                 for child in node:
                     if child.tag in ('form', 'tree', 'graph', 'kanban', 'calendar'):
                         node.remove(child)
-                        sub_name_manager = self.with_context(
-                            base_model_name=name_manager.model._name,
-                        )._postprocess_view(
-                            child, field.comodel_name, editable=node_info['editable'],
-                        )
-                        xarch = etree.tostring(child, encoding="unicode").replace('\t', '')
+                        childs.append(child)
+                if childs:
+                    fields_views, _ = self.with_context(base_model_name=name_manager.model._name,).postprocess_and_fields(
+                        childs, field.comodel_name, editable=node_info['editable'],
+                    )
+                    for child, (xarch, xfields) in zip(childs, fields_views):
                         views[child.tag] = {
                             'arch': xarch,
-                            'fields': dict(sub_name_manager.available_fields),
+                            'fields': xfields,
                         }
                 attrs['views'] = views
                 if field.type in ('many2one', 'many2many'):
@@ -1193,14 +1201,13 @@ actual arch.
         # move all children nodes into a new node <groupby>
         groupby_node = E.groupby(*node)
         # post-process the node as a nested view, and associate it to the field
-        sub_name_manager = self.with_context(
+        xarch, xfields = self.with_context(
             base_model_name=name_manager.model._name,
-        )._postprocess_view(groupby_node, field.comodel_name, editable=False)
-        xarch = etree.tostring(groupby_node, encoding="unicode").replace('\t', '')
+        ).postprocess_and_fields([groupby_node], field.comodel_name, editable=False)[0][0]
         name_manager.has_field(name, {'views': {
             'groupby': {
                 'arch': xarch,
-                'fields': dict(sub_name_manager.available_fields),
+                'fields': xfields,
             }
         }})
 
@@ -1215,9 +1222,9 @@ actual arch.
         if searchpanel:
             self.with_context(
                 base_model_name=name_manager.model._name,
-            )._postprocess_view(
-                searchpanel[0], name_manager.model._name, editable=False,
-            )
+            ).postprocess_and_fields(
+                [searchpanel[0]], name_manager.model._name, editable=False,
+            )[0][0]
             node_info['children'] = [child for child in node if child.tag != 'searchpanel']
 
     def _postprocess_tag_tree(self, node, name_manager, node_info):
@@ -1271,7 +1278,8 @@ actual arch.
 
         # fields_get() optimization: validation does not require translations
         model = self.env[model_name].with_context(lang=None)
-        name_manager = NameManager(model)
+        fields = model.fields_get()
+        name_manager = NameManager(model, fields)
 
         # use a stack to recursively traverse the tree
         stack = [(node, editable, full)]
@@ -2193,18 +2201,15 @@ class ResetViewArchWizard(models.TransientModel):
 class NameManager:
     """ An object that manages all the named elements in a view. """
 
-    def __init__(self, model):
+    def __init__(self, model, fields):
         self.model = model
+        self.field_info = dict(fields)
         self.available_fields = collections.defaultdict(dict)   # {field_name: field_info}
         self.available_actions = set()
         self.available_names = set()
         self.mandatory_fields = dict()          # {field_name: use}
         self.mandatory_parent_fields = dict()   # {field_name: use}
         self.mandatory_names = dict()           # {name: use}
-
-    @lazy_property
-    def field_info(self):
-        return self.model.fields_get()
 
     def has_field(self, name, info=frozendict()):
         self.available_fields[name].update(info)

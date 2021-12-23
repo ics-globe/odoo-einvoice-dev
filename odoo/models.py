@@ -1606,16 +1606,47 @@ class BaseModel(metaclass=MetaModel):
 
         :return: dictionary with fields_views, fields and optionally filters
         """
+        self.check_access_rights('read')
         options = options or {}
-        result = {}
-
         toolbar = options.get('toolbar')
-        result['fields_views'] = {
-            v_type: self.fields_view_get(v_id, v_type if v_type != 'list' else 'tree',
-                                         toolbar=toolbar if v_type != 'search' else False)
-            for [v_id, v_type] in views
+        View = self.env['ir.ui.view'].sudo()
+
+        fields_views = []
+        for view_id, view_type in views:
+            # Get the view arch and all other attributes describing the composition of the view
+            fields_views.append((view_type, self._fields_view_get(view_id=view_id, view_type='tree' if view_type == 'list' else view_type, toolbar=toolbar)))
+
+        # Override context for postprocessing
+        # if view_id and result.get('base_model', self._name) != self._name:
+        #     view = view.with_context(base_model_name=result['base_model'])
+
+        # Apply post processing, groups and modifiers etc...
+        result = {}
+        arch_fields, fields = View.postprocess_and_fields([etree.fromstring(values['arch']) for _, values in fields_views], model=self._name)
+        for (view_type, values), (xarch, xfields) in zip(fields_views, arch_fields):
+            values['arch'] = xarch
+            values['fields'] = xfields
+            # Add related action information if asked
+            if toolbar:
+                vt = 'list' if view_type == 'tree' else view_type
+                bindings = self.env['ir.actions.actions'].get_bindings(self._name)
+                resreport = [action
+                            for action in bindings['report']
+                            if vt in (action.get('binding_view_types') or vt).split(',')]
+                resaction = [action
+                            for action in bindings['action']
+                            if vt in (action.get('binding_view_types') or vt).split(',')]
+
+                values['toolbar'] = {
+                    'print': resreport,
+                    'action': resaction,
+                }
+            result[view_type] = values
+
+        result = {
+            'fields_views': result,
+            'fields': fields,
         }
-        result['fields'] = self.fields_get()
 
         if options.get('load_filters'):
             result['filters'] = self.env['ir.filters'].get_filters(self._name, options.get('action_id'))
@@ -1692,37 +1723,8 @@ class BaseModel(metaclass=MetaModel):
 
         :raise Invalid ArchitectureError: if there is view type other than form, tree, calendar, search etc... defined on the structure
         """
-        self.check_access_rights('read')
-        view = self.env['ir.ui.view'].sudo().browse(view_id)
-
-        # Get the view arch and all other attributes describing the composition of the view
-        result = self._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
-
-        # Override context for postprocessing
-        if view_id and result.get('base_model', self._name) != self._name:
-            view = view.with_context(base_model_name=result['base_model'])
-
-        # Apply post processing, groups and modifiers etc...
-        xarch, xfields = view.postprocess_and_fields(etree.fromstring(result['arch']), model=self._name)
-        result['arch'] = xarch
-        result['fields'] = xfields
-
-        # Add related action information if asked
-        if toolbar:
-            vt = 'list' if view_type == 'tree' else view_type
-            bindings = self.env['ir.actions.actions'].get_bindings(self._name)
-            resreport = [action
-                         for action in bindings['report']
-                         if vt in (action.get('binding_view_types') or vt).split(',')]
-            resaction = [action
-                         for action in bindings['action']
-                         if vt in (action.get('binding_view_types') or vt).split(',')]
-
-            result['toolbar'] = {
-                'print': resreport,
-                'action': resaction,
-            }
-        return result
+        result = self.load_views([(view_id, view_type)], {'toolbar': toolbar})
+        return result['fields_views'][view_type]
 
     def get_formview_id(self, access_uid=None):
         """ Return a view id to open the document ``self`` with. This method is
