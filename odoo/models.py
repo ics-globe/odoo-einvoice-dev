@@ -1614,7 +1614,7 @@ class BaseModel(metaclass=MetaModel):
         fields_views = []
         for view_id, view_type in views:
             # Get the view arch and all other attributes describing the composition of the view
-            fields_views.append((view_type, self._fields_view_get(view_id=view_id, view_type='tree' if view_type == 'list' else view_type, toolbar=toolbar)))
+            fields_views.append((view_id, view_type, self._fields_view_get(view_id=view_id, view_type='tree' if view_type == 'list' else view_type, toolbar=toolbar)))
 
         # Override context for postprocessing
         # if view_id and result.get('base_model', self._name) != self._name:
@@ -1622,10 +1622,26 @@ class BaseModel(metaclass=MetaModel):
 
         # Apply post processing, groups and modifiers etc...
         result = {}
-        arch_fields, fields = View.postprocess_and_fields([etree.fromstring(values['arch']) for _, values in fields_views], model=self._name)
-        for (view_type, values), (xarch, xfields) in zip(fields_views, arch_fields):
-            values['arch'] = xarch
-            values['fields'] = xfields
+        arch_fields, fields = View.postprocess_and_fields([arch for _, _, (_, arch) in fields_views], model=self._name)
+        for (view_id, view_type, (view, _arch)), (xarch, xfields) in zip(fields_views, arch_fields):
+            values = {
+                'model': self._name,
+                'field_parent': False,
+                'arch': xarch,
+                'fields': xfields,
+            }
+            if view:
+                # read the view with inherited views applied
+                values['name'] = view.name
+                values['type'] = view.type
+                values['view_id'] = view.id
+                values['field_parent'] = view.field_parent
+                values['base_model'] = view.model
+            else:
+                # fallback on default views methods if no ir.ui.view could be found
+                values['type'] = view_type
+                values['name'] = 'default'
+
             # Add related action information if asked
             if toolbar:
                 vt = 'list' if view_type == 'tree' else view_type
@@ -1651,16 +1667,11 @@ class BaseModel(metaclass=MetaModel):
         if options.get('load_filters'):
             result['filters'] = self.env['ir.filters'].get_filters(self._name, options.get('action_id'))
 
-
         return result
 
     @api.model
     def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         View = self.env['ir.ui.view'].sudo()
-        result = {
-            'model': self._name,
-            'field_parent': False,
-        }
 
         # try to find a view_id if none provided
         if not view_id:
@@ -1677,32 +1688,24 @@ class BaseModel(metaclass=MetaModel):
                         view_id = view_ref_res[0]
                 else:
                     _logger.warning('%r requires a fully-qualified external id (got: %r for model %s). '
-                        'Please use the complete `module.view_id` form instead.', view_ref_key, view_ref,
-                        self._name)
+                                    'Please use the complete `module.view_id` form instead.', view_ref_key, view_ref,
+                                    self._name)
 
             if not view_id:
                 # otherwise try to find the lowest priority matching ir.ui.view
                 view_id = View.default_view(self._name, view_type)
 
-        if view_id:
+        view = View.browse(view_id)
+        if view:
             # read the view with inherited views applied
-            view = View.browse(view_id)
-            result['arch'] = view.get_combined_arch()
-            result['name'] = view.name
-            result['type'] = view.type
-            result['view_id'] = view.id
-            result['field_parent'] = view.field_parent
-            result['base_model'] = view.model
+            arch = view._get_combined_arch()
         else:
             # fallback on default views methods if no ir.ui.view could be found
             try:
-                arch_etree = getattr(self, '_get_default_%s_view' % view_type)()
-                result['arch'] = etree.tostring(arch_etree, encoding='unicode')
-                result['type'] = view_type
-                result['name'] = 'default'
+                arch = getattr(self, '_get_default_%s_view' % view_type)()
             except AttributeError:
                 raise UserError(_("No default view of type '%s' could be found !", view_type))
-        return result
+        return view, arch
 
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):

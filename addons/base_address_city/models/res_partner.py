@@ -28,8 +28,7 @@ class Partner(models.Model):
     def _fields_view_get_address(self, arch):
         arch = super(Partner, self)._fields_view_get_address(arch)
         # render the partner address accordingly to address_view_id
-        doc = etree.fromstring(arch)
-        if doc.xpath("//field[@name='city_id']"):
+        if arch.xpath("//field[@name='city_id']"):
             return arch
 
         replacement_xml = """
@@ -74,7 +73,7 @@ class Partner(models.Model):
                 'in_subview': in_subview,
             }
 
-        for city_node in doc.xpath("//field[@name='city']"):
+        for city_node in arch.xpath("//field[@name='city']"):
             location = _arch_location(city_node)
             replacement_data['parent_condition'] = ''
             replacement_data['required'] = ''
@@ -90,7 +89,6 @@ class Partner(models.Model):
             parent = city_node.getparent()
             parent.remove(city_node)
 
-        arch = etree.tostring(doc, encoding='unicode')
         return arch
 
     @api.model

@@ -292,17 +292,15 @@ class Currency(models.Model):
 
     @api.model
     def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        result = super(Currency, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+        view, arch = super(Currency, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
         if view_type in ('tree', 'form'):
             currency_name = (self.env['res.company'].browse(self._context.get('company_id')) or self.env.company).currency_id.name
-            doc = etree.XML(result['arch'])
             for field in [['company_rate', _('Unit per %s', currency_name)],
                           ['inverse_company_rate', _('%s per Unit', currency_name)]]:
-                node = doc.xpath("//tree//field[@name='%s']" % field[0])
+                node = arch.xpath("//tree//field[@name='%s']" % field[0])
                 if node:
                     node[0].set('string', field[1])
-            result['arch'] = etree.tostring(doc, encoding='unicode')
-        return result
+        return view, arch
 
 
 class CurrencyRate(models.Model):
@@ -438,17 +436,15 @@ class CurrencyRate(models.Model):
 
     @api.model
     def _fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-        result = super(CurrencyRate, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+        view, arch = super(CurrencyRate, self)._fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
         if view_type in ('tree'):
             names = {
                 'company_currency_name': (self.env['res.company'].browse(self._context.get('company_id')) or self.env.company).currency_id.name,
                 'rate_currency_name': self.env['res.currency'].browse(self._context.get('active_id')).name or 'Unit',
             }
-            doc = etree.XML(result['arch'])
             for field in [['company_rate', _('%(rate_currency_name)s per %(company_currency_name)s', **names)],
                           ['inverse_company_rate', _('%(company_currency_name)s per %(rate_currency_name)s', **names)]]:
-                node = doc.xpath("//tree//field[@name='%s']" % field[0])
+                node = arch.xpath("//tree//field[@name='%s']" % field[0])
                 if node:
                     node[0].set('string', field[1])
-            result['arch'] = etree.tostring(doc, encoding='unicode')
-        return result
+        return view, arch
