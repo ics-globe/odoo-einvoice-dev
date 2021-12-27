@@ -10,8 +10,7 @@
 
 {
     "name": "Romania - Accounting",
-    "author": "Fekete Mihai (NextERP Romania SRL)",
-    "website": "https://www.nexterp.ro",
+    "author": ["Fekete Mihai (NextERP Romania SRL)", "Odoo S.A."],
     'category': 'Accounting/Localizations/Account Charts',
     'version': '1.0',
     "depends": [
@@ -26,6 +25,7 @@ It also adds the Registration Number for Romania in Odoo.
 Romanian accounting chart and localization.
     """,
     "data": ['views/res_partner_view.xml',
+             'data/account.account.tag.csv',
              'data/l10n_ro_chart_data.xml',
              'data/account.group.template.csv',
              'data/account.account.template.csv',
