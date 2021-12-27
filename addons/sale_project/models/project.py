@@ -126,11 +126,12 @@ class Project(models.Model):
         if self.user_has_groups('sales_team.group_sale_salesman_all_leads'):
             buttons.append({
                 'icon': 'dollar',
-                'text': _('Sales Order'),
+                'text': _('Sales Orders'),
+                'number': self.sale_order_count,
                 'action_type': 'object',
                 'action': 'action_view_sos',
-                'show': bool(self.sale_order_id),
-                'sequence': 1,
+                'show': self.sale_order_count > 0,
+                'sequence': 18,
             })
         return buttons
 
