@@ -18,7 +18,7 @@ class AccountMove(models.Model):
             ('special_economic_zone', 'Special Economic Zone'),
             ('deemed_export', 'Deemed Export')
         ], string="GST Treatment", compute="_compute_l10n_in_gst_treatment", store=True, readonly=False, copy=True)
-    l10n_in_state_id = fields.Many2one('res.country.state', string="Location of supply")
+    l10n_in_state_id = fields.Many2one('res.country.state', string="Place of supply", compute="_compute_l10n_in_state_id", store=True)
     l10n_in_gstin = fields.Char(string="GSTIN")
     # For Export invoice this data is need in GSTR report
     l10n_in_shipping_bill_number = fields.Char('Shipping bill number', readonly=True, states={'draft': [('readonly', False)]})
@@ -36,17 +36,19 @@ class AccountMove(models.Model):
         for record in self:
             record.l10n_in_gst_treatment = record.partner_id.l10n_in_gst_treatment
 
-    @api.model
-    def _l10n_in_get_indian_state(self, partner):
-        """In tax return filing, If customer is not Indian in that case place of supply is must set to Other Territory.
-        So we set Other Territory in l10n_in_state_id when customer(partner) is not Indian
-        Also we raise if state is not set in Indian customer.
-        State is big role under GST because tax type is depend on.for more information check this https://www.cbic.gov.in/resources//htdocs-cbec/gst/Integrated%20goods%20&%20Services.pdf"""
-        if partner.country_id and partner.country_id.code == 'IN' and not partner.state_id:
-            raise ValidationError(_("State is missing from address in '%s'. First set state after post this invoice again.", partner.name))
-        elif partner.country_id and partner.country_id.code != 'IN':
-            return self.env.ref('l10n_in.state_in_ot')
-        return partner.state_id
+    @api.depends('partner_id')
+    def _compute_l10n_in_state_id(self):
+        for move in self:
+            if move.country_code == 'IN':
+                country_code = move.partner_id.country_id.code
+                if country_code == 'IN':
+                    move.l10n_in_state_id = move.partner_id.state_id
+                elif country_code:
+                    move.l10n_in_state_id = self.env('l10n_in.state_in_oc')
+                else:
+                    move.l10n_in_state_id = move.company_id.state_id
+            else:
+                move.l10n_in_state_id = False
 
     def _l10n_in_get_shipping_partner(self):
         """Overwrite in sale"""
@@ -72,8 +74,6 @@ class AccountMove(models.Model):
                     company_name=company_unit_partner.name,
                     company_id=company_unit_partner.id
                 ))
-            elif move.journal_id.type == 'purchase':
-                move.l10n_in_state_id = company_unit_partner.state_id
 
             shipping_partner = move._l10n_in_get_shipping_partner()
             # In case of shipping address does not have GSTN then also check customer(partner_id) GSTN
@@ -86,13 +86,6 @@ class AccountMove(models.Model):
                     partner_id=shipping_partner.id,
                     name=gst_treatment_name_mapping.get(move.l10n_in_gst_treatment)
                 ))
-            if move.journal_id.type == 'sale':
-                move.l10n_in_state_id = self._l10n_in_get_indian_state(shipping_partner)
-                if not move.l10n_in_state_id:
-                    move.l10n_in_state_id = self._l10n_in_get_indian_state(move.partner_id)
-                #still state is not set then assumed that transaction is local like PoS so set state of company unit
-                if not move.l10n_in_state_id:
-                    move.l10n_in_state_id = company_unit_partner.state_id
         return posted
 
     def _l10n_in_get_warehouse_address(self):
