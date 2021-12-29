@@ -156,6 +156,16 @@ class TestMailingListMerge(MassMailCommon):
         self.assertEqual(merge.src_list_ids, self.mailing_list_1 + self.mailing_list_2)
         self.assertEqual(merge.dest_list_id, self.mailing_list_3)
 
+    @users('user_marketing')
+    def test_mailing_list_action_new_mailing(self):
+        mailing_ctx = self.mailing_list_1.action_send_new_mailing().get('context', {})
+        form = Form(self.env['mailing.mailing'].with_context(mailing_ctx))
+        form.subject = 'Test Mail'
+        mailing = form.save()
+        # Check that mailing model and mailing list are set properly
+        self.assertEqual(mailing.mailing_model_id, self.env.ref('mass_mailing.model_mailing_list'), 'Should have correct mailing model set')
+        self.assertEqual(mailing.contact_list_ids, self.mailing_list_1, 'Should have correct mailing list set')
+
 
 class TestMailingContactImport(MassMailCommon):
     """Test the transient <mailing.contact.import>."""
