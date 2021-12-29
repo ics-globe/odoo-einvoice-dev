@@ -4,7 +4,7 @@
 from ast import literal_eval
 
 from odoo.addons.mass_mailing_sms.tests.common import MassSMSCommon
-from odoo.tests.common import users
+from odoo.tests.common import Form, users
 
 
 class TestMassMailValues(MassSMSCommon):
@@ -59,3 +59,15 @@ class TestMassMailValues(MassSMSCommon):
             'contact_list_ids': [(4, self.mailing_list_1.id), (4, self.mailing_list_2.id)]
         })
         self.assertEqual(literal_eval(mailing.mailing_domain), [('list_ids', 'in', (self.mailing_list_1 | self.mailing_list_2).ids)])
+
+    @users('user_marketing')
+    def test_mailing_list_action_new_sms(self):
+        sms_ctx = self.mailing_list_1.action_send_new_sms().get('context', {})
+        form = Form(self.env['mailing.mailing'].with_context(sms_ctx))
+        form.sms_subject = 'Test SMS'
+        form.body_plaintext = 'Test sms body'
+        sms = form.save()
+        # Check that mailing model and mailing list are set properly
+        self.assertEqual(sms.mailing_model_id, self.env.ref('mass_mailing.model_mailing_list'), \
+                            'Should have correct mailing model set')
+        self.assertEqual(sms.contact_list_ids, self.mailing_list_1, 'Should have correct mailing list set')

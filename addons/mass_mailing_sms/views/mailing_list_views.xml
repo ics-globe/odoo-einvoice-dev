@@ -29,6 +29,18 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="mailing_list_view_form">
+        <field name="name">mailing.list.form.inherit.sms</field>
+        <field name="model">mailing.list</field>
+        <field name="inherit_id" ref="mass_mailing.mailing_list_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_send_new_mailing']" position="after">
+                <button name="action_send_new_sms" string="Send New Sms"
+                        type="object" class="btn btn-primary"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="mailing_list_action_sms" model="ir.actions.act_window">
         <field name="name">Mailing Lists</field>
         <field name="res_model">mailing.list</field>

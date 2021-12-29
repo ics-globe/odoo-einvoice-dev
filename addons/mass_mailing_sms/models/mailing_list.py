@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models
+from odoo import fields, models, _
 
 
 class MailingList(models.Model):
@@ -26,6 +26,21 @@ class MailingList(models.Model):
         action = self.action_view_contacts()
         action['context'] = dict(action.get('context', {}), search_default_filter_valid_sms_recipient=1)
         return action
+
+    def action_send_new_sms(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Send Sms From Mailing List'),
+            'res_model': 'mailing.mailing',
+            'view_mode': 'form',
+            'views': [(self.env.ref('mass_mailing_sms.mailing_mailing_view_form_sms').id, 'form')],
+            'context': {
+                'default_model_id': self.env.ref('mass_mailing.model_mailing_list').id,
+                'default_contact_list_ids': self.ids,
+                'default_mailing_type': 'sms',
+                'mailing_sms': True,
+            },
+        }
 
     def _get_contact_statistics_fields(self):
         """ See super method docstring for more info.
