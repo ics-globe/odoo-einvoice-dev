@@ -216,6 +216,7 @@ class TestMailingContactImport(MassMailCommon):
         # Test that the context key "default_list_ids" is ignored (because we manually set list_ids)
         contact_import.with_context(default_list_ids=(first_list | second_list).ids).action_import()
 
+        self.env['mailing.list'].invalidate_cache(['contact_ids'])
         # Check the contact of the first mailing list
         contacts = [
             (contact.name, contact.email)

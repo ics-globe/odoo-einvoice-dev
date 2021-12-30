@@ -17,6 +17,7 @@
                                 aria-label="Blacklisted" attrs="{'invisible': [('is_blacklisted', '=', False)]}" groups="base.group_user"></i>
                             <field name="contact_id"/>
                         </div>
+                        <field name="create_date" string="Subscription Date"/>
                         <field name="unsubscription_date" readonly="1"/>
                         <field name="opt_out"/>
                         <field name="message_bounce" readonly="1"/>
@@ -32,6 +33,7 @@
         <field name="arch" type="xml">
             <tree string="Mailing List Subscriptions">
                 <field name="contact_id"/>
+                <field name="create_date" string="Subscription Date"/>
                 <field name="unsubscription_date"/>
                 <field name="opt_out"/>
                 <field name="message_bounce"/>
@@ -193,6 +195,7 @@
                     <field name="subscription_list_ids">
                         <tree editable="bottom">
                            <field name="list_id"/>
+                           <field name="create_date" string="Subscription Date"/>
                            <field name="unsubscription_date"/>
                            <field name="opt_out"/>
                         </tree>
