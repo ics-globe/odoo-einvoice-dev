@@ -21,6 +21,7 @@ export class WebsiteEditorClientAction extends Component {
 
         useEffect(() => {
             this.websiteService.currentWebsiteId = this.websiteId;
+            this.websiteService.context.showNewContentModal = this.props.action.context.params && this.props.action.context.params.display_new_content;
             return () => this.websiteService.currentWebsiteId = null;
         }, () => [this.props.action.context.params]);
 
@@ -28,6 +29,10 @@ export class WebsiteEditorClientAction extends Component {
             this.iframe.el.addEventListener('load', () => {
                 this.currentUrl = this.iframe.el.contentDocument.location.href;
                 history.pushState({}, this.props.action.display_name, this.currentUrl);
+
+                this.websiteService.currentMetadata = {
+                    path: this.currentUrl,
+                };
 
                 this.iframe.el.contentWindow.addEventListener('beforeunload', () => {
                     this.iframefallback.el.contentDocument.body.replaceWith(this.iframe.el.contentDocument.body.cloneNode(true));
