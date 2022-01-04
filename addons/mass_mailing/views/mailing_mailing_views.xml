@@ -115,9 +115,24 @@
                             </button>
                         </div>
                         <div class="o_mails_in_queue" attrs="{'invisible': [('state', '!=', 'in_queue')]}">
-                            <strong>
+                            <strong attrs="{'invisible': ['|', ('next_departure_is_past', '=', True), ('schedule_type', '=', 'now')]}">
                                 <span name="next_departure_text">This mailing is scheduled for </span>
                                 <field name="next_departure" class="oe_inline"/>.
+                            </strong>
+                            <strong attrs="{'invisible': ['|', ('next_departure_is_past', '=', False), ('schedule_type', '=', 'now')]}">
+                                <field name="next_departure_is_past" invisible="1"/>
+                                <span name="refresh_text">This mailing will be sent as soon as possible.</span>
+                                <button name="action_reload" type="object" class="btn btn-link pr-0">
+                                    <u>Refresh <i class="fa fa-refresh ml-1"/></u>
+                                </button>
+                            </strong>
+                            <strong attrs="{'invisible': [('schedule_type', '!=', 'now')]}">
+                                <field name="next_departure_is_past" invisible="1"/>
+                                <field name="schedule_type" invisible="1"/>
+                                <span name="mailing_schedule_type_now_text">This mailing will be sent as soon as possible.</span>
+                                <button name="action_reload" type="object" class="btn btn-link pr-0">
+                                    <u>Refresh <i class="fa fa-refresh ml-1"/></u>
+                                </button>
                             </strong>
                         </div>
                         <div attrs="{'invisible': [('warning_message', '=', False)]}">
@@ -414,7 +429,7 @@
                     <attribute name="attrs">{'invisible': [('state', '!=', 'in_queue')]}</attribute>
                 </xpath>
                 <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_scheduled')]/button" position="attributes">
-                    <attribute name="attrs">{'invisible': [('scheduled', '=', 0)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('scheduled', '=', 0), ('next_departure_is_past', '=', True)]}</attribute>
                 </xpath>
                 <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_scheduled')]//span[@name='scheduled_text']" position="replace">
                     <span name="scheduled_text">email(s) scheduled for </span>
@@ -424,7 +439,15 @@
                 <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong/span[@name='next_departure_text']" position="attributes">
                     <attribute name="attrs">{'invisible': [('scheduled', '!=', 0)]}</attribute>
                 </xpath>
+                <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong/span[@name='refresh_text']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('scheduled', '!=', 0)]}</attribute>
+                </xpath>
+                <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong/span[@name='mailing_schedule_type_now_text']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('scheduled', '!=', 0)]}</attribute>
+                </xpath>
                 <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_scheduled')]" position="inside">
+                    <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong" position="move"/>
+                    <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong" position="move"/>
                     <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]/strong" position="move"/>
                 </xpath>
                 <xpath expr="//div[hasclass('alert-info')]/div[hasclass('o_mails_in_queue')]" position="replace"/>
