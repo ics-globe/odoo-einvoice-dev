@@ -38,27 +38,6 @@ class AccountEdiFormat(models.Model):
     ####################################################
     # Import
     ####################################################
-    def _create_invoice_from_ubl(self, invoice_data):
-        # prepare invoice creation context
-        move_type = 'out_invoice' if self.env['account.move']._get_default_journal().type == 'sale' else 'in_invoice'
-        if invoice_data.get('is_refund'):
-            move_type = 'in_refund' if move_type == 'in_invoice' else 'out_refund'
-        # The Form object used in `_update_invoice_from_data` will create a new record if the recordSet is empty
-        invoice_with_context = self.env['account.move'].with_context(default_move_type=move_type)
-
-        invoice = self._update_invoice_from_data(invoice_with_context, invoice_data)
-        if attachments := self._regenerates_pdf_from_datas(invoice, invoice_data):
-            invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachments.ids)
-
-        return invoice
-
-    def _update_invoice_from_ubl(self, invoice, invoice_data):
-        # Ensure the move_type isn't changed
-        invoice_with_context = invoice.with_context(default_move_type=invoice.move_type)
-        invoice = self._update_invoice_from_data(invoice_with_context, invoice_data)
-        if attachments := self._regenerates_pdf_from_datas(invoice, invoice_data):
-            invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachments.ids)
-        return invoice
 
     def _retrieve_data_from_ubl_xml(self, tree):
         """
@@ -162,7 +141,7 @@ class AccountEdiFormat(models.Model):
 
         return invoice_data
 
-    def _update_invoice_from_data(self, invoice, invoice_data):
+    def _inject_data_in_invoice(self, invoice, invoice_data):
         """
         This function update an existing invoice or create an invoice based on data provided by invoice_data
         :param invoice: a record or an empty record of AccountMove
@@ -266,7 +245,18 @@ class AccountEdiFormat(models.Model):
         self.ensure_one()
         if self.code == 'ubl_2_1' and self._is_ubl(filename, tree):
             invoice_data = self._retrieve_data_from_ubl_xml(tree)
-            return self._create_invoice_from_ubl(invoice_data)
+            # prepare invoice creation context
+            move_type = 'out_invoice' if self.env['account.move']._get_default_journal().type == 'sale' else 'in_invoice'
+            if invoice_data.get('is_refund'):
+                move_type = 'in_refund' if move_type == 'in_invoice' else 'out_refund'
+
+            # The Form object used in `_update_invoice_from_data` will create a new record if the recordSet is empty
+            invoice_with_context = self.env['account.move'].with_context(default_move_type=move_type)
+            invoice = self._inject_data_in_invoice(invoice_with_context, invoice_data)
+            if attachments := self._regenerates_pdf_from_datas(invoice, invoice_data):
+                invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachments.ids)
+            return invoice
+        # pass to next edi
         return super()._create_invoice_from_xml_tree(filename, tree)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
@@ -274,7 +264,12 @@ class AccountEdiFormat(models.Model):
         self.ensure_one()
         if self.code == 'ubl_2_1' and self._is_ubl(filename, tree):
             invoice_data = self._retrieve_data_from_ubl_xml(tree)
-            return self._update_invoice_from_ubl(invoice, invoice_data)
+            # Ensure the move_type isn't changed
+            invoice_with_context = invoice.with_context(default_move_type=invoice.move_type)
+            invoice = self._inject_data_in_invoice(invoice_with_context, invoice_data)
+            if attachments := self._regenerates_pdf_from_datas(invoice, invoice_data):
+                invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachments.ids)
+            return invoice
         return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 
     def _is_compatible_with_journal(self, journal):
