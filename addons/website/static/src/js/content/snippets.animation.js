@@ -11,7 +11,6 @@ var core = require('web.core');
 const dom = require('web.dom');
 var mixins = require('web.mixins');
 var publicWidget = require('web.public.widget');
-var utils = require('web.utils');
 
 var qweb = core.qweb;
 
@@ -917,13 +916,12 @@ registry.anchorSlide = publicWidget.Widget.extend({
      * @private
      */
     _onAnimateClick: function (ev) {
-        if (this.$target[0].pathname !== window.location.pathname) {
-            return;
-        }
         var hash = this.$target[0].hash;
-        if (!utils.isValidAnchor(hash)) {
+        if (!hash.length || (this.$target[0].pathname !== window.location.pathname)) {
             return;
         }
+        // Escape special characters to make the jQuery selector to work.
+        hash = '#' + $.escapeSelector(hash.substring(1));
         var $anchor = $(hash);
         const scrollValue = $anchor.attr('data-anchor');
         if (!$anchor.length || !scrollValue) {

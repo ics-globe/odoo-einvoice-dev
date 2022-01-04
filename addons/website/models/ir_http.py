@@ -434,6 +434,7 @@ class Http(models.AbstractModel):
         geoip_phone_code = request.env['res.country']._phone_code_for(geoip_country_code) if geoip_country_code else None
         session_info.update({
             'is_website_user': request.env.user.id == request.website.user_id.id,
+            'lang_url_code': request.lang._get_cached('url_code'),
             'geoip_country_code': geoip_country_code,
             'geoip_phone_code': geoip_phone_code,
         })
