@@ -9,8 +9,11 @@ from unittest.mock import patch
 
 from odoo.addons.base.tests.test_ir_cron import CronMixinCase
 from odoo.addons.mass_mailing.tests.common import MassMailCommon
+from odoo.addons.mass_mailing.models.mailing import MassMailing
+from odoo.addons.mail.models.mail_mail import MailMail
 from odoo.exceptions import ValidationError
 from odoo.sql_db import Cursor
+from odoo import models
 from odoo.tests.common import users, Form
 from odoo.tools import mute_logger
 
@@ -473,6 +476,109 @@ Email: <a id="url5" href="mailto:test@odoo.com">test@odoo.com</a></div>""",
                     link_info,
                     link_params=link_params,
                 )
+
+    @users('user_marketing')
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_mailing_launch_flow(self):
+        """ Test that mail should be sent directly if total recipients are less than value
+        specified by config param 'mass_mailing_immediate_send_nbr', otherwise it should
+        enqueue the mailing """
+        res_partners = self._create_partner(partner_count=5)
+        # number of emails are less then specified limit
+        mailing_1 = self.env['mailing.mailing'].create({
+            'name': 'TestMailingOne',
+            'subject': 'One',
+            'body_html': 'This is mass mail marketing demo',
+            'mailing_model_id': self.env['ir.model']._get('res.partner').id,
+            'mailing_domain': [('id', 'in', res_partners[:3].ids)],
+        })
+
+        # number of emails are more then specified limit
+        mailing_2 = self.env['mailing.mailing'].create({
+            'name': 'TestMailingTwo',
+            'subject': 'Two',
+            'body_html': 'This is mass mail marketing demo',
+            'mailing_model_id': self.env['ir.model']._get('res.partner').id,
+            'mailing_domain': [('id', 'in', res_partners.ids)],
+        })
+        with self.mock_mail_gateway(mail_unlink_sent=False), \
+             patch.object(MassMailing, '_get_mass_mailing_immediate_send_nbr', return_value=3):
+            (mailing_1 | mailing_2).action_launch()
+        self.assertEqual(mailing_1.state, 'done')
+        self.assertEqual(mailing_2.state, 'in_queue')
+        self.assertEqual(len(self._mails), 3)
+        # test that mailing_1 mails are sent only
+        for partner in res_partners[:3]:
+            self.assertMailMail(partner, 'sent', author=self.env.user.partner_id, fields_values={'subject': 'One'})
+
+        # enqueue emails if specified limit is set to 0
+        mailing_3 = self.env['mailing.mailing'].create({
+            'name': 'Three',
+            'subject': 'Three',
+            'mailing_model_name': 'mailing.list',
+            'contact_list_ids': [(4, self.mailing_list_1.id), (4, self.mailing_list_2.id)],
+            'body_html': 'This is mass mail marketing demo',
+        })
+        with self.mock_mail_gateway(mail_unlink_sent=False), \
+             patch.object(MassMailing, '_get_mass_mailing_immediate_send_nbr', return_value=0):
+            mailing_3.action_launch()
+        self.assertEqual(mailing_3.state, 'in_queue')
+        self.assertEqual(len(self._new_mails.exists()), 0)
+        self.assertNotSentEmail()
+
+    @users('user_marketing')
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    def test_mailing_action_retry_failed_flow(self):
+        """ Test that mail should be sent directly by action_retry_failed method if total recipients
+        are less than value specified by config param 'mass_mailing_immediate_send_nbr',
+        otherwise it should enqueue the mailing """
+        res_partners = self._create_partner(partner_count=5)
+        failed_partner_id = res_partners[0]
+
+        def write(self, vals):
+            if self.recipient_ids.email == failed_partner_id.email and vals.get('state') != 'exception':
+                return False
+            return models.Model.write(self, vals)
+
+        # number of emails are less then specified limit
+        mailing_1 = self.env['mailing.mailing'].create({
+            'name': 'TestMailingOne',
+            'subject': 'One',
+            'body_html': 'This is mass mail marketing demo',
+            'mailing_model_id': self.env['ir.model']._get('res.partner').id,
+            'mailing_domain': [('id', 'in', res_partners[:3].ids)],
+        })
+
+        # number of emails are more then specified limit
+        mailing_2 = self.env['mailing.mailing'].create({
+            'name': 'TestMailingTwo',
+            'subject': 'Two',
+            'body_html': 'This is mass mail marketing demo',
+            'mailing_model_id': self.env['ir.model']._get('res.partner').id,
+            'mailing_domain': [('id', 'in', res_partners.ids)],
+        })
+
+        with self.mock_mail_gateway(mail_unlink_sent=False), \
+             patch.object(MassMailing, '_get_mass_mailing_immediate_send_nbr', return_value=3), \
+             patch.object(MailMail, 'write', write):
+            (mailing_1 | mailing_2).action_launch()
+
+        self.assertEqual(mailing_1.state, 'done')
+        self.assertEqual(mailing_2.state, 'in_queue')
+        # Test that two mails are sent
+        for partner in res_partners[1:3]:
+            self.assertMailMail(partner, 'sent', author=self.env.user.partner_id, fields_values={'subject': 'One'})
+
+        # Test that mail have been failed
+        self.assertMailMail(failed_partner_id, 'exception', author=self.env.user.partner_id, fields_values={'subject': 'One'})
+
+        with self.mock_mail_gateway(mail_unlink_sent=False), \
+             patch.object(MassMailing, '_get_mass_mailing_immediate_send_nbr', return_value=3):
+            mailing_1.action_retry_failed()
+
+        # Test failed mail should be send
+        self.assertMailMail(failed_partner_id, 'sent', author=self.env.user.partner_id, fields_values={'subject': 'One'})
+
 
 class TestMailingScheduleDateWizard(MassMailCommon):
 

@@ -234,6 +234,16 @@ class MassMailCommon(MailCommon, MassMailCase):
         cls.email_reply_to = 'MyCompany SomehowAlias <test.alias@test.mycompany.com>'
 
     @classmethod
+    def _create_partner(cls, partner_count=1):
+        return cls.env['res.partner'].create([{
+            'name': f'AutoPartner_{x}04d',
+            'email': tools.formataddr((
+                f'AutoPartner_{x}04d',
+                f'partner_email_{x}04d@example.com',
+            )),
+        } for x in range(partner_count)])
+
+    @classmethod
     def _create_mailing_list(cls):
         """ Shortcut to create mailing lists. Currently hardcoded, maybe evolve
         in a near future. """

@@ -400,6 +400,21 @@ class MassMailing(models.Model):
     def _get_ab_testing_description_modifying_fields(self):
         return ['ab_testing_enabled', 'ab_testing_pc', 'ab_testing_schedule_datetime', 'ab_testing_winner_selection', 'campaign_id']
 
+    def _get_mass_mailing_immediate_send_nbr(self):
+        mailing_send_immediate_nbr = self.env['ir.config_parameter'].sudo().get_param('mass_mailing.mass_mailing_immediate_send_nbr', 0)
+        if not mailing_send_immediate_nbr or not mailing_send_immediate_nbr.isdigit():
+            return 0
+        return int(mailing_send_immediate_nbr)
+
+    def _send_or_put_in_queue(self):
+        mailing_send_immediate_nbr = self._get_mass_mailing_immediate_send_nbr()
+        if mailing_send_immediate_nbr <= 0:
+            return self.action_put_in_queue()
+        mailings_to_send_immediately = self.filtered(lambda mailing: len(mailing._get_recipients()) <= mailing_send_immediate_nbr)
+        mailings_to_send_immediately.action_send_mail()
+        (self - mailings_to_send_immediately).action_put_in_queue()
+        return True
+
     # ------------------------------------------------------
     # ORM
     # ------------------------------------------------------
@@ -533,8 +548,7 @@ class MassMailing(models.Model):
         }
 
     def action_launch(self):
-        self.write({'schedule_type': 'now'})
-        return self.action_put_in_queue()
+        return self._send_or_put_in_queue()
 
     def action_schedule(self):
         self.ensure_one()
@@ -552,6 +566,7 @@ class MassMailing(models.Model):
             schedule_date or fields.Datetime.now()
             for schedule_date in self.mapped('schedule_date')
         )
+        return True
 
     def action_cancel(self):
         self.write({'state': 'draft', 'schedule_date': False, 'schedule_type': 'now', 'next_departure': False})
@@ -563,7 +578,7 @@ class MassMailing(models.Model):
         ])
         failed_mails.mapped('mailing_trace_ids').unlink()
         failed_mails.unlink()
-        self.write({'state': 'in_queue'})
+        return self._send_or_put_in_queue()
 
     def action_view_traces_scheduled(self):
         return self._action_view_traces_filtered('scheduled')

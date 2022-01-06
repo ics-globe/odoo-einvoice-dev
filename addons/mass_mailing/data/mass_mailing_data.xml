@@ -222,5 +222,10 @@
             <field name="type">url</field>
             <field name="url">/mass_mailing/static/src/img/theme_default/s_default_image_block_three_cols_3.jpg</field>
         </record>
+        <!-- Config parameter to decide for how many records the mass mailing should be sent immediately -->
+        <record id="mass_mailing_immediate_send_nbr" model="ir.config_parameter">
+            <field name="key">mass_mailing.mass_mailing_immediate_send_nbr</field>
+            <field name="value">0</field>
+        </record>
     </data>
 </odoo>
