@@ -61,6 +61,9 @@
                                 </group>
                                 <group string="Availability" name="availability">
                                     <field name="country_ids" widget="many2many_tags" placeholder="Select countries. Leave empty to use everywhere." options="{'no_open': True, 'no_create': True}"/>
+                                    <field name="partner_domain" widget="domain" options="{'model': 'res.partner', 'in_dialog': True}"/>
+                                    <field name="company_currency_id" invisible="1" string="Currency"/>
+                                    <field name="maximal_amount" widget="monetary" options="{'currency_field': 'company_currency_id'}"/>
                                 </group>
                                 <group string="Payment Followup" name="payment_followup">
                                     <field name="journal_id" context="{'default_type': 'bank'}"

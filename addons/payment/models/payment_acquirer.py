@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import ast
 import logging
 
 from psycopg2 import sql
@@ -130,6 +131,66 @@ class PaymentAcquirer(models.Model):
     show_auth_msg = fields.Boolean(compute='_compute_view_configuration_fields')
     show_done_msg = fields.Boolean(compute='_compute_view_configuration_fields')
     show_cancel_msg = fields.Boolean(compute='_compute_view_configuration_fields')
+
+    # Restrain the partner by domain.
+    partner_domain = fields.Char(string="Restraint Partners on",
+                                 help="Only partners satisfying these rules will be allowed to "
+                                      "pay using this acquirer.")
+
+    # To restraint acquirer in function of a maximal amount to be paid
+    # (e.g. Paypal only handles amounts less than 1000).
+    company_currency_id = fields.Many2one(string="Company Currency",
+                                          related="company_id.currency_id")
+    maximal_amount = fields.Monetary(
+        currency_field='company_currency_id',
+        help="Maximal amount allowed to pay using this acquirer."
+             "Leave as '0.00' to ignore a maximal amount."
+             "\nNote that this amount will be converted using odoo's inner currency rate before "
+             "payment in a multi-currency environment.")
+
+    def is_allowed_partner_and_amount(self, amount=None, partner_id=None, currency_id=None):
+        """
+        Discriminates if yes or not the acquirer is available in function fo the partner
+        and amount allowed.
+        The amount will be converted to the acquirer company currency whenever possible.
+
+        :return: True if the acquirer is available False otherwise
+        :rtype: bool
+        """
+
+        # Try to convert the amount first by getting a currency whenever possible
+        currency = None
+        if currency_id is not None:
+            currency = currency_id
+        if partner_id is not None and currency is None:
+            partner_sudo = self.env['res.partner'].sudo().browse(partner_id)
+            currency = self.env['res.company'].search(
+                [('id', '=', partner_sudo.company_id.id)]
+            ).currency_id
+
+        converted_amount = amount
+        if currency is not None and amount is not None:
+            date = fields.Date.context_today(self)
+            converted_amount = currency._convert(amount, self.company_currency_id,
+                                                 self.company_id, date)
+
+        # Create two help functions for readability
+        def allowed_amount(obj, am):
+            return obj.maximal_amount == 0.00 or obj.maximal_amount >= am
+
+        def allowed_partner(obj, part):
+            return (not obj.partner_domain or obj.partner_domain == "[]") or (
+                obj.env['res.partner'].sudo().browse(part)
+                    .filtered_domain(ast.literal_eval(obj.partner_domain))
+            )
+
+        if amount is None and partner_id is None:
+            return True
+        if amount is None:
+            return allowed_partner(self, partner_id)
+        if partner_id is None:
+            return allowed_amount(self, converted_amount)
+        return allowed_amount(self, converted_amount) and allowed_partner(self, partner_id)
 
     #=== COMPUTE METHODS ===#
 
