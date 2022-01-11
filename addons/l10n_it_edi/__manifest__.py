@@ -8,7 +8,8 @@
     'depends': [
         'l10n_it',
         'fetchmail',
-        'account_edi'
+        'account_edi',
+        'account_edi_proxy_client',
     ],
     'author': 'Odoo',
     'description': """
@@ -20,6 +21,7 @@ E-invoice implementation
         'security/ir.model.access.csv',
         'data/account_edi_data.xml',
         'data/invoice_it_template.xml',
+        'views/res_config_settings_views.xml',
         'views/l10n_it_view.xml',
         ],
     'demo': [

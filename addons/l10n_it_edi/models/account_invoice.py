@@ -47,6 +47,10 @@ class AccountMove(models.Model):
 
     l10n_it_einvoice_id = fields.Many2one('ir.attachment', string="Electronic invoice", compute='_compute_l10n_it_einvoice')
 
+    l10n_it_edi_transaction = fields.Char(copy=False)
+
+    l10n_it_edi_attachment_id = fields.Many2one('ir.attachment', copy=False)
+
     @api.depends('edi_document_ids', 'edi_document_ids.attachment_id')
     def _compute_l10n_it_einvoice(self):
         fattura_pa = self.env.ref('l10n_it_edi.edi_fatturaPA')
@@ -203,50 +207,6 @@ class AccountMove(models.Model):
 
         return posted
 
-    def send_pec_mail(self):
-        self.ensure_one()
-        allowed_state = ['to_send', 'invalid']
-
-        if (
-            not self.company_id.l10n_it_mail_pec_server_id
-            or not self.company_id.l10n_it_mail_pec_server_id.active
-            or not self.company_id.l10n_it_address_send_fatturapa
-        ):
-            self.message_post(
-                body=(_("Error when sending mail with E-Invoice: Your company must have a mail PEC server and must indicate the mail PEC that will send electronic invoice."))
-                )
-            self.l10n_it_send_state = 'invalid'
-            return
-
-        if self.l10n_it_send_state not in allowed_state:
-            raise UserError(_("%s isn't in a right state. It must be in a 'Not yet send' or 'Invalid' state.") % (self.display_name))
-
-        message = self.env['mail.message'].create({
-            'subject': _('Sending file: %s') % (self.l10n_it_einvoice_name),
-            'body': _('Sending file: %s to ES: %s') % (self.l10n_it_einvoice_name, self.env.company.l10n_it_address_recipient_fatturapa),
-            'author_id': self.env.user.partner_id.id,
-            'email_from': self.env.company.l10n_it_address_send_fatturapa,
-            'reply_to': self.env.company.l10n_it_address_send_fatturapa,
-            'mail_server_id': self.env.company.l10n_it_mail_pec_server_id.id,
-            'attachment_ids': [(6, 0, self.l10n_it_einvoice_id.ids)],
-        })
-
-        mail_fattura = self.env['mail.mail'].sudo().with_context(wo_bounce_return_path=True).create({
-            'mail_message_id': message.id,
-            'email_to': self.env.company.l10n_it_address_recipient_fatturapa,
-        })
-        try:
-            mail_fattura.send(raise_exception=True)
-            self.message_post(
-                body=(_("Mail sent on %s by %s") % (fields.Datetime.now(), self.env.user.display_name))
-                )
-            self.l10n_it_send_state = 'sent'
-        except MailDeliveryException as error:
-            self.message_post(
-                body=(_("Error when sending mail with E-Invoice: %s") % (error.args[0]))
-                )
-            self.l10n_it_send_state = 'invalid'
-
     def _compose_info_message(self, tree, element_tags):
         output_str = ""
         elements = tree.xpath(element_tags)
@@ -272,6 +232,13 @@ class AccountMove(models.Model):
                 if text:
                     output_str += "<li>%s: %s</li>" % (element.tag, text)
         return output_str + "</ul>"
+
+    def send_pec_mail(self):
+        self.ensure_one()
+        # OVERRIDE
+        # With SdiCoop web-service, no need to send PEC mail.
+        # Set the state to 'other' because the invoice should not be managed par l10n_it_edi.
+        self.l10n_it_send_state = 'other'
 
 class AccountTax(models.Model):
     _name = "account.tax"
