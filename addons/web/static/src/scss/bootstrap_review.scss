@@ -39,6 +39,23 @@
         // TODO remove me in master.
         background-color: transparent !important;
     }
+    // On a website that has a bright text color, but bright card backgrounds,
+    // tables will have unreadable text colors. Forcing inherit ensure that
+    // the table color will be the same as the card bg-color.
+    table {
+        color: inherit;
+    }
+}
+// card-bg, which impacts the entire card, is set to white by default
+// but its color remains unaffected. This means that card-header and card-footer
+// do not have a color set.
+// In case the website has a main text color bright, but does not change
+// the card bg color, the text color on a footer and header will be bright even
+// tho the default card bg is white. This insure that the default text-color
+// is the opposite for all the card, including the footer and header.
+$card-color: color-yiq($card-bg) !default;
+.card {
+    color: $card-color;
 }
 .accordion {
     .collapsing, .collapse.show {
