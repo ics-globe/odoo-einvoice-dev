@@ -52,6 +52,16 @@
     min-width: 0;
 }
 
+@media screen and (max-width: 420px) {
+    .oe_module_action {
+        display: inline-grid;
+    }
+    /* Match the Learn More button styles with the other button in touch device */
+    .oe_module_action .btn {
+        padding: 0.25rem 0.5rem !important;
+    }
+}
+
 .o_module_form.o_form_view .oe_avatar > img {
     border: none;
     box-shadow: none;
