@@ -341,6 +341,9 @@ QUnit.module('web_editor', {}, function () {
                     if (route.indexOf('/web_editor/media_library_search') === 0) {
                         return Promise.resolve();
                     }
+                    if (route.indexOf('/web_editor/attachment/fetch') === 0) {
+                        return Promise.resolve(this.data["ir.attachment"].records[0]);
+                    }
                     return this._super(route, args);
                 },
             });
@@ -395,6 +398,9 @@ QUnit.module('web_editor', {}, function () {
                     }
                     if (route.indexOf('/web_unsplash/fetch_images') === 0) {
                         return Promise.resolve();
+                    }
+                    if (route.indexOf('/web_editor/attachment/fetch') === 0) {
+                        return Promise.resolve([]);
                     }
                     return this._super(route, args);
                 },

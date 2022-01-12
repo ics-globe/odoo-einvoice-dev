@@ -3,7 +3,6 @@ odoo.define('web_editor.wysiwyg', function (require) {
 
 const dom = require('web.dom');
 const core = require('web.core');
-const session = require('web.session');
 const Widget = require('web.Widget');
 const Dialog = require('web.Dialog');
 const customColors = require('web_editor.custom_colors');
@@ -99,7 +98,6 @@ const Wysiwyg = Widget.extend({
         const self = this;
 
         var options = this._editorOptions();
-        this.options.isInternalUser = await session.user_has_group('base.group_user');
 
         this.$editable = this.$editable || this.$el;
         if (options.value) {
@@ -1778,40 +1776,44 @@ const Wysiwyg = Widget.extend({
                     this.odooEditor.execCommand('setTag', 'pre');
                 },
             },
-            {
-                groupName: 'Navigation',
-                title: 'Link',
-                description: 'Add a link.',
-                fontawesome: 'fa-link',
-                callback: () => {
-                    this.toggleLinkTools({forceDialog: true});
-                },
-            },
-            {
-                groupName: 'Navigation',
-                title: 'Button',
-                description: 'Add a button.',
-                fontawesome: 'fa-link',
-                callback: () => {
-                    this.toggleLinkTools({forceDialog: true});
-                    // Force the button style after the link modal is open.
-                    setTimeout(() => {
-                        $(".o_link_dialog .link-style[value=primary]").click();
-                    }, 150);
-                },
-            },
         ];
-        if (options.isInternalUser) {
-            commands.push({
-                groupName: 'Medias',
-                title: 'Image',
-                description: 'Insert an image.',
-                fontawesome: 'fa-file-image-o',
-                callback: () => {
-                    this.openMediaDialog();
+        if (options.allowCommandLink) {
+            commands.push(
+                {
+                    groupName: 'Navigation',
+                    title: 'Link',
+                    description: 'Add a link.',
+                    fontawesome: 'fa-link',
+                    callback: () => {
+                        this.toggleLinkTools({forceDialog: true});
+                    },
                 },
-            });
+                {
+                    groupName: 'Navigation',
+                    title: 'Button',
+                    description: 'Add a button.',
+                    fontawesome: 'fa-link',
+                    callback: () => {
+                        this.toggleLinkTools({forceDialog: true});
+                        // Force the button style after the link modal is open.
+                        setTimeout(() => {
+                            $(".o_link_dialog .link-style[value=primary]").click();
+                        }, 150);
+                    },
+                },
+            );
         }
+        if (options.allowCommandImage) {
+            commands.push({
+                    groupName: 'Medias',
+                    title: 'Image',
+                    description: 'Insert an image.',
+                    fontawesome: 'fa-file-image-o',
+                    callback: () => {
+                        this.openMediaDialog();
+                    },
+                });
+            }
         if (options.allowCommandVideo) {
             commands.push({
                 groupName: 'Medias',

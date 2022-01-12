@@ -41,7 +41,9 @@ var MediaDialog = Dialog.extend({
         media = $media[0];
         this.media = media;
 
-        options = _.extend({}, options);
+        if (parent.options) {
+            options = _.extend({}, options, parent.options.recordInfo);
+        }
         var onlyImages = options.onlyImages || this.multiImages || (media && ($media.parent().data('oeField') === 'image' || $media.parent().data('oeType') === 'image'));
         options.noDocuments = onlyImages || options.noDocuments;
         options.noIcons = onlyImages || options.noIcons;

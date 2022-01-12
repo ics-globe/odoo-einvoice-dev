@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 class Web_Unsplash(http.Controller):
 
     def _get_access_key(self):
-        if request.env.user._has_unsplash_key_rights():
-            return request.env['ir.config_parameter'].sudo().get_param('unsplash.access_key')
-        raise werkzeug.exceptions.NotFound()
+        return request.env['ir.config_parameter'].sudo().get_param('unsplash.access_key')
 
     def _notify_download(self, url):
         ''' Notifies Unsplash from an image download. (API requirement)
@@ -106,7 +104,7 @@ class Web_Unsplash(http.Controller):
             # /unsplash/5gR788gfd/lion
             url_frags = ['unsplash', key, query]
 
-            attachment = Attachments.create({
+            attachment_data = {
                 'name': '_'.join(url_frags),
                 'url': '/' + '/'.join(url_frags),
                 'mimetype': mimetype,
@@ -115,7 +113,14 @@ class Web_Unsplash(http.Controller):
                 'res_id': res_id,
                 'res_model': res_model,
                 'description': value.get('description'),
-            })
+            }
+            if not request.env.user._has_unsplash_key_rights():
+                request.env[res_model].check_access_rights('write')
+                if res_id:
+                    request.env[res_model].browse(res_id).check_access_rule('write')
+                attachment = Attachments.sudo().create(attachment_data)
+            else:
+                attachment = Attachments.create(attachment_data)
             attachment.generate_access_token()
             uploads.append(attachment._get_media_info())
 
@@ -129,12 +134,16 @@ class Web_Unsplash(http.Controller):
         access_key = self._get_access_key()
         app_id = self.get_unsplash_app_id()
         if not access_key or not app_id:
+            if not request.env.user._has_unsplash_key_rights():
+                return {'error': 'no_access'}
             return {'error': 'key_not_found'}
         post['client_id'] = access_key
         response = requests.get('https://api.unsplash.com/search/photos/', params=url_encode(post))
         if response.status_code == requests.codes.ok:
             return response.json()
         else:
+            if not request.env.user._has_unsplash_key_rights():
+                return {'error': 'no_access'}
             return {'error': response.status_code}
 
     @http.route("/web_unsplash/get_app_id", type='json', auth="public")

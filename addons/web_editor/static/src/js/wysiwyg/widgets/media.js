@@ -243,13 +243,11 @@ var FileWidget = SearchableMediaWidget.extend({
      */
     fetchAttachments: function (number, offset) {
         return this._rpc({
-            model: 'ir.attachment',
-            method: 'search_read',
-            args: [],
-            kwargs: {
+            route: '/web_editor/attachment/fetch',
+            params: {
                 domain: this._getAttachmentsDomain(this.needle),
                 fields: ['name', 'mimetype', 'description', 'checksum', 'url', 'type', 'res_id', 'res_model', 'public', 'access_token', 'image_src', 'image_width', 'image_height', 'original_id'],
-                order: [{name: 'id', asc: false}],
+                order: "id DESC",
                 context: this.options.context,
                 // Try to fetch first record of next page just to know whether there is a next page.
                 limit: number + 1,

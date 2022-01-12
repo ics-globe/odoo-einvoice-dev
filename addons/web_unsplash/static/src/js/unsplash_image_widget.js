@@ -174,11 +174,16 @@ widgetsMedia.ImageWidget.include({
             return;
         }
         if (this._unsplash.query && this._unsplash.error) {
-            this.$('.unsplash_error').html(
-                core.qweb.render('web_unsplash.dialog.error.content', {
-                    status: this._unsplash.error,
-                })
-            );
+            if (this._unsplash.error === 'no_access') {
+                this.$('.o_we_search_select')[0].options.remove(2);
+            }
+            else {
+                this.$('.unsplash_error').html(
+                    core.qweb.render('web_unsplash.dialog.error.content', {
+                        status: this._unsplash.error,
+                    })
+                );
+            }
             return;
         }
 
