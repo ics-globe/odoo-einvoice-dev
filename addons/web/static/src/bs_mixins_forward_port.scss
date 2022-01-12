@@ -1,0 +1,5 @@
+
+//addons/web/static/lib/bootstrap-4/scss/mixins/_hover.scss
+@mixin hover {
+    &:hover { @content; }
+}
