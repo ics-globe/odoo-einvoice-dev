@@ -245,12 +245,15 @@ class TestHttpEchoReplyJsonWithDB(TestHttpBase):
             "jsonrpc": "2.0",
             "id": 0,
             "params": {
+                "context": {
+                    "name": "Thor"
+                },
                 "race": "Asgard",
             },
         })
         res = self.db_url_open("/test_http/echo-json-context", data=payload, headers=CT_JSON)
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(res.text, '{"jsonrpc": "2.0", "id": 0, "result": {"lang": "en_US", "tz": false, "uid": %d}}' % self.jackoneill.id)
+        self.assertEqual(res.text, '{"jsonrpc": "2.0", "id": 0, "result": {"name": "Thor"}}')
 
 
 @tagged('post_install', '-at_install')
@@ -346,7 +349,7 @@ class TestHttpMisc(TestHttpBase):
 
     def test_misc3_cors_json(self):
         res_opt = self.opener.options(f'{self.base_url()}/test_http/cors_json', timeout=10, allow_redirects=False)
-        self.assertEqual(res_opt.status_code, 204)
+        self.assertEqual(res_opt.status_code, 204, res_opt.text)
         self.assertEqual(res_opt.headers.get('Access-Control-Allow-Origin'), '*')
         self.assertEqual(res_opt.headers.get('Access-Control-Allow-Methods'), 'POST')
         self.assertEqual(res_opt.headers.get('Access-Control-Max-Age'), '86400')  # one day

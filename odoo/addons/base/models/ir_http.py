@@ -89,23 +89,6 @@ class IrHttp(models.AbstractModel):
         return rule, args
 
     @classmethod
-    def _pre_dispatch(cls, rule, args):
-        request._pre_dispatch(rule, args)
-
-        # Replace uid placeholder by the current request.env.uid
-        for key, val in list(args.items()):
-            if isinstance(val, models.BaseModel) and isinstance(val._uid, RequestUID):
-                args[key] = val.with_user(request.env.uid)
-
-    @classmethod
-    def _post_dispatch(cls, response):
-        request._post_dispatch(response)
-
-    @classmethod
-    def _is_cors_preflight(cls, endpoint):
-        return http.is_cors_preflight(endpoint)
-
-    @classmethod
     def _auth_method_user(cls):
         if request.env.uid is None:
             raise http.SessionExpiredException("Session expired")
@@ -122,7 +105,7 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _authenticate(cls, endpoint):
-        auth = 'none' if cls._is_cors_preflight(endpoint) else endpoint.routing['auth']
+        auth = 'none' if http.is_cors_preflight(request, endpoint) else endpoint.routing['auth']
 
         try:
             if request.session.uid is not None:
@@ -135,6 +118,30 @@ class IrHttp(models.AbstractModel):
         except Exception:
             _logger.info("Exception during request Authentication.", exc_info=True)
             raise AccessDenied()
+
+    @classmethod
+    def _pre_dispatch(cls, rule, args):
+        request.dispatcher.pre_dispatch(rule, args)
+
+        # Replace uid placeholder by the current request.env.uid
+        for key, val in list(args.items()):
+            if isinstance(val, models.BaseModel) and isinstance(val._uid, RequestUID):
+                args[key] = val.with_user(request.env.uid)
+
+    @classmethod
+    def _dispatch(cls, endpoint):
+        result = endpoint(**request.params)
+        if isinstance(result, Response) and result.is_qweb:
+            result.flatten()
+        return result
+
+    @classmethod
+    def _post_dispatch(cls, response):
+        request.dispatcher.post_dispatch(response)
+
+    @classmethod
+    def _handle_error(cls, exception):
+        return request.dispatcher.handle_error(exception)
 
     @classmethod
     def _serve_attachment(cls):
@@ -169,21 +176,6 @@ class IrHttp(models.AbstractModel):
         attach = cls._serve_attachment()
         if attach:
             return attach
-
-    @classmethod
-    def _dispatch(cls, endpoint):
-        result = endpoint(**request.params)
-        if isinstance(result, Response) and result.is_qweb:
-            result.flatten()
-        return result
-
-    @classmethod
-    def _http_handle_error(cls, exception):
-        return request._http_handle_error(exception)
-
-    @classmethod
-    def _json_handle_error(cls, exception):
-        return request._json_handle_error(exception)
 
     @classmethod
     def _redirect(cls, location, code=303):

@@ -618,8 +618,8 @@ class IrHttp(models.AbstractModel):
         return code, env['ir.ui.view']._render_template('http_routing.%s' % code, values)
 
     @classmethod
-    def _http_handle_error(cls, exception):
-        response = super()._http_handle_error(exception)
+    def _handle_error(cls, exception):
+        response = super()._handle_error(exception)
 
         is_frontend_request = bool(getattr(request, 'is_frontend', False))
         if not is_frontend_request or not isinstance(response, HTTPException):
