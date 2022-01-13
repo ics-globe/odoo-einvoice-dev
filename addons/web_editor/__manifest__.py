@@ -120,7 +120,7 @@ Odoo Web Editor widget.
         'web._assets_secondary_variables': [
             'web_editor/static/src/scss/secondary_variables.scss',
         ],
-        'web._assets_backend_helpers': [
+        'web._assets_bootstrap_custom_color_theme': [
             'web_editor/static/src/scss/bootstrap_overridden_backend.scss',
             'web_editor/static/src/scss/bootstrap_overridden.scss',
         ],

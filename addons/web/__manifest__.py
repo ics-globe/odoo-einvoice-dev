@@ -93,7 +93,9 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_helpers'),
             ('include', 'web._assets_backend_helpers'),
 
-            ('include', 'web._assets_bootstrap_post_overrides'),
+            ('include', 'web._assets_bootstrap_load_mandatory'),
+            ('include', 'web._assets_bootstrap_custom_color_theme'),
+            ('include', 'web._assets_bootstrap_load_optional'),
 
             'base/static/src/css/modules.css',
             'base/static/src/js/res_config_settings.js',
@@ -268,7 +270,8 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/scss/bootstrap_overridden_report.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
-            ('include', 'web._assets_bootstrap_post_overrides'),
+            ('include', 'web._assets_bootstrap_load_mandatory'),
+            ('include', 'web._assets_bootstrap_load_optional'),
 
             'base/static/src/css/description.css',
             'web/static/src/libs/fontawesome/css/font-awesome.css',
@@ -312,7 +315,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/scss/secondary_variables.scss',
         ],
         'web._assets_helpers': [
-            ('include', 'web._assets_bootstrap_pre_overrides'),
+            ('include', 'web._assets_bootstrap_load_function'),
 
             ('include', 'web._assets_primary_variables'),
             ('include', 'web._assets_secondary_variables'),
@@ -334,15 +337,18 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_primary_variables'),
             ('include', 'web._assets_secondary_variables'),
         ],
-        'web._assets_bootstrap_pre_overrides': [
+        'web._assets_bootstrap_load_function': [
             'web/static/lib/bootstrap/scss/_functions.scss',
+
             'web/static/src/functions.scss',
         ],
-        'web._assets_bootstrap_post_overrides': [
+        'web._assets_bootstrap_load_mandatory': [
             'web/static/lib/bootstrap/scss/_variables.scss',
             'web/static/lib/bootstrap/scss/_mixins.scss',
-            'web/static/lib/bootstrap/scss/_utilities.scss',
+        ],
+        'web._assets_bootstrap_load_optional': [
             'web/static/lib/bootstrap/scss/_root.scss',
+            'web/static/lib/bootstrap/scss/_utilities.scss',
             'web/static/lib/bootstrap/scss/_reboot.scss',
             'web/static/lib/bootstrap/scss/_type.scss',
             'web/static/lib/bootstrap/scss/_images.scss',
@@ -379,6 +385,8 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/scss/bootstrap_review.scss',
             'web/static/src/legacy/scss/bootstrap_review_bs5.scss',
         ],
+        # For override in web_editor
+        'web._assets_bootstrap_custom_color_theme': [],
         'web._assets_bootstrap_bs4': [
             'web/static/src/legacy/scss/import_bootstrap_4.scss',
             'web/static/src/legacy/scss/bootstrap_review.scss',
