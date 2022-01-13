@@ -13,6 +13,7 @@ patch(NavBar.prototype, 'website_navbar', {
         this.websiteService = useService('website');
 
         useBus(websiteSystrayRegistry, 'EDIT-WEBSITE', () => this.render(true));
+        useBus(websiteSystrayRegistry, 'CONTENT-UPDATED', () => this.render(true));
     },
 
     /**
