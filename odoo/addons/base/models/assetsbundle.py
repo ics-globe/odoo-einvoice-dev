@@ -163,7 +163,7 @@ class AssetsBundle(object):
             if self.css_errors:
                 msg = '\n'.join(self.css_errors)
                 response.append(JavascriptAsset(self, inline=self.dialog_message(msg)).to_node())
-                response.append(StylesheetAsset(self, url="/web/static/lib/bootstrap/css/bootstrap.css").to_node())
+                response.append(StylesheetAsset(self, url="/web/static/lib/bootstrap/dist/css/bootstrap.css").to_node())
 
         if js and self.javascripts:
             js_attachment = self.js(is_minified=not is_debug_assets)
@@ -1062,5 +1062,4 @@ class LessStylesheetAsset(PreprocessedCSS):
                 lessc = misc.find_in_path('lessc')
         except IOError:
             lessc = 'lessc'
-        lesspath = get_resource_path('web', 'static', 'lib', 'bootstrap', 'less')
-        return [lessc, '-', '--no-js', '--no-color', '--include-path=%s' % lesspath]
+        return [lessc, '-', '--no-js', '--no-color']
