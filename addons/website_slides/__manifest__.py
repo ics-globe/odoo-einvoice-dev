@@ -103,9 +103,9 @@ Featuring
             'website_slides/static/src/js/website_slides.editor.js',
         ],
         'website_slides.slide_embed_assets': [
-            ('include', 'web._assets_helpers'),
-            'web/static/lib/bootstrap/scss/_variables.scss',
-            ('include', 'web._assets_bootstrap'),
+            ('include', 'web._assets_helpers_bs4'),
+            'web/static/lib/bootstrap-4/scss/_variables.scss',
+            ('include', 'web._assets_bootstrap_bs4'),
             'website_slides/static/src/scss/website_slides.scss',
             ('include', 'web.pdf_js_lib'),
             'website_slides/static/lib/pdfslidesviewer/PDFSlidesViewer.js',

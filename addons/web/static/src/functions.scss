@@ -1,0 +1,93 @@
+@function luma($color) {
+    @return ((red($color) * .299) + (green($color) * .587) + (blue($color) * .114)) / 255 * 100%;
+}
+
+//
+// Given two colors, returns the one which has the most constrast with another
+// given color. Careful: if you want to find the text color which will suit the
+// most on a given background color, you should use the 'color-yiq' function.
+//
+@function o-get-most-contrast($color, $c1, $c2, $background: #FFFFFF, $threshold: false, $cross-mix: true) {
+    $background: if($background == null, #FFFFFF, $background);
+
+    $real-color: mix(rgba($color, 1.0), $background, percentage(alpha($color)));
+    $luma: luma($real-color);
+
+    $cross-color: if($cross-mix, $real-color, $background);
+
+    $real-c1: mix(rgba($c1, 1.0), $cross-color, percentage(alpha($c1)));
+    $luma-c1: luma($real-c1);
+
+    $real-c2: mix(rgba($c2, 1.0), $cross-color, percentage(alpha($c2)));
+    $luma-c2: luma($real-c2);
+
+    $-dark: if($luma-c1 <= $luma-c2, $c1, $c2);
+    $-light: if($luma-c1 > $luma-c2, $c1, $c2);
+
+    @if $threshold == false {
+        // Automatic threshold: give a really small preference to light results
+        // as bootstrap does by default (mainly by compatibility at the moment
+        // this code is written)
+        $threshold: ($luma-c1 + $luma-c2) * 0.515; // 150 / 145.63 * 0.5 would be the BS value
+    }
+
+    @return if($luma > $threshold, $-dark, $-light);
+}
+
+// Odoo defines a limited Noto font-family for a small variety of unicode
+// characters that are not necessary defined in the user system or even defined
+// but not properly readable. This function allows to add this font family in a
+// given font list.
+//
+// @param {list} $font - a list of font names ending with the generic one.
+// @param {integer} [$index] - the position where to add the support font, if
+//        not given, it will be placed before the generic one.
+@function o-add-unicode-support-font($font, $index: false) {
+    @if $index == false {
+        $index: length($font);
+    }
+
+    $-with-support-font: ();
+    @for $i from 1 through length($font) {
+        @if $i == $index {
+            $-with-support-font: append($-with-support-font, 'Odoo Unicode Support Noto', $separator: comma);
+        }
+        $-with-support-font: append($-with-support-font, nth($font, $i), $separator: comma);
+    }
+
+    @return $-with-support-font;
+}
+
+// Function to remove all null values of a map
+@function o-map-omit($map) {
+    $-map: ();
+    @each $key, $value in $map {
+        @if $value != null {
+            $-map: map-merge($-map, (
+                    $key: $value,
+            ));
+        }
+    }
+    @return $-map;
+}
+
+// Function to swap two values in a list
+@function o-swap($list, $i, $j) {
+    $tmp: nth($list, $i);
+    $list: set-nth($list, $i, nth($list, $j));
+    @return set-nth($list, $j, $tmp);
+}
+
+// Function to get an element of a list with a default value in case the index
+// is out-of-bounds; also return that value if the retrieved value is null.
+@function o-safe-nth($list, $index, $default: null) {
+    $value: if($index > 0 and $index <= length($list), nth($list, $index), null);
+    @return if($value != null, $value, $default);
+}
+
+// Function to get an element of a map with a default value in case the key
+// does not exist; also return that value if the retrieved value is null.
+@function o-safe-get($map, $key, $default: null) {
+    $value: map-get($map, $key);
+    @return if($value != null, $value, $default);
+}

@@ -60,14 +60,14 @@
     'assets': {
         # Custom bundle in case we want to remove things that are later added to web.assets_common
         'mail.assets_common_discuss_public': [
-            ('include', 'web.assets_common'),
+            ('include', 'web.assets_common_bs4'),
         ],
         'mail.assets_discuss_public': [
             # SCSS dependencies (the order is important)
-            ('include', 'web._assets_helpers'),
+            ('include', 'web._assets_helpers_bs4'),
             'web/static/src/legacy/scss/bootstrap_overridden.scss',
-            'web/static/lib/bootstrap/scss/_variables.scss',
-            'web/static/src/legacy/scss/import_bootstrap.scss',
+            'web/static/lib/bootstrap-4/scss/_variables.scss',
+            'web/static/src/legacy/scss/import_bootstrap_4.scss',
             'web/static/src/legacy/scss/bootstrap_review.scss',
             'web/static/src/webclient/webclient.scss',
             'web/static/src/webclient/webclient_extra.scss',
