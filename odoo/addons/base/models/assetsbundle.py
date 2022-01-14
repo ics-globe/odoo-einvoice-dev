@@ -1025,6 +1025,10 @@ class ScssStylesheetAsset(PreprocessedCSS):
     def bootstrap_path(self):
         return get_resource_path('web', 'static', 'lib', 'bootstrap', 'scss')
 
+    @property
+    def bootstrap4_path(self):
+        return get_resource_path('web', 'static', 'lib', 'bootstrap-4', 'scss')
+
     precision = 8
     output_style = 'expanded'
 
@@ -1033,11 +1037,15 @@ class ScssStylesheetAsset(PreprocessedCSS):
             return super(ScssStylesheetAsset, self).compile(source)
 
         try:
+            # As we had Bootstrap 4 for the frontend and Bootstrap 5 for the backend
+            # we need to specify a different path to include to LibSASS
+            is_bootstrap_4 = 'frontend' in self.bundle.name
+
             profiler.force_hook()
             return libsass.compile(
                 string=source,
                 include_paths=[
-                    self.bootstrap_path,
+                    self.bootstrap4_path if is_bootstrap_4 else self.bootstrap_path,
                 ],
                 output_style=self.output_style,
                 precision=self.precision,
