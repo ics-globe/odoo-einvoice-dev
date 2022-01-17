@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.top.location.replace(href);
             }
         });
-
+        document.addEventListener('keydown', ev => {
+            window.frameElement.dispatchEvent(new KeyboardEvent('keydown', ev));
+        });
+        document.addEventListener('keyup', ev => {
+            window.frameElement.dispatchEvent(new KeyboardEvent('keyup', ev));
+        });
     }
 });
