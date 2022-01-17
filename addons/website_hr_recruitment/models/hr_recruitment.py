@@ -81,6 +81,7 @@ class Job(models.Model):
         country_id = options.get('country')
         department_id = options.get('department')
         office_id = options.get('office_id')
+        is_remote = options.get('is_remote')
 
         domain = [website.website_domain()]
         if country_id:
@@ -90,6 +91,8 @@ class Job(models.Model):
             domain.append([('department_id', '=', unslug(department_id)[1])])
         if office_id:
             domain.append([('address_id', '=', office_id)])
+        elif is_remote:
+            domain.append([('address_id', '=', None)])
 
         if requires_sudo and not self.env.user.has_group('hr_recruitment.group_hr_recruitment_user'):
             # Rule must be reinforced because of sudo.

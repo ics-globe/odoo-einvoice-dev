@@ -54,6 +54,9 @@
 <!-- Topbar Customizations -->
 <template id="topbar_customizations" name="Topbar" priority="10">
     <!-- Sets -->
+    <t t-set="current_country_path" t-valuef="#{ '/remote' if is_remote else ('/country/%s' % slug(country_id) if country_id else '') }"/>
+    <t t-set="current_department_path" t-valuef="#{ '/department/%s' % slug(department_id) if department_id else '' }"/>
+    <t t-set="current_office_path" t-valuef="#{ '' if is_remote else '/office/%s' % office_id.id if office_id else '' }"/>
     <t t-set="opt_jobs_filter_countries" t-value="is_view_active('website_hr_recruitment.job_filter_by_countries')"/>
     <t t-set="opt_jobs_filter_departments" t-value="is_view_active('website_hr_recruitment.job_filter_by_departments')"/>
     <t t-set="opt_jobs_filter_offices" t-value="is_view_active('website_hr_recruitment.job_filter_by_offices')"/>
@@ -71,20 +74,28 @@
             <a href="#" role="button" class="btn dropdown-toggle w-100" data-toggle="dropdown">
                 <i class="fa fa-map-marker"/>
                 <t t-if="country_id" t-out="country_id.name"/>
+                <t t-elif="is_remote">Remote</t>
                 <t t-else=""><span t-attf-class="#{(opt_jobs_filter_departments or opt_jobs_filter_offices) and 'd-none d-md-inline-block'}">All Countries</span></t>
             </a>
             <div class="dropdown-menu">
-                <a  t-attf-href="/jobs#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id.id if office_id else '' }?all_countries=1"
-                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if country_id else ' active'}">
+                <a  t-attf-href="/jobs#{current_department_path}#{current_office_path}?all_countries=1"
+                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if country_id or is_remote else ' active'}">
                     All Countries
                     <span class="badge badge-pill badge-primary ml-2" t-out="count_per_country.get('all', '0')"/>
                 </a>
                 <t t-foreach="countries" t-as="country">
-                    <t t-if="len(countries)" class="nav-item">
-                        <a  t-attf-href="/jobs/country/#{ slug(country) }#{ '/department/%s' % slug(department_id) if department_id else '' }#{ '/office/%s' % office_id.id if office_id else '' }"
+                    <t t-if="country">
+                        <a  t-attf-href="/jobs/country/#{ slug(country) }#{current_department_path}#{current_office_path}"
                             t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if country_id and country_id.id == country.id else ''}">
                             <t t-out="country.name"/>
                             <span class="badge badge-pill badge-primary ml-2" t-out="count_per_country.get(country, '0')"/>
+                        </a>
+                    </t>
+                    <t t-else="">
+                        <a  t-attf-href="/jobs/remote#{current_department_path}"
+                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{' active' if is_remote else ''}">
+                            Remote
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_country.get(None, '0')"/>
                         </a>
                     </t>
                 </t>
@@ -103,19 +114,17 @@
                 <t t-else=""><span t-attf-class="#{(opt_jobs_filter_countries or opt_jobs_filter_offices) and 'd-none d-md-inline-block'}">All Departments</span></t>
             </a>
             <div class="dropdown-menu">
-                <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/office/%s' % office_id.id if office_id else ''}"
+                <a  t-attf-href="/jobs#{current_country_path}#{current_office_path}"
                     t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if department_id else ' active'}">
                     All Departments
                     <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get('all', '0')"/>
                 </a>
                 <t t-foreach="departments" t-as="department">
-                    <t t-if="len(countries)" class="nav-item">
-                        <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }/department/#{ slug(department) }#{ '/office/%s' % office_id.id if office_id else '' }"
-                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if department_id and department_id.id == department.id else ''}">
-                            <t t-out="department.name"/>
-                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(department, '0')"/>
-                        </a>
-                    </t>
+                    <a  t-attf-href="/jobs#{current_country_path}/department/#{ slug(department) }#{current_office_path}"
+                        t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if department_id and department_id.id == department.id else ''}">
+                        <t t-out="department.name"/>
+                        <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(department, '0')"/>
+                    </a>
                 </t>
             </div>
         </li>
@@ -131,20 +140,28 @@
                 <t t-if="office_id">
                     <t t-out="office_id.city"/><t t-if="office_id.country_id">, <t t-out="office_id.country_id.name"/></t>
                 </t>
+                <t t-elif="is_remote">Remote</t>
                 <t t-else=""><span t-attf-class="#{(opt_jobs_filter_countries or opt_jobs_filter_departments) and 'd-none d-md-inline-block'}">All Offices</span></t>
             </a>
             <div class="dropdown-menu dropdown-menu-right">
-                <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/department/%s' % slug(department_id) if department_id else '' }"
-                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if office_id else ' active'}">
+                <a  t-attf-href="/jobs#{'' if is_remote else current_country_path}#{current_department_path}"
+                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if office_id or is_remote else ' active'}">
                     All Offices
                     <span class="badge badge-pill badge-primary ml-2" t-out="count_per_office.get('all', '0')"/>
                 </a>
                 <t t-foreach="offices" t-as="thisoffice">
-                    <t t-if="len(offices)" class="nav-item">
-                        <a  t-attf-href="/jobs#{ '/country/%s' % slug(country_id) if country_id else '' }#{ '/department/%s' % slug(department_id) if department_id else '' }/office/#{ thisoffice.id }"
+                    <t t-if="thisoffice" class="nav-item">
+                        <a  t-attf-href="/jobs#{current_country_path}#{current_department_path}/office/#{ thisoffice.id }"
                             t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if office_id and office_id.id == thisoffice.id else ''}">
                             <t t-out="thisoffice.city"/><t t-if="thisoffice.country_id">, <t t-out="thisoffice.country_id.name"/></t>
                             <span class="badge badge-pill badge-primary ml-2" t-out="count_per_office.get(thisoffice, '0')"/>
+                        </a>
+                    </t>
+                    <t t-else="">
+                        <a  t-attf-href="/jobs/remote#{current_department_path}"
+                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{' active' if is_remote else ''}">
+                            Remote
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_office.get(None, '0')"/>
                         </a>
                     </t>
                 </t>

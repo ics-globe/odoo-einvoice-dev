@@ -33,12 +33,18 @@ class WebsiteHrRecruitment(http.Controller):
         '/jobs/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
+        '/jobs/remote',
+        '/jobs/remote/page/<int:page>',
+        '/jobs/remote/department/<model("hr.department"):department>',
+        '/jobs/remote/department/<model("hr.department"):department>/page/<int:page>',
     ], type='http', auth="public", website=True, sitemap=sitemap_jobs)
     def jobs(self, country=None, department=None, office_id=None, page=1, search=None, **kwargs):
         env = request.env(context=dict(request.env.context, show_address=True, no_tag_br=True))
 
         Country = env['res.country']
         Jobs = env['hr.job']
+
+        is_remote = 'remote' in request.httprequest.path.split('/')
 
         # Default search by user country
         if not (country or department or office_id or kwargs.get('all_countries')):
@@ -60,6 +66,7 @@ class WebsiteHrRecruitment(http.Controller):
             'country': str(country.id) if country else None,
             'department': str(department.id) if department else None,
             'office_id': office_id,
+            'is_remote': is_remote,
         }
         total, details, fuzzy_search_term = request.website._search_with_fuzzy("jobs", search,
             limit=1000, order="is_published desc, sequence, no_of_recruitment desc", options=options)
@@ -67,9 +74,9 @@ class WebsiteHrRecruitment(http.Controller):
         jobs = details[0].get('results', Jobs).sudo()
 
         # Deduce offices, departments and countries offices of those jobs
-        offices = set(j.address_id for j in jobs if j.address_id)
+        offices = set(j.address_id or None for j in jobs)
         departments = set(j.department_id for j in jobs if j.department_id)
-        countries = set(o.country_id for o in offices if o.country_id)
+        countries = set(o and o.country_id or None for o in offices)
 
         total = len(jobs)
 
@@ -82,6 +89,10 @@ class WebsiteHrRecruitment(http.Controller):
         count_per_office = {'all': total}
         for o, jobs_list in groupby(jobs, lambda job: job.address_id):
             count_per_office[o] = len(jobs_list)
+        count_remote = len(jobs.filtered(lambda job: not job.address_id))
+        if count_remote:
+            count_per_country[None] = count_remote
+            count_per_office[None] = count_remote
 
         pager = request.website.pager(
             url=request.httprequest.path.partition('/page/')[0],
@@ -104,6 +115,7 @@ class WebsiteHrRecruitment(http.Controller):
             'country_id': country,
             'department_id': department,
             'office_id': office,
+            'is_remote': is_remote,
             'pager': pager,
             'search': fuzzy_search_term or search,
             'search_count': total,
