@@ -365,6 +365,11 @@
 </template>
 
 <!-- Job Description -->
+<template id="default_description" name="Job Description">
+    Demonstration of different Odoo services for each client and convincing the client about
+    functionality of the application. The candidate should have excellent communication skills.
+</template>
+
 <template id="default_website_description" name="Job Description">
     <!-- Description text and ratings -->
     <section class="pt32">
