@@ -21,6 +21,23 @@
     }
 }
 
+@mixin hover-focus-active {
+    &:hover,
+    &:focus,
+    &:active {
+        @content;
+    }
+}
+
+// For each breakpoint, define the maximum width of the container in a media query
+@mixin make-container-max-widths($max-widths: $container-max-widths, $breakpoints: $grid-breakpoints) {
+    @each $breakpoint, $container-max-width in $max-widths {
+        @include media-breakpoint-up($breakpoint, $breakpoints) {
+            max-width: $container-max-width;
+        }
+    }
+}
+
 //addons/web/static/lib/bootstrap-4/scss/_variables.scss
 $emphasized-link-hover-darken-percentage: 15% !default;
 
@@ -38,6 +55,22 @@ $emphasized-link-hover-darken-percentage: 15% !default;
     }
 }
 
+// Only display content to screen readers
+//
+// See: https://a11yproject.com/posts/how-to-hide-content/
+// See: https://hugogiraudel.com/2016/10/13/css-hide-and-seek/
+
+@mixin sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 // addons/web/static/lib/bootstrap-4/scss/_variables.scss
 $custom-control-indicator-border-color: #adb5bd !default;
 
@@ -46,3 +79,6 @@ $custom-control-indicator-checked-disabled-bg: #e9ecef !default;
 $custom-control-gutter:                 .5rem !default;
 
 $table-head-color:            #495057 !default;
+
+$table-cell-padding:          .75rem !default;
+$table-cell-padding-sm:       .3rem !default;
