@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.addons.base.models.res_users import is_selection_groups, get_selection_groups
+from odoo.addons.base.models.res_users import is_selection_groups, get_selection_groups, name_selection_groups
 from odoo.tests.common import TransactionCase, Form, tagged
 
 
@@ -118,6 +118,97 @@ class TestUsers(TransactionCase):
 
 @tagged('post_install', '-at_install')
 class TestUsers2(TransactionCase):
+
+    def setUp(self):
+        """
+            These are the Groups and their Hierarchy we have Used to test Group warnings.
+            Groups:
+                Sales
+                ├── User: All Documents
+                └── Administrator
+                Timesheets
+                ├── Administrator
+                ├── User: all timesheets
+                └── User: own timesheets only
+                Project
+                ├── Administrator
+                └── User
+                Field Service
+                ├── Administrator
+                └── User
+
+            Hierarchy:
+                Sales / Administrator
+                └── Sales / User: All Documents
+
+                Timesheets / Administrator
+                └── Timesheets / User: all timesheets
+                    └── Timehseets / User: own timesheets only
+
+                Project / Administrator
+                ├── Project / User
+                └── Timesheets / User: all timesheets
+
+                Field Service / Administrator
+                ├── Sales / Administrator
+                ├── Project / Administrator
+                └── Field Service / User
+        """
+        super().setUp()
+        ResGroups = self.env['res.groups']
+        cat_sales = self.env['ir.module.category'].create({'name': 'Sales'})
+        cat_project = self.env['ir.module.category'].create({'name': 'Project'})
+        cat_field_service = self.env['ir.module.category'].create({'name': 'Field Service'})
+        cat_timesheets = self.env['ir.module.category'].create({'name': 'Timesheets'})
+
+        # Sales
+        self.group_sales_user, self.group_sales_administrator = ResGroups.create([
+            {'name': name, 'category_id': cat_sales.id}
+            for name in ('User: All Documents', 'Administrator')
+        ])
+        self.sales_cat_field = name_selection_groups((self.group_sales_user | self.group_sales_administrator).ids)
+        self.group_sales_administrator.implied_ids = self.group_sales_user
+
+        # Timesheets
+        self.group_timesheets_user_own_timesheet, self.group_timesheets_user_all_timesheet, self.group_timesheets_administrator = ResGroups.create([
+            {'name': name, 'category_id': cat_timesheets.id}
+            for name in ('User: own timesheets only', 'User: all timesheets', 'Administrator')
+        ])
+        self.timesheet_cat_field = name_selection_groups((self.group_timesheets_user_own_timesheet |
+                                                          self.group_timesheets_user_all_timesheet |
+                                                          self.group_timesheets_administrator).ids
+                                                         )
+        self.group_timesheets_administrator.implied_ids += self.group_timesheets_user_all_timesheet
+        self.group_timesheets_user_all_timesheet.implied_ids += self.group_timesheets_user_own_timesheet
+
+        # Project
+        self.group_project_user, self.group_project_admnistrator = ResGroups.create([
+            {'name': name, 'category_id': cat_project.id}
+            for name in ('User', 'Administrator')
+        ])
+        self.project_cat_field = name_selection_groups((self.group_project_user | self.group_project_admnistrator).ids)
+        self.group_project_admnistrator.implied_ids = (self.group_project_user | self.group_timesheets_user_all_timesheet)
+
+        # Field Service
+        self.group_field_service_user, self.group_field_service_administrator = ResGroups.create([
+            {'name': name, 'category_id': cat_field_service.id}
+            for name in ('User', 'Administrator')
+        ])
+        self.field_service_cat_field = name_selection_groups((self.group_field_service_user | self.group_field_service_administrator).ids)
+        self.group_field_service_administrator.implied_ids = (self.group_sales_administrator |
+                                                              self.group_project_admnistrator |
+                                                              self.group_field_service_user).ids
+
+        # User
+        self.test_group_user = self.env['res.users'].create({
+            'name': 'Test Group User',
+            'login': 'TestGroupUser',
+            'groups_id': (
+                self.env.ref('base.group_user') |
+                self.group_timesheets_administrator |
+                self.group_field_service_administrator).ids
+        })
+
     def test_reified_groups(self):
         """ The groups handler doesn't use the "real" view with pseudo-fields
         during installation, so it always works (because it uses the normal
@@ -217,3 +308,85 @@ class TestUsers2(TransactionCase):
 
         setattr(user_form, group_field_name, group_public.id)
         self.assertTrue(user_form.share, 'The groups_id onchange should have been triggered')
+
+    def test_user_group_inheritance_no_warning(self):
+        """
+            The warning should not be there when the User tries to Change to Higher rights.
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.sales_cat_field] = self.group_sales_administrator.id
+            UserForm._perform_onchange([self.sales_cat_field])
+
+            self.assertFalse(UserForm.user_group_warning)
+
+    def test_user_group_parent_inheritance_no_warning(self):
+        """
+            The warning should not be there when the User Changes Parent rights to Lower one
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.field_service_cat_field] = self.group_field_service_user.id
+            UserForm._perform_onchange([self.field_service_cat_field])
+
+            self.assertFalse(UserForm.user_group_warning)
+
+    def test_user_group_inheritance_warning(self):
+        """
+            User makes changes to Sales User from Sales Administrator.
+            The warning should be there since Sales Administrator is Required
+            when User has Field Service Administrator
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.sales_cat_field] = self.group_sales_user.id
+            UserForm._perform_onchange([self.sales_cat_field])
+
+            self.assertEqual(
+                UserForm.user_group_warning,
+                'Since Test Group User is a/an Field Service Administrator, you can set Sales right only to Administrator'
+            )
+
+    def test_user_multi_group_inheritance_warning(self):
+        """
+           User makes changes To Sales User and Project User from Administrator
+           The warming should be there since Administrator for both are required
+           when User has Field Service Administrator
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.sales_cat_field] = self.group_sales_user.id
+            UserForm._values[self.project_cat_field] = self.group_project_user.id
+            UserForm._perform_onchange([self.sales_cat_field])
+
+            warnings = [
+                "Since Test Group User is a/an Field Service Administrator, you can set Sales right only to Administrator",
+                "Since Test Group User is a/an Field Service Administrator, you can set Project right only to Administrator"
+            ]
+            self.assertTrue(all(warning in UserForm.user_group_warning for warning in warnings))
+
+    def test_user_multi_possible_group_inheritance_warning(self):
+        """
+            User makes changes to Timesheets / User: Own Timesheet from Timesheets / Administrator
+            The warning should be there since Timessets / Administrator and Timesheets / User: All Documents
+            required when the User has Project Administrator
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.timesheet_cat_field] = self.group_timesheets_user_own_timesheet.id
+            UserForm._perform_onchange([self.timesheet_cat_field])
+
+            self.assertEqual(
+                UserForm.user_group_warning,
+                'Since Test Group User is a/an Project Administrator, you can set Timesheets right only to Administrator or User: all timesheets'
+            )
+
+    def test_user_group_empty_group_warning(self):
+        """
+            User Makes Sales Rights to Empty.
+            The warning should be there since Sales Administrator is Required
+            when User has Field Service Administrator
+        """
+        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
+            UserForm._values[self.sales_cat_field] = False
+            UserForm._perform_onchange([self.sales_cat_field])
+
+            self.assertEqual(
+                UserForm.user_group_warning,
+                'Since Test Group User is a/an Field Service Administrator, they will at the minimum have the Sales: Administrator access too'
+            )

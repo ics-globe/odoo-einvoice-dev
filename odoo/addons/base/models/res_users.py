@@ -199,6 +199,80 @@ class Groups(models.Model):
             return len(groups) if count else groups.ids
         return super(Groups, self)._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
 
+    def _get_recursive_implied_groups(self, recursive_groups):
+        for group in self.implied_ids.filtered(
+            lambda grp:
+            grp.category_id == self.category_id
+        ):
+            recursive_groups |= group
+            recursive_groups = group._get_recursive_implied_groups(recursive_groups)
+        return recursive_groups
+
+    def _prepare_warning_for_group_inheritance(self, user):
+        if not self:
+            return {}
+        inherited_groups = {}
+        self = self._origin
+        for selected_group in self:
+            # Prepare dictionary, with key = selected group, values = all the groups that matches their
+            # implied groups' category with selected group's category
+            inherited_groups[selected_group] = self.filtered(
+                lambda group:
+                selected_group.category_id in group.implied_ids.category_id and
+                selected_group.category_id != group.category_id and
+                selected_group not in group.implied_ids
+            )
+        warnings = []
+        for selected_group, other_groups in inherited_groups.items():
+            if other_groups:
+                # From the groups user has, find the ones with selected group's category
+                selected_category_groups = self.filtered(lambda group: group.category_id == selected_group.category_id)
+                # Get all the implied groups of a selected group
+                selected_category_implied_groups = selected_category_groups._get_recursive_implied_groups(selected_category_groups)
+                # Get the minimum group needed in selected group's category (For example, someone changes
+                # Sales: Admin to Sales: User, but Field Service is already set to Admin, so here in the
+                # 'Sales' category, we will at the minimum need Admin group)
+                minimum_required_groups = other_groups.implied_ids.filtered(
+                    lambda group:
+                    group.category_id == selected_group.category_id and
+                    group not in selected_category_implied_groups
+                )
+                if minimum_required_groups:
+                    all_selected_category_groups = self.search([('category_id', '=', selected_group.category_id.id)])
+                    # Groups that have higher access level than minimum_required_groups
+                    possible_groups = all_selected_category_groups - minimum_required_groups._get_recursive_implied_groups(self.browse())
+                    warnings.append(_(
+                        "Since %s is a/an %s %s, you can set %s right only to %s"
+                        ) % (
+                            user.name,
+                            other_groups[0].category_id.name,
+                            other_groups[0].name,
+                            selected_group.category_id.name,
+                            _(" or ").join(possible_groups.mapped('name'))
+                        )
+                    )
+        return warnings
+
+    def _prepare_warnings_for_removed_groups(self, user, categories):
+        warnings = []
+        for category in categories:
+            # Find the group that enforces that at-least 'minimum_required_groups' in empty categories
+            enforcing_groups = self.filtered(lambda grp: category in grp.implied_ids.category_id)
+            if enforcing_groups:
+                # Get the minimum group needed for emptied category
+                minimum_required_groups = enforcing_groups.implied_ids.filtered(lambda grp: grp.category_id == category)
+                warnings.append(_(
+                    "Since %s is a/an %s %s, they will at the minimum have the %s: %s access too"
+                    ) % (
+                        user.name,
+                        enforcing_groups[0].category_id.name,
+                        enforcing_groups[0].name,
+                        category.name,
+                        minimum_required_groups[0].name
+                    )
+                )
+        return warnings
+
     def copy(self, default=None):
         self.ensure_one()
         chosen_name = default.get('name') if default else ''
@@ -1278,6 +1352,7 @@ class GroupsView(models.Model):
                     # application name with a selection field
                     field_name = name_selection_groups(gs.ids)
                     attrs['attrs'] = user_type_readonly
+                    attrs['on_change'] = '1'
                     if category_name not in xml_by_category:
                         xml_by_category[category_name] = []
                         xml_by_category[category_name].append(E.newline())
@@ -1390,6 +1465,20 @@ class ModuleCategory(models.Model):
 
 class UsersView(models.Model):
     _inherit = 'res.users'
+
+    user_group_warning = fields.Text(compute="_compute_user_group_warning")
+
+    @api.depends('groups_id')
+    def _compute_user_group_warning(self):
+        self.user_group_warning = False
+        categories = self.env['ir.module.category'].search([])
+        for user in self:
+            group_inheritance_warnings = user.groups_id._prepare_warning_for_group_inheritance(user)
+            # categories for which the empty selection value is selected
+            removed_groups_categories = categories - user.groups_id.category_id
+            removed_group_warnings = user.groups_id._prepare_warnings_for_removed_groups(user, removed_groups_categories)
+
+            user.user_group_warning = "\n".join(group_inheritance_warnings + removed_group_warnings)
 
     @api.model_create_multi
     def create(self, vals_list):
