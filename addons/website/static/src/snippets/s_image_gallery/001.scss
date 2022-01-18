@@ -6,17 +6,23 @@
         }
     }
     &.o_grid {
-        &.o_spc-none div.row {
-            margin-bottom: 0px;
+        &.o_spc-none div.row > div {
+            padding: 0px;
         }
         &.o_spc-small div.row > div {
-            margin-bottom: $spacer;
+            padding: $spacer;
         }
         &.o_spc-medium div.row > div {
-            margin-bottom: $spacer * 2;
+            padding: $spacer * 2;
         }
         &.o_spc-big div.row > div {
-            margin-bottom: $spacer * 3;
+            padding: $spacer * 3;
+        }
+        & .row > div:first-child {
+            padding-left: $spacer !important;
+        }
+        & .row > div:last-child {
+            padding-right: $spacer !important;
         }
     }
     &.o_masonry {
@@ -47,20 +53,22 @@
     }
     &.o_nomode {
         &.o_spc-none .row div {
-            padding-top: 0;
-            padding-bottom: 0;
+            padding: 0;
         }
         &.o_spc-small .row div {
-            padding-top: $spacer * .5;
-            padding-bottom: $spacer * .5;
+            padding: $spacer;
         }
         &.o_spc-medium .row div {
-            padding-top: $spacer;
-            padding-bottom: $spacer;
+            padding: $spacer * 2;
         }
         &.o_spc-big .row div {
-            padding-top: $spacer * 1.5;
-            padding-bottom: $spacer * 1.5;
+            padding: $spacer * 3;
+        }
+        & .row > div.o_spc-first {
+            padding-left: $spacer !important;
+        }
+        & .row > div.o_spc-last {
+            padding-right: $spacer !important;
         }
     }
     &:not(.o_slideshow) {

@@ -219,15 +219,24 @@ options.registry.gallery = options.Class.extend({
     nomode: function () {
         var $row = $('<div/>', {class: 'row s_nb_column_fixed'});
         var imgs = this._getImages();
-
+        let colIndex = 0;
         this._replaceContent($row);
 
-        _.each(imgs, function (img) {
-            var wrapClass = 'col-lg-3';
-            if (img.width >= img.height * 2 || img.width > 600) {
-                wrapClass = 'col-lg-6';
+        _.each(imgs, function (img, index) {
+            var cols = (img.width >= img.height * 2 || img.width > 600) ? 6 : 3;
+            let colExtraCSS = index === 0 ? 'o_spc-first'
+            : (index === imgs.length - 1) ? 'o_spc-last'
+            : '';
+            colIndex += cols;
+            if (colIndex > 12) {
+                colExtraCSS = 'o_spc-first';
+                const lastCol = $row[0].lastElementChild;
+                if ($row[0].lastElementChild) {
+                    lastCol.classList.add('o_spc-last');
+                }
+                colIndex = cols;
             }
-            var $wrap = $('<div/>', {class: wrapClass}).append(img);
+            var $wrap = $('<div/>', {class: `col-lg-${cols} ${colExtraCSS}`}).append(img);
             $row.append($wrap);
         });
     },
