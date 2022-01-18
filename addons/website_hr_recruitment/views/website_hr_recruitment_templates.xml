@@ -207,6 +207,12 @@
                                     </div>
                                 </div>
                             </t>
+                            <t t-elif="search and original_search">
+                                <div class="alert alert-info" role="alert">
+                                    <h4 class="text-center">No results found for '<span t-out="original_search"/>'. Showing results for '<span t-out="search"/>'.</h4>
+                                    <t t-set="search" t-value="original_search"/>
+                                </div>
+                            </t>
                             <div t-foreach="jobs" t-as="job" class="col-lg mb32">
                                 <div t-attf-class="card card-default h-100">
                                     <!-- <div t-attf-class="h-100" t-att-data-publish="job.website_published and 'on' or 'off'"> -->
