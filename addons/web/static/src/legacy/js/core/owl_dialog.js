@@ -181,6 +181,7 @@ odoo.define('web.OwlDialog', function (require) {
                 ev.preventDefault();
                 $(this.mainButton)
                     .tooltip({
+                        html: true,
                         delay: { show: 200, hide: 0 },
                         title: () => renderToString('web.DialogButton.tooltip', {
                             title: this.mainButton.innerText.toUpperCase(),

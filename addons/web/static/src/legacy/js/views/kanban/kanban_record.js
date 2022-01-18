@@ -134,6 +134,7 @@ var KanbanRecord = Widget.extend(WidgetAdapterMixin, {
             var tooltip = $el.attr('tooltip');
             if (tooltip) {
                 $el.tooltip({
+                    html: true,
                     title: self.qweb.render(tooltip, self.qweb_context)
                 });
             }

@@ -1414,6 +1414,7 @@ var SnippetsMenu = Widget.extend({
 
         // Add tooltips on we-title elements whose text overflows
         this.$el.tooltip({
+            html: true,
             selector: 'we-title, [data-tooltip="true"]',
             placement: 'bottom',
             delay: 100,

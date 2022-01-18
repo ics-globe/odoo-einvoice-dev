@@ -187,6 +187,7 @@ var FormController = BasicController.extend({
                 this.$buttons.on('click', '.o_form_button_cancel', this._onDiscard.bind(this));
                 this._assignSaveCancelKeyboardBehavior(this.$buttons.find('.o_form_buttons_edit'));
                 this.$buttons.find('.o_form_buttons_edit').tooltip({
+                    html: true,
                     delay: {show: 200, hide:0},
                     title: function(){
                         return qweb.render('SaveCancelButton.tooltip');

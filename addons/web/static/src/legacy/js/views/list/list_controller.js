@@ -172,6 +172,7 @@ var ListController = BasicController.extend({
             this.$buttons.on('click', '.o_list_button_add', this._onCreateRecord.bind(this));
             this._assignCreateKeyboardBehavior(this.$buttons.find('.o_list_button_add'));
             this.$buttons.find('.o_list_button_add').tooltip({
+                html: true,
                 delay: {show: 200, hide: 0},
                 title: function () {
                     return qweb.render('CreateButton.tooltip');

@@ -421,6 +421,7 @@ var FormRenderer = BasicRenderer.extend({
     _addButtonTooltip: function (node, $button) {
         var self = this;
         $button.tooltip({
+            html: true,
             title: function () {
                 return qweb.render('WidgetButton.tooltip', {
                     debug: config.isDebug(),
