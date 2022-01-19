@@ -1,0 +1,37 @@
+@mixin o-w-preserve-btn {
+    .btn:not(.o_btn_preview) {
+        border-radius: 0;
+        font-weight: normal;
+        text-transform: none;
+        @include button-size(.375rem, .75rem, 0.875rem, 0);
+
+        &.btn-primary {
+            @include button-variant($o-brand-primary, $o-brand-primary);
+            color: white;
+        }
+        &.btn-secondary {
+            @include button-variant(white, white);
+            color: $o-brand-primary;
+        }
+        &.btn-link {
+            @include button-variant(white, white);
+            color: $o-brand-primary;
+        }
+        &.btn-success {
+            @include button-variant($o-we-color-success, $o-we-color-success);
+            color: white;
+        }
+        &.btn-info {
+            @include button-variant($o-we-color-info, $o-we-color-info);
+            color: white;
+        }
+        &.btn-warning {
+            @include button-variant($o-we-color-warning, $o-we-color-warning);
+            color: #33363e;
+        }
+        &.btn-danger {
+            @include button-variant($o-we-color-danger, $o-we-color-danger);
+            color: #33363e;
+        }
+    }
+}

@@ -133,6 +133,12 @@ Odoo Web Editor widget.
         'web._assets_frontend_helpers': [
             ('prepend', 'web_editor/static/src/scss/bootstrap_overridden.scss'),
         ],
+        'web._assets_helpers': [
+            'web_editor/static/src/scss/web_editor.mixin_bs5.scss',
+        ],
+        'web._assets_helpers_bs4': [
+            'web_editor/static/src/scss/web_editor.mixin_bs4.scss',
+        ],
 
         # ----------------------------------------------------------------------
         # TESTS BUNDLES
