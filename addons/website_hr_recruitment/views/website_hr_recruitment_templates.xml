@@ -261,24 +261,7 @@
         <!-- </t> -->
     <!-- </div> -->
     <div class="o_job_infos mt16">
-        <!-- TO DO -->
-        <t t-if="str(job.address_id.city) == 'False'">
-                <address class="mb-0" itemscope="itemscope" itemtype="http://schema.org/Organization">
-                    <div itemprop="address" itemscope="itemscope" itemtype="http://schema.org/PostalAddress">
-                        <div class="d-flex align-items-baseline">
-                            <i class="fa fa-map-marker fa-fw" role="img" aria-label="Address" title="Address"></i>
-                            <span class="o_force_ltr">
-                                <div>
-                                    <span itemprop="addressLocality">Remote</span>
-                                </div>
-                            </span>
-                        </div>
-                    </div>
-                </address>
-        </t>
-        <t t-else="">
-            <span t-field="job.address_id" t-options='{"widget": "contact","fields": ["city"],"no_tag_br": True}'/>
-        </t>
+        <span t-field="job.address_id" t-options='{"widget": "contact", "fields": ["city"], "no_tag_br": True, "null_text": "Remote"}'/>
         <t t-if="str(job.department_id.name) != 'False'">
             <i class="fa fa-sitemap fa-fw"/><span t-field="job.department_id" t-options='{"fields": ["name"],"no_tag_br": True}'/>
         </t>

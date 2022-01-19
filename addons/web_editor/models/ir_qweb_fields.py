@@ -199,8 +199,10 @@ class ManyToOne(models.AbstractModel):
             if many2one:
                 attrs['data-oe-many2one-id'] = many2one.id
                 attrs['data-oe-many2one-model'] = many2one._name
-            elif options.get('null_text'):
-                attrs['data-oe-many2one-model'] = record._fields[field_name].comodel_name
+            if options.get('null_text'):
+                attrs['data-oe-many2one-allowreset'] = 1
+                if not many2one:
+                    attrs['data-oe-many2one-model'] = record._fields[field_name].comodel_name
         return attrs
 
     @api.model
@@ -210,8 +212,7 @@ class ManyToOne(models.AbstractModel):
         M2O = self.env[field.comodel_name]
         field_name = element.get('data-oe-field')
         many2one_id = int(element.get('data-oe-many2one-id'))
-        # TODO make reset explicit
-        allow_reset = element.get('data-oe-many2one-reset') or True
+        allow_reset = element.get('data-oe-many2one-allowreset')
         if allow_reset and many2one_id == 0:
             # reset the id of the many2one
             Model.browse(id).write({field_name: None})
