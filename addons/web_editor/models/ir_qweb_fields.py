@@ -208,6 +208,12 @@ class ManyToOne(models.AbstractModel):
         M2O = self.env[field.comodel_name]
         field_name = element.get('data-oe-field')
         many2one_id = int(element.get('data-oe-many2one-id'))
+        # TODO make reset explicit
+        allow_reset = element.get('data-oe-many2one-reset') or True
+        if allow_reset and many2one_id == 0:
+            # reset the id of the many2one
+            Model.browse(id).write({field_name: None})
+            return None
         record = many2one_id and M2O.browse(many2one_id)
         if record and record.exists():
             # save the new id of the many2one
