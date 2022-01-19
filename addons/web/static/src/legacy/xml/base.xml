@@ -833,13 +833,14 @@
         <t t-if="widget.operator === '!'">NONE</t>
     </strong>
 </t>
-<div aria-atomic="true" t-name="DomainSelector" t-attf-class="o_domain_node o_domain_tree o_domain_selector #{widget.readonly ? 'o_read_mode' : 'o_edit_mode'}">
+
+<div aria-atomic="true" t-name="DomainSelector" t-attf-class="o_domain_node o_domain_tree testing o_domain_selector #{widget.readonly ? 'o_read_mode' : 'o_edit_mode'} #{widget.children.length ? '' : 'mt-2'}">
     <t t-if="widget.children.length === 0">
         <span>Match <strong>all records</strong></span>
         <button t-if="!widget.readonly" class="btn btn-sm btn-primary o_domain_add_first_node_button"><i class="fa fa-plus"/> Add filter</button>
     </t>
     <t t-else="">
-        <div class="o_domain_tree_header">
+        <div class="o_domain_tree_header oe_edit_only">
             <t t-if="widget.children.length === 1">Match records with the following rule:</t>
             <t t-else="">
                 <span>Match records with</span>

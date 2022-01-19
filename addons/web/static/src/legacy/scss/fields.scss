@@ -547,6 +547,21 @@
                 margin-top: 0;
             }
         }
+        // In readonly mode, display record count side by side
+        &:not(.o_edit_mode) {
+            display: flex;
+            > .o_domain_tree.o_read_mode {
+                padding-right: 1rem;
+                max-width: 70%;
+                top: -0.4rem;
+                .o_domain_leaf_info {
+                    width: 100%;
+                }
+            }
+            > .o_field_domain_panel {
+                margin-top: 0;
+            }
+        }
     }
 
     // PDF Viewer
