@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mail.ModelRelationArrowView" owl="1">
+        <div>
+            <t t-if="modelRelationArrowView">
+                <svg
+                    t-att-width="modelRelationArrowView.width"
+                    t-att-height="modelRelationArrowView.height"
+                    class="position-absolute"
+                    t-attf-style="
+                        color: green;
+                        top: {{ modelRelationArrowView.positionVertical }}px;
+                        left: {{ modelRelationArrowView.positionHorizontal }}px;
+                        z-index: -1;
+                    "
+                >
+                    <path
+                        t-attf-d="
+                            M{{ modelRelationArrowView.svgArrowStartHorizontal }},{{ modelRelationArrowView.svgArrowStartVertical }}
+                            L{{ modelRelationArrowView.svgArrowEndHorizontal }},{{ modelRelationArrowView.svgArrowEndVertical }}
+                        "
+                        t-attf-style="
+                            stroke: {{ modelRelationArrowView.isIdentifyingField ? '#E88' : '#888' }};
+                            stroke-width: {{ modelRelationArrowView.isIdentifyingField ? '1.6px' : '1.25px' }};
+                            fill: none;
+                        "/>
+                </svg>
+            </t>
+        </div>
+    </t>
+
+</templates>

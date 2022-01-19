@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mail.ModelFieldView" owl="1">
+        <div class="o_ModelFieldView" t-attf-class="{{ className }}" style="background: rgba(255, 255, 255, 0.5)" t-ref="root">
+            <t t-if="modelFieldView">
+                <span
+                    t-esc="modelFieldView.field.fieldName"
+                    t-attf-style="
+                        color: {{
+                            modelFieldView.isIdentifyingField ? '#822'
+                            : modelFieldView.isInverseIdentifyingField ? '#448'
+                            : 'initial'
+                        }};
+                        font-weight: {{
+                            modelFieldView.isIdentifyingField ? 'bolder'
+                            : modelFieldView.isInverseIdentifyingField ? 'bold'
+                            : 'initial'
+                        }};
+                    "
+                    t-ref="name"
+                />
+                (<t t-esc="modelFieldView.field.relationType"/>)
+                <button class="btn btn-secondary btn-sm ml-1" t-on-click="modelFieldView.onClickSelect">+</button>
+                <button class="btn btn-secondary btn-sm ml-1" t-on-click="modelFieldView.onClickUnselect">-</button>
+            </t>
+        </div>
+    </t>
+
+</templates>

@@ -43,6 +43,9 @@
                 />
             </div>
         </t>
+        <t t-if="discuss.modelGraphView">
+            <ModelGraphView localId="discuss.modelGraphView.localId"/>
+        </t>
         <t t-if="discuss.threadView">
             <t name="beforeThread"/>
             <ThreadView

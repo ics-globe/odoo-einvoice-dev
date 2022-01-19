@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mail.ModelGraphView" owl="1">
+        <span class="o_ModelGraphView d-flex flex-wrap position-relative" t-attf-class="{{ className }}" t-ref="root">
+            <t t-if="modelGraphView">
+                Models to start with: <input type="text" t-on-input="modelGraphView.onInput" t-att-value="modelGraphView.filterString" placeholder="comma separated list of model name"/>
+                <t t-foreach="modelGraphView.modelViews" t-as="modelView" t-key="modelView.localId">
+                    <ModelView localId="modelView.localId"/>
+                </t>
+                <t t-foreach="modelGraphView.modelRelationArrowViews" t-as="modelRelationArrowView" t-key="modelRelationArrowView.localId">
+                    <ModelRelationArrowView localId="modelRelationArrowView.localId"/>
+                </t>
+            </t>
+        </span>
+    </t>
+
+</templates>

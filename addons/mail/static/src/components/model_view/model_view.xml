@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mail.ModelView" owl="1">
+        <div class="o_ModelView" t-attf-class="{{ className }}" t-ref="root">
+            <t t-if="modelView">
+                <div class="border m-2 p-2">
+                    <div class="">
+                        <h5 class="">
+                            <span t-esc="modelView.model.name" style="background: rgba(255, 255, 255, 0.5)"/>
+                            <button class="btn btn-secondary btn-sm ml-1" title="Select all relations" t-on-click="modelView.onClickSelectAll">+</button>
+                            <button class="btn btn-secondary btn-sm ml-1" title="Unselect all relations"  t-on-click="modelView.onClickUnselectAll">-</button>
+                            <button class="btn btn-secondary btn-sm ml-1" title="Pin this model"  t-on-click="modelView.onClickPin">v</button>
+                            <button class="btn btn-secondary btn-sm ml-1" title="Unpin this model"  t-on-click="modelView.onClickUnpin">x</button>
+                        </h5>
+                        <div>
+                            <t t-foreach="modelView.modelFieldViews" t-as="modelFieldView" t-key="modelFieldView.localId">
+                                <ModelFieldView localId="modelFieldView.localId"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

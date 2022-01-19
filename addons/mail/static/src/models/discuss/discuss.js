@@ -402,6 +402,11 @@ registerModel({
         menu_id: attr({
             default: null,
         }),
+        modelGraphView: one2one('ModelGraphView', {
+            default: insertAndReplace(),
+            inverse: 'discussOwner',
+            isCausal: true,
+        }),
         notificationListView: one2one('NotificationListView', {
             compute: '_computeNotificationListView',
             inverse: 'discussOwner',
