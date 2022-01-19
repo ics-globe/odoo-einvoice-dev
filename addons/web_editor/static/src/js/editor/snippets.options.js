@@ -2460,7 +2460,7 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
         }
         options.domain = JSON.parse(options.domain);
         options.nullText = $target[0].dataset['nullText'] ||
-            JSON.parse($target[0].dataset['oeContactOptions'])['null_text'];
+            JSON.parse($target[0].dataset['oeContactOptions'] || '{}')['null_text'];
         return this._super(...arguments);
     },
     /**
