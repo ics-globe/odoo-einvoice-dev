@@ -180,9 +180,9 @@
             ('prepend', 'website/static/src/scss/bootstrap_overridden.scss'),
         ],
         'website.assets_wysiwyg': [
-            ('include', 'web._assets_helpers'),
+            ('include', 'web._assets_helpers_bs4'),
             'web_editor/static/src/scss/bootstrap_overridden.scss',
-            'web/static/lib/bootstrap/scss/_variables.scss',
+            'web/static/lib/bootstrap-4/scss/_variables.scss',
             'website/static/src/scss/website.wysiwyg.scss',
             'website/static/src/scss/website.edit_mode.scss',
             'website/static/src/js/editor/editor.js',
@@ -218,8 +218,8 @@
             'website/static/src/js/widgets/link_popover_widget.js',
         ],
         'website.assets_editor': [
-            ('include', 'web._assets_helpers'),
-            'web/static/lib/bootstrap/scss/_variables.scss',
+            ('include', 'web._assets_helpers_bs4'),
+            'web/static/lib/bootstrap-4/scss/_variables.scss',
             'web/static/src/legacy/scss/ace.scss',
             'website/static/src/scss/website.editor.ui.scss',
             'website/static/src/scss/website.theme_install.scss',
