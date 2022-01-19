@@ -1039,7 +1039,8 @@ class ScssStylesheetAsset(PreprocessedCSS):
         try:
             # As we had Bootstrap 4 for the frontend and Bootstrap 5 for the backend
             # we need to specify a different path to include to LibSASS
-            is_bootstrap_4 = 'frontend' in self.bundle.name
+            bundle_matches = ['frontend', 'website', 'public', 'bs4']
+            is_bootstrap_4 = any(valid_string in self.bundle.name for valid_string in bundle_matches)
 
             profiler.force_hook()
             return libsass.compile(
