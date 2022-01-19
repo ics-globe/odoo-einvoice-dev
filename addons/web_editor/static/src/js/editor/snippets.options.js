@@ -2459,7 +2459,8 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
             options.fields.push('display_name');
         }
         options.domain = JSON.parse(options.domain);
-        options.nullText = $target[0].dataset['nullText'];
+        options.nullText = $target[0].dataset['nullText'] ||
+            JSON.parse($target[0].dataset['oeContactOptions'])['null_text'];
         return this._super(...arguments);
     },
     /**
@@ -2660,6 +2661,9 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
         this.waitingForSearch = false;
         this.afterSearch.forEach(cb => cb());
         this.afterSearch = [];
+        if (this.options.nullText && !this.getValue()) {
+            this.setValue(0);
+        }
     },
     /**
      * Returns the display name for a given record.

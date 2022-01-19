@@ -199,6 +199,8 @@ class ManyToOne(models.AbstractModel):
             if many2one:
                 attrs['data-oe-many2one-id'] = many2one.id
                 attrs['data-oe-many2one-model'] = many2one._name
+            elif options.get('null_text'):
+                attrs['data-oe-many2one-model'] = record._fields[field_name].comodel_name
         return attrs
 
     @api.model
