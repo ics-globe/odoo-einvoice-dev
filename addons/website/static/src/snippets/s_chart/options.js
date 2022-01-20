@@ -17,7 +17,8 @@ options.registry.InnerChart = options.Class.extend({
         'click we-button.add_row': '_onAddRowClick',
         'click we-button.o_we_matrix_remove_col': '_onRemoveColumnClick',
         'click we-button.o_we_matrix_remove_row': '_onRemoveRowClick',
-        'blur we-matrix input': '_onMatrixInputFocusOut',
+        'input we-matrix input': '_onMatrixInputInput',
+        'blur we-matrix input': '_onMatrixInputBlur',
         'focus we-matrix input': '_onMatrixInputFocus',
     }),
 
@@ -476,9 +477,18 @@ options.registry.InnerChart = options.Class.extend({
     },
     /**
      * @private
-     * @param {Event} ev
      */
-    _onMatrixInputFocusOut: function (ev) {
+    _onMatrixInputBlur: function (ev) {
+        if (!this.el.contains(ev.relatedTarget)) {
+            // We call the functions below only if the element that recovers the
+            // focus after this blur is not an element of the we-matrix.
+            // This allows to use the TAB key to go from one input to another in
+            // the we-matrix.
+            this._reloadGraph();
+            this.updateUI();
+        }
+    },
+    _onMatrixInputInput() {
         this._reloadGraph();
     },
     /**
