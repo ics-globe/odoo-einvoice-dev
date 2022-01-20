@@ -34,6 +34,8 @@ a dependency towards website editing and customization capabilities.""",
         ],
         'web.assets_backend': [
             'portal/static/src/scss/portal_wizard.scss',
+            'portal/static/src/js/portal_wizard_controller.js',
+            'portal/static/src/js/portal_wizard_view.js',
         ],
         'web.assets_frontend': [
             'portal/static/src/scss/bootstrap.extend.scss',
