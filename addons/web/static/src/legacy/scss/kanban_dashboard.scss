@@ -200,7 +200,6 @@
     }
 
     .o_favorite {
-        @include o-position-absolute(3px, $left: 0);
         padding: $o-kanban-record-margin;
     }
 
