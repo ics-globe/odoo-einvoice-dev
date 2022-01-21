@@ -2949,7 +2949,8 @@ var LabelSelection = AbstractField.extend({
     _render: function () {
         this.classes = this.nodeOptions && this.nodeOptions.classes || {};
         var labelClass = this.classes[this.value] || 'primary';
-        this.$el.addClass('badge badge-' + labelClass).text(this._formatValue(this.value));
+        const addTextDark = ['warning', 'info', 'light', 'default'].includes(labelClass);
+        this.$el.addClass('badge bg-' + labelClass).toggleClass('text-dark', addTextDark).text(this._formatValue(this.value));
     },
 });
 
