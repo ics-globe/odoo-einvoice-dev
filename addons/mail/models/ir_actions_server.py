@@ -36,6 +36,7 @@ class ServerActions(models.Model):
     activity_type_id = fields.Many2one(
         'mail.activity.type', string='Activity',
         domain="['|', ('res_model', '=', False), ('res_model', '=', model_name)]",
+        compute='_compute_activity_type_id', readonly=False, store=True,
         ondelete='restrict')
     activity_summary = fields.Char('Summary')
     activity_note = fields.Html('Note')
@@ -58,9 +59,15 @@ class ServerActions(models.Model):
             if action.model_id != action.template_id.model_id:
                 action.template_id = False
 
-    @api.onchange('activity_date_deadline_range')
-    def _onchange_activity_date_deadline_range(self):
-        if self.activity_date_deadline_range < 0:
+    @api.depends('model_id')
+    def _compute_activity_type_id(self):
+        for action in self.filtered('activity_type_id'):
+            if action.activity_type_id.res_model and action.model_id.model != action.activity_type_id.res_model:
+                action.activity_type_id = False
+
+    @api.constrains('activity_date_deadline_range')
+    def _check_activity_date_deadline_range(self):
+        if any(action.activity_date_deadline_range < 0 for action in self):
             raise UserError(_("The 'Due Date In' value can't be negative."))
 
     @api.constrains('state', 'model_id')
