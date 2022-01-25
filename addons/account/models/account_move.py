@@ -3485,6 +3485,7 @@ class AccountMoveLine(models.Model):
     tax_tag_invert = fields.Boolean(string="Invert Tags", compute='_compute_tax_tag_invert', store=True, readonly=False,
         help="Technical field. True if the balance of this move line needs to be "
              "inverted when computing its total for each tag (for sales invoices, for example).")
+    all_taxes_are_on_payment = fields.Boolean(compute='_compute_all_taxes_are_on_payment', store=True)
 
     # ==== Reconciliation fields ====
     amount_residual = fields.Monetary(string='Residual Amount', store=True,
@@ -3934,8 +3935,7 @@ class AccountMoveLine(models.Model):
             '|', ('move_id.tax_cash_basis_rec_id', '!=', False),
 
             # Lines from non-CABA taxes are always exigible
-            '|', ('tax_line_id.tax_exigibility', '!=', 'on_payment'),
-            ('tax_ids.tax_exigibility', '!=', 'on_payment'), # So: exigible if at least one tax from tax_ids isn't on_payment
+            ('all_taxes_are_on_payment', '=', False),
         ]
 
     def belongs_to_refund(self):
@@ -4205,6 +4205,14 @@ class AccountMoveLine(models.Model):
             rep_line = record.tax_repartition_line_id
             # A constraint on account.tax.repartition.line ensures both those fields are mutually exclusive
             record.tax_line_id = rep_line.invoice_tax_id or rep_line.refund_tax_id
+
+    @api.depends('tax_line_id.tax_exigibility', 'tax_ids.tax_exigibility')
+    def _compute_all_taxes_are_on_payment(self):
+        for record in self:
+            record.all_taxes_are_on_payment = (
+                (not record.tax_line_id or record.tax_line_id.tax_exigibility == "on_payment")
+                and all(tax.tax_exigibility == "on_payment" for tax in record.tax_ids)
+            )
 
     @api.depends('move_id.move_type', 'tax_ids', 'tax_repartition_line_id', 'debit', 'credit', 'tax_tag_ids')
     def _compute_tax_tag_invert(self):
