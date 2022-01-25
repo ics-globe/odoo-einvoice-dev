@@ -876,7 +876,7 @@ class JavascriptAsset(WebAsset):
 
 class StylesheetAsset(WebAsset):
     rx_import = re.compile(r"""@import\s+('|")(?!'|"|/|https?://)""", re.U)
-    rx_url = re.compile(r"""(?<!")url\s*\(\s*('|"|)(?!'|"|/|https?://|data:)""", re.U)
+    rx_url = re.compile(r"""(?<!")url\s*\(\s*('|"|)(?!'|"|/|https?://|data:|#{)""", re.U)
     rx_sourceMap = re.compile(r'(/\*# sourceMappingURL=.*)', re.U)
     rx_charset = re.compile(r'(@charset "[^"]+";)', re.U)
 
