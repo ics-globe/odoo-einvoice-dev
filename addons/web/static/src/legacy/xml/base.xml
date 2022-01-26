@@ -255,7 +255,7 @@
                                 <t t-esc="props.title"/>
                                 <span t-if="props.subtitle" class="o_subtitle text-muted small" t-esc="props.subtitle"/>
                             </h4>
-                            <button type="button" class="close" aria-label="Close" tabindex="-1" t-on-click="_close">×</button>
+                            <button type="button" class="btn-close" aria-label="Close" tabindex="-1" t-on-click="_close"></button>
                         </header>
                         <main class="modal-body">
                             <t t-slot="default"/>
