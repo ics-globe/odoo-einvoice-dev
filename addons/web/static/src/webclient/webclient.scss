@@ -30,7 +30,7 @@ html, body {
 }
 
 // Boolean Toggle widget
-div.o_boolean_toggle.custom-control.custom-checkbox {
+div.o_boolean_toggle.form-switch.form-check {
   $line-height-computed: $line-height-base * $font-size-base;
   $slider-width: $line-height-computed * 1.5;
   $font-size: $font-size-base * 1.2;
@@ -38,7 +38,7 @@ div.o_boolean_toggle.custom-control.custom-checkbox {
   display: inline-block;
   padding-left: $slider-width + 0.25rem;
 
-  > label.custom-control-label {
+  > label.form-check-label {
     > i {
       color: white;
       cursor: pointer;
@@ -66,7 +66,7 @@ div.o_boolean_toggle.custom-control.custom-checkbox {
       outline: none !important;
     }
   }
-  > input.custom-control-input:checked + label.custom-control-label {
+  > input.form-check-input:checked + label.form-check-label {
     &::before {
       background-color: $o-brand-primary !important;
     }
