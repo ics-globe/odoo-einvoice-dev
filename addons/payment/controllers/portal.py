@@ -127,13 +127,24 @@ class PaymentPortal(portal.CustomerPortal):
         # Generate a new access token in case the partner id or the currency id was updated
         access_token = payment_utils.generate_access_token(partner_sudo.id, amount, currency.id)
 
+        # If the invoice is cancelled, the payment link still allows to go through the payment.
+        # This code ensures that no payment can be made without warning when the the state of
+        # the invoice is cancelled.
+        amount_to_be_paid = amount
+        if invoice_id:
+            invoice_sudo = request.env["account.move"].sudo().browse(invoice_id).exists()
+            if not invoice_sudo:
+                raise ValidationError(_("The provided parameters are invalid."))
+            if invoice_sudo.state == 'cancel':
+                amount_to_be_paid = 0
+
         rendering_context = {
             'acquirers': acquirers_sudo,
             'tokens': payment_tokens,
             'fees_by_acquirer': fees_by_acquirer,
             'show_tokenize_input': logged_in,  # Prevent public partner from saving payment methods
             'reference_prefix': reference,
-            'amount': amount,
+            'amount': amount_to_be_paid,
             'currency': currency,
             'partner_id': partner_sudo.id,
             'access_token': access_token,
