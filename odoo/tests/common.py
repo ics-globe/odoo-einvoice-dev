@@ -918,21 +918,13 @@ class ChromeBrowser:
         self._logger.warning("Chrome executable not found")
         raise unittest.SkipTest("Chrome executable not found")
 
-    def _spawn_chrome(self, cmd):
+    @staticmethod
+    def _spawn_chrome(cmd):
         if os.name != 'posix':
             return
 
         pid = os.fork()
         if pid != 0:
-            port_file = pathlib.Path(self.user_data_dir, 'DevToolsActivePort')
-            for _ in range(100):
-                time.sleep(0.1)
-                if port_file.is_file() and port_file.stat().st_size > 5:
-                    with port_file.open('r', encoding='utf-8') as f:
-                        self.devtools_port = int(f.readline())
-                    break
-            else:
-                raise unittest.SkipTest('Failed to detect chrome devtools port after 2.5s.')
             return pid
         else:
             if platform.system() != 'Darwin':
@@ -982,7 +974,16 @@ class ChromeBrowser:
         url = 'about:blank'
         cmd.append(url)
         try:
-            self.chrome_pid = self._spawn_chrome(cmd)
+            self.chrome_pid = ChromeBrowser._spawn_chrome(cmd)
+            port_file = pathlib.Path(self.user_data_dir, 'DevToolsActivePort')
+            for _ in range(100):
+                time.sleep(0.1)
+                if port_file.is_file():
+                    with port_file.open('r', encoding='utf-8') as f:
+                        self.devtools_port = int(f.readline())
+                    break
+            else:
+                raise unittest.SkipTest('Failed to detect chrome devtools port after 2.5s.')
         except OSError:
             raise unittest.SkipTest("%s not found" % cmd[0])
         self._logger.info('Chrome pid: %s', self.chrome_pid)
@@ -1613,7 +1614,6 @@ class HttpCase(TransactionCase):
         To signal success test do: console.log('test successful')
         To signal test failure raise an exception or call console.error
         """
-
         if not self.env.registry.loaded:
             self._logger.warning('HttpCase test should be in post_install only')
 
@@ -1625,9 +1625,8 @@ class HttpCase(TransactionCase):
         if watch and self.browser._webkit_version:
             version_hash = self.browser._webkit_version.split('@')[-1].strip((')'))
             chrome_dev_tool_url = 'https://chrome-devtools-frontend.appspot.com/serve_file/@%s/inspector.html' % version_hash
-            debug_url = '%s?%s&remoteFrontend=true' %(chrome_dev_tool_url, self.browser.ws_url.replace('://', '='))
-            subprocess.Popen([self.browser.executable, debug_url])
-            time.sleep(3)
+            debug_url = '%s?%s&remoteFrontend=true' % (chrome_dev_tool_url, self.browser.ws_url.replace('://', '='))
+            ChromeBrowser._spawn_chrome([self.browser.executable, debug_url])
         try:
             self.authenticate(login, login)
             # Flush and clear the current transaction.  This is useful in case
