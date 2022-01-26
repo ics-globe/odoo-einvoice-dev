@@ -12,6 +12,36 @@
 
     const hasOwnProperty = Object.prototype.hasOwnProperty;
 
+    /**
+     * Get all root HTMLElement from a given bdom (owl blockdom)
+     * It is recursive
+     * @param  {owl.VNode} bdom
+     * @return {HTMLElement[]}
+     */
+    function getNodes(bdom) {
+        const nodes = new Set();
+        if (!bdom) {
+            return nodes;
+        }
+        if (hasOwnProperty.call(bdom, "component")) {
+            const el = bdom.component.el;
+            if (el) {
+                nodes.add(el);
+            } else {
+                nodes.add(...getNodes(bdom.bdom));
+            }
+        } else if (bdom.el) {
+            nodes.add(bdom);
+        } else if (hasOwnProperty.call(bdom, "children")) {
+            for (const bnode of bdom.children) {
+                nodes.add(...getNodes(bnode));
+            }
+        } else if (hasOwnProperty.call(bdom, "child")) {
+            nodes.add(...getNodes(bdom.child));
+        }
+        return nodes;
+    }
+
     owl.Component = class extends Component {
         constructor(...args) {
             super(...args);
@@ -37,16 +67,7 @@
         }
 
         get el() {
-            const bdom = this.__owl__.bdom;
-            if (!bdom) {
-                return null;
-            }
-
-            if (hasOwnProperty.call(bdom, "component")) {
-                return bdom.component.el;
-            } else {
-                return bdom.firstNode();
-            }
+            return Array.from(getNodes(this.__owl__.bdom)).filter((el) => el instanceof HTMLElement)[0];
         }
 
         /**
@@ -74,6 +95,7 @@
         }
     };
     owl.Component.env = {};
+    owl.Component.__getNodes__ = getNodes;
 
     Object.defineProperty(owl.Component, "components", {
         get() {
