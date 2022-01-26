@@ -14,7 +14,7 @@
                             <h4 class="modal-title text-break">
                                 <t t-esc="title"/>
                             </h4>
-                            <button type="button" class="close" aria-label="Close" tabindex="-1" t-on-click="close">×</button>
+                            <button type="button" class="btn-close" aria-label="Close" tabindex="-1" t-on-click="close" />
                         </header>
                         <main class="modal-body">
                             <t t-call="{{ constructor.bodyTemplate }}"/>
