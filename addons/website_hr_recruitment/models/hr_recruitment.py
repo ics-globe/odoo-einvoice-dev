@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from lxml import html
 from werkzeug import urls
 
 from odoo import api, fields, models, _
@@ -71,6 +72,13 @@ class Job(models.Model):
         super(Job, self)._compute_website_url()
         for job in self:
             job.website_url = "/jobs/detail/%s" % job.id
+
+    def write(self, vals):
+        if 'description' in vals:
+            element = html.fromstring(vals['description'], parser=html.HTMLParser(encoding="utf-8"))
+            if not element.text_content().strip():
+                vals['description'] = False
+        return super().write(vals)
 
     def set_open(self):
         self.write({'website_published': False})
