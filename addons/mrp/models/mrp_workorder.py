@@ -692,7 +692,7 @@ class MrpWorkorder(models.Model):
             'name': _('Scrap'),
             'view_mode': 'form',
             'res_model': 'stock.scrap',
-            'view_id': self.env.ref('stock.stock_scrap_form_view2').id,
+            'views': [(self.env.ref('stock.stock_scrap_form_view2').id, 'form')],
             'type': 'ir.actions.act_window',
             'context': {'default_company_id': self.production_id.company_id.id,
                         'default_workorder_id': self.id,
