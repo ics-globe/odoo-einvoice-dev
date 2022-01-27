@@ -31,7 +31,7 @@ odoo.define('web.dropdown_menu_mobile_tests', function (require) {
     }, function () {
         QUnit.module('DropdownMenu');
 
-        QUnit.skipNXOWL('display dropdown at the right position', async function (assert) {
+        QUnit.test('display dropdown at the right position', async function (assert) {
             assert.expect(2);
             const viewPort = testUtils.prepareTarget();
             viewPort.style.position = 'initial';
