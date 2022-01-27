@@ -69,7 +69,7 @@
         get el() {
             const nodes = Array.from(getNodes(this.__owl__.bdom));
             let el;
-            for (const elm in nodes) {
+            for (const elm of nodes) {
                 el = elm;
                 if (el instanceof HTMLElement) {
                     break;
