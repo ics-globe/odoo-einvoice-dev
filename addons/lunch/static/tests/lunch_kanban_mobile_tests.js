@@ -52,7 +52,7 @@ QUnit.module('LunchKanbanView Mobile', {
         };
     },
 }, function () {
-    QUnit.skipNXOWL('basic rendering', async function (assert) {
+    QUnit.test('basic rendering', async function (assert) {
         assert.expect(7);
 
         const kanban = await createLunchView({
@@ -95,7 +95,7 @@ QUnit.module('LunchKanbanView Mobile', {
     });
 
     QUnit.module('LunchWidget', function () {
-        QUnit.skipNXOWL('toggle', async function (assert) {
+        QUnit.test('toggle', async function (assert) {
             assert.expect(6);
 
             const kanban = await createLunchView({
@@ -140,7 +140,7 @@ QUnit.module('LunchKanbanView Mobile', {
             kanban.destroy();
         });
 
-        QUnit.skipNXOWL('keep open when adding quantities', async function (assert) {
+        QUnit.test('keep open when adding quantities', async function (assert) {
             assert.expect(6);
 
             const kanban = await createLunchView({

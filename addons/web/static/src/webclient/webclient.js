@@ -113,6 +113,10 @@ export class WebClient extends Component {
             return;
         }
     }
+
+    get el() {
+        return this.__owl__.bdom.parentEl;
+    }
 }
 WebClient.components = {
     ActionContainer,

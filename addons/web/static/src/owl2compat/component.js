@@ -31,7 +31,7 @@
                 nodes.add(...getNodes(bdom.bdom));
             }
         } else if (bdom.el) {
-            nodes.add(bdom);
+            nodes.add(bdom.el);
         } else if (hasOwnProperty.call(bdom, "children")) {
             for (const bnode of bdom.children) {
                 nodes.add(...getNodes(bnode));
