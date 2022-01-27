@@ -66,8 +66,10 @@ var EventCreateDialog = Dialog.extend({
      */
     _display_errors: function (errors) {
         this.$("p.text-danger").toggleClass('d-none', true);
+        this.$("input").removeClass('border-danger');
         for (let i = 0; i < errors.length; i++) {
             this.$("#" + errors[i] + " p.text-danger").toggleClass('d-none', false);
+            this.$("#" + errors[i] + " input").addClass('border-danger');
         }
     },
 
@@ -217,8 +219,7 @@ var EventCreateDialog = Dialog.extend({
      */
     _submitForm: function () {
         var eventValues = this._prepareFormValues();
-        var errors = this._validateForm(eventValues)
-        console.log(eventValues, errors);
+        var errors = this._validateForm(eventValues);
         if (errors.length) {
             this._display_errors(errors);
             return;
