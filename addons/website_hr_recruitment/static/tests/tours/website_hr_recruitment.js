@@ -8,7 +8,7 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         url: '/jobs',
     }, [{
         content: "Select Job",
-        trigger: ".oe_website_jobs h3 span:contains('A Test Job')"
+        trigger: ".oe_website_jobs h3:contains('Experienced Developer')"
     }, {
         content: "Apply",
         trigger: ".js_hr_recruitment a:contains('Apply')"
@@ -33,7 +33,7 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         trigger: ".s_website_form_send"
     }, {
         content: "Check the form is submited without errors",
-        trigger: ".oe_structure:has(h1:contains('Congratulations'))"
+        trigger: "#wrap:has(h1:contains('Congratulations'))"
     }]);
 
     return {};
