@@ -67,7 +67,15 @@
         }
 
         get el() {
-            return Array.from(getNodes(this.__owl__.bdom)).filter((el) => el instanceof HTMLElement)[0];
+            const nodes = Array.from(getNodes(this.__owl__.bdom));
+            let el;
+            for (const elm in nodes) {
+                el = elm;
+                if (el instanceof HTMLElement) {
+                    break;
+                }
+            }
+            return el;
         }
 
         /**
