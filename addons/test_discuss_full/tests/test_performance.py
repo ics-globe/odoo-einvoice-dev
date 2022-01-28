@@ -61,20 +61,15 @@ class TestDiscussFullPerformance(TransactionCase):
         self.env['mail.channel'].search([('id', '!=', channel_general.id)]).unlink()
         user_root = self.env.ref('base.user_root')
         # create public channels
-        channel_channel_public_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='public 1', privacy='public')['id'])
+        channel_channel_public_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='public 1', channel_type='channel')['id'])
         channel_channel_public_1.add_members((self.users[0] + self.users[2] + self.users[3] + self.users[4] + self.users[8]).partner_id.ids)
-        channel_channel_public_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='public 2', privacy='public')['id'])
+        channel_channel_public_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='public 2', channel_type='channel')['id'])
         channel_channel_public_2.add_members((self.users[0] + self.users[2] + self.users[4] + self.users[7] + self.users[9]).partner_id.ids)
         # create groups channels
-        channel_channel_group_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='group 1', privacy='groups')['id'])
+        channel_channel_group_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='group 1', channel_type='group')['id'])
         channel_channel_group_1.add_members((self.users[0] + self.users[2] + self.users[3] + self.users[6] + self.users[12]).partner_id.ids)
-        channel_channel_group_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='group 2', privacy='groups')['id'])
+        channel_channel_group_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='group 2', channel_type='group')['id'])
         channel_channel_group_2.add_members((self.users[0] + self.users[2] + self.users[6] + self.users[7] + self.users[13]).partner_id.ids)
-        # create private channels
-        channel_channel_private_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='private 1', privacy='private')['id'])
-        channel_channel_private_1.add_members((self.users[0] + self.users[2] + self.users[3] + self.users[5] + self.users[10]).partner_id.ids)
-        channel_channel_private_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_create(name='private 2', privacy='private')['id'])
-        channel_channel_private_2.add_members((self.users[0] + self.users[2] + self.users[5] + self.users[7] + self.users[11]).partner_id.ids)
         # create chats
         channel_chat_1 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_get((self.users[0] + self.users[14]).partner_id.ids)['id'])
         channel_chat_2 = self.env['mail.channel'].browse(self.env['mail.channel'].channel_get((self.users[0] + self.users[15]).partner_id.ids)['id'])
@@ -125,7 +120,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 5,
                     'name': 'general',
-                    'public': 'groups',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': False,
                     'state': 'open',
@@ -150,7 +144,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'memberCount': 5,
                     'message_unread_counter': 0,
                     'name': 'public 1',
-                    'public': 'public',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': next(res['message_id'] for res in channel_channel_public_1._channel_last_message_ids()),
                     'state': 'open',
@@ -175,7 +168,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'public 2',
-                    'public': 'public',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': next(res['message_id'] for res in channel_channel_public_2._channel_last_message_ids()),
                     'state': 'open',
@@ -183,7 +175,7 @@ class TestDiscussFullPerformance(TransactionCase):
                 },
                 {
                     'avatarCacheKey': channel_channel_group_1._get_avatar_cache_key(),
-                    'channel_type': 'channel',
+                    'channel_type': 'group',
                     'create_uid': self.env.user.id,
                     'custom_channel_name': False,
                     'defaultDisplayMode': False,
@@ -200,7 +192,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'group 1',
-                    'public': 'groups',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': next(res['message_id'] for res in channel_channel_group_1._channel_last_message_ids()),
                     'state': 'open',
@@ -208,7 +199,7 @@ class TestDiscussFullPerformance(TransactionCase):
                 },
                 {
                     'avatarCacheKey': channel_channel_group_2._get_avatar_cache_key(),
-                    'channel_type': 'channel',
+                    'channel_type': 'group',
                     'create_uid': self.env.user.id,
                     'custom_channel_name': False,
                     'defaultDisplayMode': False,
@@ -225,61 +216,10 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'group 2',
-                    'public': 'groups',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': next(res['message_id'] for res in channel_channel_group_2._channel_last_message_ids()),
                     'state': 'open',
                     'uuid': channel_channel_group_2.uuid,
-                },
-                {
-                    'avatarCacheKey': channel_channel_private_1._get_avatar_cache_key(),
-                    'channel_type': 'channel',
-                    'create_uid': self.env.user.id,
-                    'custom_channel_name': False,
-                    'defaultDisplayMode': False,
-                    'description': False,
-                    'group_based_subscription': False,
-                    'id': channel_channel_private_1.id,
-                    'invitedGuests': [('insert', [])],
-                    'invitedPartners': [('insert', [])],
-                    'is_minimized': False,
-                    'is_pinned': True,
-                    'last_interest_dt': channel_channel_private_1.channel_last_seen_partner_ids.filtered(lambda p: p.partner_id == self.users[0].partner_id).last_interest_dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                    'last_message_id': next(res['message_id'] for res in channel_channel_private_1._channel_last_message_ids()),
-                    'memberCount': 5,
-                    'message_needaction_counter': 0,
-                    'message_unread_counter': 0,
-                    'name': 'private 1',
-                    'public': 'private',
-                    'rtcSessions': [('insert', [])],
-                    'seen_message_id': next(res['message_id'] for res in channel_channel_private_1._channel_last_message_ids()),
-                    'state': 'open',
-                    'uuid': channel_channel_private_1.uuid,
-                },
-                {
-                    'avatarCacheKey': channel_channel_private_2._get_avatar_cache_key(),
-                    'channel_type': 'channel',
-                    'create_uid': self.env.user.id,
-                    'custom_channel_name': False,
-                    'defaultDisplayMode': False,
-                    'description': False,
-                    'group_based_subscription': False,
-                    'id': channel_channel_private_2.id,
-                    'invitedGuests': [('insert', [])],
-                    'invitedPartners': [('insert', [])],
-                    'is_minimized': False,
-                    'is_pinned': True,
-                    'last_interest_dt': channel_channel_private_2.channel_last_seen_partner_ids.filtered(lambda p: p.partner_id == self.users[0].partner_id).last_interest_dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                    'last_message_id': next(res['message_id'] for res in channel_channel_private_2._channel_last_message_ids()),
-                    'memberCount': 5,
-                    'message_needaction_counter': 0,
-                    'message_unread_counter': 0,
-                    'name': 'private 2',
-                    'public': 'private',
-                    'rtcSessions': [('insert', [])],
-                    'seen_message_id': next(res['message_id'] for res in channel_channel_private_2._channel_last_message_ids()),
-                    'state': 'open',
-                    'uuid': channel_channel_private_2.uuid,
                 },
                 {
                     'avatarCacheKey': channel_group_1._get_avatar_cache_key(),
@@ -324,7 +264,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': '',
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_message_id': False,
                     'seen_partners_info': [
@@ -387,7 +326,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'Ernest Employee, test14',
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {
@@ -450,7 +388,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'Ernest Employee, test15',
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {
@@ -513,7 +450,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'Ernest Employee, test2',
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {
@@ -576,7 +512,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_needaction_counter': 0,
                     'message_unread_counter': 0,
                     'name': 'Ernest Employee, test3',
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {
@@ -639,7 +574,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_unread_counter': 0,
                     'name': 'test1 Ernest Employee',
                     'operator_pid': (self.users[0].partner_id.id, 'Ernest Employee'),
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {
@@ -702,7 +636,6 @@ class TestDiscussFullPerformance(TransactionCase):
                     'message_unread_counter': 0,
                     'name': 'anon 2 Ernest Employee',
                     'operator_pid': (self.users[0].partner_id.id, 'Ernest Employee'),
-                    'public': 'private',
                     'rtcSessions': [('insert', [])],
                     'seen_partners_info': [
                         {

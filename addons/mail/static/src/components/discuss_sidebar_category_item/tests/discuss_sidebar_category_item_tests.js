@@ -116,7 +116,6 @@ QUnit.test('chat - avatar: should have correct avatar', async function (assert) 
         channel_type: 'chat',
         id: 10,
         members: [this.data.currentPartnerId, 15],
-        public: 'private',
     });
     await this.start();
 
@@ -147,12 +146,10 @@ QUnit.test('chat - sorting: should be sorted by last activity time', async funct
     this.data['mail.channel'].records.push({
         channel_type: 'chat',
         id: 10,
-        public: 'private',
         last_interest_dt: datetime_to_str(new Date(2021, 0, 1)), // less recent one
     }, {
         channel_type: 'chat',
         id: 20,
-        public: 'private',
         last_interest_dt: datetime_to_str(new Date(2021, 0, 2)), // more recent one
     });
     await this.start();

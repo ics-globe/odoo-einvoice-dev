@@ -90,9 +90,7 @@ registerModel({
             // in other cases a chat would be valid, find it or try to create it
             let chat = this.messaging.models['Thread'].find(thread =>
                 thread.channel_type === 'chat' &&
-                thread.correspondent === this.partner &&
-                thread.model === 'mail.channel' &&
-                thread.public === 'private'
+                thread.correspondent === this.partner
             );
             if (!chat || !chat.isPinned) {
                 // if chat is not pinned then it has to be pinned client-side

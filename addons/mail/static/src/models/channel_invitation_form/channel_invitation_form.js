@@ -15,6 +15,19 @@ registerModel({
          * @param {MouseEvent} ev
          */
         async onClickInvite(ev) {
+            if (!this.thread) {
+                if (this.selectedPartners.length == 1) {
+                    await this.messaging.openChat({ partnerId: this.selectedPartners[0].id });
+                    return;
+                }
+                const partners_to = [...new Set([
+                    this.messaging.currentPartner.id,
+                    ...this.selectedPartners.map(partner => partner.id),
+                ])];
+                const channel = await this.messaging.models['Thread'].createGroupChat({ partners_to });
+                channel.open();
+                return;
+            }
             if (this.thread.channel_type === 'chat') {
                 const partners_to = [...new Set([
                     this.messaging.currentPartner.id,
@@ -146,7 +159,11 @@ registerModel({
          */
         _computeInviteButtonText() {
             if (!this.thread) {
-                return clear();
+                if (this.popoverViewOwner && this.popoverViewOwner.discussSidebarOwnerAsInvite) {
+                    return this.popoverViewOwner.discussSidebarOwnerAsInvite.commandAddTitleText;
+                } else {
+                    return clear();
+                }
             }
             switch (this.thread.channel_type) {
                 case 'chat':
@@ -247,7 +264,6 @@ registerModel({
         thread: one('Thread', {
             compute: '_computeThread',
             readonly: true,
-            required: true,
         }),
     },
 });

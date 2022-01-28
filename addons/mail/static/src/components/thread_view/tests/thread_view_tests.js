@@ -51,7 +51,6 @@ QUnit.test('dragover files on thread with composer', async function (assert) {
         id: 100,
         members: [this.data.currentPartnerId, 9, 10],
         name: "General",
-        public: 'public',
     });
     const { createThreadViewComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({
@@ -100,7 +99,6 @@ QUnit.test('message list desc order', async function (assert) {
         id: 100,
         members: [this.data.currentPartnerId, 9, 10],
         name: "General",
-        public: 'public',
     });
     const { createThreadViewComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({
@@ -199,7 +197,6 @@ QUnit.test('message list asc order', async function (assert) {
         id: 100,
         members: [this.data.currentPartnerId, 9, 10],
         name: "General",
-        public: 'public',
     });
     const { createThreadViewComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({
@@ -427,7 +424,6 @@ QUnit.test('show message subject when subject is not the same as the thread name
         channel_type: 'channel',
         id: 100,
         name: "General",
-        public: 'public',
     });
     this.data['mail.message'].records.push({
         body: "not empty",
@@ -471,7 +467,6 @@ QUnit.test('do not show message subject when subject is the same as the thread n
         channel_type: 'channel',
         id: 100,
         name: "Salutations, voyageur",
-        public: 'public',
     });
     this.data['mail.message'].records.push({
         body: "not empty",
@@ -1499,7 +1494,6 @@ QUnit.test('mention 2 different channels that have the same name', async functio
         {
             id: 11,
             name: "my channel",
-            public: 'public', // mentioning another channel is possible only from a public channel
         },
         {
             id: 12,

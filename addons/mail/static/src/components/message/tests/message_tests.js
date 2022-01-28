@@ -905,7 +905,6 @@ QUnit.test('open chat with author on avatar click should be disabled when curren
         id: 11,
         channel_type: 'chat',
         members: [this.data.currentPartnerId, 10],
-        public: 'private',
     });
     this.data['res.partner'].records.push({ id: 10 });
     this.data['res.users'].records.push({ partner_id: 10 });

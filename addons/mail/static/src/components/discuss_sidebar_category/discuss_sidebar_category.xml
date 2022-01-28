@@ -14,7 +14,7 @@
                         <i class="o_DiscussSidebarCategory_command o_DiscussSidebarCategory_commandView fa fa-cog" title="View or join channels" t-on-click="category.onClickCommandView" role="img"/>
                     </t>
                     <t t-if="category.hasAddCommand and category.isOpen">
-                        <i class="o_DiscussSidebarCategory_command o_DiscussSidebarCategory_commandAdd fa fa-plus" t-on-click="category.onClickCommandAdd" t-att-title="category.commandAddTitleText" role="img"/>
+                        <i class="o_DiscussSidebarCategory_command o_DiscussSidebarCategory_commandAdd fa fa-plus" t-on-click="category.onClickCommandAdd" t-att-title="category.commandAddTitleText" role="img" t-ref="inviteButton"/>
                     </t>
                 </div>
                 <t t-if="!category.isOpen and category.counter > 0">
@@ -29,15 +29,18 @@
                         <div class="o_DiscussSidebarCategory_newItem">
                             <AutocompleteInput
                                 className="'o_DiscussSidebarCategory_itemNewInput'"
-                                customClass="category === messaging.discuss.categoryChannel ? 'o_DiscussSidebarCategory_newChannelAutocompleteSuggestions' : False"
+                                customClass="'o_DiscussSidebarCategory_newChannelAutocompleteSuggestions'"
                                 isFocusOnMount="true"
-                                isHtml="category === messaging.discuss.categoryChannel ? true : False"
+                                isHtml="true"
                                 placeholder="category.newItemPlaceholderText"
                                 select="category.onAddItemAutocompleteSelect"
                                 source="category.onAddItemAutocompleteSource"
                                 onHide="category.onHideAddingItem"
                             />
                         </div>
+                    </t>
+                    <t t-if="category.invitePopoverView">
+                        <PopoverView className="o_DiscussSidebarCategory_invitePopoverView" localId="category.invitePopoverView.localId"/>
                     </t>
                     <t t-foreach="category.filteredCategoryItems" t-as="item" t-key="item.localId">
                         <DiscussSidebarCategoryItem

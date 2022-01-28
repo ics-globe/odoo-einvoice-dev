@@ -41,7 +41,6 @@ registerModel({
                 const channel = await this.async(() =>
                     this.messaging.models['Thread'].performRpcCreateChannel({
                         name,
-                        privacy: ui.item.special,
                     })
                 );
                 channel.open();
@@ -82,14 +81,7 @@ registerModel({
                     `<em><span class="fa fa-hashtag"/>${escapedValue}</em>`,
                 ),
                 escapedValue,
-                special: 'public'
-            }, {
-                label: _.str.sprintf(
-                    `<strong>${this.env._t('Create %s')}</strong>`,
-                    `<em><span class="fa fa-lock"/>${escapedValue}</em>`,
-                ),
-                escapedValue,
-                special: 'private'
+                special: 'create'
             });
             res(items);
         },

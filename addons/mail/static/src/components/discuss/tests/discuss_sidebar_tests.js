@@ -39,7 +39,6 @@ QUnit.test('sidebar find shows channels matching search term', async function (a
         id: 20,
         members: [],
         name: 'test',
-        public: 'public',
     });
     const searchReadDef = makeDeferred();
     await this.start({
@@ -70,11 +69,10 @@ QUnit.test('sidebar find shows channels matching search term', async function (a
     );
     assert.strictEqual(
         results.length,
-        // When searching for a single existing channel, the results list will have at least 3 lines:
+        // When searching for a single existing channel, the results list will have at least 2 lines:
         // One for the existing channel itself
-        // One for creating a public channel with the search term
-        // One for creating a private channel with the search term
-        3
+        // One for creating a channel with the search term
+        2
     );
     assert.strictEqual(
         results[0].textContent,
@@ -91,7 +89,6 @@ QUnit.test('sidebar find shows channels matching search term even when user is m
         id: 20,
         members: [this.data.currentPartnerId],
         name: 'test',
-        public: 'public',
     });
     const searchReadDef = makeDeferred();
     await this.start({
@@ -122,11 +119,10 @@ QUnit.test('sidebar find shows channels matching search term even when user is m
     );
     assert.strictEqual(
         results.length,
-        // When searching for a single existing channel, the results list will have at least 3 lines:
+        // When searching for a single existing channel, the results list will have at least 2 lines:
         // One for the existing channel itself
-        // One for creating a public channel with the search term
-        // One for creating a private channel with the search term
-        3
+        // One for creating a channel with the search term
+        2
     );
     assert.strictEqual(
         results[0].textContent,

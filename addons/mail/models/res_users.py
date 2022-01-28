@@ -101,8 +101,6 @@ class Users(models.Model):
                         subtype_xmlid='mail.mt_note'
                     )
 
-        if 'active' in vals and not vals['active']:
-            self._unsubscribe_from_non_public_channels()
         sel_groups = [vals[k] for k in vals if is_selection_groups(k) and vals[k]]
         if vals.get('groups_id'):
             # form: {'group_ids': [(3, 10), (3, 3), (4, 10), (4, 3)]} or {'group_ids': [(6, 0, [ids]}
@@ -112,24 +110,6 @@ class Users(models.Model):
         elif sel_groups:
             self.env['mail.channel'].search([('group_ids', 'in', sel_groups)])._subscribe_users_automatically()
         return write_res
-
-    def unlink(self):
-        self._unsubscribe_from_non_public_channels()
-        return super().unlink()
-
-    def _unsubscribe_from_non_public_channels(self):
-        """ This method un-subscribes users from private mail channels. Main purpose of this
-            method is to prevent sending internal communication to archived / deleted users.
-            We do not un-subscribes users from public channels because in most common cases,
-            public channels are mailing list (e-mail based) and so users should always receive
-            updates from public channels until they manually un-subscribe themselves.
-        """
-        current_cp = self.env['mail.channel.partner'].sudo().search([
-            ('partner_id', 'in', self.partner_id.ids),
-        ])
-        current_cp.filtered(
-            lambda cp: cp.channel_id.public != 'public' and cp.channel_id.channel_type == 'channel'
-        ).unlink()
 
     def _get_portal_access_update_body(self, access_granted):
         body = _('Portal Access Granted') if access_granted else _('Portal Access Revoked')

@@ -65,7 +65,6 @@ MockServer.include({
                 channel_type: 'livechat',
                 livechat_operator_id: this.currentPartnerId,
                 members,
-                public: 'private',
             });
             // notify operator
             this._widget.call('bus_service', 'trigger', 'notification', [{

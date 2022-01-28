@@ -68,7 +68,6 @@ class WebsiteVisitor(models.Model):
                 'livechat_channel_id': visitor.website_id.channel_id.id,
                 'livechat_operator_id': self.env.user.partner_id.id,
                 'channel_type': 'livechat',
-                'public': 'private',
                 'country_id': country.id,
                 'anonymous_name': visitor_name,
                 'name': ', '.join([visitor_name, operator.livechat_username if operator.livechat_username else operator.name]),
@@ -76,7 +75,7 @@ class WebsiteVisitor(models.Model):
                 'livechat_active': True,
             })
         if mail_channel_vals_list:
-            mail_channels = self.env['mail.channel'].create(mail_channel_vals_list)
+            mail_channels = self.env['mail.channel'].sudo().create(mail_channel_vals_list)
             # Open empty chatter to allow the operator to start chatting with the visitor.
             channel_members = self.env['mail.channel.partner'].sudo().search([
                 ('partner_id', '=', self.env.user.partner_id.id),

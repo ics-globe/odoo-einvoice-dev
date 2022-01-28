@@ -210,9 +210,6 @@ registerModel({
             if ('name' in data) {
                 data2.name = data.name;
             }
-            if ('public' in data) {
-                data2.public = data.public;
-            }
             if ('seen_message_id' in data) {
                 data2.lastSeenByCurrentPartnerMessageId = data.seen_message_id || 0;
             }
@@ -335,12 +332,12 @@ registerModel({
         getSuggestionSortFunction(searchTerm, { thread } = {}) {
             const cleanedSearchTerm = cleanSearchTerm(searchTerm);
             return (a, b) => {
-                const isAPublic = a.model === 'mail.channel' && a.public === 'public';
-                const isBPublic = b.model === 'mail.channel' && b.public === 'public';
-                if (isAPublic && !isBPublic) {
+                const isAChannel = a.model === 'mail.channel' && a.channel_type === 'channel';
+                const isBChannel = b.model === 'mail.channel' && b.channel_type === 'channel';
+                if (isAChannel && !isBChannel) {
                     return -1;
                 }
-                if (!isAPublic && isBPublic) {
+                if (!isAChannel && isBChannel) {
                     return 1;
                 }
                 const isMemberOfA = a.model === 'mail.channel' && a.members.includes(this.messaging.currentPartner);
@@ -473,7 +470,7 @@ registerModel({
             const data = await this.env.services.rpc({
                 model: 'mail.channel',
                 method: 'channel_create',
-                args: [name, privacy],
+                args: [name],
                 kwargs: {
                     context: Object.assign({}, this.env.session.user_content, {
                         // optimize the return value by avoiding useless queries
@@ -560,7 +557,8 @@ registerModel({
          */
         searchSuggestions(searchTerm, { thread } = {}) {
             let threads;
-            if (thread && thread.model === 'mail.channel' && thread.public !== 'public') {
+            if (thread && thread.model === 'mail.channel' && 
+            (thread.channel_type === 'chat' || thread.channel_type === 'group')) {
                 // Only return the current channel when in the context of a
                 // non-public channel. Indeed, the message with the mention
                 // would appear in the target channel, so this prevents from
@@ -2256,7 +2254,6 @@ registerModel({
          * server.
          */
         pendingSeenMessageId: attr(),
-        public: attr(),
         /**
          * If set, the current thread is the thread that hosts the current RTC call.
          */

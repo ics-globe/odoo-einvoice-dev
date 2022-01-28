@@ -441,7 +441,6 @@ QUnit.test('chat - counter: should not have a counter if the category is unfolde
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
 
     await this.start();
@@ -459,7 +458,6 @@ QUnit.test('chat - counter: should not have a counter if the category is unfolde
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 10,
-        public: 'private',
     });
     await this.start();
     assert.strictEqual(
@@ -476,7 +474,6 @@ QUnit.test('chat - counter: should not have a counter if category is folded and 
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
 
     await this.start();
@@ -498,12 +495,10 @@ QUnit.test('chat - counter: should have correct value of unread threads if categ
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 10,
-        public: 'private',
     }, {
         channel_type: 'chat',
         id: 20,
         message_unread_counter: 20,
-        public: 'private',
     });
     await this.start();
 
@@ -551,7 +546,6 @@ QUnit.test('chat - states: close manually by clicking the title', async function
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
     this.data['res.users.settings'].records.push({
         user_id: this.data.currentUserId,
@@ -581,7 +575,6 @@ QUnit.test('chat - states: open manually by clicking the title', async function 
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
     this.data['res.users.settings'].records.push({
         user_id: this.data.currentUserId,
@@ -685,7 +678,6 @@ QUnit.test('chat - states: close from the bus', async function (assert) {
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
     this.data['res.users.settings'].records.push({
         user_id: this.data.currentUserId,
@@ -720,7 +712,6 @@ QUnit.test('chat - states: open from the bus', async function (assert) {
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
     this.data['res.users.settings'].records.push({
         user_id: this.data.currentUserId,
@@ -755,7 +746,6 @@ QUnit.test('chat - states: the active category item should be visble even if the
         channel_type: 'chat',
         id: 10,
         message_unread_counter: 0,
-        public: 'private',
     });
     await this.start();
 

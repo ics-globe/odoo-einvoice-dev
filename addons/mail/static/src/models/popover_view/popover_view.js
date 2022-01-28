@@ -8,7 +8,7 @@ const { Ref } = owl;
 
 registerModel({
     name: 'PopoverView',
-    identifyingFields: [['composerViewOwnerAsEmoji', 'messageActionListOwnerAsReaction', 'threadViewTopbarOwnerAsInvite']],
+    identifyingFields: [['composerViewOwnerAsEmoji', 'discussSidebarOwnerAsInvite', 'messageActionListOwnerAsReaction', 'threadViewTopbarOwnerAsInvite']],
     lifecycleHooks: {
         _created() {
             document.addEventListener('click', this._onClickCaptureGlobal, true);
@@ -39,6 +39,9 @@ registerModel({
             if (this.composerViewOwnerAsEmoji) {
                 return this.composerViewOwnerAsEmoji.buttonEmojisRef;
             }
+            if (this.discussSidebarOwnerAsInvite) {
+                return this.discussSidebarOwnerAsInvite.inviteButtonRef;
+            }
             if (this.messageActionListOwnerAsReaction) {
                 return this.messageActionListOwnerAsReaction.actionReactionRef;
             }
@@ -50,6 +53,9 @@ registerModel({
          */
         _computeChannelInvitationForm() {
             if (this.threadViewTopbarOwnerAsInvite) {
+                return insertAndReplace();
+            }
+            if (this.discussSidebarOwnerAsInvite) {
                 return insertAndReplace();
             }
             return clear();
@@ -116,6 +122,9 @@ registerModel({
             }
             if (this.composerViewOwnerAsEmoji) {
                 return 'top';
+            }
+            if (this.discussSidebarOwnerAsInvite) {
+                return 'bottom';
             }
             if (this.messageActionListOwnerAsReaction) {
                 return 'top';
@@ -191,6 +200,13 @@ registerModel({
             compute: '_computeContentComponentName',
             default: '',
             required: true,
+        }),
+        /**
+         * If set, this popover view is owned by a thread view topbar record.
+         */
+        discussSidebarOwnerAsInvite: one('DiscussSidebarCategory', {
+            inverse: 'invitePopoverView',
+            readonly: true,
         }),
         /**
          * If set, the content of this popover view is a list of emojis.

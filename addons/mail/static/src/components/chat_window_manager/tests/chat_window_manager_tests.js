@@ -368,7 +368,6 @@ QUnit.test('new message chat window should close on selecting the user if chat w
         is_minimized: true,
         members: [this.data.currentPartnerId, 131],
         name: "Partner 131",
-        public: 'private',
         state: 'open',
     });
     const imSearchDef = makeDeferred();

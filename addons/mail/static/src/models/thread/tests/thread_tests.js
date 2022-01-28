@@ -42,7 +42,7 @@ QUnit.test('inbox & starred mailboxes', async function (assert) {
 });
 
 QUnit.test('create (channel)', async function (assert) {
-    assert.expect(23);
+    assert.expect(22);
 
     await this.start();
     assert.notOk(this.messaging.models['Partner'].findFromIdentifyingData({ id: 9 }));
@@ -67,7 +67,6 @@ QUnit.test('create (channel)', async function (assert) {
         message_needaction_counter: 6,
         model: 'mail.channel',
         name: "General",
-        public: 'public',
         serverMessageUnreadCounter: 5,
     });
     assert.ok(thread);
@@ -90,7 +89,6 @@ QUnit.test('create (channel)', async function (assert) {
     assert.ok(thread.members.includes(partner10));
     assert.strictEqual(thread.message_needaction_counter, 6);
     assert.strictEqual(thread.name, "General");
-    assert.strictEqual(thread.public, 'public');
     assert.strictEqual(thread.serverMessageUnreadCounter, 5);
     assert.strictEqual(partner9.email, "john@example.com");
     assert.strictEqual(partner9.id, 9);

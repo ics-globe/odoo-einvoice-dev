@@ -202,17 +202,17 @@ class TestMessageAccess(TestMailCommon):
         # Pigs: base group for tests
         cls.group_pigs = Channel.create({
             'name': 'Pigs',
-            'public': 'groups',
+            'channel_type': 'channel',
             'group_public_id': cls.env.ref('base.group_user').id})
         # Jobs: public group
         cls.group_public = Channel.create({
             'name': 'Jobs',
-            'description': 'NotFalse',
-            'public': 'public'})
+            'channel_type': 'channel',
+            'description': 'NotFalse'})
         # Private: private gtroup
         cls.group_private = Channel.create({
             'name': 'Private',
-            'public': 'private'})
+            'channel_type': 'chat'})
         cls.message = cls.env['mail.message'].create({
             'body': 'My Body',
             'model': 'mail.channel',
@@ -267,11 +267,6 @@ class TestMessageAccess(TestMailCommon):
         messages = self.env['mail.message'].with_user(self.user_portal).search([('subject', 'like', '_ZTest')])
         self.assertFalse(messages)
 
-        # Test: Portal: 2 messages (public group with a subtype)
-        self.group_pigs.write({'public': 'public'})
-        messages = self.env['mail.message'].with_user(self.user_portal).search([('subject', 'like', '_ZTest')])
-        self.assertEqual(messages, msg4 | msg5)
-
     # --------------------------------------------------
     # READ
     # --------------------------------------------------
@@ -286,9 +281,10 @@ class TestMessageAccess(TestMailCommon):
         with self.assertRaises(AccessError):
             self.message.with_user(self.user_portal).read(['body', 'message_type', 'subtype_id'])
 
-    def test_mail_message_access_read_ok_portal(self):
+    def test_mail_message_access_read_ko_portal(self):
         self.message.write({'subtype_id': self.ref('mail.mt_comment'), 'res_id': self.group_public.id})
-        self.message.with_user(self.user_portal).read(['body', 'message_type', 'subtype_id'])
+        with self.assertRaises(AccessError):
+            self.message.with_user(self.user_portal).read(['body', 'message_type', 'subtype_id'])
 
     def test_mail_message_access_read_notification(self):
         attachment = self.env['ir.attachment'].create({

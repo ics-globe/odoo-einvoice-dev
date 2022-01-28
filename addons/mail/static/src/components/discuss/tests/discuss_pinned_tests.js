@@ -173,7 +173,6 @@ QUnit.test('sidebar: unpin channel from bus', async function (assert) {
                 channel_type: 'channel',
                 id: 20,
                 name: "General",
-                public: 'public',
                 state: 'open',
             },
         }]);

@@ -56,7 +56,6 @@ class DiscussController(http.Controller):
                 channel_sudo = channel_sudo.create({
                     'default_display_mode': default_display_mode,
                     'name': channel_name or create_token,
-                    'public': 'public',
                     'uuid': create_token,
                 })
             except IntegrityError as e:

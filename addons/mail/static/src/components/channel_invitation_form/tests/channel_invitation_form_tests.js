@@ -44,7 +44,6 @@ QUnit.test('should display the channel invitation form after clicking on the inv
         channel_type: 'chat',
         id: 13,
         members: [this.data.currentPartnerId, 11],
-        public: 'private',
     });
     await this.start({
         discuss: {
@@ -84,7 +83,6 @@ QUnit.test('should be able to search for a new user to invite from an existing c
         channel_type: 'chat',
         id: 13,
         members: [this.data.currentPartnerId, 11],
-        public: 'private',
     });
     await this.start({
         discuss: {
@@ -125,7 +123,6 @@ QUnit.test('should be able to create a new group chat from an existing chat', as
         channel_type: 'chat',
         id: 13,
         members: [this.data.currentPartnerId, 11],
-        public: 'private',
     });
     await this.start({
         discuss: {

@@ -41,7 +41,7 @@ class Channel(models.Model):
     def default_get(self, fields):
         res = super(Channel, self).default_get(fields)
         if not res.get('alias_contact') and (not fields or 'alias_contact' in fields):
-            res['alias_contact'] = 'everyone' if res.get('public', 'private') == 'public' else 'followers'
+            res['alias_contact'] = 'everyone' if res.get('channel_type', 'undefined') == 'channel' else 'followers'
         return res
 
     @api.model
@@ -82,12 +82,6 @@ class Channel(models.Model):
              "if necessary.")
     # access
     uuid = fields.Char('UUID', size=50, default=_generate_random_token, copy=False)
-    public = fields.Selection([
-        ('public', 'Everyone'),
-        ('private', 'Invited people only'),
-        ('groups', 'Selected group of users')], string='Privacy',
-        required=True, default='groups',
-        help='This group is visible by non members. Invisible groups can add members through the invite button.')
     group_public_id = fields.Many2one('res.groups', string='Authorized Group',
                                       default=lambda self: self.env.ref('base.group_user'))
 
@@ -99,7 +93,7 @@ class Channel(models.Model):
 
     @api.constrains('channel_last_seen_partner_ids', 'channel_partner_ids')
     def _constraint_partners_chat(self):
-        for ch in self.filtered(lambda ch: ch.channel_type == 'chat'):
+        for ch in self.sudo().filtered(lambda ch: ch.channel_type == 'chat'):
             if len(ch.channel_last_seen_partner_ids) > 2 or len(ch.channel_partner_ids) > 2:
                 raise ValidationError(_("A channel of type 'chat' cannot have more than two users."))
 
@@ -170,9 +164,9 @@ class Channel(models.Model):
 
     # ONCHANGE
 
-    @api.onchange('public')
-    def _onchange_public(self):
-        if self.public != 'public' and self.alias_contact == 'everyone':
+    @api.onchange('channel_type')
+    def _onchange_channel_type(self):
+        if self.channel_type != 'channel' and self.alias_contact == 'everyone':
             self.alias_contact = 'followers'
 
     # ------------------------------------------------------------
@@ -181,7 +175,7 @@ class Channel(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        defaults = self.default_get(['public'])
+        defaults = self.default_get(['channel_type'])
 
         access_types = []
         for vals in vals_list:
@@ -208,10 +202,10 @@ class Channel(models.Model):
 
             # save visibility, apply public visibility for create then set back after creation
             # to avoid ACLS issue
-            access_type = vals.pop('public', defaults['public'])
+            access_type = vals.pop('channel_type', defaults['channel_type'])
             access_types.append(access_type)
-            vals['public'] = 'public'
-            if not vals.get('alias_contact') and access_type != 'public':
+            vals['channel_type'] = 'channel'
+            if not vals.get('alias_contact') and access_type != 'channel':
                 vals['alias_contact'] = 'followers'
 
             # clean vals
@@ -221,8 +215,8 @@ class Channel(models.Model):
         channels = super(Channel, self.with_context(mail_create_nolog=True, mail_create_nosubscribe=True)).create(vals_list)
 
         for access_type, channel in zip(access_types, channels):
-            if access_type != 'public':
-                channel.sudo().public = access_type
+            if access_type != 'channel':
+                channel.sudo().channel_type = access_type
 
         channels._subscribe_users_automatically()
 
@@ -310,7 +304,7 @@ class Channel(models.Model):
         notifications = []
         for channel in self:
             members_to_create = []
-            if channel.public == 'groups':
+            if channel.channel_type == 'channel':
                 invalid_partners = partners.filtered(lambda partner: channel.group_public_id not in partner.user_ids.groups_id)
                 if invalid_partners:
                     raise UserError(_(
@@ -396,18 +390,16 @@ class Channel(models.Model):
 
     def _can_invite(self, partner_id):
         """Return True if the current user can invite the partner to the channel.
-
-          * public: ok;
-          * private: must be member;
-          * group: both current user and target must have group;
+          * chat/group: current user must be member;
+          * channel: both current user and target must in the public group;
 
         :return boolean: whether inviting is ok"""
         partner = self.env['res.partner'].browse(partner_id)
 
         for channel in self.sudo():
-            if channel.public == 'private' and not channel.is_member:
+            if (channel.channel_type == 'chat' or channel.channel_type == 'group') and not channel.is_member:
                 return False
-            if channel.public == 'groups':
+            if channel.channel_type == 'channel':
                 if not partner.user_ids or channel.group_public_id not in partner.user_ids.groups_id:
                     return False
                 if channel.group_public_id not in self.env.user.groups_id:
@@ -708,7 +700,7 @@ class Channel(models.Model):
             }
             notifications.append((channel, 'mail.channel/new_message', payload))
             # add uuid to allow anonymous to listen
-            if channel.public == 'public':
+            if channel.channel_type == 'channel':
                 notifications.append((channel.uuid, 'mail.channel/new_message', payload))
         return notifications
 
@@ -759,7 +751,6 @@ class Channel(models.Model):
                 'state': 'open',
                 'is_minimized': False,
                 'channel_type': channel.channel_type,
-                'public': channel.public,
                 'group_based_subscription': bool(channel.group_ids),
                 'create_uid': channel.create_uid.id,
             }
@@ -843,7 +834,6 @@ class Channel(models.Model):
             SELECT P.channel_id
             FROM mail_channel C, mail_channel_partner P
             WHERE P.channel_id = C.id
-                AND C.public LIKE 'private'
                 AND P.partner_id IN %s
                 AND C.channel_type LIKE 'chat'
                 AND NOT EXISTS (
@@ -869,9 +859,8 @@ class Channel(models.Model):
             channel._broadcast(self.env.user.partner_id.ids)
         else:
             # create a new one
-            channel = self.create({
+            channel = self.sudo().create({
                 'channel_partner_ids': [Command.link(partner_id) for partner_id in partners_to],
-                'public': 'private',
                 'channel_type': 'chat',
                 'name': ', '.join(self.env['res.partner'].sudo().browse(partners_to).mapped('name')),
             })
@@ -1050,12 +1039,11 @@ class Channel(models.Model):
         domain = expression.AND([
             [('channel_type', '=', 'channel')],
             [('channel_partner_ids', 'not in', [self.env.user.partner_id.id])],
-            [('public', '!=', 'private')],
             domain
         ])
         if name:
             domain = expression.AND([domain, [('name', 'ilike', '%'+name+'%')]])
-        return self.search(domain).read(['name', 'public', 'uuid', 'channel_type'])
+        return self.search(domain).read(['name', 'uuid', 'channel_type'])
 
     def channel_join(self):
         """ Shortcut to add the current user as member of self channels.
@@ -1064,17 +1052,17 @@ class Channel(models.Model):
         self.add_members(self.env.user.partner_id.ids)
 
     @api.model
-    def channel_create(self, name, privacy='public'):
+    def channel_create(self, name, channel_type='channel'):
         """ Create a channel and add the current partner, broadcast it (to make the user directly
             listen to it when polling)
             :param name : the name of the channel to create
-            :param privacy : privacy of the channel. Should be 'public' or 'private'.
+            :param channel_type : the type of the channel to create
             :return dict : channel header
         """
         # create the channel
         new_channel = self.create({
             'name': name,
-            'public': privacy,
+            'channel_type': channel_type,
         })
         notification = _('<div class="o_mail_notification">created <a href="#" class="o_channel_redirect" data-oe-id="%s">#%s</a></div>', new_channel.id, new_channel.name)
         new_channel.message_post(body=notification, message_type="notification", subtype_xmlid="mail.mt_comment")
@@ -1084,7 +1072,7 @@ class Channel(models.Model):
 
     @api.model
     def create_group(self, partners_to, default_display_mode=False):
-        """ Create a group channel.
+        """ Create a group chat.
             :param partners_to : list of res.partner ids to add to the conversation
             :returns: channel_info of the created channel
             :rtype: dict
@@ -1094,7 +1082,6 @@ class Channel(models.Model):
             'channel_type': 'group',
             'default_display_mode': default_display_mode,
             'name': '',  # default name is computed client side from the list of members
-            'public': 'private',
         })
         channel._broadcast(partners_to)
         return channel.channel_info()[0]
@@ -1107,12 +1094,9 @@ class Channel(models.Model):
         domain = expression.AND([
                         [('name', 'ilike', search)],
                         [('channel_type', '=', 'channel')],
-                        expression.OR([
-                            [('public', '!=', 'private')],
-                            [('channel_partner_ids', 'in', [self.env.user.partner_id.id])]
-                        ])
+                        [('channel_partner_ids', 'in', [self.env.user.partner_id.id])],
                     ])
-        return self.search_read(domain, ['id', 'name', 'public', 'channel_type'], limit=limit)
+        return self.search_read(domain, ['id', 'name', 'channel_type'], limit=limit)
 
     @api.model
     def channel_fetch_listeners(self, uuid):
@@ -1184,8 +1168,6 @@ class Channel(models.Model):
         partner = self.env.user.partner_id
         if self.channel_type == 'channel':
             msg = _("You are in channel <b>#%s</b>.", self.name)
-            if self.public == 'private':
-                msg += _(" This channel is private. People must be invited to join it.")
         else:
             all_channel_partners = self.env['mail.channel.partner'].with_context(active_test=False)
             channel_partners = all_channel_partners.search([('partner_id', '!=', partner.id), ('channel_id', '=', self.id)])

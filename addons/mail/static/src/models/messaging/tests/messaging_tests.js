@@ -82,9 +82,7 @@ QUnit.test('openChat: open new chat for user', async function (assert) {
     const existingChat = this.messaging.models['Thread'].find(thread =>
         thread.channel_type === 'chat' &&
         thread.correspondent &&
-        thread.correspondent.id === 14 &&
-        thread.model === 'mail.channel' &&
-        thread.public === 'private'
+        thread.correspondent.id === 14
     );
     assert.notOk(existingChat, 'a chat should not exist with the target partner initially');
 
@@ -92,9 +90,7 @@ QUnit.test('openChat: open new chat for user', async function (assert) {
     const chat = this.messaging.models['Thread'].find(thread =>
         thread.channel_type === 'chat' &&
         thread.correspondent &&
-        thread.correspondent.id === 14 &&
-        thread.model === 'mail.channel' &&
-        thread.public === 'private'
+        thread.correspondent.id === 14
     );
     assert.ok(chat, 'a chat should exist with the target partner');
     assert.strictEqual(chat.threadViews.length, 1, 'the chat should be displayed in a `ThreadView`');
@@ -109,15 +105,12 @@ QUnit.test('openChat: open existing chat for user', async function (assert) {
         channel_type: "chat",
         id: 10,
         members: [this.data.currentPartnerId, 14],
-        public: 'private',
     });
     await this.start();
     const existingChat = this.messaging.models['Thread'].find(thread =>
         thread.channel_type === 'chat' &&
         thread.correspondent &&
-        thread.correspondent.id === 14 &&
-        thread.model === 'mail.channel' &&
-        thread.public === 'private'
+        thread.correspondent.id === 14
     );
     assert.ok(existingChat, 'a chat should initially exist with the target partner');
     assert.strictEqual(existingChat.threadViews.length, 0, 'the chat should not be displayed in a `ThreadView`');

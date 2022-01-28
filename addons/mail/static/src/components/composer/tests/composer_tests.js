@@ -503,7 +503,6 @@ QUnit.test('display channel mention suggestions on typing "#"', async function (
     this.data['mail.channel'].records.push({
         id: 7,
         name: "General",
-        public: "groups",
     });
 
     const { createComposerComponent } = await this.start();
@@ -539,7 +538,6 @@ QUnit.test('mention a channel', async function (assert) {
     this.data['mail.channel'].records.push({
         id: 7,
         name: "General",
-        public: "groups",
     });
     const { createComposerComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({
@@ -587,7 +585,6 @@ QUnit.test('mention a channel after some text', async function (assert) {
     this.data['mail.channel'].records.push({
         id: 7,
         name: "General",
-        public: "groups",
     });
     const { createComposerComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({
@@ -643,7 +640,6 @@ QUnit.test('add an emoji after a channel mention', async function (assert) {
     this.data['mail.channel'].records.push({
         id: 7,
         name: "General",
-        public: "groups",
     });
     const { createComposerComponent } = await this.start();
     const thread = this.messaging.models['Thread'].findFromIdentifyingData({

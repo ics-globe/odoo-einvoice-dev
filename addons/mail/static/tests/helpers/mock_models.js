@@ -92,7 +92,6 @@ export class MockModels {
                     members: { string: "Members", type: 'many2many', relation: 'res.partner', default() { return [this.currentPartnerId]; } },
                     message_unread_counter: { string: "# unread messages", type: 'integer' },
                     name: { string: "Name", type: "char", required: true },
-                    public: { string: "Public", type: "boolean", default: 'groups' },
                     seen_message_id: { string: "Last Seen", type: 'many2one', relation: 'mail.message' },
                     // In python this belongs to mail.channel.partner. Here for simplicity.
                     state: { string: "FoldState", type: "char", default: 'open' },

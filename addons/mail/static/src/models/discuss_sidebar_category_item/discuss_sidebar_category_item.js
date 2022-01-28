@@ -101,7 +101,7 @@ registerModel({
         _computeHasThreadIcon() {
             switch (this.channelType) {
                 case 'channel':
-                    return this.channel.public === 'private';
+                    return false;
                 case 'chat':
                     return true;
                 case 'group':

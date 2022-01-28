@@ -33,8 +33,9 @@ class TestLivechatLead(TestCrmCommon):
         # public: should not be set as customer
         channel = self.env['mail.channel'].create({
             'name': 'Chat with Visitor',
-            'channel_partner_ids': [(4, self.user_anonymous.partner_id.id)]
+            'channel_type': 'chat',
         })
+        channel.add_members(self.user_anonymous.partner_id.id)
         lead = channel._convert_visitor_to_lead(self.env.user.partner_id, '/lead TestLead command')
 
         self.assertEqual(
@@ -50,8 +51,9 @@ class TestLivechatLead(TestCrmCommon):
 
         channel = self.env['mail.channel'].create({
             'name': 'Chat with Visitor',
-            'channel_partner_ids': [(4, self.env.ref('base.public_partner').id)]
+            'channel_type': 'chat',
         })
+        channel.add_members(self.env.ref('base.public_partner').id)
         lead = channel._convert_visitor_to_lead(self.env.user.partner_id, '/lead TestLead command')
 
         self.assertEqual(
@@ -71,8 +73,9 @@ class TestLivechatLead(TestCrmCommon):
         # portal: should be set as customer
         channel = self.env['mail.channel'].create({
             'name': 'Chat with Visitor',
-            'channel_partner_ids': [(4, self.user_portal.partner_id.id)]
+            'channel_type': 'chat',
         })
+        channel.add_members(self.user_portal.partner_id.id)
         lead = channel._convert_visitor_to_lead(self.env.user.partner_id, '/lead TestLead command')
 
         self.assertEqual(
@@ -82,7 +85,9 @@ class TestLivechatLead(TestCrmCommon):
         self.assertEqual(lead.partner_id, self.user_portal.partner_id)
 
         # another operator invited: internal user should not be customer if portal is present
+        # current chat should becomes a group
         channel.write({
+            'channel_type': 'group',
             'channel_partner_ids': [(4, self.user_sales_manager.partner_id.id)]
         })
         lead = channel._convert_visitor_to_lead(self.env.user.partner_id, '/lead TestLead command')

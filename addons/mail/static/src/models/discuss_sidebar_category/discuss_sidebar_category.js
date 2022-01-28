@@ -157,7 +157,15 @@ registerModel({
          */
         onClickCommandAdd(ev) {
             ev.stopPropagation();
-            this.update({ isAddingItem: true });
+            if(this.autocompleteMethod == 'channel') {
+                this.update({ isAddingItem: true});
+                return ;
+            }
+            if (this.invitePopoverView) {
+                this.update({ invitePopoverView: clear() });
+            } else {
+                this.openInvitePopoverView();
+            }
         },
         /**
          * Redirects to the public channels window when view command is clicked.
@@ -172,9 +180,19 @@ registerModel({
                     type: 'ir.actions.act_window',
                     res_model: 'mail.channel',
                     views: [[false, 'kanban'], [false, 'form']],
-                    domain: [['public', '!=', 'private']],
                 },
             });
+        },
+        /**
+         * Open the invite popover view in this discuss sidebar.
+         */
+        openInvitePopoverView() {
+            this.update({ invitePopoverView: insertAndReplace() });
+            if (this.messaging.isCurrentUserGuest) {
+                return;
+            }
+            this.invitePopoverView.channelInvitationForm.update({ doFocusOnSearchInput: true });
+            this.invitePopoverView.channelInvitationForm.searchPartnersToInvite();
         },
         /**
          * Handles change of open state coming from the server. Useful to
@@ -254,6 +272,19 @@ registerModel({
          */
         hasViewCommand: attr({
             default: false,
+        }),
+        /**
+         * States the OWL ref of the invite button.
+         * Useful to provide anchor for the invite popover positioning.
+         */
+        inviteButtonRef: attr(),
+        /**
+         * If set, this is the record of invite button popover that is currently
+         * open in the topbar.
+         */
+        invitePopoverView: one('PopoverView', {
+            isCausal: true,
+            inverse: 'discussSidebarOwnerAsInvite',
         }),
         /**
          * Boolean that determines whether discuss is adding a new category item.

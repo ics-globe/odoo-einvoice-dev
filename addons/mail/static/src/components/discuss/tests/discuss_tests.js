@@ -561,13 +561,13 @@ QUnit.test('sidebar: channel rendering with needaction counter', async function 
 });
 
 QUnit.test('sidebar: public/private channel rendering', async function (assert) {
-    assert.expect(5);
+    assert.expect(4);
 
     // channels that are expected to be found in the sidebar (one public, one private)
     // with random unique id and name that will be referenced in the test
     this.data['mail.channel'].records.push(
-        { id: 100, name: "channel1", public: 'public', },
-        { id: 101, name: "channel2", public: 'private' }
+        { id: 100, name: "channel1", },
+        { id: 101, name: "channel2", }
     );
     await this.start();
     assert.strictEqual(
@@ -623,11 +623,6 @@ QUnit.test('sidebar: public/private channel rendering', async function (assert) 
         channel1.querySelectorAll(`:scope .o_ThreadIcon`).length,
         "channel1 (public) should not have any icon"
     );
-    assert.strictEqual(
-        channel2.querySelectorAll(`:scope .o_ThreadIcon_channelPrivate`).length,
-        1,
-        "channel2 (private) has lock icon"
-    );
 });
 
 QUnit.test('sidebar: basic chat rendering', async function (assert) {
@@ -641,7 +636,6 @@ QUnit.test('sidebar: basic chat rendering', async function (assert) {
         channel_type: 'chat', // testing a chat is the goal of the test
         id: 10, // random unique id, will be referenced in the test
         members: [this.data.currentPartnerId, 17], // expected partners
-        public: 'private', // expected value for testing a chat
     });
     await this.start();
     assert.strictEqual(
@@ -703,7 +697,6 @@ QUnit.test('sidebar: chat rendering with unread counter', async function (assert
         channel_type: 'chat', // testing a chat is the goal of the test
         id: 10, // random unique id, will be referenced in the test
         message_unread_counter: 100,
-        public: 'private', // expected value for testing a chat
     });
     await this.start();
     const chat = document.querySelector(`.o_DiscussSidebar_categoryChat .o_DiscussSidebarCategory_item`);
@@ -745,19 +738,19 @@ QUnit.test('sidebar: chat im_status rendering', async function (assert) {
             channel_type: 'chat', // testing a chat is the goal of the test
             id: 11, // random unique id, will be referenced in the test
             members: [this.data.currentPartnerId, 101], // expected partners
-            public: 'private', // expected value for testing a chat
+
         },
         {
             channel_type: 'chat', // testing a chat is the goal of the test
             id: 12, // random unique id, will be referenced in the test
             members: [this.data.currentPartnerId, 102], // expected partners
-            public: 'private', // expected value for testing a chat
+
         },
         {
             channel_type: 'chat', // testing a chat is the goal of the test
             id: 13, // random unique id, will be referenced in the test
             members: [this.data.currentPartnerId, 103], // expected partners
-            public: 'private', // expected value for testing a chat
+
         }
     );
     await this.start();
@@ -860,7 +853,6 @@ QUnit.test('sidebar: chat custom name', async function (assert) {
         channel_type: 'chat', // testing a chat is the goal of the test
         custom_channel_name: "Marc", // testing a custom name is the goal of the test
         members: [this.data.currentPartnerId, 101], // expected partners
-        public: 'private', // expected value for testing a chat
     });
     await this.start();
     const chat = document.querySelector(`.o_DiscussSidebar_categoryChat .o_DiscussSidebarCategory_item`);
@@ -2087,7 +2079,7 @@ QUnit.test('redirect to author (open chat)', async function (assert) {
             channel_type: 'chat', // testing a chat is the goal of the test
             id: 10, // random unique id, will be referenced in the test
             members: [this.data.currentPartnerId, 7], // expected partners
-            public: 'private', // expected value for testing a chat
+
         }
     );
     this.data['mail.message'].records.push(
@@ -3754,8 +3746,8 @@ QUnit.test('receive new chat messages: out of odoo focus (tab title)', async fun
     // channel and chat expected to be found in the sidebar
     // with random unique id and name that will be referenced in the test
     this.data['mail.channel'].records.push(
-        { channel_type: 'chat', id: 20, public: 'private' },
-        { channel_type: 'chat', id: 10, public: 'private' },
+        { channel_type: 'chat', id: 20, },
+        { channel_type: 'chat', id: 10, },
     );
     const bus = new Bus();
     bus.on('set_title_part', null, payload => {
@@ -3851,7 +3843,7 @@ QUnit.test('auto-focus composer on opening thread', async function (assert) {
             channel_type: 'chat', // testing a chat is the goal of the test
             id: 10, // random unique id, will be referenced in the test
             members: [this.data.currentPartnerId, 7], // expected partners
-            public: 'private', // expected value for testing a chat
+
         }
     );
     await this.start();

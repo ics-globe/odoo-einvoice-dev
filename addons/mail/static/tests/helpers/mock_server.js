@@ -890,7 +890,6 @@ MockServer.include({
             last_interest_dt: datetime_to_str(new Date()),
             members: [[6, 0, partners_to]],
             name: partners.map(partner => partner.name).join(", "),
-            public: 'private',
             state: 'open',
         });
         return this._mockMailChannelChannelInfo([id])[0];
@@ -1065,7 +1064,6 @@ MockServer.include({
             is_pinned: true,
             members: [[6, 0, partners.map(partner => partner.id)]],
             name: '',
-            public: 'private',
             state: 'open',
         });
         this._mockMailChannel_broadcast(id, partners.map(partner => partner.id));
@@ -1146,7 +1144,6 @@ MockServer.include({
                     return {
                         id: channel.id,
                         name: channel.name,
-                        public: channel.public,
                     };
                 });
             // reduce results to max limit
