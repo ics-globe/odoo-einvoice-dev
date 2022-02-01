@@ -252,6 +252,67 @@ class TestMessageValues(TestMailCommon):
         self.assertNotIn('-%d-' % self.alias_record.id, msg.message_id.split('@')[0])
 
 
+    def test_mail_message_starred_count(self):
+        partner = self.partner_employee
+        user = self.user_employee
+        ticket = self.env['mail.test.ticket'].with_user(user).with_context(self._test_context).create({
+            'name': 'Test',
+        })
+        message = ticket.message_post(body="TestingMessage", message_type="comment")
+
+        ## Body case
+        message.write({'starred_partner_ids': [(6, 0, partner.ids)]})
+        self.assertEqual(partner._get_starred_count(), 1)
+
+        message._update_content('', [])
+        self.assertEqual(partner._get_starred_count(), 0)
+
+        ## Subtype case
+        subtype = self.env['mail.message.subtype'].create({
+            'name': 'Important Discussions',
+            'description': 'Very important discussions'
+        })
+
+        message.write({'subtype_id': subtype})
+        self.assertEqual(partner._get_starred_count(), 0)
+
+        message.write({'starred_partner_ids': [(6, 0, partner.ids)]})
+        self.assertEqual(partner._get_starred_count(), 1)
+        message.write({'subtype_id': False})
+
+        ## Tracking values case
+        tracking_values = {
+            'field': 939,
+            'field_desc': 'Email',
+            'field_type': 'char',
+            'tracking_sequence': 1,
+            'old_value_char': 'francoisemb@test.be',
+            'new_value_char': 'emailchanged@test.be',
+            'mail_message_id': message.id
+        }
+
+        self.env['mail.tracking.value'].create(tracking_values)
+        message.write({'starred_partner_ids': [(6, 0, partner.ids)]})
+        self.assertEqual(partner._get_starred_count(), 1)
+
+        ## Private channel case
+        private_channel = self.env['mail.channel'].create({
+            'name': 'Private Channel',
+            'public': 'private',
+            'channel_partner_ids': [(4, partner.id)]
+        })
+
+        private_channel_own_message = private_channel.with_user(user.id).message_post(body='TestingMessage')
+        private_channel_own_message.write({'starred_partner_ids': [(6, 0, partner.ids)]})
+        self.assertEqual(partner._get_starred_count(), 2)
+
+        private_channel_message = private_channel.message_post(body='TestingMessage')
+        private_channel_message.write({'starred_partner_ids': [(6, 0, partner.ids)]})
+        self.assertEqual(partner._get_starred_count(), 3)
+
+        private_channel.write({'channel_partner_ids': False})
+        self.assertEqual(partner._get_starred_count(), 2)
+
 @tagged('mail_message')
 class TestMessageAccess(TestMailCommon):
 

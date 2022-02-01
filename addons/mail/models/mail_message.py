@@ -9,6 +9,7 @@ from binascii import Error as binascii_error
 
 from odoo import _, api, Command, fields, models, modules, tools
 from odoo.exceptions import AccessError
+from odoo.tools.mail import html_sanitize, is_html_empty
 from odoo.osv import expression
 from odoo.tools.misc import clean_context
 
@@ -689,6 +690,8 @@ class Message(models.Model):
             }
             attachement_values = thread._message_post_process_attachments([], attachment_ids, message_values)
             self.update(attachement_values)
+        if self._is_empty_message():
+            self._clean_related_data()
         thread._message_update_content_after_hook(self)
 
     def action_open_document(self):
@@ -1090,3 +1093,18 @@ class Message(models.Model):
 
     def _get_search_domain_share(self):
         return ['&', '&', ('is_internal', '=', False), ('subtype_id', '!=', False), ('subtype_id.internal', '=', False)]
+
+    def _is_empty_message(self):
+        self.ensure_one()
+        is_body_empty = not self.body or is_html_empty(self.body)
+        is_subtype_description_empty = not self.subtype_id or not self.subtype_id.description or is_html_empty(html_sanitize(self.subtype_id.description, strip_style=True, strip_classes=True))
+        return is_body_empty and is_subtype_description_empty and not self.attachment_ids and not self.tracking_value_ids
+
+    def _clean_related_data(self):
+        """ Clean related message data """
+        self.ensure_one()
+        if self.starred_partner_ids:
+            self.write({'starred_partner_ids': [(5, 0, 0)]})
+
+        if self.notification_ids:
+            self.sudo().write({'notification_ids': [(2, notification.id, 0) for notification in self.notification_ids]})

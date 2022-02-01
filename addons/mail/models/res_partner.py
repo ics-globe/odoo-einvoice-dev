@@ -45,11 +45,7 @@ class Partner(models.Model):
     def _get_starred_count(self):
         """ compute the number of starred of the current partner """
         self.ensure_one()
-        self.env.cr.execute("""
-            SELECT count(*) as starred_count
-            FROM mail_message_res_partner_starred_rel R
-            WHERE R.res_partner_id = %s """, (self.id,))
-        return self.env.cr.dictfetchall()[0].get('starred_count')
+        return self.env['mail.message'].with_user(self.user_ids[0]).search_count([('starred', '=', True)])
 
     # ------------------------------------------------------------
     # MESSAGING
