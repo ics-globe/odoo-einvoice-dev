@@ -360,7 +360,9 @@ class SaleOrder(models.Model):
     def _compute_access_url(self):
         super(SaleOrder, self)._compute_access_url()
         for order in self:
-            order.access_url = '/my/orders/%s' % (order.id)
+            order.access_url = \
+                '/%s/my/orders/%s' % (order.partner_id.lang, order.id) if order.partner_id and order.partner_id.lang \
+                else '/my/orders/%s' % (order.id)
 
     def _compute_is_expired(self):
         today = fields.Date.today()
