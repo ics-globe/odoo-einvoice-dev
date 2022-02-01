@@ -7,10 +7,8 @@ import { PosLoyaltyCard } from '@pos_loyalty/js/Loyalty';
 
 export const PosLoyaltyPaymentScreen = (PaymentScreen) =>
     class extends PaymentScreen {
-        /**
-         * @override
-         */
-        async validateOrder(isForceValidate) {
+        //@override
+        async _finalizeValidation() {
             const pointChanges = {};
             const newCodes = [];
             for (const pe of Object.values(this.currentOrder.couponPointChanges)) {
@@ -32,7 +30,7 @@ export const PosLoyaltyPaymentScreen = (PaymentScreen) =>
                 }
             }
             // No need to do an rpc if no existing coupon is being used.
-            if (await this._isOrderValid(isForceValidate) && (!_.isEmpty(pointChanges) || newCodes.length)) {
+            if (!_.isEmpty(pointChanges) || newCodes.length) {
                 try {
                     const {successful, payload} = await this.rpc({
                         model: 'pos.order',
@@ -68,7 +66,7 @@ export const PosLoyaltyPaymentScreen = (PaymentScreen) =>
                     // it should not be blocking.
                 }
             }
-            await super.validateOrder(...arguments);
+            await super._finalizeValidation (...arguments);
         }
 
         /**

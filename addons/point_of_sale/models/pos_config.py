@@ -540,10 +540,30 @@ class PosConfig(models.Model):
             return True
         return False
 
-    def _get_pos_base_url(self):
-        return '/pos/web' if self._force_http() else '/pos/ui'
-
     # Methods to open the POS
+    def _action_to_open_ui(self):
+        if not self.current_session_id:
+            self.env['pos.session'].create({'user_id': self.env.uid, 'config_id': self.id})
+        path = '/pos/web' if self._force_http() else '/pos/ui'
+        return {
+            'type': 'ir.actions.act_url',
+            'url': path + '?config_id=%d' % self.id,
+            'target': 'self',
+        }
+
+    def _check_before_creating_new_session(self):
+        self._check_pricelists()
+        self._check_company_journal()
+        self._check_company_invoice_journal()
+        self._check_company_payment()
+        self._check_currencies()
+        self._check_profit_loss_cash_journal()
+        self._check_payment_method_ids()
+
+    def _check_before_opening_ui(self):
+        # check all constraints, raises if any is not met
+        self._validate_fields(self._fields)
+
     def open_ui(self):
         """Open the pos interface with config_id as an extra argument.
 
@@ -553,13 +573,26 @@ class PosConfig(models.Model):
         :returns: dict
         """
         self.ensure_one()
-        # check all constraints, raises if any is not met
-        self._validate_fields(self._fields)
-        return {
-            'type': 'ir.actions.act_url',
-            'url': self._get_pos_base_url() + '?config_id=%d' % self.id,
-            'target': 'self',
-        }
+        if not self.current_session_id:
+            self._check_before_creating_new_session()
+        self._check_before_opening_ui()
+
+        # check if there's any product for this PoS
+        domain = [('available_in_pos', '=', True)]
+        if self.limit_categories and self.iface_available_categ_ids:
+            domain.append(('pos_categ_id', 'in', self.iface_available_categ_ids))
+        if not self.env['product.product'].search(domain):
+            return {
+                'name': _("There is no products linked to your PoS"),
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'pos.session.check_product_wizard',
+                'target': 'new',
+                'context': {'config_id': self.id}
+            }
+
+        return self._action_to_open_ui()
 
     def open_session_cb(self):
         """ new session button
@@ -569,13 +602,6 @@ class PosConfig(models.Model):
         """
         self.ensure_one()
         if not self.current_session_id:
-            self._check_pricelists()
-            self._check_company_journal()
-            self._check_company_invoice_journal()
-            self._check_company_payment()
-            self._check_currencies()
-            self._check_profit_loss_cash_journal()
-            self._check_payment_method_ids()
             self.env['pos.session'].create({
                 'user_id': self.env.uid,
                 'config_id': self.id

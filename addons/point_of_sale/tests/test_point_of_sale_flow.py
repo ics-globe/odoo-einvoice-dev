@@ -22,7 +22,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         return untax, sum(tax.get('amount', 0.0) for tax in res['taxes'])
 
     def test_order_refund(self):
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         current_session = self.pos_config.current_session_id
         # I create a new PoS order with 2 lines
         order = self.PosOrder.create({
@@ -89,7 +89,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
 
     def test_order_refund_lots(self):
         # open pos session
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         current_session = self.pos_config.current_session_id
 
         # set up product iwith SN tracing and create two lots (1001, 1002)
@@ -194,7 +194,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         """
 
         # I click on create a new session button
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         current_session = self.pos_config.current_session_id
 
         # I create a PoS order with 2 units of PCSC234 at 450 EUR
@@ -425,7 +425,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         self.env['stock.quant']._update_available_quantity(tracked_product, shelf1_location, qty, lot_id=lot)
         self.env['stock.quant']._update_available_quantity(untracked_product, shelf1_location, qty)
 
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         self.pos_config.current_session_id.update_stock_at_closing = False
 
         untax, atax = self.compute_tax(tracked_product, 1.15, 1)
@@ -482,7 +482,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
 
     def test_order_to_invoice(self):
 
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         current_session = self.pos_config.current_session_id
 
         untax1, atax1 = self.compute_tax(self.product3, 450*0.95, 2)
@@ -598,7 +598,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         """
 
         # I click on create a new session button
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
 
         current_session = self.pos_config.current_session_id
         num_starting_orders = len(current_session.order_ids)
@@ -778,7 +778,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         })
 
         # I click on create a new session button
-        eur_config.open_session_cb()
+        eur_config.open_ui()
         current_session = eur_config.current_session_id
 
         # I create a PoS order with 2 units of PCSC234 at 450 EUR (Tax Incl)
@@ -877,7 +877,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
             self.assertAlmostEqual(a, b)
 
     def test_order_to_invoice_no_tax(self):
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         current_session = self.pos_config.current_session_id
 
         # I create a new PoS order with 2 units of PC1 at 450 EUR (Tax Incl) and 3 units of PCSC349 at 300 EUR. (Tax Excl)
@@ -957,7 +957,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         })
 
         # sell product thru pos
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
         pos_session = self.pos_config.current_session_id
         untax, atax = self.compute_tax(product5, 10.0)
         product5_order = {'data':
@@ -1039,7 +1039,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         self.env['stock.quant']._update_available_quantity(tracked_product, stock_location, 10, lot_id=lot02)
 
         self.pos_config.ship_later = True
-        self.pos_config.open_session_cb()
+        self.pos_config.open_ui()
 
         # Create a POS order with:
         #   1 x Lot01

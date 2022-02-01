@@ -300,6 +300,14 @@ odoo.define('point_of_sale.PaymentScreen', function (require) {
                 return false;
             }
 
+            if (this.currentOrder.get_total_with_tax() != 0 && this.currentOrder.get_paymentlines().length === 0) {
+                this.showPopup('AlertPopup', {
+                    title: this.env._t('Missing payment method'),
+                    body: this.env._t('Select a payment method to validate the order.'),
+                });
+                return false;
+            }
+
             if (!this.currentOrder.is_paid() || this.invoicing) {
                 return false;
             }
