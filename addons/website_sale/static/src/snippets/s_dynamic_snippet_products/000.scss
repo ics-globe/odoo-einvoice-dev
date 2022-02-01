@@ -40,3 +40,9 @@
         transform: scale(.95);
     }
 }
+// Bootstrap's stretched links mess with the editor.
+// Since we just want to redirect on link click
+// we can safely ignore pointer events
+.s_dynamic_snippet_products .stretched-link::after {
+    pointer-events: inherit;
+}
