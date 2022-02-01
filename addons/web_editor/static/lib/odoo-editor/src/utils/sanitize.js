@@ -13,6 +13,7 @@ import {
     isMediaElement,
     getDeepRange,
     isUnbreakable,
+    isONotEditable
 } from './utils.js';
 
 const NOT_A_NUMBER = /[^\d]/g;
@@ -128,6 +129,12 @@ class Sanitize {
             // Ensure all media elements are tagged contenteditable=false.
             // we cannot use the node.isContentEditable because it can wrongly return false
             // when the editor is starting up ( first sanitize )
+            if (node.getAttribute('contenteditable') !== 'false') {
+                node.setAttribute('contenteditable', 'false');
+            }
+        }
+
+        if (isONotEditable(node)) {
             if (node.getAttribute('contenteditable') !== 'false') {
                 node.setAttribute('contenteditable', 'false');
             }

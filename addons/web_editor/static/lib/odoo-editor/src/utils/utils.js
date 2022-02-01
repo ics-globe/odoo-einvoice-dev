@@ -2025,3 +2025,8 @@ export const rightLeafOnlyNotBlockNotEditablePath = createDOMPathGenerator(DIREC
 export function peek(arr) {
     return arr[arr.length - 1];
 }
+export function isONotEditable(node) {
+    return (node
+            && node.classList
+            && node.classList.contains('o_not_editable'));
+}
