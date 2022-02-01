@@ -73,3 +73,9 @@ img.o_img_product_square {
         @include border-bottom-right-radius($border-radius-lg !important);
     }
 }
+// Bootstrap's stretched links mess with the editor.
+// Since we just want to redirect on link click
+// we can safely ignore pointer events
+.s_dynamic_snippet_products .stretched-link::after {
+    pointer-events: inherit;
+}
