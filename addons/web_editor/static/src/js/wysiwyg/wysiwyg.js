@@ -76,6 +76,7 @@ const Wysiwyg = Widget.extend({
         this.$editable.data('oe-id', options.recordInfo.res_id);
         document.addEventListener('mousedown', this._onDocumentMousedown, true);
         this.$editable.on('blur', this._onBlur);
+        $('.o_not_editable').attr('contentEditable', false);
 
         this.toolbar = new Toolbar(this, this.options.toolbarTemplate);
         await this.toolbar.appendTo(document.createElement('void'));
