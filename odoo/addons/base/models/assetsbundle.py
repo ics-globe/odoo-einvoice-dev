@@ -163,7 +163,14 @@ class AssetsBundle(object):
             if self.css_errors:
                 msg = '\n'.join(self.css_errors)
                 response.append(JavascriptAsset(self, inline=self.dialog_message(msg)).to_node())
-                response.append(StylesheetAsset(self, url="/web/static/lib/bootstrap/css/bootstrap.css").to_node())
+                # As we had Bootstrap 4 for the frontend and Bootstrap 5 for the backend
+                # we need to specify a different path to include to append when there is an error
+                bootstrap_5_css = "/web/static/lib/bootstrap/dist/css/bootstrap.css"
+                bootstrap_4_css = "/web/static/lib/bootstrap-4/css/bootstrap.css"
+                bs4_bundle = ['frontend', 'website', 'bs4']
+                is_bs4 = any(valid_string in self.name for valid_string in bs4_bundle)
+                bootstrap_css = bootstrap_4_css if is_bs4 else bootstrap_5_css
+                response.append(StylesheetAsset(self, url=bootstrap_css).to_node())
 
         if js and self.javascripts:
             js_attachment = self.js(is_minified=not is_debug_assets)
