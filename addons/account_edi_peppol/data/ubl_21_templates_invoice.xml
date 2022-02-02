@@ -8,6 +8,7 @@
                         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+                        t-if="invoice.move_type == 'out_invoice'"
                         t-esc="invoice.invoice_date_due"/>
             </xpath>
             <xpath expr="//*[local-name()='OrderReference']" position="before">

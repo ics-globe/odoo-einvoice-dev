@@ -1,0 +1,273 @@
+<CreditNote xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2">
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  <cbc:ID>RINV/2017/01/0001</cbc:ID>
+  <cbc:IssueDate>2017-01-01</cbc:IssueDate>
+  <cbc:CreditNoteTypeCode>381</cbc:CreditNoteTypeCode>
+  <cbc:Note>test narration</cbc:Note>
+  <cbc:DocumentCurrencyCode>USD</cbc:DocumentCurrencyCode>
+  <cbc:BuyerReference>partner_2</cbc:BuyerReference>
+  <cac:OrderReference>
+    <cbc:ID>test invoice origin</cbc:ID>
+  </cac:OrderReference>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyName>
+        <cbc:Name>partner_1</cbc:Name>
+      </cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:StreetName>Rue Jean Jaurès, 42</cbc:StreetName>
+        <cbc:CityName>Paris</cbc:CityName>
+        <cbc:PostalZone>75000</cbc:PostalZone>
+        <cac:Country>
+          <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+          <cbc:Name>France</cbc:Name>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>partner_1</cbc:RegistrationName>
+        <cbc:CompanyID>FR05677404089</cbc:CompanyID>
+        <cac:RegistrationAddress>
+          <cbc:StreetName>Rue Jean Jaurès, 42</cbc:StreetName>
+          <cbc:CityName>Paris</cbc:CityName>
+          <cbc:PostalZone>75000</cbc:PostalZone>
+          <cac:Country>
+            <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+            <cbc:Name>France</cbc:Name>
+          </cac:Country>
+        </cac:RegistrationAddress>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>partner_1</cbc:RegistrationName>
+        <cbc:CompanyID>FR05677404089</cbc:CompanyID>
+        <cac:RegistrationAddress>
+          <cbc:StreetName>Rue Jean Jaurès, 42</cbc:StreetName>
+          <cbc:CityName>Paris</cbc:CityName>
+          <cbc:PostalZone>75000</cbc:PostalZone>
+          <cac:Country>
+            <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+            <cbc:Name>France</cbc:Name>
+          </cac:Country>
+        </cac:RegistrationAddress>
+      </cac:PartyLegalEntity>
+      <cac:Contact>
+        <cbc:ID>763</cbc:ID>
+        <cbc:Name>partner_1</cbc:Name>
+      </cac:Contact>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyName>
+        <cbc:Name>partner_2</cbc:Name>
+      </cac:PartyName>
+      <cac:PostalAddress>
+        <cbc:StreetName>Rue Charles de Gaulle</cbc:StreetName>
+        <cbc:CityName>Colombey-les-Deux-Églises</cbc:CityName>
+        <cbc:PostalZone>52330</cbc:PostalZone>
+        <cac:Country>
+          <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+          <cbc:Name>France</cbc:Name>
+        </cac:Country>
+      </cac:PostalAddress>
+      <cac:PartyTaxScheme>
+        <cbc:RegistrationName>partner_2</cbc:RegistrationName>
+        <cbc:CompanyID>FR35562153452</cbc:CompanyID>
+        <cac:RegistrationAddress>
+          <cbc:StreetName>Rue Charles de Gaulle</cbc:StreetName>
+          <cbc:CityName>Colombey-les-Deux-Églises</cbc:CityName>
+          <cbc:PostalZone>52330</cbc:PostalZone>
+          <cac:Country>
+            <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+            <cbc:Name>France</cbc:Name>
+          </cac:Country>
+        </cac:RegistrationAddress>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:PartyTaxScheme>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>partner_2</cbc:RegistrationName>
+        <cbc:CompanyID>FR35562153452</cbc:CompanyID>
+        <cac:RegistrationAddress>
+          <cbc:StreetName>Rue Charles de Gaulle</cbc:StreetName>
+          <cbc:CityName>Colombey-les-Deux-Églises</cbc:CityName>
+          <cbc:PostalZone>52330</cbc:PostalZone>
+          <cac:Country>
+            <cbc:IdentificationCode>FR</cbc:IdentificationCode>
+            <cbc:Name>France</cbc:Name>
+          </cac:Country>
+        </cac:RegistrationAddress>
+      </cac:PartyLegalEntity>
+      <cac:Contact>
+        <cbc:ID>764</cbc:ID>
+        <cbc:Name>partner_2</cbc:Name>
+      </cac:Contact>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+    <cbc:PaymentDueDate>2017-02-28</cbc:PaymentDueDate>
+    <cbc:PaymentID>RINV/2017/01/0001</cbc:PaymentID>
+    <cac:PayeeFinancialAccount>
+      <cbc:ID>FR90735788866632</cbc:ID>
+    </cac:PayeeFinancialAccount>
+  </cac:PaymentMeans>
+  <cac:PaymentTerms>
+    <cbc:Note>30% Advance End of Following Month</cbc:Note>
+  </cac:PaymentTerms>
+  <cac:TaxTotal>
+    <cbc:TaxAmount currencyID="USD">1979.100</cbc:TaxAmount>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="USD">8910.000</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="USD">1871.100</cbc:TaxAmount>
+      <cbc:Percent>21.0</cbc:Percent>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Name>Standard rate</cbc:Name>
+        <cbc:Percent>21.0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+    <cac:TaxSubtotal>
+      <cbc:TaxableAmount currencyID="USD">900.000</cbc:TaxableAmount>
+      <cbc:TaxAmount currencyID="USD">108.000</cbc:TaxAmount>
+      <cbc:Percent>12.0</cbc:Percent>
+      <cac:TaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Name>Standard rate</cbc:Name>
+        <cbc:Percent>12.0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:TaxCategory>
+    </cac:TaxSubtotal>
+  </cac:TaxTotal>
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="USD">9810.000</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="USD">9810.000</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="USD">11789.100</cbc:TaxInclusiveAmount>
+    <cbc:PrepaidAmount currencyID="USD">0.000</cbc:PrepaidAmount>
+    <cbc:PayableAmount currencyID="USD">11789.100</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+  <cac:CreditNoteLine>
+    <cbc:ID>4694</cbc:ID>
+    <cbc:CreditedQuantity>10.0</cbc:CreditedQuantity>
+    <cbc:LineExtensionAmount currencyID="USD">8910.000</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="USD">1871.100</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="USD">8910.000</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="USD">1871.100</cbc:TaxAmount>
+        <cbc:Percent>21.0</cbc:Percent>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Name>Standard rate</cbc:Name>
+          <cbc:Percent>21.0</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:AllowanceCharge>
+      <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+      <cbc:AllowanceChargeReasonCode>95</cbc:AllowanceChargeReasonCode>
+      <cbc:Amount currencyID="USD">990.000</cbc:Amount>
+    </cac:AllowanceCharge>
+    <cac:Item>
+      <cbc:Description>product_a</cbc:Description>
+      <cbc:Name>product_a</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Name>Standard rate</cbc:Name>
+        <cbc:Percent>21.0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="USD">990.000</cbc:PriceAmount>
+      <cbc:BaseQuantity>1</cbc:BaseQuantity>
+    </cac:Price>
+  </cac:CreditNoteLine>
+  <cac:CreditNoteLine>
+    <cbc:ID>4695</cbc:ID>
+    <cbc:CreditedQuantity>10.0</cbc:CreditedQuantity>
+    <cbc:LineExtensionAmount currencyID="USD">1000.000</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="USD">120.000</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="USD">1000.000</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="USD">120.000</cbc:TaxAmount>
+        <cbc:Percent>12.0</cbc:Percent>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Name>Standard rate</cbc:Name>
+          <cbc:Percent>12.0</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Description>product_a</cbc:Description>
+      <cbc:Name>product_a</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Name>Standard rate</cbc:Name>
+        <cbc:Percent>12.0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="USD">100.000</cbc:PriceAmount>
+      <cbc:BaseQuantity>1</cbc:BaseQuantity>
+    </cac:Price>
+  </cac:CreditNoteLine>
+  <cac:CreditNoteLine>
+    <cbc:ID>4696</cbc:ID>
+    <cbc:CreditedQuantity>-1.0</cbc:CreditedQuantity>
+    <cbc:LineExtensionAmount currencyID="USD">-100.000</cbc:LineExtensionAmount>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="USD">-12.000</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cbc:TaxableAmount currencyID="USD">-100.000</cbc:TaxableAmount>
+        <cbc:TaxAmount currencyID="USD">-12.000</cbc:TaxAmount>
+        <cbc:Percent>12.0</cbc:Percent>
+        <cac:TaxCategory>
+          <cbc:ID>S</cbc:ID>
+          <cbc:Name>Standard rate</cbc:Name>
+          <cbc:Percent>12.0</cbc:Percent>
+          <cac:TaxScheme>
+            <cbc:ID>VAT</cbc:ID>
+          </cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:Item>
+      <cbc:Description>product_a</cbc:Description>
+      <cbc:Name>product_a</cbc:Name>
+      <cac:ClassifiedTaxCategory>
+        <cbc:ID>S</cbc:ID>
+        <cbc:Name>Standard rate</cbc:Name>
+        <cbc:Percent>12.0</cbc:Percent>
+        <cac:TaxScheme>
+          <cbc:ID>VAT</cbc:ID>
+        </cac:TaxScheme>
+      </cac:ClassifiedTaxCategory>
+    </cac:Item>
+    <cac:Price>
+      <cbc:PriceAmount currencyID="USD">100.000</cbc:PriceAmount>
+      <cbc:BaseQuantity>1</cbc:BaseQuantity>
+    </cac:Price>
+  </cac:CreditNoteLine>
+</CreditNote>

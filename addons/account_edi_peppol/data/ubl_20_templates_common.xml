@@ -275,10 +275,10 @@
                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
                 <cbc:TaxableAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('taxable_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('taxable_amount'), vals.get('currency_dp'))"/>
                 <cbc:TaxAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('tax_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('tax_amount'), vals.get('currency_dp'))"/>
                 <cbc:Percent t-esc="vals.get('percent')"/>
                 <cac:TaxCategory>
                     <t t-call="{{TaxCategoryType_template}}">
@@ -294,7 +294,7 @@
                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
                 <cbc:TaxAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('tax_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('tax_amount'), vals.get('currency_dp'))"/>
                 <t t-foreach="vals.get('TaxSubtotal_vals', [])" t-as="foreach_vals">
                     <cac:TaxSubtotal>
                         <t t-call="{{TaxSubtotalType_template}}">
@@ -311,22 +311,22 @@
                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
                 <cbc:LineExtensionAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('line_extension_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('line_extension_amount'), vals.get('currency_dp'))"/>
                 <cbc:TaxExclusiveAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('tax_exclusive_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('tax_exclusive_amount'), vals.get('currency_dp'))"/>
                 <cbc:TaxInclusiveAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('tax_inclusive_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('tax_inclusive_amount'), vals.get('currency_dp'))"/>
                 <cbc:AllowanceTotalAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('allowance_total_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('allowance_total_amount'), vals.get('currency_dp'))"/>
                 <cbc:PrepaidAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('prepaid_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('prepaid_amount'), vals.get('currency_dp'))"/>
                 <cbc:PayableAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('payable_amount'), vals['currency'].decimal_places)"/>
+                        t-esc="format_float(vals.get('payable_amount'), vals.get('currency_dp'))"/>
             </t>
         </template>
 
@@ -368,7 +368,7 @@
                 <cbc:AllowanceChargeReason t-esc="vals.get('allowance_charge_reason')"/>
                 <cbc:Amount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="vals.get('amount')"/>
+                        t-esc="format_float(vals.get('amount'), vals.get('currency_dp'))"/>
                 <t t-foreach="vals.get('TaxCategory_vals', [])" t-as="foreach_vals">
                     <cac:TaxCategory>
                         <t t-call="{{TaxCategoryType_template}}">
@@ -385,7 +385,7 @@
                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
                 <cbc:PriceAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="vals.get('price_amount')"/>
+                        t-esc="format_float(vals.get('price_amount'), vals.get('currency_dp'))"/>
                 <cbc:BaseQuantity
                         t-att="vals.get('base_quantity_attrs', {})"
                         t-esc="vals.get('base_quantity')"/>

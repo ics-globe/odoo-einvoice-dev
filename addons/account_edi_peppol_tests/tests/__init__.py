@@ -2,3 +2,4 @@
 
 from . import test_xml_ubl_be
 from . import test_xml_ubl_de
+from . import test_xml_ubl_fr

@@ -7,12 +7,16 @@ class AccountEdiXmlUBLDE(models.AbstractModel):
     _name = 'account.edi.xml.ubl_de'
     _description = "BIS3 DE (XRechnung)"
 
+    # -------------------------------------------------------------------------
+    # EXPORT
+    # -------------------------------------------------------------------------
+
     def _export_invoice_vals(self, invoice):
         # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
 
         vals['vals'].update({
-            'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.1#conformant#urn:xoev-de:kosit:extension:xrechnung_2.1',
+            'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2#conformant#urn:xoev-de:kosit:extension:xrechnung_2.2',
             'buyer_reference': invoice.commercial_partner_id.name,
         })
 

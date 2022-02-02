@@ -122,8 +122,19 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals_list = super()._get_invoice_tax_totals_vals_list(invoice, taxes_vals)
 
         for vals in vals_list:
+            vals['currency_dp'] = 2
             for subtotal_vals in vals.get('TaxSubtotal_vals', []):
                 subtotal_vals.pop('percent', None)
+                subtotal_vals['currency_dp'] = 2
+
+        return vals_list
+
+    def _get_invoice_line_allowance_vals_list(self, line):
+        # OVERRIDE
+        vals_list = super()._get_invoice_line_allowance_vals_list(line)
+
+        for vals in vals_list:
+            vals['currency_dp'] = 2
 
         return vals_list
 
@@ -133,8 +144,11 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         vals.pop('TaxTotal_vals', None)
 
+        vals['currency_dp'] = 2
         vals['invoiced_quantity_attrs'] = {'unitCode': 'C62'}
+
         vals['Price_vals']['base_quantity_attrs'] = {'unitCode': 'C62'}
+        vals['Price_vals']['currency_dp'] = 2
 
         return vals
 
@@ -143,18 +157,20 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals = super()._export_invoice_vals(invoice)
 
         vals['PartyType_template'] = 'account_edi_peppol.ubl_bis3_PartyType'
-        vals['TaxSubtotalType_template'] = 'account_edi_peppol.ubl_bis3_TaxSubtotalType'
-        vals['TaxTotalType_template'] = 'account_edi_peppol.ubl_bis3_TaxTotalType'
-        vals['MonetaryTotalType_template'] = 'account_edi_peppol.ubl_bis3_MonetaryTotalType'
-        vals['InvoiceLineType_template'] = 'account_edi_peppol.ubl_bis3_InvoiceLineType'
 
         vals['vals'].update({
-            'buyer_reference': None,
             'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0',
             'profile_id': 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',
+            'currency_dp': 2,
         })
+        vals['vals']['LegalMonetaryTotal_vals']['currency_dp'] = 2
 
         return vals
+
+    def _bis3_invoice_buyer_ref_or_po_ref_required(self, invoice, vals):
+        if not invoice.invoice_origin and not vals['vals']['buyer_reference']:
+            return _("A buyer reference or purchase order reference MUST be provided. (PEPPOL-EN16931-R003)")
+        return
 
     def _export_invoice_constraints(self, invoice, vals):
         constraints = super()._export_invoice_constraints(invoice, vals)
@@ -163,5 +179,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # international credit transfer, the Payment account identifier (BT-84) shall be present.
         if vals['vals']['PaymentMeans_vals'][0]['payment_means_code'] in (30, 58):
             constraints['bis3_invoice_partner_bank_id_required'] = self._check_required_fields(invoice, 'partner_bank_id')
+
+        # An invoice must have a buyer reference or a purchase order reference (BT-13).
+        constraints['bis3_invoice_buyer_ref_or_po_ref_required'] = self._bis3_invoice_buyer_ref_or_po_ref_required(invoice, vals)
 
         return constraints

@@ -6,6 +6,7 @@ from odoo import models, _
 from odoo.osv import expression
 from odoo.tests.common import Form
 from odoo.tools import html2plaintext
+from odoo.exceptions import ValidationError
 
 
 class AccountEdiXmlUBL20(models.AbstractModel):
@@ -184,9 +185,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         return [{
             'currency': invoice.currency_id,
+            'currency_dp': invoice.currency_id.decimal_places,
             'tax_amount': balance_sign * taxes_vals['tax_amount_currency'],
             'TaxSubtotal_vals': [{
                 'currency': invoice.currency_id,
+                'currency_dp': invoice.currency_id.decimal_places,
                 'taxable_amount': balance_sign * vals['base_amount_currency'],
                 'tax_amount': balance_sign * vals['tax_amount_currency'],
                 'percent': vals['_tax_category_vals_']['percent'],
@@ -206,10 +209,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         product = line.product_id
         taxes = line.tax_ids.flatten_taxes_hierarchy()
         tax_category_vals_list = self._get_tax_category_list(taxes)
+        description = line.name and line.name.replace('\n', ', ')
 
         return {
             # Simple description about what you are selling.
-            'description': line.name.replace('\n', ', '),
+            'description': description,
 
             # The name of the item.
             # TODO: same as description most of the time?
@@ -238,10 +242,14 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         # Price subtotal without discount:
         net_price_subtotal = line.price_subtotal
         # Price subtotal with discount:
-        gross_price_subtotal = line.currency_id.round(net_price_subtotal / (1.0 - (line.discount or 0.0) / 100.0))
+        if line.discount == 100.0:
+            gross_price_subtotal = 0.0
+        else:
+            gross_price_subtotal = line.currency_id.round(net_price_subtotal / (1.0 - (line.discount or 0.0) / 100.0))
 
         allowance_vals = {
             'currency': line.currency_id,
+            'currency_dp': line.currency_id.decimal_places,
 
             # Must be 'false' since this method is for allowances.
             'charge_indicator': 'false',
@@ -267,12 +275,16 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         # Price subtotal without discount:
         net_price_subtotal = line.price_subtotal
         # Price subtotal with discount:
-        gross_price_subtotal = net_price_subtotal / (1.0 - (line.discount or 0.0) / 100.0)
+        if line.discount == 100.0:
+            gross_price_subtotal = 0.0
+        else:
+            gross_price_subtotal = net_price_subtotal / (1.0 - (line.discount or 0.0) / 100.0)
         # Price subtotal with discount / quantity:
         gross_price_unit = line.currency_id.round((gross_price_subtotal / line.quantity) if line.quantity else 0.0)
 
         return {
             'currency': line.currency_id,
+            'currency_dp': line.currency_id.decimal_places,
 
             # The price of an item, exclusive of VAT, after subtracting item price discount.
             'price_amount': gross_price_unit,
@@ -293,6 +305,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         return {
             'currency': line.currency_id,
+            'currency_dp': line.currency_id.decimal_places,
 
             # The requirement is the id has to be unique by invoice line.
             'id': line.id,
@@ -380,7 +393,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             'vals': {
 
-                'ubl_version': 2.0,
+                'ubl_version_id': 2.0,
                 'note_vals': [html2plaintext(invoice.narration)] if invoice.narration else [],
                 'AccountingSupplierParty_vals': {
                     'Party_vals': self._get_partner_party_vals(supplier),
@@ -394,6 +407,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 'TaxTotal_vals': self._get_invoice_tax_totals_vals_list(invoice, taxes_vals),
                 'LegalMonetaryTotal_vals': {
                     'currency': invoice.currency_id,
+                    'currency_dp': invoice.currency_id.decimal_places,
                     'line_extension_amount': line_extension_amount,
                     'tax_exclusive_amount': invoice.amount_untaxed,
                     'tax_inclusive_amount': invoice.amount_total,
@@ -402,6 +416,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                     'payable_amount': invoice.amount_residual,
                 },
                 'InvoiceLine_vals': invoice_line_vals_list,
+                'currency_dp': invoice.currency_id.decimal_places,  # currency decimal places
             },
         }
 
@@ -445,8 +460,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             return self.env['account.edi.format']._retrieve_partner_with_vat(vat, extra_domain)
 
         def with_phone_mail(tree, extra_domain):
-            phone_node = tree.find(tree, './/{*}AccountingSupplierParty/{*}Party//{*}Telephone')
-            mail_node = tree.find(tree, './/{*}AccountingSupplierParty/{*}Party//{*}ElectronicMail')
+            phone_node = tree.find('.//{*}AccountingSupplierParty/{*}Party//{*}Telephone')
+            mail_node = tree.find('.//{*}AccountingSupplierParty/{*}Party//{*}ElectronicMail')
 
             phone = None if phone_node is None else phone_node.text
             mail = None if mail_node is None else mail_node.text
@@ -561,13 +576,14 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             tax_amount_el = tax_subtotal_el.find('./{*}TaxAmount')
 
             # Process only subtotals having the same currency as the invoice.
-            if taxable_amount_el.attrs.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
+            if taxable_amount_el.attrib.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
                 continue
-            if tax_amount_el.attrs.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
+            if tax_amount_el.attrib.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
                 continue
 
-            tax_categ_id_el = tax_subtotal_el.find('./{*}TaxCategoryType/{*}ID')
-            tax_categ_percent_el = tax_subtotal_el.find('./{*}TaxCategoryType/{*}Percent')
+            tax_categ_el = tax_subtotal_el.find('./{*}TaxCategoryType') or tax_subtotal_el.find('./{*}TaxCategory')
+            tax_categ_id_el = tax_categ_el.find('./{*}ID')
+            tax_categ_percent_el = tax_categ_el.find('./{*}Percent')
 
             if tax_categ_percent_el is not None:
                 tax = self.env['account.tax'].search([

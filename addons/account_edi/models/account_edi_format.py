@@ -227,11 +227,12 @@ class AccountEdiFormat(models.Model):
     # Import methods to override based on EDI Format
     ####################################################
 
-    def _create_invoice_from_xml_tree(self, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         """ Create a new invoice with the data inside the xml.
 
         :param filename: The name of the xml.
         :param tree:     The tree of the xml to import.
+        :param journal:  The journal on which importing the invoice.
         :returns:        The created invoice.
         """
         # TO OVERRIDE
