@@ -143,11 +143,11 @@ class AccountEdiFormat(models.Model):
     def _is_facturx(self, filename, tree):
         return self.code == 'facturx_1_0_05' and tree.tag == '{urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100}CrossIndustryInvoice'
 
-    def _create_invoice_from_xml_tree(self, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         self.ensure_one()
         if self._is_facturx(filename, tree):
             return self._import_facturx(tree, self.env['account.move'])
-        return super()._create_invoice_from_xml_tree(filename, tree)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()

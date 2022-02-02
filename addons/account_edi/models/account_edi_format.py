@@ -218,11 +218,12 @@ class AccountEdiFormat(models.Model):
     # Import methods to override based on EDI Format
     ####################################################
 
-    def _create_invoice_from_xml_tree(self, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         """ Create a new invoice with the data inside the xml.
 
         :param filename: The name of the xml.
         :param tree:     The tree of the xml to import.
+        :param journal:  The journal on which importing the invoice.
         :returns:        The created invoice.
         """
         # TO OVERRIDE
@@ -501,7 +502,6 @@ class AccountEdiFormat(models.Model):
         element = xml_element.xpath(xpath, namespaces=namespaces)
         return element[0].text if element else None
 
-    @api.model
     def _retrieve_partner_with_vat(self, vat, extra_domain):
         if not vat:
             return None
@@ -556,7 +556,6 @@ class AccountEdiFormat(models.Model):
 
         return partner
 
-    @api.model
     def _retrieve_partner_with_phone_mail(self, phone, mail, extra_domain):
         domains = []
         if phone:
@@ -573,7 +572,6 @@ class AccountEdiFormat(models.Model):
             domain = expression.AND([domain, extra_domain])
         return self.env['res.partner'].search(domain, limit=1)
 
-    @api.model
     def _retrieve_partner_with_name(self, name, extra_domain):
         if not name:
             return None
@@ -588,6 +586,7 @@ class AccountEdiFormat(models.Model):
         :param vat:     The vat number of the partner.
         :returns:       A partner or an empty recordset if not found.
         '''
+
         def search_with_vat(extra_domain):
             return self._retrieve_partner_with_vat(vat, extra_domain)
 
@@ -595,7 +594,7 @@ class AccountEdiFormat(models.Model):
             return self._retrieve_partner_with_phone_mail(phone, mail, extra_domain)
 
         def search_with_name(extra_domain):
-            return self.search_with_name(name, extra_domain)
+            return self._retrieve_partner_with_name(name, extra_domain)
 
         for search_method in (search_with_vat, search_with_phone_mail, search_with_name):
             for extra_domain in ([('company_id', '=', self.env.company.id)], []):

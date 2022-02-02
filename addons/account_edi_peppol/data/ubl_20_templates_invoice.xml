@@ -18,13 +18,18 @@
                         t-esc="vals.get('invoiced_quantity')"/>
                 <cbc:LineExtensionAmount
                         t-att-currencyID="vals['currency'].name"
-                        t-esc="format_float(vals.get('line_extension_amount'), vals['currency'].decimal_places)"/>
-                <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
-                    <cac:AllowanceCharge>
-                        <t t-call="{{AllowanceChargeType_template}}">
-                            <t t-set="vals" t-value="foreach_vals"/>
-                        </t>
-                    </cac:AllowanceCharge>
+                        t-esc="format_float(vals.get('line_extension_amount'), vals.get('currency_dp'))"/>
+                <!-- AllowanceCharge and TaxTotal are swapped in the CreditLine
+                w.r.t InvoiceLine. see: http://www.datypic.com/sc/ubl21/e-cac_InvoiceLine.html
+                vs http://www.datypic.com/sc/ubl21/e-cac_CreditNoteLine.html-->
+                <t t-if="invoice.move_type == 'out_invoice'">
+                    <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
+                        <cac:AllowanceCharge>
+                            <t t-call="{{AllowanceChargeType_template}}">
+                                <t t-set="vals" t-value="foreach_vals"/>
+                            </t>
+                        </cac:AllowanceCharge>
+                    </t>
                 </t>
                 <t t-foreach="vals.get('TaxTotal_vals', [])" t-as="foreach_vals">
                     <cac:TaxTotal>
@@ -32,6 +37,15 @@
                             <t t-set="vals" t-value="foreach_vals"/>
                         </t>
                     </cac:TaxTotal>
+                </t>
+                <t t-if="invoice.move_type == 'out_refund'">
+                    <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
+                        <cac:AllowanceCharge>
+                            <t t-call="{{AllowanceChargeType_template}}">
+                                <t t-set="vals" t-value="foreach_vals"/>
+                            </t>
+                        </cac:AllowanceCharge>
+                    </t>
                 </t>
                 <cac:Item>
                     <t t-call="{{ItemType_template}}">

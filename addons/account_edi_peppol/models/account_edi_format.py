@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from datetime import datetime
 
 from odoo import _, models, fields
-from odoo.exceptions import UserError
-from odoo.tests.common import Form
 
 # Electronic Address Scheme (EAS), see https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/
 COUNTRY_EAS = {
@@ -52,9 +49,9 @@ COUNTRY_EAS = {
 class AccountEdiFormat(models.Model):
     _inherit = 'account.edi.format'
 
-    # -------------------------------------------------------------------------
-    # HELPERS
-    # -------------------------------------------------------------------------
+    ####################################################
+    # Helpers
+    ####################################################
 
     def _is_edi_peppol_customer_valid(self, customer):
         return customer.country_id.code in COUNTRY_EAS
@@ -68,20 +65,23 @@ class AccountEdiFormat(models.Model):
             # XRechnung (DE)
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_de'],
-                'invoice_filename': lambda inv: 'factur-x.xml',
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_de.xml",
                 'invoice_embed_to_pdf': True,
             }
         if company_country_code == 'FR':
             # Factur-x (FR)
             return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_bis3'],
-                'invoice_filename': lambda inv: 'factur-x.xml',
+                # see https://communaute.chorus-pro.gouv.fr/wp-content/uploads/2017/08/20170630_Solution-portail_Dossier_Specifications_Fournisseurs_Chorus_Facture_V.1.pdf
+                # page 45 -> ubl 2.1 for France
+                'invoice_xml_builder': self.env['account.edi.xml.ubl_21'],
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_21.xml",
                 'invoice_embed_to_pdf': True,
             }
         if company_country_code in COUNTRY_EAS:
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_bis3'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_peppol.xml",
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
+                'invoice_embed_to_pdf': True,
             }
 
     def _get_edi_peppol_info(self, company, customer=None):
@@ -94,25 +94,59 @@ class AccountEdiFormat(models.Model):
 
         return self._get_edi_peppol_builder(company.country_id.code.upper())
 
+    def _infer_xml_builder_from_tree(self, tree):
+        self.ensure_one()
+        ubl_version = tree.find('{*}UBLVersionID')
+        customization_id = tree.find('{*}CustomizationID')
+        if customization_id is not None:
+            if 'xrechnung' in customization_id.text:
+                return self.env['account.edi.xml.ubl_de']
+            if customization_id.text == 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0':
+                return self.env['account.edi.xml.ubl_bis3']
+        if ubl_version is not None:
+            if ubl_version.text == '2.0':
+                return self.env['account.edi.xml.ubl_20']
+            if ubl_version.text == '2.1':
+                return self.env['account.edi.xml.ubl_21']
+        return
+
     ####################################################
     # Import: Account.edi.format override
     ####################################################
 
-    def _create_invoice_from_xml_tree(self, journal, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         # OVERRIDE
         self.ensure_one()
+        if self.code != 'peppol':
+            return super()._create_invoice_from_xml_tree(filename, tree, journal)
 
-        peppol_info = self._get_edi_peppol_info(journal.company_id)
-        if peppol_info:
-            invoice = peppol_info['invoice_xml_builder']._import_invoice(journal, filename, tree)
+        invoice_xml_builder = None
+        if journal:
+            peppol_info = self._get_edi_peppol_info(journal.company_id)
+            if peppol_info:
+                invoice_xml_builder = peppol_info['invoice_xml_builder']
+        else:
+            # infer the journal
+            journal = self.env['account.journal'].search([
+                ('company_id', '=', self.env.company.id), ('type', '=', 'purchase')
+            ])
+            journal.ensure_one()
+            # infer the xml builder
+            invoice_xml_builder = self._infer_xml_builder_from_tree(tree)
+
+        if invoice_xml_builder is not None:
+            invoice = invoice_xml_builder._import_invoice(journal, filename, tree)
             if invoice:
                 return invoice
 
-        return super()._create_invoice_from_xml_tree(journal, filename, tree)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         # OVERRIDE
         self.ensure_one()
+
+        if self.code != 'peppol':
+            return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 
         peppol_info = self._get_edi_peppol_info(invoice.journal_id.company_id)
         if peppol_info:
@@ -130,22 +164,21 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code == 'peppol':
-            if invoice.move_type not in ('out_invoice', 'out_refund'):
-                return False
+        if self.code != 'peppol':
+            return super()._is_required_for_invoice(invoice)
 
-            peppol_info = self._get_edi_peppol_info(invoice.company_id, customer=invoice.partner_id)
-            return bool(peppol_info)
+        if invoice.move_type not in ('out_invoice', 'out_refund'):
+            return False
+        peppol_info = self._get_edi_peppol_info(invoice.company_id, customer=invoice.partner_id)
+        return bool(peppol_info)
 
-        return super()._is_required_for_invoice(invoice)
 
     def _is_compatible_with_journal(self, journal):
         # OVERRIDE
         self.ensure_one()
 
-        peppol_info = self._get_edi_peppol_info(journal.company_id)
-        if peppol_info:
-            return True
+        if self.code != 'peppol':
+            return super()._is_compatible_with_journal(journal)
 
         return super()._is_compatible_with_journal(journal)
 
@@ -163,10 +196,10 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code != 'peppol':
-            return super()._post_invoice_edi(invoices)
-
         peppol_info = self._get_edi_peppol_info(invoices.company_id, customer=invoices.partner_id)
+
+        if self.code != 'peppol' or not peppol_info:
+            return super()._post_invoice_edi(invoices)
 
         res = {}
         for invoice in invoices:
@@ -185,12 +218,15 @@ class AccountEdiFormat(models.Model):
 
         return res
 
-    def _is_embedding_to_invoice_pdf_needed(self, invoice):
+    def _is_embedding_to_invoice_pdf_needed(self):
         # OVERRIDE
         self.ensure_one()
 
-        peppol_info = self._get_edi_peppol_info(invoice.company_id, customer=invoice.partner_id)
-        if peppol_info:
-            return peppol_info.get('invoice_embed_to_pdf', False)
+        return True if self.code == 'peppol' else super()._is_embedding_to_invoice_pdf_needed()
 
-        return super()._is_embedding_to_invoice_pdf_needed(invoice)
+    def _get_embedding_to_invoice_pdf_values(self, invoice):
+        # OVERRIDE
+        values = super()._get_embedding_to_invoice_pdf_values(invoice)
+        if values and self.code == 'peppol':
+            values['name'] = 'peppol.xml'
+        return values

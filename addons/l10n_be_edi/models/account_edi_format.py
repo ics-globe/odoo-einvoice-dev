@@ -11,11 +11,11 @@ class AccountEdiFormat(models.Model):
     def _is_efff(self, filename, tree):
         return self.code == 'efff_1' and tree.tag == '{urn:oasis:names:specification:ubl:schema:xsd:Invoice-2}Invoice'
 
-    def _create_invoice_from_xml_tree(self, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         self.ensure_one()
         if self._is_efff(filename, tree):
             return self._create_invoice_from_ubl(tree)
-        return super()._create_invoice_from_xml_tree(filename, tree)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()
