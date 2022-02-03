@@ -57,6 +57,10 @@ var EditPageMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         } else {
             this.savableSelector = `${this.oeStructureSelector}, ${this.oeFieldSelector}, ${this.oeCoverSelector}`;
         }
+        // Elements targeted by this selector won't be removable by the editor.
+        this.unremovableElementsSelector =
+            '.s_website_form_send, .s_donation_donate_btn, .o_submit, ul[role="tablist"] > li, a[role="tab"][data-toggle="collapse"]';
+
         this.editableFromEditorMenu = options.editableFromEditorMenu || this.editableFromEditorMenu;
         this._editorAutoStart = (context.editable && window.location.search.indexOf('enable_editor') >= 0);
         var url = new URL(window.location.href);
@@ -416,6 +420,7 @@ var EditPageMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
             controlHistoryFromDocument: true,
             getContentEditableAreas: this._getContentEditableAreas.bind(this),
             powerboxCommands: this._getSnippetsCommands(),
+            unremovableElementsSelector: this.unremovableElementsSelector,
         }, collaborationConfig);
         return wysiwygLoader.createWysiwyg(this,
             Object.assign(params, this.wysiwygOptions),
