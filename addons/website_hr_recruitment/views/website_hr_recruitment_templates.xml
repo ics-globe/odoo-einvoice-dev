@@ -64,13 +64,13 @@
     <!-- Filters -->
     <ul class="o_jobs_topbar_filters flex-md-nowrap nav pl-md-3"/>
     <!-- Search bar -->
-    <div class="o_jobs_topbar_search_bar d-flex align-items-center justify-content-end w-md-100 w-lg-25 pl-lg-3 pr-0 mr-2 mr-lg-0"/>
+    <div t-if="opt_jobs_search_bar" class="o_jobs_topbar_search_bar d-flex align-items-center justify-content-end w-md-100 w-lg-25 pl-lg-3 pr-0 mr-2 mr-lg-0"/>
 </template>
 
 <!-- Filter - Countries -->
 <template id="job_filter_by_countries" inherit_id="website_hr_recruitment.topbar_customizations" customize_show="True" name="Filter by Countries" priority="10">
     <xpath expr="//ul[hasclass('o_jobs_topbar_filters')]" position="inside">
-        <li class="nav-item dropdown mr-2 my-1 flex-fill">
+        <li t-attf-class="nav-item dropdown #{(opt_jobs_search_bar or opt_jobs_filter_departments or opt_jobs_filter_offices) and 'mr-2'} my-1 flex-fill">
             <a href="#" role="button" class="btn dropdown-toggle w-100" data-toggle="dropdown">
                 <i class="fa fa-map-marker"/>
                 <t t-if="country_id" t-out="country_id.name"/>
@@ -107,7 +107,7 @@
 <!-- Filter - Departments -->
 <template id="job_filter_by_departments" inherit_id="website_hr_recruitment.topbar_customizations" customize_show="True" name="Filter by Departments" priority="20">
     <xpath expr="//ul[hasclass('o_jobs_topbar_filters')]" position="inside">
-        <li class="nav-item dropdown mr-2 my-1 flex-fill">
+        <li t-attf-class="nav-item dropdown #{(opt_jobs_search_bar or opt_jobs_filter_offices) and 'mr-2'} my-1 flex-fill">
             <a href="#" role="button" class="btn dropdown-toggle w-100" data-toggle="dropdown">
                 <i class="fa fa-sitemap"/>
                 <t t-if="department_id" t-out="department_id.name"/>
@@ -134,7 +134,7 @@
 <!-- Filter - Offices -->
 <template id="job_filter_by_offices" inherit_id="website_hr_recruitment.topbar_customizations" customize_show="True" name="Filter by Offices" priority="30">
     <xpath expr="//ul[hasclass('o_jobs_topbar_filters')]" position="inside">
-        <li class="nav-item dropdown mr-2 my-1 flex-fill">
+        <li t-attf-class="nav-item dropdown #{opt_jobs_search_bar and 'mr-2'} my-1 flex-fill">
             <a href="#" role="button" class="btn dropdown-toggle w-100" data-toggle="dropdown">
                 <i class="fa fa-building"/>
                 <t t-if="office_id">
