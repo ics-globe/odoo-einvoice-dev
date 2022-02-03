@@ -85,6 +85,8 @@ class TestTOTP(HttpCase):
         self.start_tour('/web', 'totp_tour_setup', login='demo')
         self.start_tour('/web', 'totp_admin_disables', login='admin')
         self.start_tour('/', 'totp_login_disabled', login=None)
+        self.start_tour('/web', 'totp_admin_invite', login='admin')
+        self.start_tour('/web', 'totp_admin_self_invite', login='admin')
 
     def test_totp_authenticate(self):
         """

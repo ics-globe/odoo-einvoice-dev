@@ -3,7 +3,7 @@ import re
 
 import odoo.addons.web.controllers.main
 from odoo import http, _
-from odoo.exceptions import AccessDenied
+from odoo.exceptions import AccessDenied, UserError
 from odoo.http import request
 
 TRUSTED_DEVICE_COOKIE = 'td_id'
@@ -34,6 +34,12 @@ class Home(odoo.addons.web.controllers.main.Home):
                 if checked_credentials == user.id:
                     request.session.finalize()
                     return request.redirect(self._login_redirect(request.session.uid, redirect=redirect))
+
+            if user._mfa_type() == 'totp_mail':
+                try:
+                    user._send_totp_mail_code()
+                except (AccessDenied, UserError) as e:
+                    error = str(e)
 
         elif user and request.httprequest.method == 'POST' and kwargs.get('totp_token'):
             try:
