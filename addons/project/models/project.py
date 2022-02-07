@@ -274,16 +274,16 @@ class Project(models.Model):
              "with Tasks (or optionally Issues if the Issue Tracker module is installed).")
     alias_value = fields.Char(string='Alias email', compute='_compute_alias_value')
     privacy_visibility = fields.Selection([
-            ('followers', 'Invited employees'),
-            ('employees', 'All employees'),
-            ('portal', 'Invited portal users and all employees'),
+            ('followers', 'Invited internal users'),
+            ('employees', 'All internal users'),
+            ('portal', 'Invited portal users and all internal users'),
         ],
         string='Visibility', required=True,
         default='portal',
         help="Defines the visibility of the tasks of the project:\n"
-            "- Invited employees: employees may only see the followed project and tasks.\n"
-            "- All employees: employees may see all project and tasks.\n"
-            "- Invited portal users and all employees: employees may see everything."
+            "- Invited internal users: internal users may only see the followed project and tasks.\n"
+            "- All internal users: internal users may see all project and tasks.\n"
+            "- Invited portal users and all internal users: internal users may see everything."
             "   Invited portal users may see project and tasks followed by.\n"
             "   them or by someone of their company.")
     doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Number of documents attached")
@@ -1007,6 +1007,7 @@ class Task(models.Model):
         index=True,
         copy=False,
         readonly=True)
+    days_from_last_stage_update = fields.Integer(copy=False, compute='_compute_days_from_last_stage_update', store=True)
     project_id = fields.Many2one('project.project', string='Project', recursive=True,
         compute='_compute_project_id', store=True, readonly=False,
         index=True, tracking=True, check_company=True, change_default=True)
@@ -1095,6 +1096,9 @@ class Task(models.Model):
 
     # Project sharing fields
     display_parent_task_button = fields.Boolean(compute='_compute_display_parent_task_button', compute_sudo=True)
+    # Filter fields
+    is_blocked = fields.Boolean(compute='_is_blocked', store=True)
+    is_blocking = fields.Boolean(compute='_is_blocking', store=True)
 
     # recurrence fields
     allow_recurring_tasks = fields.Boolean(related='project_id.allow_recurring_tasks')
@@ -1225,6 +1229,13 @@ class Task(models.Model):
     def _inverse_personal_stage_type_id(self):
         for task in self:
             task.personal_stage_id.stage_id = task.personal_stage_type_id
+
+    @api.depends('date_last_stage_update')
+    def _compute_days_from_last_stage_update(self):
+        for task in self:
+            task.days_from_last_stage_update = False
+            if task.date_last_stage_update:
+                task.days_from_last_stage_update = (fields.Datetime.now() - task.date_last_stage_update).days
 
     @api.model
     def _search_personal_stage_type_id(self, operator, value):
@@ -1380,6 +1391,16 @@ class Task(models.Model):
             }
             for task in tasks_with_dependency:
                 task.dependent_tasks_count = dependent_tasks_count_dict.get(task.id, 0)
+
+    @api.depends('depend_on_ids', 'depend_on_ids.stage_id', 'depend_on_ids.stage_id.fold')
+    def _is_blocked(self):
+        for task in self:
+            task.is_blocked = any(not blocking_task.stage_id.fold for blocking_task in task.depend_on_ids)
+
+    @api.depends('depend_on_ids', 'dependent_ids', 'stage_id', 'stage_id.fold')
+    def _is_blocking(self):
+        for task in self:
+            task.is_blocking = not task.stage_id.fold and task.dependent_ids
 
     @api.depends('partner_id.email')
     def _compute_partner_email(self):
@@ -1560,6 +1581,8 @@ class Task(models.Model):
             self.write({'dependent_ids': [Command.unlink(t.id) for t in self.dependent_ids if t.id in new_tasks]})
             task_copy.write({'depend_on_ids': [Command.link(task_mapping.get(t.id, t.id)) for t in self.depend_on_ids]})
             task_copy.write({'dependent_ids': [Command.link(task_mapping.get(t.id, t.id)) for t in self.dependent_ids]})
+            self.depend_on_ids.write({'dependent_ids': [Command.link(task_copy.id)]})
+            self.dependent_ids.write({'depend_on_ids': [Command.link(task_copy.id)]})
         return task_copy
 
     @api.model
