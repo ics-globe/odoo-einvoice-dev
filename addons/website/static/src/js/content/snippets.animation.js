@@ -917,7 +917,7 @@ registry.anchorSlide = publicWidget.Widget.extend({
      * @private
      */
     _onAnimateClick: function (ev) {
-        if (this.$target[0].pathname !== window.location.pathname) {
+        if (this.$target[0].pathname.replaceAll("/", "") !== window.location.pathname.replaceAll("/", "")) {
             return;
         }
         var hash = this.$target[0].hash;
