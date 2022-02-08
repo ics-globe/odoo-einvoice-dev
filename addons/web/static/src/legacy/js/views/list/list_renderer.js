@@ -1091,7 +1091,7 @@ var ListRenderer = BasicRenderer.extend({
             this._computeAggregates();
 
             const $table = $(
-                '<table class="o_list_table table table-sm table-hover table-striped"/>'
+                '<table class="o_list_table  table table-borderless table-sm table-hover table-striped"/>'
             );
             $table.toggleClass('o_list_table_grouped', this.isGrouped);
             $table.toggleClass('o_list_table_ungrouped', !this.isGrouped);
