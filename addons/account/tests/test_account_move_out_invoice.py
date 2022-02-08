@@ -3081,7 +3081,6 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         copy_invoice = invoice.copy(default={'invoice_date_due': '2018-01-01'})
-        print('aaa', copy_invoice.invoice_date_due)
         self.assertRecordValues(copy_invoice, [
             {'invoice_date_due': fields.Date.from_string('2018-01-01')},
         ])

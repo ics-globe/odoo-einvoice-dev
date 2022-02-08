@@ -3425,11 +3425,11 @@ class AccountMoveLine(models.Model):
         compute='_compute_totals', precompute=True,
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
     price_subtotal = fields.Monetary(
-        string='Subtotal', readonly=True,
+        string='Subtotal', readonly=False,
         compute='_compute_totals', store=True, precompute=True,
         currency_field='currency_id')
     price_total = fields.Monetary(
-        string='Total', readonly=True,
+        string='Total', readonly=False,
         compute='_compute_totals', store=True, precompute=True,
         currency_field='currency_id')
     reconciled = fields.Boolean(compute='_compute_amount_residual', store=True)
@@ -4057,7 +4057,7 @@ class AccountMoveLine(models.Model):
             if line.display_type in ('line_section', 'line_note'):
                 continue
             # /!\ Don't remove existing taxes if there is no explicit taxes set on the account.
-            if line.account_id.tax_ids or not line.tax_ids:
+            if line.product_id or line.account_id.tax_ids or not line.tax_ids:
                 taxes = line._get_computed_taxes()
                 if taxes and line.move_id.fiscal_position_id:
                     taxes = line.move_id.fiscal_position_id.map_tax(taxes)
@@ -4117,25 +4117,26 @@ class AccountMoveLine(models.Model):
             if line.exclude_from_invoice_tab:
                 continue
 
-            # Compute 'price_subtotal'.
-            rnd = line.currency_id and line.currency_id.round or (lambda x: x)
-            line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
-
-            # Compute 'price_total'.
-            if line.tax_ids:
-                move_type = line.move_id.move_type
-                force_sign = -1 if move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-                taxes_res = line.tax_ids.with_context(force_sign=force_sign).compute_all(
-                    line_discount_price_unit,
-                    quantity=line.quantity, currency=line.currency_id,
-                    product=line.product_id, partner=line.partner_id,
-                    is_refund=move_type in ('out_refund', 'in_refund'))
-                line.price_subtotal = rnd(taxes_res['total_excluded'])
-                line.price_total = rnd(taxes_res['total_included'])
-            else:
-                subtotal = rnd(line.quantity * line_discount_price_unit)
-                line.price_total = subtotal
-                line.price_subtotal = subtotal
+            # # Compute 'price_subtotal'.
+            # rnd = line.currency_id and line.currency_id.round or (lambda x: x)
+            # line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
+            #
+            # # Compute 'price_total'.
+            # if line.tax_ids:
+            #     move_type = line.move_id.move_type
+            #     force_sign = -1 if move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
+            #     taxes_res = line.tax_ids.with_context(force_sign=force_sign).compute_all(
+            #         line_discount_price_unit,
+            #         quantity=line.quantity, currency=line.currency_id,
+            #         product=line.product_id, partner=line.partner_id,
+            #         is_refund=move_type in ('out_refund', 'in_refund'))
+            #     line.price_subtotal = rnd(taxes_res['total_excluded'])
+            #     line.price_total = rnd(taxes_res['total_included'])
+            # else:
+            #     subtotal = rnd(line.quantity * line_discount_price_unit)
+            #     line.price_total = subtotal
+            #     line.price_subtotal = subtotal
+            line.update(line._get_price_total_and_subtotal())
             line.amount_currency = - line.price_subtotal
 
     @api.depends('debit', 'credit', 'currency_id')
