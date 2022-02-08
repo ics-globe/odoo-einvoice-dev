@@ -631,6 +631,29 @@ class AccountMove(models.Model):
         self.edi_document_ids.write({'error': False, 'blocking_level': False})
         self.action_process_edi_web_services()
 
+    ####################################################
+    # Mailing
+    ####################################################
+
+    def _mail_generate_template_attachments(self, mail_template):
+        """ Add Edi attachments to templates. """
+        result = super()._mail_generate_template_attachments(mail_template)
+        for record in self:
+            for edi_doc in record.edi_document_ids:
+                result[record.id]['attachments'] += record._get_edi_attachments(edi_doc)
+        return result
+
+    def _get_edi_attachments(self, document):
+        """
+        Will return the information about the attachment of the edi document for adding the attachment in the mail.
+        Can be overridden where e.g. a zip-file needs to be sent with the individual files instead of the entire zip
+        :param document: an edi document
+        :return: list with a tuple with the name and base64 content of the attachment
+        """
+        if not document.attachment_id:
+            return []
+        return [(document.attachment_id.name, document.attachment_id.datas)]
+
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'

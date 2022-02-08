@@ -3522,6 +3522,11 @@ class AccountMove(models.Model):
 
         return res
 
+    def _mail_generate_template_attachments(self, mail_template):
+        """ Model specific management of attachments used with template attachments
+        generation in addition to reports. """
+        return dict.fromkey(self.ids, list())
+
     def _creation_subtype(self):
         # OVERRIDE
         if self.move_type in ('out_invoice', 'out_refund', 'out_receipt'):
