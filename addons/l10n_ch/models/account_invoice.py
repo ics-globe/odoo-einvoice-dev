@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import base64
 import re
 
 from odoo import models, fields, api, _
@@ -348,3 +349,33 @@ class AccountMove(models.Model):
             i -= 5
 
         return spaced_qrr_ref
+
+    # ------------------------------------------------------------
+    # Mailing
+    # ------------------------------------------------------------
+
+    def _mail_generate_template_attachments(self, mail_template):
+        """ Add Edi attachments to templates. """
+        result = super()._mail_generate_template_attachments(mail_template)
+
+        for record in self:
+            inv_print_name = mail_template._render_field('report_name', record.ids, compute_lang=True)[record.id]
+            new_attachments = []
+
+            if record.l10n_ch_isr_valid:
+                # We add an attachment containing the ISR
+                isr_report_name = 'ISR-' + inv_print_name + '.pdf'
+                isr_pdf = self.env.ref('l10n_ch.l10n_ch_isr_report')._render_qweb_pdf(record.ids)[0]
+                isr_pdf = base64.b64encode(isr_pdf)
+                new_attachments.append((isr_report_name, isr_pdf))
+
+            if record.partner_bank_id._eligible_for_qr_code('ch_qr', record.partner_id, record.currency_id):
+                # We add an attachment containing the QR-bill
+                qr_report_name = 'QR-bill-' + inv_print_name + '.pdf'
+                qr_pdf = self.env.ref('l10n_ch.l10n_ch_qr_report')._render_qweb_pdf(record.ids)[0]
+                qr_pdf = base64.b64encode(qr_pdf)
+                new_attachments.append((qr_report_name, qr_pdf))
+
+            result[record.id]['attachments'] += new_attachments
+
+        return result
