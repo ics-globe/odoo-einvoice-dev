@@ -1,289 +1,505 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- New tax report for Norway (January 2022)
+         Post in old version now have codes related to the SAF-T codes
+         Record ids are inaccurate due to complete changes in the tax report lines  -->
+
     <record id="tax_report" model="account.tax.report">
         <field name="name">Tax Report</field>
         <field name="country_id" ref="base.no"/>
     </record>
 
     <record id="account_tax_report_line_samlet_omsetning" model="account.tax.report.line">
-        <field name="name">A. Samlet omsetning, uttak og innførsel</field>
-        <field name="sequence" eval="1"/>
+        <!-- Sales of goods and services in Norway -->
+        <field name="name">Salg av varer og tjenester i Norge</field>
+        <field name="sequence" eval="0"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
-    <record id="account_tax_report_line_post_1" model="account.tax.report.line">
-        <field name="name">Post 1 Samlet omsetning og uttak utenfor merverdiavgiftsloven</field>
-        <field name="tag_name">Post 1</field>
-        <field name="code">NOTAX_01</field>
+    <!-- Post 3 => Tax code 3 -->
+    <record id="account_tax_report_line_post_3" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (high rate 25%) - base -->
+        <field name="name">3 Salg og uttak av varer og tjenester (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">3 Base</field>
+        <field name="code">NO_TAX_3</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_2" model="account.tax.report.line">
-        <field name="name">Post 2 Samlet omsetning og uttak innenfor merverdiavgiftloven og innførsel</field>
-        <field name="formula">NOTAX_03+NOTAX_04+NOTAX_05+NOTAX_06+NOTAX_07+NOTAX_08</field>
-        <field name="code">NOTAX_02</field>
-        <field name="sequence" eval="0"/>
+    <record id="account_tax_report_line_post_3_tax" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (high rate 25%) - tax -->
+        <field name="name">3 Salg og uttak av varer og tjenester (høy sats 25%) - avgift</field>
+        <field name="tag_name">3 Tax</field>
+        <field name="code">NO_TAX_3_T</field>
+        <field name="sequence" eval="1"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 4 => Tax code 31/32 -->
+    <record id="account_tax_report_line_post_4" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (middle rate 15%) - base -->
+        <field name="name">31 Salg og uttak av varer og tjenester (middels sats 15%) - grunnlag</field>
+        <field name="tag_name">31 Base</field>
+        <field name="code">NO_TAX_31</field>
+        <field name="sequence" eval="2"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_post_4_tax" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (middle rate 15%) - tax -->
+        <field name="name">31 Salg og uttak av varer og tjenester (middels sats 15%) - avgift</field>
+        <field name="tag_name">31 Tax</field>
+        <field name="code">NO_TAX_31_T</field>
+        <field name="sequence" eval="3"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 5 => Tax code 33 -->
+    <record id="account_tax_report_line_post_5" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (low rate 12%) - base -->
+        <field name="name">33 Salg og uttak av varer og tjenester (lav sats 12%) - grunnlag</field>
+        <field name="tag_name">33 Base</field>
+        <field name="code">NO_TAX_33</field>
+        <field name="sequence" eval="4"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_post_5_tax" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services (low rate 12%) - tax -->
+        <field name="name">33 Salg og uttak av varer og tjenester (lav sats 12%) - avgift</field>
+        <field name="tag_name">33 Tax</field>
+        <field name="code">NO_TAX_33_T</field>
+        <field name="sequence" eval="5"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 6 => Tax code 5 -->
+    <record id="account_tax_report_line_post_6" model="account.tax.report.line">
+        <!-- Sales and withdrawals of goods and services that are exempt from VAT (0%) -->
+        <field name="name">5 Salg og uttak av varer og tjenester som er fritatt for merverdiavgift (0%)</field>
+        <field name="tag_name">5</field>
+        <field name="code">NO_TAX_5</field>
+        <field name="sequence" eval="6"/>
+        <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 1 => Tax code 6 -->
+    <record id="account_tax_report_line_post_1" model="account.tax.report.line">
+        <!-- Sale of goods and services that are exempt from the VAT Act (0%) -->
+        <field name="name">6 Salg av varer og tjenester som er unntatt merverdiavgiftsloven (0%)</field>
+        <field name="tag_name">6</field>
+        <field name="code">NO_TAX_6</field>
+        <field name="sequence" eval="7"/>
         <field name="parent_id" ref="account_tax_report_line_samlet_omsetning"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_innenlands_omsetning" model="account.tax.report.line">
-        <field name="name">B. Innenlands omsetning og uttak</field>
+        <!-- Sales of goods and services to other countries -->
+        <field name="name">Salg av varer og tjenester til utlandet</field>
         <field name="sequence" eval="2"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
-    <record id="account_tax_report_line_post_3" model="account.tax.report.line">
-        <field name="name">Post 3 Innenlands omsetning og uttak, og beregnet avgift 25 %</field>
-        <field name="tag_name">Post 3 Base</field>
-        <field name="code">NOTAX_03</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_3_tax" model="account.tax.report.line">
-        <field name="name">Post 3 Innenlands omsetning og uttak, og beregnet avgift 25 % Tax</field>
-        <field name="tag_name">Post 3 Tax</field>
-        <field name="code">NOTAX_03_1</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_4" model="account.tax.report.line">
-        <field name="name">Post 4 Innenlands omsetning og uttak, og beregnet avgift 15 %</field>
-        <field name="tag_name">Post 4 Base</field>
-        <field name="code">NOTAX_04</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_4_tax" model="account.tax.report.line">
-        <field name="name">Post 4 Innenlands omsetning og uttak, og beregnet avgift 15 % Tax</field>
-        <field name="tag_name">Post 4 Tax</field>
-        <field name="code">NOTAX_04_1</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_5" model="account.tax.report.line">
-        <field name="name">Post 5 Innenlands omsetning og uttak, og beregnet avgift 12 %</field>
-        <field name="tag_name">Post 5 Base</field>
-        <field name="code">NOTAX_05</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_5_tax" model="account.tax.report.line">
-        <field name="name">Post 5 Innenlands omsetning og uttak, og beregnet avgift 12 % Tax</field>
-        <field name="tag_name">Post 5 Tax</field>
-        <field name="code">NOTAX_05_1</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_6" model="account.tax.report.line">
-        <field name="name">Post 6 Innenlands omsetning og uttak fritatt for merverdiavgift</field>
-        <field name="tag_name">Post 6</field>
-        <field name="code">NOTAX_06</field>
-        <field name="sequence" eval="0"/>
-        <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
-        <field name="report_id" ref="tax_report"/>
-    </record>
-
-    <record id="account_tax_report_line_post_7" model="account.tax.report.line">
-        <field name="name">Post 7 Innenlands omsetning med omvendt avgiftsplikt</field>
-        <field name="tag_name">Post 7</field>
-        <field name="code">NOTAX_07</field>
+    <!-- Post 8 => Tax code 52 -->
+    <record id="account_tax_report_line_post_8" model="account.tax.report.line">
+        <!-- Sales of goods and services abroad that are exempt from VAT (0%) -->
+        <field name="name">52 Salg av varer og tjenester til utlandet som er fritatt for merverdiavgift (0%)</field>
+        <field name="tag_name">52</field>
+        <field name="code">NO_TAX_52</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_innenlands_omsetning"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_utforsel" model="account.tax.report.line">
-        <field name="name">C. Utførsel</field>
+        <!-- Purchases of goods and services in Norway -->
+        <field name="name">Kjøp av varer og tjenester i Norge</field>
         <field name="sequence" eval="3"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
-    <record id="account_tax_report_line_post_8" model="account.tax.report.line">
-        <field name="name">Post 8 Utførsel av varer og tjenester fritatt for merverdiavgift</field>
-        <field name="tag_name">Post 8</field>
-        <field name="code">NOTAX_08</field>
+    <!-- Post 14 => Tax code 1 -->
+    <record id="account_tax_report_line_post_14" model="account.tax.report.line">
+        <!-- Purchase of goods and services with a right to deduct (high rate 25%) -->
+        <field name="name">1 Kjøp av varer og tjenester med fradragsrett (høy sats 25%)</field>
+        <field name="tag_name">1</field>
+        <field name="code">NO_TAX_1_T</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_utforsel"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_innforsel_av_varer" model="account.tax.report.line">
-        <field name="name">D. Innførsel av varer</field>
-        <field name="sequence" eval="4"/>
+    <!-- Post 15 => Tax code 11/12 -->
+    <record id="account_tax_report_line_post_15" model="account.tax.report.line">
+        <!-- Purchase of goods and services with a right to deduct (middle rate 15%) -->
+        <field name="name">11 Kjøp av varer og tjenester med fradragsrett (middels sats 15%)</field>
+        <field name="tag_name">11</field>
+        <field name="code">NO_TAX_11_T</field>
+        <field name="sequence" eval="1"/>
+        <field name="parent_id" ref="account_tax_report_line_utforsel"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
+    <!-- Post 16 => Tax code 13 -->
+    <record id="account_tax_report_line_post_16" model="account.tax.report.line">
+        <!-- Purchase of goods and services with a right to deduct (low rate 12%) -->
+        <field name="name">13 Kjøp av varer og tjenester med fradragsrett (lav sats 12%)</field>
+        <field name="tag_name">13</field>
+        <field name="code">NO_TAX_13_T</field>
+        <field name="sequence" eval="2"/>
+        <field name="parent_id" ref="account_tax_report_line_utforsel"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_innforsel_av_varer" model="account.tax.report.line">
+        <!-- Purchases of goods from abroad (import) -->
+        <field name="name">Kjøp av varer fra utlandet (import)</field>
+        <field name="sequence" eval="4"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
+    </record>
+
+    <!-- Post 17 => Tax code 14 -->
+    <record id="account_tax_report_line_post_17" model="account.tax.report.line">
+        <!-- Deduction on purchases of goods from abroad (VAT paid on import, high rate 25%) -->
+        <field name="name">14 Fradrag på kjøp av varer fra utlandet (merverdiavgift betalt ved innførsel, høy sats 25%)</field>
+        <field name="tag_name">14</field>
+        <field name="code">NO_TAX_14_T</field>
+        <field name="sequence" eval="100"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 18 => Tax code 15 -->
+    <record id="account_tax_report_line_post_18" model="account.tax.report.line">
+        <!-- Deduction on purchases of goods from abroad (VAT paid on import, middle rate 15%) -->
+        <field name="name">15 Fradrag på kjøp av varer fra utlandet (merverdiavgift betalt ved innførsel, middels sats 15%)</field>
+        <field name="tag_name">15</field>
+        <field name="code">NO_TAX_15_T</field>
+        <field name="sequence" eval="200"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 9 => Tax code 81/82 -->
     <record id="account_tax_report_line_post_9" model="account.tax.report.line">
-        <field name="name">Post 9 Innførsel av varer, og beregnet avgift 25 %</field>
-        <field name="tag_name">Post 9 Base</field>
-        <field name="code">NOTAX_09</field>
+        <!-- Purchase of goods from abroad with a right to deduct (high rate 25%) - base -->
+        <field name="name">81 Kjøp av varer fra utlandet med fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">81 Base</field>
+        <field name="code">NO_TAX_81</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_post_9_tax" model="account.tax.report.line">
-        <field name="name">Post 9 Innførsel av varer, og beregnet avgift 25 % Tax</field>
-        <field name="tag_name">Post 9 Tax</field>
-        <field name="code">NOTAX_09_1</field>
-        <field name="sequence" eval="0"/>
+        <!-- Purchase of goods from abroad with a right to deduct (high rate 25%) - tax -->
+        <field name="name">81 Kjøp av varer fra utlandet med fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">81 Tax</field>
+        <field name="code">NO_TAX_81_T</field>
+        <field name="sequence" eval="1"/>
         <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
+    <record id="account_tax_report_line_code_82" model="account.tax.report.line">
+        <!-- Purchase of goods from abroad without the right to deduct (high rate 25%) - base -->
+        <field name="name">82 Kjøp av varer fra utlandet uten fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">82 Base</field>
+        <field name="code">NO_TAX_82</field>
+        <field name="sequence" eval="2"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_82_tax" model="account.tax.report.line">
+        <!-- Purchase of goods from abroad without the right to deduct (high rate 25%) - tax -->
+        <field name="name">82 Kjøp av varer fra utlandet uten fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">82 Tax</field>
+        <field name="code">NO_TAX_82_T</field>
+        <field name="sequence" eval="3"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 10 => Tax code 83/84 -->
     <record id="account_tax_report_line_post_10" model="account.tax.report.line">
-        <field name="name">Post 10 Innførsel av varer, og beregnet avgift 15 %</field>
-        <field name="tag_name">Post 10 Base</field>
-        <field name="code">NOTAX_10</field>
-        <field name="sequence" eval="0"/>
+        <!-- Purchase of goods from abroad with a right to deduct (middle rate 15%) - base -->
+        <field name="name">83 Kjøp av varer fra utlandet med fradragsrett (middels sats 15%) - grunnlag</field>
+        <field name="tag_name">83 Base</field>
+        <field name="code">NO_TAX_83</field>
+        <field name="sequence" eval="4"/>
         <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_post_10_tax" model="account.tax.report.line">
-        <field name="name">Post 10 Innførsel av varer, og beregnet avgift 15 % Tax</field>
-        <field name="tag_name">Post 10 Tax</field>
-        <field name="code">NOTAX_10_1</field>
-        <field name="sequence" eval="0"/>
+        <!-- Purchase of goods from abroad with a right to deduct (middle rate 15%) - tax -->
+        <field name="name">83 Kjøp av varer fra utlandet med fradragsrett (middels sats 15%) - avgift</field>
+        <field name="tag_name">83 Tax</field>
+        <field name="code">NO_TAX_83_T</field>
+        <field name="sequence" eval="5"/>
         <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
+    <record id="account_tax_report_line_code_84" model="account.tax.report.line">
+        <!-- Purchase of goods from abroad without the right to deduct (middle rate 15%) - base -->
+        <field name="name">84 Kjøp av varer fra utlandet som er uten fradragsrett (middels sats 15%) - grunnlag</field>
+        <field name="tag_name">84 Base</field>
+        <field name="code">NO_TAX_84</field>
+        <field name="sequence" eval="6"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_84_tax" model="account.tax.report.line">
+        <!-- Purchase of goods from abroad without the right to deduct (middle rate 15%) - tax -->
+        <field name="name">84 Kjøp av varer fra utlandet som er uten fradragsrett (middels sats 15%) - avgift</field>
+        <field name="tag_name">84 Tax</field>
+        <field name="code">NO_TAX_84_T</field>
+        <field name="sequence" eval="7"/>
+        <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 11 => Tax code 85 -->
     <record id="account_tax_report_line_post_11" model="account.tax.report.line">
-        <field name="name">Post 11 Innførsel av varer som det ikke skal beregnes merverdiavgift av</field>
-        <field name="tag_name">Post 11</field>
-        <field name="code">NOTAX_11</field>
-        <field name="sequence" eval="0"/>
+        <!-- Purchase of goods from abroad for which VAT is not to be calculated (zero rate 0%) -->
+        <field name="name">85 Kjøp av varer fra utlandet som det ikke skal beregnes merverdiavgift på (nullsats 0%)</field>
+        <field name="tag_name">85</field>
+        <field name="code">NO_TAX_85</field>
+        <field name="sequence" eval="8"/>
         <field name="parent_id" ref="account_tax_report_line_innforsel_av_varer"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_kjop_med_omvendt_avgiftsplikt" model="account.tax.report.line">
-        <field name="name">E. Kjøp med omvendt avgiftsplikt</field>
+        <!-- Purchases of services from abroad (import) -->
+        <field name="name">Kjøp av tjenester fra utlandet (import)</field>
         <field name="sequence" eval="5"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
+    <!-- Post 12 => Tax code 86/87/88/89 -->
     <record id="account_tax_report_line_post_12" model="account.tax.report.line">
-        <field name="name">Post 12 Tjenester kjøpt fra utlandet, og beregnet avgift 25 %</field>
-        <field name="tag_name">Post 12 Base</field>
-        <field name="code">NOTAX_12</field>
+        <!-- Purchase of services from abroad with a right to deduct (high rate 25%) - base -->
+        <field name="name">86 Kjøp av tjenester fra utlandet med fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">86 Base</field>
+        <field name="code">NO_TAX_86</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_post_12_tax" model="account.tax.report.line">
-        <field name="name">Post 12 Tjenester kjøpt fra utlandet, og beregnet avgift 25 % Tax</field>
-        <field name="tag_name">Post 12 Tax</field>
-        <field name="code">NOTAX_12_1</field>
-        <field name="sequence" eval="0"/>
+        <!-- Purchase of services from abroad with a right to deduct (high rate 25%) - tax -->
+        <field name="name">86 Kjøp av tjenester fra utlandet med fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">86 Tax</field>
+        <field name="code">NO_TAX_86_T</field>
+        <field name="sequence" eval="1"/>
         <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_13" model="account.tax.report.line">
-        <field name="name">Post 13 Innenlands kjøp av varer og tjenester, og beregnet avgift 25 %</field>
-        <field name="tag_name">Post 13 Base</field>
-        <field name="code">NOTAX_13</field>
-        <field name="sequence" eval="0"/>
+    <record id="account_tax_report_line_code_87" model="account.tax.report.line">
+        <!-- Purchase of services from abroad without the right to deduct (high rate 25%) - base -->
+        <field name="name">87 Kjøp av tjenester fra utlandet uten fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">87 Base</field>
+        <field name="code">NO_TAX_87</field>
+        <field name="sequence" eval="2"/>
         <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_13_tax" model="account.tax.report.line">
-        <field name="name">Post 13 Innenlands kjøp av varer og tjenester, og beregnet avgift 25 % Tax</field>
-        <field name="tag_name">Post 13 Tax</field>
-        <field name="code">NOTAX_13_1</field>
-        <field name="sequence" eval="0"/>
+    <record id="account_tax_report_line_code_87_tax" model="account.tax.report.line">
+        <!-- Purchase of services from abroad without the right to deduct (high rate 25%) - tax -->
+        <field name="name">87 Kjøp av tjenester fra utlandet uten fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">87 Tax</field>
+        <field name="code">NO_TAX_87_T</field>
+        <field name="sequence" eval="3"/>
+        <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_88" model="account.tax.report.line">
+        <!-- Purchase of services from abroad with a right to deduct (low rate 12%) - base -->
+        <field name="name">88 Kjøp av tjenester fra utlandet med fradragsrett (lav sats 12%) - grunnlag</field>
+        <field name="tag_name">88 Base</field>
+        <field name="code">NO_TAX_88</field>
+        <field name="sequence" eval="4"/>
+        <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_88_tax" model="account.tax.report.line">
+        <!-- Purchase of services from abroad with a right to deduct (low rate 12%) - tax -->
+        <field name="name">88 Kjøp av tjenester fra utlandet med fradragsrett (lav sats 12%) - avgift</field>
+        <field name="tag_name">88 Tax</field>
+        <field name="code">NO_TAX_88_T</field>
+        <field name="sequence" eval="5"/>
+        <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_89" model="account.tax.report.line">
+        <!-- Purchase of services from abroad without the right to deduct (low rate 12%) - base -->
+        <field name="name">89 Kjøp av tjenester fra utlandet uten fradragsrett (lav sats 12%) - grunnlag</field>
+        <field name="tag_name">89 Base</field>
+        <field name="code">NO_TAX_89</field>
+        <field name="sequence" eval="6"/>
+        <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_89_tax" model="account.tax.report.line">
+        <!-- Purchase of services from abroad without the right to deduct (low rate 12%) - tax -->
+        <field name="name">89 Kjøp av tjenester fra utlandet uten fradragsrett (lav sats 12%) - avgift</field>
+        <field name="tag_name">89 Tax</field>
+        <field name="code">NO_TAX_89_T</field>
+        <field name="sequence" eval="7"/>
         <field name="parent_id" ref="account_tax_report_line_kjop_med_omvendt_avgiftsplikt"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_fradragsberettigen_innenlands" model="account.tax.report.line">
-        <field name="name">F. Fradragsberettiget innenlands inngående avgift</field>
+        <!-- Deductible domestic input tax = F. Fradragsberettiget innenlands inngående avgift -->
+        <!-- Fish etc. -->
+        <field name="name">Fisk mv.</field>
         <field name="sequence" eval="6"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
-    <record id="account_tax_report_line_post_14" model="account.tax.report.line">
-        <field name="name">Post 14 Fradragsberettiget innenlands inngående avgift 25 %</field>
-        <field name="tag_name">Post 14</field>
-        <field name="code">NOTAX_14</field>
+    <record id="account_tax_report_line_code_12" model="account.tax.report.line">
+        <!-- Purchase of fish and other marine wildlife resources (11.11%) -->
+        <field name="name">12 Kjøp av fisk og andre marine viltlevende ressurser (11,11%)</field>
+        <field name="tag_name">12</field>
+        <field name="code">NO_TAX_12_T</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_fradragsberettigen_innenlands"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_15" model="account.tax.report.line">
-        <field name="name">Post 15 Fradragsberettiget innenlands inngående avgift 15 %</field>
-        <field name="tag_name">Post 15</field>
-        <field name="code">NOTAX_15</field>
-        <field name="sequence" eval="0"/>
+    <!-- Tax code 32 -->
+    <record id="account_tax_report_line_code_32" model="account.tax.report.line">
+        <!-- Sales of fish and other marine wildlife resources (11.11%) - base -->
+        <field name="name">32 Salg av fisk og andre marine viltlevende ressurser (11,11%) - grunnlag</field>
+        <field name="tag_name">32 Base</field>
+        <field name="code">NO_TAX_32</field>
+        <field name="sequence" eval="1"/>
         <field name="parent_id" ref="account_tax_report_line_fradragsberettigen_innenlands"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_16" model="account.tax.report.line">
-        <field name="name">Post 16 Fradragsberettiget innenlands inngående avgift 12 %</field>
-        <field name="tag_name">Post 16</field>
-        <field name="code">NOTAX_16</field>
-        <field name="sequence" eval="0"/>
+    <record id="account_tax_report_line_code_32_tax" model="account.tax.report.line">
+        <!-- Sales of fish and other marine wildlife resources (11.11%) - tax -->
+        <field name="name">32 Salg av fisk og andre marine viltlevende ressurser (11,11%) - avgift</field>
+        <field name="tag_name">32 Tax</field>
+        <field name="code">NO_TAX_32_T</field>
+        <field name="sequence" eval="2"/>
         <field name="parent_id" ref="account_tax_report_line_fradragsberettigen_innenlands"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift" model="account.tax.report.line">
-        <field name="name">G. Fradragsberettiget innførselsmerverdiavgift</field>
+        <!-- Deductible import VAT = G. Fradragsberettiget innførselsmerverdiavgift -->
+        <!-- Emission allowances and gold -->
+        <field name="name">Klimakvoter og gull</field>
         <field name="sequence" eval="7"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
-    <record id="account_tax_report_line_post_17" model="account.tax.report.line">
-        <field name="name">Post 17 Fradragsberettiget innførselsmerverdiavgift 25 %</field>
-        <field name="tag_name">Post 17</field>
-        <field name="code">NOTAX_17</field>
+    <!-- Post 7 => Tax code 51 -->
+    <record id="account_tax_report_line_post_7" model="account.tax.report.line">
+        <!-- Sale of climate quotas and gold to businesses (0%) -->
+        <field name="name">51 Salg av klimakvoter og gull til næringsdrivende (0%)</field>
+        <field name="tag_name">51</field>
+        <field name="code">NO_TAX_51</field>
         <field name="sequence" eval="0"/>
         <field name="parent_id" ref="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
-    <record id="account_tax_report_line_post_18" model="account.tax.report.line">
-        <field name="name">Post 18 Fradragsberettiget innførselsmerverdiavgift 15 %</field>
-        <field name="tag_name">Post 18</field>
-        <field name="code">NOTAX_18</field>
-        <field name="sequence" eval="0"/>
+    <!-- Post 13 => Tax code 91/92 (total amount - untaxed) -->
+    <record id="account_tax_report_line_post_13" model="account.tax.report.line">
+        <!-- Purchase of climate quotas and gold with a right to deduct (high rate 25%) - base -->
+        <field name="name">91 Kjøp av klimakvoter og gull med fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">91 Base</field>
+        <field name="code">NO_TAX_91</field>
+        <field name="sequence" eval="1"/>
+        <field name="parent_id" ref="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_post_13_tax" model="account.tax.report.line">
+        <!-- Purchase of climate quotas and gold with a right to deduct (high rate 25%) - tax -->
+        <field name="name">91 Kjøp av klimakvoter og gull med fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">91 Tax</field>
+        <field name="code">NO_TAX_91_T</field>
+        <field name="sequence" eval="2"/>
+        <field name="parent_id" ref="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_92" model="account.tax.report.line">
+        <!-- Purchase of climate quotas and gold without the right to deduct (high rate 25%) - base -->
+        <field name="name">92 Kjøp av klimakvoter og gull uten fradragsrett (høy sats 25%) - grunnlag</field>
+        <field name="tag_name">92 Base</field>
+        <field name="code">NO_TAX_92</field>
+        <field name="sequence" eval="3"/>
+        <field name="parent_id" ref="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <record id="account_tax_report_line_code_92_tax" model="account.tax.report.line">
+        <!-- Purchase of climate quotas and gold without the right to deduct (high rate 25%) - base -->
+        <field name="name">92 Kjøp av klimakvoter og gull uten fradragsrett (høy sats 25%) - avgift</field>
+        <field name="tag_name">92 Tax</field>
+        <field name="code">NO_TAX_92_T</field>
+        <field name="sequence" eval="4"/>
         <field name="parent_id" ref="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift"/>
         <field name="report_id" ref="tax_report"/>
     </record>
 
     <record id="account_tax_report_line_sum" model="account.tax.report.line">
-        <field name="name">H. Sum</field>
+        <field name="name">Sum</field>
         <field name="sequence" eval="8"/>
         <field name="report_id" ref="tax_report"/>
+        <field name="formula">None</field>
     </record>
 
     <record id="account_tax_report_line_post_19" model="account.tax.report.line">
-        <field name="name">Post 19 Avgift å betale</field>
-        <field name="formula">NOTAX_03_1+NOTAX_04_1+NOTAX_05_1+NOTAX_09_1+NOTAX_10_1+NOTAX_12_1+NOTAX_13_1-NOTAX_14-NOTAX_15-NOTAX_16-NOTAX_17-NOTAX_18</field>
-        <field name="code">NOTAX_19</field>
+        <!-- Tax to be paid -->
+        <field name="name">Avgift å betale</field>
+        <field name="formula">NO_TAX_3_T+NO_TAX_31_T+NO_TAX_32_T+NO_TAX_33_T+NO_TAX_81_T+NO_TAX_82_T+NO_TAX_83_T+NO_TAX_84_T+NO_TAX_86_T+NO_TAX_87_T+NO_TAX_88_T+NO_TAX_89_T+NO_TAX_91_T+NO_TAX_92_T-NO_TAX_1_T-NO_TAX_11_T-NO_TAX_12_T-NO_TAX_13_T-NO_TAX_14_T-NO_TAX_15_T</field>
+        <field name="code">NO_TAX_SUM</field>
         <field name="sequence" eval="0"/>
+        <field name="parent_id" ref="account_tax_report_line_sum"/>
+        <field name="report_id" ref="tax_report"/>
+    </record>
+
+    <!-- Post 2 => No code -->
+    <record id="account_tax_report_line_post_2" model="account.tax.report.line">
+        <!-- Total turnover and withdrawals within the VAT Act and import -->
+        <field name="name">Samlet omsetning og uttak innenfor merverdiavgiftloven og innførsel</field>
+        <field name="formula">NO_TAX_3+NO_TAX_31+NO_TAX_32+NO_TAX_33+NO_TAX_5+NO_TAX_51+NO_TAX_52</field>
+        <field name="code">NO_TAX_TOTAL</field>
+        <field name="sequence" eval="1"/>
         <field name="parent_id" ref="account_tax_report_line_sum"/>
         <field name="report_id" ref="tax_report"/>
     </record>
