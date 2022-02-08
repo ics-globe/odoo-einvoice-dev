@@ -483,7 +483,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         move = move_form.save()
 
-        self.assertRecordValues(move.line_ids, [
+        self.assertRecordValues(move.line_ids.sorted(lambda l: -l.debit), [
             {'name': 'debit_line_1',             'debit': 1000.0,    'credit': 0.0,      'tax_ids': [self.included_percent_tax.id],      'tax_line_id': False},
             {'name': 'included_tax_line',        'debit': 200.0,     'credit': 0.0,      'tax_ids': [],                                  'tax_line_id': self.included_percent_tax.id},
             {'name': 'credit_line_1',            'debit': 0.0,       'credit': 1200.0,   'tax_ids': [],                                  'tax_line_id': False},
@@ -502,12 +502,14 @@ class TestAccountMove(AccountTestInvoicingCommon):
     def test_account_move_inactive_currency_raise_error_on_post(self):
         """ Ensure a move cannot be posted when using an inactive currency """
         move = self.env['account.move'].create({
-            'move_type': 'in_invoice',
+            'move_type': 'entry',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
-            'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [{}]
+            'line_ids': [
+                (0, None, self.entry_line_vals_1),
+                (0, None, self.entry_line_vals_2),
+            ],
         })
 
         move.currency_id.active = False

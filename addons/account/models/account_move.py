@@ -2101,9 +2101,7 @@ class AccountMove(models.Model):
                 default_company_id=self.company_id.id,
                 default_move_type=self.move_type,
             )._get_default_journal().id
-        print(default)
         copied_am = super().copy(default)
-        print('idd', copied_am.invoice_date_due)
         copied_am._message_log(body=_(
             'This entry has been duplicated from <a href=# data-oe-model=account.move data-oe-id=%(id)d>%(title)s</a>',
             id=self.id, title=html_escape(self.display_name)
@@ -2114,7 +2112,6 @@ class AccountMove(models.Model):
             # Also, this is necessary when creating a credit note because the current invoice is copied.
             copied_am._recompute_payment_terms_lines()
 
-        print(copied_am.invoice_date_due)
         return copied_am
 
     @api.model_create_multi
@@ -2122,10 +2119,8 @@ class AccountMove(models.Model):
         if any('state' in vals and vals.get('state') == 'posted' for vals in vals_list):
             raise UserError(_('You cannot create a move already in the posted state. Please create a draft move and post it after.'))
         move_ids = super(AccountMove, self).create(vals_list)
-        d = move_ids.invoice_date_due
-        print('d', d)
         move_ids._recompute_dynamic_lines(recompute_taxes=True)
-        move_ids.invoice_date_due = d
+        move_ids._check_balanced()
         return move_ids
 
     def write(self, vals):
@@ -3426,6 +3421,7 @@ class AccountMoveLine(models.Model):
         compute='_compute_cumulated_balance',
         help="Cumulated balance depending on the domain and the order chosen in the view.")
     amount_currency = fields.Monetary(string='Amount in Currency', store=True, copy=True,
+        readonly=False,
         compute='_compute_totals', precompute=True,
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
     price_subtotal = fields.Monetary(
@@ -3778,7 +3774,10 @@ class AccountMoveLine(models.Model):
     @api.depends('move_id.date', 'move_id.currency_id')
     def _compute_currency_id(self):
         for line in self:
-            line.currency_id = line.move_id.currency_id or line.move_id.company_id.currency_id
+            if line.move_id.is_invoice(include_receipts=True):
+                line.currency_id = line.move_id.currency_id
+            else:
+                line.currency_id = line.currency_id or line.move_id.currency_id
             # if line.move_id.is_invoice(include_receipts=True):
             #     if line in line.move_id._get_lines_onchange_currency():
             #         line.currency_id = currency
@@ -4039,7 +4038,7 @@ class AccountMoveLine(models.Model):
         for line in self:
             if line.display_type in ('line_section', 'line_note'):
                 continue
-            line.account_id = line._get_computed_account()
+            line.account_id = line._get_computed_account() or line.account_id  # TODO check if this is not clocking the lines below
             if line.account_id:
                 continue
             move = line.move_id
@@ -4055,7 +4054,7 @@ class AccountMoveLine(models.Model):
     @api.depends('product_id', 'product_uom_id')
     def _compute_tax_ids(self):
         for line in self:
-            if not line.product_id or line.display_type in ('line_section', 'line_note'):
+            if line.display_type in ('line_section', 'line_note'):
                 continue
             # /!\ Don't remove existing taxes if there is no explicit taxes set on the account.
             if line.account_id.tax_ids or not line.tax_ids:
@@ -4087,8 +4086,7 @@ class AccountMoveLine(models.Model):
             # FP TODO: improve this computation with discount, currency & tax
             if not line.exclude_from_invoice_tab:
                 line.price_unit = line.credit / (line.quantity or 1.0)
-
-            self.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
+            line.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
 
     def _inverse_debit(self):
         company = self.env.company
@@ -4100,7 +4098,7 @@ class AccountMoveLine(models.Model):
             if not line.exclude_from_invoice_tab:
                 line.price_unit = line.credit / (line.quantity or 1.0)
 
-            self.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
+            line.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
 
     @api.depends('amount_currency', 'currency_id')
     def _compute_debit_credit(self):
@@ -4114,6 +4112,7 @@ class AccountMoveLine(models.Model):
     def _compute_totals(self):
         for line in self:
             if not line.move_id.is_invoice(include_receipts=True):
+                line.amount_currency = line.debit - line.credit  # todo _compute_amount_currency_notused
                 continue
             if line.exclude_from_invoice_tab:
                 continue
