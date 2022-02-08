@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ee_sale_tax_20" model="account.tax.template">
+        <field name="name">VAT 20%</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">20</field>
+        <field name="amount_type">percent</field>
+        <field name="description">VAT 20%</field>
+        <field name="tax_group_id" ref="tax_group_20"/>
+        <field name="chart_template_id" ref="l10nee_chart_template"/>
+        <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
+            (0,0, {
+                'factor_percent': 100,
+                'repartition_type': 'base',
+                'plus_report_line_ids': [ref('tax_report_line_standard_rated_supplies_base')],
+            }),
+            (0,0, {
+                'factor_percent': 100,
+                'repartition_type': 'tax',
+                'account_id': ref('uae_account_201017'),
+                'plus_report_line_ids': [ref('tax_report_line_standard_rated_supplies_vat')],
+            }),
+        ]"/>
+        <field name="refund_repartition_line_ids" eval="[(5, 0, 0),
+            (0,0, {
+                'factor_percent': 100,
+                'repartition_type': 'base',
+                'minus_report_line_ids': [ref('tax_report_line_standard_rated_supplies_base_dubai')],
+            }),
+            (0,0, {
+                'factor_percent': 100,
+                'repartition_type': 'tax',
+                'account_id': ref('uae_account_201017'),
+                'minus_report_line_ids': [ref('tax_report_line_standard_rated_supplies_vat_dubai')],
+            }),
+        ]"/>
+    </record>
+</odoo>

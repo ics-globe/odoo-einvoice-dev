@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- reference: VAT Act https://www.riigiteataja.ee/en/eli/527022014003/consolide -->
+<!--            Income Tax Act https://www.riigiteataja.ee/en/eli/ee/509012020002/consolide/-->
+<odoo>
+    <record id="tax_report" model="account.tax.report">
+        <field name="name">Tax Report</field>
+        <field name="country_id" ref="base.ae"/>
+    </record>
+
+    <record id="tax_report_line_income_tax" model="account.tax.report.line">
+        <field name="name">Income Tax</field>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="1"/>
+    </record>
+
+    <record id="tax_report_line_base_all_sales" model="account.tax.report.line">
+        <field name="name">VAT on Sales and all other Outputs</field>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="2"/>
+    </record>
+
+    <record id="tax_report_line_standard_rated_supplies_base" model="account.tax.report.line">
+        <field name="name">1. Standard Rated supplies</field>
+        <field name="parent_id" ref="tax_report_line_base_all_sales"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="1"/>
+    </record>
+
+    <record id="tax_report_line_reduced_rate" model="account.tax.report.line">
+        <field name="name">2. Reduced Rated supplies </field>
+        <field name="parent_id" ref="tax_report_line_base_all_sales"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="2"/>
+    </record>
+
+    <record id="tax_report_line_zero_rated" model="account.tax.report.line">
+        <field name="name">3. Zero-Rated transactions </field>
+        <field name="parent_id" ref="tax_report_line_base_all_sales"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="3"/>
+    </record>
+
+    <record id="tax_report_line_exempted" model="account.tax.report.line">
+        <field name="name">4. Exempted transactions </field>
+        <field name="parent_id" ref="tax_report_line_base_all_sales"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="4"/>
+    </record>
+
+    <record id="tax_report_line_reduced_rate" model="account.tax.report.line">
+        <field name="name">5. Special arrangements </field>
+        <field name="parent_id" ref="tax_report_line_base_all_sales"/>
+        <field name="report_id" ref="tax_report"/>
+        <field name="sequence" eval="4"/>
+    </record>
+
+    <
+
+</odoo>
