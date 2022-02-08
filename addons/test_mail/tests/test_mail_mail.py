@@ -2,9 +2,14 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import psycopg2
+import smtplib
+
+from OpenSSL.SSL import Error as SSLError
+from socket import gaierror, timeout
 from unittest.mock import call
 
 from odoo import api
+from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 from odoo.addons.test_mail.tests.common import TestMailCommon
 from odoo.tests import common, tagged
 from odoo.tools import mute_logger
@@ -42,6 +47,7 @@ class TestMailMail(TestMailCommon):
         self.assertSentEmail(mail.env.user.partner_id, ['test@example.com'])
         self.assertEqual(len(self._mails), 1)
 
+    @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_mail_mail_return_path(self):
         # mail without thread-enabled record
         base_values = {
@@ -62,6 +68,380 @@ class TestMailMail(TestMailCommon):
         with self.mock_mail_gateway():
             mail.send()
         self.assertEqual(self._mails[0]['headers']['Return-Path'], '%s@%s' % (self.alias_bounce, self.alias_domain))
+
+    def test_mail_mail_send_exceptions(self):
+        """ Test various use case with exceptions and errors and see how they are
+        managed and stored at mail and notification level. """
+        message = self.test_record.message_post(body='<p>Message', subject='Subject')
+        self.assertFalse(message.notification_ids)
+        mail = self.env['mail.mail'].create([{
+            'body': '<p>Body<:p>',
+            'email_from': False,
+            'email_to': 'test@example.com',
+            'is_notification': True,
+            'subject': 'Subject',
+        }])
+        notification = self.env['mail.notification'].create({
+            'is_read': False,
+            'mail_mail_id': mail.id,
+            'mail_message_id': message.id,
+            'notification_type': 'email',
+            'res_partner_id': self.partner_employee.id,  # not really used for matching except multi-recipients
+        })
+
+        def _reset_data():
+            self._init_mail_mock()
+            mail.write({'failure_reason': False, 'failure_type': False, 'state': 'outgoing'})
+            notification.write({'failure_type': False, 'notification_status': 'ready'})
+
+        # ORIGIN
+        # ------------------------------------------------------------
+
+        # MailServer.build_email(): invalid from
+        self.env['ir.config_parameter'].set_param('mail.default.from', '')
+        _reset_data()
+        with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+            mail.send(raise_exception=False)
+        self.assertFalse(self._mails[0]['email_from'])
+        self.assertIn(
+            'You must either provide a sender address explicitly or configure using the combination of `mail.catchall.domain` and `mail.default.from` ICPs',
+            mail.failure_reason)
+        self.assertFalse(mail.failure_type, 'Mail: void from: no failure type, should be updated')
+        self.assertEqual(mail.state, 'exception')
+        self.assertEqual(notification.failure_type, 'unknown', 'Mail: void from: unknown failure type, should be updated')
+        self.assertEqual(notification.notification_status, 'exception')
+
+        # MailServer.send_email(): _prepare_email_message: unexpected ASCII
+        # Force catchall domain to void otherwise bounce is set to postmaster-odoo@domain
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', '')
+        _reset_data()
+        mail.write({'email_from': 'strange@example¢¡.com'})
+        with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+            mail.send(raise_exception=False)
+        self.assertEqual(self._mails[0]['email_from'], 'strange@example¢¡.com')
+        self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
+        self.assertFalse(mail.failure_type, 'Mail: bugged from (ascii): no failure type, should be updated')
+        self.assertEqual(mail.state, 'exception')
+        self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
+        self.assertEqual(notification.notification_status, 'exception')
+
+        # MailServer.send_email(): _prepare_email_message: unexpected ASCII based on catchall domain
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'domain¢¡.com')
+        _reset_data()
+        mail.write({'email_from': 'test.user@example.com'})
+        with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+            mail.send(raise_exception=False)
+        self.assertEqual(self._mails[0]['email_from'], 'test.user@example.com')
+        self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
+        self.assertFalse(mail.failure_type, 'Mail: bugged catchall domain (ascii): no failure type, should be updated')
+        self.assertEqual(mail.state, 'exception')
+        self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged catchall domain (ascii): unknown failure type, should be updated')
+        self.assertEqual(notification.notification_status, 'exception')
+
+        # MailServer.send_email(): _prepare_email_message: Malformed 'Return-Path' or 'From' address
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', '')
+        _reset_data()
+        mail.write({'email_from': 'robert'})
+        with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+            mail.send(raise_exception=False)
+        self.assertEqual(self._mails[0]['email_from'], 'robert')
+        self.assertIn('Malformed \'Return-Path\' or \'From\' address: robert', mail.failure_reason)
+        self.assertFalse(mail.failure_type, 'Mail: bugged from (ascii): no failure type, should be updated')
+        self.assertEqual(mail.state, 'exception')
+        self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
+        self.assertEqual(notification.notification_status, 'exception')
+
+        # RECIPIENTS (EMAILS)
+        # ------------------------------------------------------------
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', self.alias_domain)
+        self.env['ir.config_parameter'].set_param('mail.default.from', self.default_from)
+
+        # MailServer.send_email(): _prepare_email_message: missing To
+        for email_to in ['', False, ' ']:
+            _reset_data()
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertIn('Error without exception. Probably due do sending an email without computed recipients.', mail.failure_reason)
+            self.assertFalse(mail.failure_type, 'Mail: missing email_to: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            if email_to == ' ':
+                self.assertEqual(notification.failure_type, 'mail_email_missing')
+                self.assertEqual(notification.notification_status, 'exception')
+            else:
+                self.assertEqual(notification.failure_type, False, 'Mail: missing email_to: notification is wrongly set as sent')
+                self.assertEqual(notification.notification_status, 'sent', 'Mail: missing email_to: notification is wrongly set as sent')
+
+        # MailServer.send_email(): _prepare_email_message: invalid To
+        for email_to, failure_type in zip(['buggy', 'buggy, wrong'],
+                                          ['mail_email_missing', 'mail_email_missing']):
+            _reset_data()
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertIn('Error without exception. Probably due do sending an email without computed recipients.', mail.failure_reason)
+            self.assertFalse(mail.failure_type, 'Mail: invalid email_to: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, failure_type, 'Mail: invalid email_to: missing instead of invalid')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # MailServer.send_email(): _prepare_email_message: invalid To (ascii)
+        for email_to in ['raoul@example¢¡.com']:
+            _reset_data()
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
+            self.assertFalse(mail.failure_type, 'Mail: invalid (ascii) recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # MailServer.send_email(): _prepare_email_message: ok To (ascii or just ok)
+        for email_to in ['raoul¢¡@example.com', 'raoul@example.com']:
+            _reset_data()
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason)
+            self.assertFalse(mail.failure_type)
+            self.assertEqual(mail.state, 'sent')
+            self.assertFalse(notification.failure_type)
+            self.assertEqual(notification.notification_status, 'sent')
+
+        # RECIPIENTS (PARTNERS)
+        # ------------------------------------------------------------
+
+        mail.write({'email_from': 'test.user@test.example.com', 'email_to': False})
+        partners = self.env['res.partner'].create([
+            {'name': 'Name %s' % email, 'email': email}
+            for email in [False, '', ' ',
+                          'buggy', 'buggy, wrong',
+                          'raoul@example¢¡.com',
+                          'raoul¢¡@example.com', 'raoul@example.com']
+        ])
+
+        # void values
+        for partner in partners[0:3]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertEqual(mail.failure_reason, 'Error without exception. Probably due do sending an email without computed recipients.')
+            self.assertFalse(mail.failure_type, 'Mail: void recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'mail_email_invalid', 'Mail: void recipient partner: should be missing, not invalid')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # wrong values
+        for partner in partners[3:5]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertEqual(mail.failure_reason, 'Error without exception. Probably due do sending an email without computed recipients.')
+            self.assertFalse(mail.failure_type, 'Mail: invalid recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'mail_email_invalid')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # ascii ko
+        for partner in partners[5:6]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
+            self.assertFalse(mail.failure_type, 'Mail: invalid (ascii) recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # ascii ok or just ok
+        for partner in partners[6:]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason)
+            self.assertFalse(mail.failure_type)
+            self.assertEqual(mail.state, 'sent')
+            self.assertFalse(notification.failure_type)
+            self.assertEqual(notification.notification_status, 'sent')
+
+        # RECIPIENTS (MIXED)
+        # ------------------------------------------------------------
+        mail.write({'email_to': 'test@example.com'})
+
+        # valid to, missing email for recipient
+        for partner in partners[0:3]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertFalse(mail.failure_type, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(mail.state, 'sent', 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(notification.failure_type, 'mail_email_invalid', 'Mail: void email considered as invalid')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # valid to, wrong email for recipient
+        for partner in partners[3:5]:
+            _reset_data()
+            mail.write({'recipient_ids': [(5, 0), (4, partner.id)]})
+            notification.write({'res_partner_id': partner.id})
+            # with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertFalse(mail.failure_type, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(mail.state, 'sent', 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(notification.failure_type, 'mail_email_invalid')
+            self.assertEqual(notification.notification_status, 'exception')
+
+        # update to have valid partner and invalid partner
+        mail.write({'recipient_ids': [(5, 0), (4, partners[7].id), (4, partners[0].id)]})
+        notification.write({'res_partner_id': partners[7].id})
+        notification2 = notification.create({
+            'is_read': False,
+            'mail_mail_id': mail.id,
+            'mail_message_id': message.id,
+            'notification_type': 'email',
+            'res_partner_id': partners[0].id,
+        })
+
+        # missing to / invalid to
+        for email_to in ['', False, ' ', 'buggy', 'buggy, wrong']:
+            _reset_data()
+            notification2.write({'failure_type': False, 'notification_status': 'ready'})
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway():
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertFalse(mail.failure_type, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(mail.state, 'sent', 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertFalse(notification.failure_type)
+            self.assertEqual(notification.notification_status, 'sent')
+            self.assertEqual(notification2.failure_type, 'mail_email_invalid')
+            self.assertEqual(notification2.notification_status, 'exception')
+
+        # buggy to (ascii)
+        for email_to in ['raoul@example¢¡.com']:
+            _reset_data()
+            notification2.write({'failure_type': False, 'notification_status': 'ready'})
+            mail.write({'email_to': email_to})
+            with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
+            self.assertFalse(mail.failure_type, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'unknown')
+            self.assertEqual(notification.notification_status, 'exception')
+            self.assertEqual(notification2.failure_type, 'unknown')
+            self.assertEqual(notification2.notification_status, 'exception')
+
+        # RAISE MANAGEMENT
+        # ---------------------------------------------------------
+
+        _reset_data()
+        mail.write({'email_from': 'test.user@test.example.com', 'email_to': 'test@example.com'})
+
+        # SMTP connecting issues
+        with self.mock_mail_gateway():
+            _connect_current = self.connect_mocked.side_effect
+
+            for error, msg in [
+                    (smtplib.SMTPServerDisconnected('SMTPServerDisconnected'), 'SMTPServerDisconnected'),
+                    (smtplib.SMTPResponseException('code', 'SMTPResponseException'), 'code\nSMTPResponseException'),
+                    (smtplib.SMTPNotSupportedError('SMTPNotSupportedError'), 'SMTPNotSupportedError'),
+                    (smtplib.SMTPException('SMTPException'), 'SMTPException'),
+                    (SSLError('SSLError'), 'SSLError'),
+                    (gaierror('gaierror'), 'gaierror'),
+                    (timeout('timeout'), 'timeout')]:
+
+                def _connect(*args, **kwargs):
+                    raise error
+                self.connect_mocked.side_effect = _connect
+
+                mail.send(raise_exception=False)
+                self.assertFalse(mail.failure_type)
+                self.assertEqual(mail.failure_reason, msg)
+                self.assertEqual(mail.state, 'exception')
+                self.assertEqual(notification.failure_type, 'mail_smtp')
+                self.assertEqual(notification.notification_status, 'exception')
+                _reset_data()
+
+        self.connect_mocked.side_effect = _connect_current
+
+        # SMTP sending issues
+        with self.mock_mail_gateway():
+            _send_current = self.send_email_mocked.side_effect
+            _reset_data()
+            mail.write({'email_to': 'test@example.com'})
+
+            # SMTP disconnection: should always raise
+            def _send_email(*args, **kwargs):
+                raise smtplib.SMTPServerDisconnected("Some exception")
+            self.send_email_mocked.side_effect = _send_email
+
+            # SMTPServerDisconnected are raised even with raise_Exception=False
+            with self.assertRaises(smtplib.SMTPServerDisconnected), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason, 'SMTPServerDisconnected during Send raises and lead to a rollback')
+            self.assertFalse(mail.failure_type, 'SMTPServerDisconnected during Send raises and lead to a rollback')
+            self.assertEqual(mail.state, 'outgoing', 'SMTPServerDisconnected during Send raises and lead to a rollback')
+            self.assertFalse(notification.failure_type, 'SMTPServerDisconnected during Send raises and lead to a rollback')
+            self.assertEqual(notification.notification_status, 'ready', 'SMTPServerDisconnected during Send raises and lead to a rollback')
+
+            # MemoryError: should always raise
+            def _send_email(*args, **kwargs):
+                raise MemoryError("Some exception")
+            self.send_email_mocked.side_effect = _send_email
+
+            # MemoryError are raised even with raise_Exception=False
+            _reset_data()
+            with self.assertRaises(MemoryError), mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertFalse(mail.failure_reason, 'MemoryError during Send raises and lead to a rollback')
+            self.assertFalse(mail.failure_type, 'MemoryError during Send raises and lead to a rollback')
+            self.assertEqual(mail.state, 'outgoing', 'MemoryError during Send raises and lead to a rollback')
+            self.assertFalse(notification.failure_type, 'MemoryError during Send raises and lead to a rollback')
+            self.assertEqual(notification.notification_status, 'ready', 'MemoryError during Send raises and lead to a rollback')
+
+            # MailDeliveryException: should be catched
+            def _send_email(*args, **kwargs):
+                raise MailDeliveryException("Some exception")
+            self.send_email_mocked.side_effect = _send_email
+
+            _reset_data()
+            with mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertEqual(mail.failure_reason, 'Some exception')
+            self.assertFalse(mail.failure_type, 'Mail: unlogged failure type to fix')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'unknown', 'Mail: generic failure type')
+            self.assertEqual(notification.notification_status, 'exception')
+
+            # Other issues are sub-catched under a MailDeliveryException and are catched
+            def _send_email(*args, **kwargs):
+                raise ValueError("Unexpected issue")
+            self.send_email_mocked.side_effect = _send_email
+
+            _reset_data()
+            with mute_logger('odoo.addons.mail.models.mail_mail'):
+                mail.send(raise_exception=False)
+            self.assertEqual(mail.failure_reason, 'Unexpected issue')
+            self.assertFalse(mail.failure_type, 'Mail: unlogged failure type to fix')
+            self.assertEqual(mail.state, 'exception')
+            self.assertEqual(notification.failure_type, 'unknown', 'Mail: generic failure type')
+            self.assertEqual(notification.notification_status, 'exception')
+
+            self.send_email_mocked.side_effect = _send_current
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_mail_mail_send_server(self):
