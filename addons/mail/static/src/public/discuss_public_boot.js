@@ -60,15 +60,15 @@ Component.env = legacyEnv;
         },
     }));
     await mount(MainComponentsContainer, document.body, { env, templates, dev: env.debug });
-    createAndMountDiscussPublicView();
+    createAndMountDiscussPublicView(templates);
 })();
 
-async function createAndMountDiscussPublicView() {
+async function createAndMountDiscussPublicView(templates) {
     const messaging = await Component.env.services.messaging.get();
     // needed by the attachment viewer
     const DialogManager = getMessagingComponent('DialogManager');
     await mount(DialogManager, document.body, {
-        templates: legacySession.owlTemplates,
+        templates,
         env: Component.env,
         dev: Component.env.isDebug(),
     });
@@ -81,7 +81,7 @@ async function createAndMountDiscussPublicView() {
     }
     const DiscussPublicView = getMessagingComponent('DiscussPublicView');
     await mount(DiscussPublicView, document.body, {
-        templates: legacySession.owlTemplates,
+        templates,
         env: Component.env,
         dev: Component.env.isDebug(),
         props: {
