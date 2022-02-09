@@ -18,38 +18,3 @@ $o-navbar-badge-size: 11px !default;
 $o-navbar-badge-size-adjust: 1px !default;
 $o-navbar-badge-padding: 4px !default;
 $o-navbar-badge-bg: $o-success !default;
-
-// = % PseudoClasses
-//
-// Regroup and expose rules shared across components
-// --------------------------------------------------------------------------
-%-main-navbar-entry-base {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: auto;
-    height: var(--o-navbar-height, #{$o-navbar-height});
-    user-select: none;
-    background: transparent;
-    font-size: $o-navbar-entry-font-size;
-
-    @include o-hover-text-color(rgba($o-navbar-entry-color, .9), $o-navbar-entry-color);
-}
-
-%-main-navbar-entry-spacing {
-    padding: 0 $o-horizontal-padding * .75;
-    line-height: var(--o-navbar-height);
-}
-
-%-main-navbar-entry-bg-hover {
-    &:hover {
-        background-color: $o-navbar-entry-bg--hover;
-    }
-}
-
-%-main-navbar-entry-active {
-    &, &:hover, &:focus {
-        background: $o-navbar-entry-bg--hover;
-        color: $o-navbar-entry-color;
-    }
-}
