@@ -595,7 +595,17 @@ class Lead(models.Model):
         if any(field in ['active', 'stage_id'] for field in vals):
             self._handle_won_lost(vals)
 
+        from_lead_values = dict([lead.id, [lead.stage_id.id, lead.active]] for lead in self)
         write_result = super(Lead, self).write(vals)
+
+        # Recompute the probabilities for a lead if its stage or activation has changed
+        # This allows to take into account the table update in _handle_won_lost
+        self.flush(['probability', 'automated_probability'])
+        to_recompute = self.env["crm.lead"]
+        for lead in self:
+            if from_lead_values[lead.id][0] != lead.stage_id.id or from_lead_values[lead.id][1] != lead.active:
+                to_recompute |= lead
+        to_recompute._compute_probabilities()
 
         return write_result
 
