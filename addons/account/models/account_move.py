@@ -841,8 +841,7 @@ class AccountMove(models.Model):
             to_write_on_line = {
                 'amount_currency': taxes_map_entry['amount'],
                 'currency_id': currency_id,
-                'debit': self._get_debit_from_balance(balance, currency_id),
-                'credit': self._get_credit_from_balance(balance, currency_id),
+                'balance': balance,
                 'tax_base_amount': tax_base_amount,
             }
 
@@ -914,8 +913,7 @@ class AccountMove(models.Model):
             :return:                        The newly created rounding line.
             '''
             rounding_line_vals = {
-                'debit': self._get_debit_from_balance(diff_balance, self.currency_id.id),
-                'credit': self._get_credit_from_balance(diff_balance, self.currency_id.id),
+                'balance': balance,
                 'quantity': 1.0,
                 'amount_currency': diff_amount_currency,
                 'partner_id': self.partner_id.id,
@@ -1082,15 +1080,13 @@ class AccountMove(models.Model):
                     candidate.update({
                         'date_maturity': date_maturity,
                         'amount_currency': -amount_currency,
-                        'debit': self._get_debit_from_balance(-balance, currency.id),
-                        'credit': self._get_credit_from_balance(-balance, currency.id),
+                        'balance': -balance,
                     })
                 else:
                     # Create new line.
                     candidate = self.env['account.move.line'].create({
                         'name': self.payment_reference or '',
-                        'debit': self._get_debit_from_balance(-balance, currency.id),
-                        'credit': self._get_credit_from_balance(-balance, currency.id),
+                        'balance': -balance,
                         'quantity': 1.0,
                         'amount_currency': -amount_currency,
                         'date_maturity': date_maturity,
@@ -1502,6 +1498,7 @@ class AccountMove(models.Model):
             move.payment_state = new_pmt_state
 
     def _inverse_amount_total(self):
+        return
         for move in self:
             if len(move.line_ids) != 2 or move.is_invoice(include_receipts=True):
                 continue
@@ -2075,19 +2072,6 @@ class AccountMove(models.Model):
     # -------------------------------------------------------------------------
     # LOW-LEVEL METHODS
     # -------------------------------------------------------------------------
-    def _get_debit_from_balance(self, balance, currency_id):
-        currency = self.env['res.currency'].browse(currency_id)
-        compare_res = currency.compare_amounts(balance, 0.0)
-        if self.is_storno:
-            return balance if compare_res < 0.0 else 0.0
-        return balance if compare_res > 0.0 else 0.0
-
-    def _get_credit_from_balance(self, balance, currency_id):
-        currency = self.env['res.currency'].browse(currency_id)
-        compare_res = currency.compare_amounts(balance, 0.0)
-        if self.is_storno:
-            return -balance if compare_res > 0.0 else 0.0
-        return -balance if compare_res < 0.0 else 0.0
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -3413,8 +3397,10 @@ class AccountMoveLine(models.Model):
         compute='_compute_debit_credit', inverse="_inverse_credit", store=True, readonly=False)
     balance = fields.Monetary(
         string='Balance', store=True,
+        readonly=False,
         currency_field='company_currency_id',
         compute='_compute_balance',
+        precompute=True,
         help="Technical field holding the debit - credit in order to open meaningful graph views from reports")
     cumulated_balance = fields.Monetary(string='Cumulated Balance', store=False,
         currency_field='company_currency_id',
@@ -3422,7 +3408,8 @@ class AccountMoveLine(models.Model):
         help="Cumulated balance depending on the domain and the order chosen in the view.")
     amount_currency = fields.Monetary(string='Amount in Currency', store=True, copy=True,
         readonly=False,
-        compute='_compute_totals', precompute=True,
+        compute='_compute_amount_currency', precompute=True,
+        inverse='_inverse_amount_currency',
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
     price_subtotal = fields.Monetary(
         string='Subtotal', readonly=False,
@@ -3687,8 +3674,8 @@ class AccountMoveLine(models.Model):
                             product_price_unit += tax_res['amount']
 
         # Apply currency rate.
-        if currency and currency != company_currency:
-            product_price_unit = company_currency._convert(product_price_unit, currency, company, move_date)
+        # if currency and currency != company_currency:
+        #     product_price_unit = company_currency._convert(product_price_unit, currency, company, move_date)
 
         return product_price_unit
 
@@ -3748,6 +3735,7 @@ class AccountMoveLine(models.Model):
 
     def _set_price_and_tax_after_fpos(self):
         self.ensure_one()
+        return
         # Manage the fiscal position after that and adapt the price_unit.
         # E.g. mapping a price-included-tax to a price-excluded-tax must
         # remove the tax amount from the price_unit.
@@ -3893,8 +3881,7 @@ class AccountMoveLine(models.Model):
         return {
             'amount_currency': amount_currency,
             'currency_id': currency.id,
-            'debit': self.move_id._get_debit_from_balance(balance, company.currency_id.id),
-            'credit': self.move_id._get_credit_from_balance(balance, company.currency_id.id),
+            'balance': balance,
         }
 
     def _get_fields_onchange_balance(self, quantity=None, discount=None, amount_currency=None, move_type=None, currency=None, taxes=None, price_subtotal=None, force_computation=False):
@@ -4078,35 +4065,25 @@ class AccountMoveLine(models.Model):
             line.price_unit = line._get_computed_price_unit()
 
     def _inverse_credit(self):
-        company = self.env.company
         for line in self:
             if line.credit:
                 line.debit = 0.0
 
-            # FP TODO: improve this computation with discount, currency & tax
-            if not line.exclude_from_invoice_tab:
-                line.price_unit = line.credit / (line.quantity or 1.0)
-            line.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
-
     def _inverse_debit(self):
-        company = self.env.company
         for line in self:
             if line.debit:
                 line.credit = 0.0
 
-            # FP TODO: improve this computation
-            if not line.exclude_from_invoice_tab:
-                line.price_unit = line.credit / (line.quantity or 1.0)
-
-            line.amount_currency = line.company_currency_id._convert(line.debit - line.credit, line.currency_id, company, line.move_id.date or fields.Date.context_today(line))
-
-    @api.depends('amount_currency', 'currency_id')
+    @api.depends('balance')
     def _compute_debit_credit(self):
         for line in self:
-            company = self.env.company
-            balance = line.currency_id._convert(line.amount_currency, company.currency_id, company, line.move_id.date or fields.Date.context_today(line))
-            line.debit = balance if balance > 0.0 else 0.0
-            line.credit = -balance if balance < 0.0 else 0.0
+            if not line.is_storno:
+                line.debit = line.balance if line.balance > 0.0 else 0.0
+                line.credit = -line.balance if line.balance < 0.0 else 0.0
+            else:
+                line.debit = line.balance if line.balance < 0.0 else 0.0
+                line.credit = -line.balance if line.balance > 0.0 else 0.0
+            print('d/c', line, line.debit, line.credit)
 
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
@@ -4117,36 +4094,41 @@ class AccountMoveLine(models.Model):
             if line.exclude_from_invoice_tab:
                 continue
 
-            # # Compute 'price_subtotal'.
-            # rnd = line.currency_id and line.currency_id.round or (lambda x: x)
-            # line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
-            #
-            # # Compute 'price_total'.
-            # if line.tax_ids:
-            #     move_type = line.move_id.move_type
-            #     force_sign = -1 if move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-            #     taxes_res = line.tax_ids.with_context(force_sign=force_sign).compute_all(
-            #         line_discount_price_unit,
-            #         quantity=line.quantity, currency=line.currency_id,
-            #         product=line.product_id, partner=line.partner_id,
-            #         is_refund=move_type in ('out_refund', 'in_refund'))
-            #     line.price_subtotal = rnd(taxes_res['total_excluded'])
-            #     line.price_total = rnd(taxes_res['total_included'])
-            # else:
-            #     subtotal = rnd(line.quantity * line_discount_price_unit)
-            #     line.price_total = subtotal
-            #     line.price_subtotal = subtotal
             line.update(line._get_price_total_and_subtotal())
-            line.amount_currency = - line.price_subtotal
 
-    @api.depends('debit', 'credit', 'currency_id')
-    def _compute_amount_currency_notused(self):
+    @api.depends('balance', 'currency_id', 'journal_id', 'move_id.date')
+    def _compute_amount_currency(self):
+        print('compute', self)
         for line in self:
-            if line.company_currency_id == line.currency_id:
-                line.amount_currency = line.debit - line.credit
-            else:
-                # FP TODO: convert currency is company_currency_id != currency_id
-                line.amount_currency = line.debit - line.credit
+            line.amount_currency = line.company_currency_id._convert(
+                from_amount=line.balance, 
+                to_currency=line.currency_id, 
+                company=line.journal_id.company_id, 
+                date=line.move_id.date or fields.Date.context_today(line),
+            )
+            print(line, line.move_id.date, line.balance, line.amount_currency)
+
+    def _inverse_amount_currency(self):
+        print('inverse', self)
+        for line in self:
+            print(line, line.move_id.date, line.balance, line.amount_currency)
+            line.balance = line.currency_id._convert(
+                from_amount=line.amount_currency, 
+                to_currency=line.company_currency_id, 
+                company=line.company_id, 
+                date=line.move_id.date or fields.Date.context_today(line),
+            )
+            print(line, line.move_id.date, line.balance, line.amount_currency)
+            line._compute_debit_credit()  # todo why needs to be explicit?
+
+    # @api.depends('debit', 'credit', 'currency_id')
+    # def _compute_amount_currency_notused(self):
+    #     for line in self:
+    #         if line.company_currency_id == line.currency_id:
+    #             line.amount_currency = line.debit - line.credit
+    #         else:
+    #             # FP TODO: convert currency is company_currency_id != currency_id
+    #             line.amount_currency = line.debit - line.credit
 
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
