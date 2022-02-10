@@ -196,7 +196,7 @@
                 <field name="name" string="Package Name"/>
                 <field name="location_id"/>
                 <field name="package_type_id"/>
-                <group  expand='0' string='Group by...'>
+                <group  expand='0' string='Group by....'>
                    <filter string='Location' name="location" domain="[]" context="{'group_by' : 'location_id'}"/>
                    <filter string='Package Type' name="package_type" domain="[]" context="{'group_by' : 'package_type_id'}"/>
                </group>
