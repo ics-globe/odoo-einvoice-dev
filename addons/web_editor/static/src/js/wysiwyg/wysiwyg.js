@@ -1192,6 +1192,7 @@ const Wysiwyg = Widget.extend({
         mediaDialog.open();
 
         mediaDialog.on('save', this, function (element) {
+            debugger
             if (!element) {
                 return;
             }
@@ -1205,6 +1206,7 @@ const Wysiwyg = Widget.extend({
                 this.odooEditor.unbreakableStepUnactive();
                 this.odooEditor.historyStep();
             } else if (element) {
+                debugger
                 this.odooEditor.execCommand('insertHTML', element.outerHTML);
             }
         });
