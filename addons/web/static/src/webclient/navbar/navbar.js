@@ -86,6 +86,8 @@ export class NavBar extends Component {
             .reverse();
     }
 
+    set systrayItems(_) {}
+
     /**
      * Adapt will check the available width for the app sections to get displayed.
      * If not enough space is available, it will replace by a "more" menu
