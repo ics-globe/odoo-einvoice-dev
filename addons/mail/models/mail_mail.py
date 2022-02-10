@@ -162,14 +162,30 @@ class MailMail(models.Model):
             _logger.exception("Failed processing mail queue")
         return res
 
-    def _postprocess_sent_message(self, success_pids, failure_reason=False, failure_type=None):
-        """Perform any post-processing necessary after sending ``mail``
-        successfully, including deleting it completely along with its
-        attachment if the ``auto_delete`` flag of the mail was set.
+    def _postprocess_sent_message(self, success, success_pids, failure_reason=False, failure_type=None):
+        """Perform any post-processing necessary after sending ``self`` successfully.
+        It deletes it completely along with its attachments if the ``auto_delete``
+        flag is set and if there was no real failure (aka no failure or 'email missing'
+        failure that has no interest in a 'send again' flow).
+
         Overridden by subclasses for extra post-processing behaviors.
 
         :return: True
         """
+        # if we have any other error than invalid or missing emial we want to keep the mail to resend/analyze
+        mail_to_delete_ids = []
+        if not failure_type or failure_type in ['mail_email_invalid', 'mail_email_missing']:
+            mail_to_delete_ids = [mail.id for mail in self if mail.auto_delete]
+
+        # allow skipping mail update with True, None, ... for perf reasons
+        if success is False:
+            # udpate only mail we are not going to unlink anyway
+            self.filtered(lambda mail: mail.id not in mail_to_delete_ids).write({
+                'state': 'exception',
+                'failure_reason': failure_reason,
+                'failure_type': failure_type,
+            })
+
         notif_mails_ids = [mail.id for mail in self if mail.is_notification]
         if notif_mails_ids:
             notifications = self.env['mail.notification'].search([
@@ -196,8 +212,7 @@ class MailMail(models.Model):
                     messages = notifications.mapped('mail_message_id').filtered(lambda m: m.is_thread_message())
                     # TDE TODO: could be great to notify message-based, not notifications-based, to lessen number of notifs
                     messages._notify_message_notification_update()  # notify user that we have a failure
-        if not failure_type or failure_type in ['mail_email_invalid', 'mail_email_missing']:  # if we have another error, we want to keep the mail.
-            mail_to_delete_ids = [mail.id for mail in self if mail.auto_delete]
+
             self.browse(mail_to_delete_ids).sudo().unlink()
         return True
 
@@ -298,9 +313,12 @@ class MailMail(models.Model):
                     # exceptions, it is encapsulated into an Odoo MailDeliveryException
                     raise MailDeliveryException(_('Unable to connect to SMTP Server'), exc)
                 else:
-                    batch = self.browse(batch_ids)
-                    batch.write({'state': 'exception', 'failure_reason': exc})
-                    batch._postprocess_sent_message(success_pids=[], failure_type="mail_smtp")
+                    self.browse(batch_ids)._postprocess_sent_message(
+                        False,
+                        success_pids=[],
+                        failure_reason=exc,
+                        failure_type="mail_smtp"
+                    )
             else:
                 self.browse(batch_ids)._send(
                     auto_commit=auto_commit,
@@ -435,7 +453,12 @@ class MailMail(models.Model):
                     _logger.info('Mail with ID %r and Message-Id %r successfully sent', mail.id, mail.message_id)
                     # /!\ can't use mail.state here, as mail.refresh() will cause an error
                     # see revid:odo@openerp.com-20120622152536-42b2s28lvdv3odyr in 6.1
-                mail._postprocess_sent_message(success_pids=success_pids, failure_type=failure_type)
+                mail._postprocess_sent_message(
+                    bool(res),
+                    success_pids=success_pids,
+                    failure_reason=False,
+                    failure_type=failure_type
+                )
             except MemoryError:
                 # prevent catching transient MemoryErrors, bubble up to notify user or abort cron job
                 # instead of marking the mail as failed
@@ -454,8 +477,12 @@ class MailMail(models.Model):
             except Exception as e:
                 failure_reason = tools.ustr(e)
                 _logger.exception('failed sending mail (id: %s) due to %s', mail.id, failure_reason)
-                mail.write({'state': 'exception', 'failure_reason': failure_reason})
-                mail._postprocess_sent_message(success_pids=success_pids, failure_reason=failure_reason, failure_type='unknown')
+                mail._postprocess_sent_message(
+                    False,
+                    success_pids=success_pids,
+                    failure_reason=failure_reason,
+                    failure_type='unknown'
+                )
                 if raise_exception:
                     if isinstance(e, (AssertionError, UnicodeEncodeError)):
                         if isinstance(e, UnicodeEncodeError):

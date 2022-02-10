@@ -106,7 +106,7 @@ class TestMailMail(TestMailCommon):
         self.assertIn(
             'You must either provide a sender address explicitly or configure using the combination of `mail.catchall.domain` and `mail.default.from` ICPs',
             mail.failure_reason)
-        self.assertFalse(mail.failure_type, 'Mail: void from: no failure type, should be updated')
+        self.assertEqual(mail.failure_type, 'unknown', 'Mail: void from: unknown failure type, should be updated')
         self.assertEqual(mail.state, 'exception')
         self.assertEqual(notification.failure_type, 'unknown', 'Mail: void from: unknown failure type, should be updated')
         self.assertEqual(notification.notification_status, 'exception')
@@ -120,7 +120,7 @@ class TestMailMail(TestMailCommon):
             mail.send(raise_exception=False)
         self.assertEqual(self._mails[0]['email_from'], 'strange@example¢¡.com')
         self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
-        self.assertFalse(mail.failure_type, 'Mail: bugged from (ascii): no failure type, should be updated')
+        self.assertEqual(mail.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
         self.assertEqual(mail.state, 'exception')
         self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
         self.assertEqual(notification.notification_status, 'exception')
@@ -133,7 +133,7 @@ class TestMailMail(TestMailCommon):
             mail.send(raise_exception=False)
         self.assertEqual(self._mails[0]['email_from'], 'test.user@example.com')
         self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
-        self.assertFalse(mail.failure_type, 'Mail: bugged catchall domain (ascii): no failure type, should be updated')
+        self.assertEqual(mail.failure_type, 'unknown', 'Mail: bugged catchall domain (ascii): unknown failure type, should be updated')
         self.assertEqual(mail.state, 'exception')
         self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged catchall domain (ascii): unknown failure type, should be updated')
         self.assertEqual(notification.notification_status, 'exception')
@@ -146,7 +146,7 @@ class TestMailMail(TestMailCommon):
             mail.send(raise_exception=False)
         self.assertEqual(self._mails[0]['email_from'], 'robert')
         self.assertIn('Malformed \'Return-Path\' or \'From\' address: robert', mail.failure_reason)
-        self.assertFalse(mail.failure_type, 'Mail: bugged from (ascii): no failure type, should be updated')
+        self.assertEqual(mail.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
         self.assertEqual(mail.state, 'exception')
         self.assertEqual(notification.failure_type, 'unknown', 'Mail: bugged from (ascii): unknown failure type, should be updated')
         self.assertEqual(notification.notification_status, 'exception')
@@ -192,7 +192,7 @@ class TestMailMail(TestMailCommon):
             with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
                 mail.send(raise_exception=False)
             self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
-            self.assertFalse(mail.failure_type, 'Mail: invalid (ascii) recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
             self.assertEqual(mail.state, 'exception')
             self.assertEqual(notification.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
             self.assertEqual(notification.notification_status, 'exception')
@@ -255,7 +255,7 @@ class TestMailMail(TestMailCommon):
             with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
                 mail.send(raise_exception=False)
             self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
-            self.assertFalse(mail.failure_type, 'Mail: invalid (ascii) recipient partner: no failure type, should be updated')
+            self.assertEqual(mail.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
             self.assertEqual(mail.state, 'exception')
             self.assertEqual(notification.failure_type, 'unknown', 'Mail: invalid (ascii) recipient partner: unknown failure type, should be updated')
             self.assertEqual(notification.notification_status, 'exception')
@@ -338,7 +338,7 @@ class TestMailMail(TestMailCommon):
             with self.mock_mail_gateway(), mute_logger('odoo.addons.mail.models.mail_mail'):
                 mail.send(raise_exception=False)
             self.assertIn('Codepoint U+00A2 at position', mail.failure_reason)
-            self.assertFalse(mail.failure_type, 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
+            self.assertEqual(mail.failure_type, 'unknown', 'Mail: at least one valid recipient, mail is sent to avoid send loops and spam')
             self.assertEqual(mail.state, 'exception')
             self.assertEqual(notification.failure_type, 'unknown')
             self.assertEqual(notification.notification_status, 'exception')
@@ -369,7 +369,7 @@ class TestMailMail(TestMailCommon):
                 self.connect_mocked.side_effect = _connect
 
                 mail.send(raise_exception=False)
-                self.assertFalse(mail.failure_type)
+                self.assertEqual(mail.failure_type, 'mail_smtp')
                 self.assertEqual(mail.failure_reason, msg)
                 self.assertEqual(mail.state, 'exception')
                 self.assertEqual(notification.failure_type, 'mail_smtp')
@@ -422,7 +422,7 @@ class TestMailMail(TestMailCommon):
             with mute_logger('odoo.addons.mail.models.mail_mail'):
                 mail.send(raise_exception=False)
             self.assertEqual(mail.failure_reason, 'Some exception')
-            self.assertFalse(mail.failure_type, 'Mail: unlogged failure type to fix')
+            self.assertEqual(mail.failure_type, 'unknown', 'Mail: generic failure type')
             self.assertEqual(mail.state, 'exception')
             self.assertEqual(notification.failure_type, 'unknown', 'Mail: generic failure type')
             self.assertEqual(notification.notification_status, 'exception')
@@ -436,7 +436,7 @@ class TestMailMail(TestMailCommon):
             with mute_logger('odoo.addons.mail.models.mail_mail'):
                 mail.send(raise_exception=False)
             self.assertEqual(mail.failure_reason, 'Unexpected issue')
-            self.assertFalse(mail.failure_type, 'Mail: unlogged failure type to fix')
+            self.assertEqual(mail.failure_type, 'unknown', 'Mail: generic failure type')
             self.assertEqual(mail.state, 'exception')
             self.assertEqual(notification.failure_type, 'unknown', 'Mail: generic failure type')
             self.assertEqual(notification.notification_status, 'exception')
