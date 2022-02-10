@@ -7,7 +7,7 @@
         is disabled.
     -->
     <function model="res.currency" name="action_unarchive">
-        <value model="res.currency" search="[('id', '=', obj().env.ref('product.list0').currency_id.id), ('active', '=', False)]"/>
+        <value model="res.currency" search="[('name', '=', 'EUR'), ('active', '=', False)]"/>
     </function>
 
     <!-- We want to activate pay and sign by default for easier demoing. -->
@@ -38,7 +38,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_2"/>
         <field name="partner_shipping_id" ref="base.res_partner_2"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -72,7 +71,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_13"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_13"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -100,7 +98,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_4"/>
         <field name="partner_shipping_id" ref="base.res_partner_4"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -125,7 +122,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -164,7 +160,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_2"/>
         <field name="partner_shipping_id" ref="base.res_partner_2"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -183,7 +178,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_18"/>
         <field name="partner_shipping_id" ref="base.res_partner_18"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -202,7 +196,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_11"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_11"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -240,7 +233,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -268,7 +260,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -295,7 +286,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -324,7 +314,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -351,7 +340,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -378,7 +366,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.crm_team_1"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -403,7 +390,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -430,7 +416,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -457,7 +442,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -484,7 +468,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -511,7 +494,6 @@
         <field name="partner_invoice_id" ref="base.res_partner_address_25"/>
         <field name="partner_shipping_id" ref="base.res_partner_address_25"/>
         <field name="user_id" ref="base.user_demo"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="campaign_id" ref="utm.utm_campaign_email_campaign_products"/>
         <field name="medium_id" ref="utm.utm_medium_email"/>
@@ -538,7 +520,6 @@
         <field name="partner_invoice_id" ref="base.partner_demo_portal"/>
         <field name="partner_shipping_id" ref="base.partner_demo_portal"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="state">sent</field>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="date_order" eval="(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"/>
@@ -572,7 +553,6 @@
         <field name="partner_invoice_id" ref="base.partner_demo_portal"/>
         <field name="partner_shipping_id" ref="base.partner_demo_portal"/>
         <field name="user_id" ref="base.user_admin"/>
-        <field name="pricelist_id" ref="product.list0"/>
         <field name="team_id" ref="sales_team.team_sales_department"/>
         <field name="date_order" eval="(DateTime.today() - relativedelta(months=1)).strftime('%Y-%m-%d %H:%M')"/>
         <field name="message_partner_ids" eval="[(4, ref('base.partner_demo_portal'))]"/>

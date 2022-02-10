@@ -39,14 +39,14 @@ class ProductPricelist(models.Model):
 
     def write(self, data):
         res = super(ProductPricelist, self).write(data)
-        if data.keys() & {'code', 'active', 'website_id', 'selectable', 'company_id'}:
-            self._check_website_pricelist()
+        # if data.keys() & {'code', 'active', 'website_id', 'selectable', 'company_id'}:
+        #     self._check_website_pricelist()
         self and self.clear_caches()
         return res
 
     def unlink(self):
         res = super(ProductPricelist, self).unlink()
-        self._check_website_pricelist()
+        # self._check_website_pricelist()
         self and self.clear_caches()
         return res
 
@@ -64,10 +64,10 @@ class ProductPricelist(models.Model):
             res = res.filtered(lambda pl: pl._is_available_on_website(website))
         return res
 
-    def _check_website_pricelist(self):
-        for website in self.env['website'].search([]):
-            if not website.pricelist_ids:
-                raise UserError(_("With this action, '%s' website would not have any pricelist available.") % (website.name))
+    # def _check_website_pricelist(self):
+    #     for website in self.env['website'].search([]):
+    #         if not website.pricelist_ids:
+    #             raise UserError(_("With this action, '%s' website would not have any pricelist available.") % (website.name))
 
     def _is_available_on_website(self, website):
         """ To be able to be used on a website, a pricelist should either:

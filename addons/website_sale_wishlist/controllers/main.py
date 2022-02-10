@@ -15,6 +15,7 @@ class WebsiteSaleWishlist(WebsiteSale):
         product = request.env['product.product'].browse(product_id)
 
         price = product._get_combination_info_variant(
+            currency=website.currency,
             pricelist=website.pricelist_id,
         )['price']
 

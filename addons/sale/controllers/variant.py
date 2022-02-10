@@ -7,14 +7,15 @@ from odoo.http import request
 
 class VariantController(http.Controller):
     @http.route(['/sale/get_combination_info'], type='json', auth="user", methods=['POST'])
-    def get_combination_info(self, product_template_id, product_id, combination, add_qty, pricelist_id, **kw):
+    def get_combination_info(self, product_template_id, product_id, combination, add_qty, currency_id, pricelist_id, **kw):
         combination = request.env['product.template.attribute.value'].browse(combination)
+        currency = request.env['res.currency'].browse(int(currency_id or 0))
         pricelist = self._get_pricelist(pricelist_id)
         ProductTemplate = request.env['product.template']
         if 'context' in kw:
             ProductTemplate = ProductTemplate.with_context(**kw.get('context'))
         product_template = ProductTemplate.browse(int(product_template_id))
-        res = product_template._get_combination_info(combination, int(product_id or 0), int(add_qty or 1), pricelist)
+        res = product_template._get_combination_info(combination, int(product_id or 0), int(add_qty or 1), currency, pricelist)
         if 'parent_combination' in kw:
             parent_combination = request.env['product.template.attribute.value'].browse(kw.get('parent_combination'))
             if not combination.exists() and product_id:

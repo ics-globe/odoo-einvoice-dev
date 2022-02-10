@@ -181,7 +181,7 @@ class CustomerPortal(portal.CustomerPortal):
                 'fees_by_acquirer': fees_by_acquirer,
                 'show_tokenize_input': show_tokenize_input,
                 'amount': order_sudo.amount_total,
-                'currency': order_sudo.pricelist_id.currency_id,
+                'currency': order_sudo.currency_id,
                 'partner_id': order_sudo.partner_id.id,
                 'access_token': order_sudo.access_token,
                 'transaction_route': order_sudo.get_portal_url(suffix='/transaction'),

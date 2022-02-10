@@ -23,7 +23,8 @@ class WebsiteSaleSlides(WebsiteSlides):
         channel = values['channel']
         if channel.enroll == 'payment' and channel.product_id:
             pricelist = request.website.get_current_pricelist()
-            values['product_info'] = channel.product_id.product_tmpl_id._get_combination_info(product_id=channel.product_id.id, pricelist=pricelist)
+            currency = request.website.currency_id
+            values['product_info'] = channel.product_id.product_tmpl_id._get_combination_info(product_id=channel.product_id.id, currency=currency, pricelist=pricelist)
             values['product_info']['currency_id'] = request.website.currency_id
         return values
 

@@ -406,7 +406,7 @@ class PricelistItem(models.Model):
         rule_base = self.base
         if rule_base == 'pricelist' and self.base_pricelist_id:
             price = self.base_pricelist_id._get_product_price(
-                product, quantity, uom, date)
+                product, quantity, self.currency_id, uom, date)
             src_currency = self.base_pricelist_id.currency_id
         elif rule_base == "standard_price":
             src_currency = product.cost_currency_id

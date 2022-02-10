@@ -13,7 +13,10 @@ class WebsiteSaleVariantController(VariantController):
         This route is called in JS by appending _website to the base route.
         """
         kw.pop('pricelist_id')
-        combination = self.get_combination_info(product_template_id, product_id, combination, add_qty, request.website.get_current_pricelist(), **kw)
+        currency = kw.pop('currency_id')
+        # TODO edm: seems like the expected comportment, but pricelist and currency here are set as
+        #  False here, why? Got it later anyway, and they are positional args (+ this is ugly)
+        combination = self.get_combination_info(product_template_id, product_id, combination, add_qty, currency, request.website.get_current_pricelist(), **kw)
 
         if request.website.google_analytics_key:
             combination['product_tracking_info'] = request.env['product.template'].get_google_analytics_data(combination)

@@ -653,7 +653,6 @@ class TestSaleMrpFlow(ValuationReconciliationTestCommon):
                 'product_uom': self.finished_product.uom_id.id,
                 'price_unit': self.finished_product.list_price
             })],
-            'pricelist_id': self.env.ref('product.list0').id,
             'company_id': self.company.id,
         }
         self.so = self.env['sale.order'].create(so_vals)
@@ -1723,7 +1722,6 @@ class TestSaleMrpFlow(ValuationReconciliationTestCommon):
                     'product_uom': product.uom_id.id,
                     'price_unit': product.list_price
                 })],
-                'pricelist_id': self.env.ref('product.list0').id,
                 'company_id': self.company.id,
             }
             so = self.env['sale.order'].create(so_vals)

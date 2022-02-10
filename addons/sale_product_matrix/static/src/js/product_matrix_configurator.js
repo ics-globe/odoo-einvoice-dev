@@ -59,6 +59,7 @@ ProductConfiguratorWidget.include({
                 self._openProductConfigurator({
                         configuratorMode: 'edit',
                         default_product_template_id: self.recordData.product_template_id.data.id,
+                        default_currency_id: self._getCurrencyId(),
                         default_pricelist_id: self._getPricelistId(),
                         default_product_template_attribute_value_ids: self._convertFromMany2Many(
                             self.recordData.product_template_attribute_value_ids

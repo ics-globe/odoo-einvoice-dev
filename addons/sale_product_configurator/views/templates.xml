@@ -27,7 +27,7 @@
         <div class="js_product main_product">
 
             <t t-set="combination" t-value="product_combination if product_combination else product._get_first_possible_combination()"/>
-            <t t-set="combination_info" t-value="product._get_combination_info(combination, add_qty=add_qty or 1, pricelist=pricelist)"/>
+            <t t-set="combination_info" t-value="product._get_combination_info(combination, add_qty=add_qty or 1, currency=currency, pricelist=pricelist)"/>
             <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
 
             <input type="hidden" class="product_template_id" t-att-value="product.id"/>
@@ -45,14 +45,14 @@
                                 t-esc="combination_info['list_price']"
                                 t-options='{
                                     "widget": "monetary",
-                                    "display_currency": (pricelist or product).currency_id
+                                    "display_currency": currency
                                 }'/>
                             <span class="oe_price product_id mt-3" style="white-space: nowrap;"
                                 t-att-data-product-id="product.id"
                                 t-esc="combination_info['price']"
                                 t-options='{
                                     "widget": "monetary",
-                                    "display_currency": (pricelist or product).currency_id
+                                    "display_currency": currency
                                 }'/>
                         </h2>
                         <t t-if="product.visible_qty_configurator">
@@ -89,7 +89,7 @@
         <tbody>
             <tr class="js_product in_cart main_product">
 
-                <t t-set="combination_info" t-value="product.product_tmpl_id._get_combination_info(combination, product.id, add_qty or 1, pricelist)"/>
+                <t t-set="combination_info" t-value="product.product_tmpl_id._get_combination_info(combination, product.id, add_qty or 1, currency, pricelist)"/>
                 <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
 
                 <input type="hidden" class="product_template_id" t-att-value="product.product_tmpl_id.id"/>
@@ -125,7 +125,7 @@
                         t-esc="combination_info['list_price']"
                         t-options='{
                             "widget": "monetary",
-                            "display_currency": (pricelist or product).currency_id
+                            "display_currency": currency
                         }'
                     />
                     <span class="oe_price product_id" style="white-space: nowrap;"
@@ -133,7 +133,7 @@
                         t-esc="combination_info['price']"
                         t-options='{
                             "widget": "monetary",
-                            "display_currency": (pricelist or product).currency_id
+                            "display_currency": currency
                         }'/>
                     <span class="js_raw_price d-none" t-esc="product._get_contextual_price()"/>
                     <p class="css_not_available_msg alert alert-warning">Option not available</p>
@@ -147,7 +147,7 @@
                         t-esc="combination_info['price'] * (add_qty or 1)"
                         t-options='{
                             "widget": "monetary",
-                            "display_currency": (pricelist or product).currency_id
+                            "display_currency": currency
                         }'/>
                 </td>
             </tr>
@@ -165,7 +165,7 @@
             <t t-set="combination" t-value="product._get_first_possible_combination(parent_combination)"/>
             <t t-if="product._is_add_to_cart_possible(parent_combination)">
 
-                <t t-set="combination_info" t-value="product._get_combination_info(combination, add_qty=add_qty or 1, pricelist=pricelist)"/>
+                <t t-set="combination_info" t-value="product._get_combination_info(combination, add_qty=add_qty or 1, currency=currency, pricelist=pricelist)"/>
                 <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
 
                 <tr class="js_product">
@@ -192,13 +192,13 @@
                             t-esc="combination_info['list_price']"
                             t-options='{
                                 "widget": "monetary",
-                                "display_currency": (pricelist or product).currency_id
+                                "display_currency": currency
                             }'/>
                         <div class="oe_price" style="white-space: nowrap;"
                             t-esc="combination_info['price']"
                             t-options='{
                                 "widget": "monetary",
-                                "display_currency": (pricelist or product).currency_id
+                                "display_currency": currency
                             }'/>
                         <span class="js_raw_price d-none" t-esc="combination_info['price']" />
                         <p class="css_not_available_msg alert alert-warning">Option not available</p>

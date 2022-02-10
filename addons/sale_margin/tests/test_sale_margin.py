@@ -20,12 +20,9 @@ class TestSaleMargin(common.TransactionCase):
             'name': 'A test partner address',
             'parent_id': cls.partner_id,
         }).id
-        cls.pricelist = cls.env.ref('product.list0')
-        cls.pricelist_id = cls.pricelist.id
 
     def test_sale_margin(self):
         """ Test the sale_margin module in Odoo. """
-        self.pricelist.currency_id = self.env.company.currency_id
         self.product.standard_price = 700.0
         sale_order_so11 = self.SaleOrder.create({
             'date_order': datetime.today(),

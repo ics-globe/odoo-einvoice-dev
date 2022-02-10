@@ -83,7 +83,7 @@ class Repair(models.Model):
         'product.pricelist', 'Pricelist',
         default=lambda self: self.env['product.pricelist'].search([('company_id', 'in', [self.env.company.id, False])], limit=1).id,
         help='Pricelist of the selected partner.', check_company=True)
-    currency_id = fields.Many2one(related='pricelist_id.currency_id')
+    currency_id = fields.Many2one(comodel_name='res.currency', compute='_compute_currency_id')
     partner_invoice_id = fields.Many2one('res.partner', 'Invoicing Address', check_company=True)
     invoice_method = fields.Selection([
         ("none", "No Invoice"),
@@ -135,6 +135,11 @@ class Repair(models.Model):
         for order in self:
             if order.partner_id:
                 order.default_address_id = order.partner_id.address_get(['contact'])['contact']
+
+    @api.depends('pricelist_id', 'company_id')
+    def _compute_currency_id(self):
+        for order in self:
+            order.currency_id = order.pricelist_id.currency_id.id or order.company_id.currency_id.id
 
     @api.depends('picking_id', 'picking_id.state')
     def _compute_is_returned(self):

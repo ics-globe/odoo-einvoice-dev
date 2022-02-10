@@ -142,7 +142,7 @@ class TestUi(HttpCaseWithUserDemo, HttpCaseWithUserPortal):
         })
 
         # fix runbot, sometimes one pricelist is chosen, sometimes the other...
-        pricelists = self.env['website'].get_current_website().get_current_pricelist() | self.env.ref('product.list0')
+        pricelists = self.env['website'].get_current_website().get_current_pricelist()
 
         for pricelist in pricelists:
             if not pricelist.item_ids.filtered(lambda i: i.product_tmpl_id == product_template and i.price_discount == 20):

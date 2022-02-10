@@ -46,6 +46,15 @@ class SaleOrder(models.Model):
             return website.get_base_url()
         return super()._get_note_url()
 
+    @api.depends('pricelist_id', 'company_id', 'website_id')
+    def _compute_currency_id(self):
+        for order in self:
+            website_currency_id = self.env['website'].get_current_website().currency_id.id
+            if website_currency_id:
+                order.currency_id = order.pricelist_id.currency_id.id or website_currency_id
+            else:
+                super()._compute_currency_id()
+
     @api.depends('order_line')
     def _compute_website_order_line(self):
         for order in self:

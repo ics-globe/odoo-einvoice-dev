@@ -70,6 +70,7 @@ var VariantMixin = {
                     'product_id': this._getProductId($currentOptionalProduct),
                     'combination': childCombination,
                     'add_qty': parseInt($currentOptionalProduct.find('input[name="add_qty"]').val()),
+                    'currency_id': this.currencyId || false,
                     'pricelist_id': this.pricelistId || false,
                     'parent_combination': combination,
                 }).then((combinationData) => {
@@ -88,6 +89,7 @@ var VariantMixin = {
             'product_id': this._getProductId($parent),
             'combination': combination,
             'add_qty': parseInt($parent.find('input[name="add_qty"]').val()),
+            'currency_id': this.currencyId || false,
             'pricelist_id': this.pricelistId || false,
             'parent_combination': parentCombination,
         }).then((combinationData) => {

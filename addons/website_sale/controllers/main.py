@@ -257,7 +257,7 @@ class WebsiteSale(http.Controller):
         if filter_by_price_enabled:
             company_currency = website.company_id.currency_id
             conversion_rate = request.env['res.currency']._get_conversion_rate(
-                company_currency, pricelist.currency_id, request.website.company_id, fields.Date.today())
+                company_currency, website.currency_id, request.website.company_id, fields.Date.today())
         else:
             conversion_rate = 1
 
@@ -278,7 +278,7 @@ class WebsiteSale(http.Controller):
             'min_price': min_price / conversion_rate,
             'max_price': max_price / conversion_rate,
             'attrib_values': attrib_values,
-            'display_currency': pricelist.currency_id,
+            'display_currency': website.currency_id,
         }
         # No limit because attributes are obtained from complete product list
         product_count, details, fuzzy_search_term = website._search_with_fuzzy("products_only", search,
@@ -397,6 +397,7 @@ class WebsiteSale(http.Controller):
         attrib_list = request.httprequest.args.getlist('attrib')
         attrib_values = [[int(x) for x in v.split("-")] for v in attrib_list if v]
         attrib_set = {v[1] for v in attrib_values}
+        pricelist = request.website.get_current_pricelist()
 
         keep = QueryURL(
             '/shop',
@@ -413,7 +414,8 @@ class WebsiteSale(http.Controller):
         return {
             'search': search,
             'category': category,
-            'pricelist': request.website.get_current_pricelist(),
+            'currency': pricelist.currency_id or request.website.currency_id,
+            'pricelist': pricelist,
             'attrib_values': attrib_values,
             'attrib_set': attrib_set,
             'keep': keep,

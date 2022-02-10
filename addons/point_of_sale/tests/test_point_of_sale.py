@@ -29,35 +29,37 @@ class TestPointOfSale(TransactionCase):
 
         self.env.user.company_id = self.company1
 
-    def test_default_pricelist_with_company(self):
-        """ Verify that the default pricelist belongs to the same company as the config """
-        company1_pricelist = self.env["product.pricelist"].create({
-            "name": "company 1 pricelist",
-            "currency_id": self.currency.id,
-            "company_id": self.company1.id,
-            "sequence": 2,
-        })
+    # def test_default_pricelist_with_company(self):
+    #     """ Verify that the default pricelist belongs to the same company as the config """
+    #     company1_pricelist = self.env["product.pricelist"].create({
+    #         "name": "company 1 pricelist",
+    #         "currency_id": self.currency.id,
+    #         "company_id": self.company1.id,
+    #         "sequence": 2,
+    #     })
+    #
+    #     # make sure this doesn't pick the company2 pricelist
+    #     new_config = self.env["pos.config"].create({
+    #         "name": "usd config"
+    #     })
+    #
+    #     self.assertEqual(new_config.pricelist_id, company1_pricelist,
+    #                      "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
+    #     TODO edm: no default pricelist anymore. But if one exist, should be default? For now, it's not
 
-        # make sure this doesn't pick the company2 pricelist
-        new_config = self.env["pos.config"].create({
-            "name": "usd config"
-        })
-
-        self.assertEqual(new_config.pricelist_id, company1_pricelist,
-                         "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
-
-    def test_default_pricelist_without_company(self):
-        """ Verify that a default pricelist without a company works """
-        universal_pricelist = self.env["product.pricelist"].create({
-            "name": "universal pricelist",
-            "currency_id": self.currency.id,
-            "sequence": 2,
-        })
-
-        # make sure this doesn't pick the company2 pricelist
-        new_config = self.env["pos.config"].create({
-            "name": "usd config"
-        })
-
-        self.assertEqual(new_config.pricelist_id, universal_pricelist,
-                         "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
+    # def test_default_pricelist_without_company(self):
+    #     """ Verify that a default pricelist without a company works """
+    #     universal_pricelist = self.env["product.pricelist"].create({
+    #         "name": "universal pricelist",
+    #         "currency_id": self.currency.id,
+    #         "sequence": 2,
+    #     })
+    #
+    #     # make sure this doesn't pick the company2 pricelist
+    #     new_config = self.env["pos.config"].create({
+    #         "name": "usd config"
+    #     })
+    #
+    #     self.assertEqual(new_config.pricelist_id, universal_pricelist,
+    #                      "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
+    #     TODO edm: no default pricelist anymore. But if one exist, should be default? For now, it's not

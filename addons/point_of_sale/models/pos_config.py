@@ -108,8 +108,8 @@ class PosConfig(models.Model):
     pos_session_username = fields.Char(compute='_compute_current_session_user')
     pos_session_state = fields.Char(compute='_compute_current_session_user')
     pos_session_duration = fields.Char(compute='_compute_current_session_user')
-    pricelist_id = fields.Many2one('product.pricelist', string='Default Pricelist', required=True, default=_default_pricelist,
-        help="The pricelist used if no customer is selected or if the customer has no Sale Pricelist configured.")
+    pricelist_id = fields.Many2one('product.pricelist', string='Default Pricelist',
+        help="The pricelist used if no customer is selected or if the customer has no Sale Pricelist configured if any.")
     available_pricelist_ids = fields.Many2many('product.pricelist', string='Available Pricelists', default=_default_pricelist,
         help="Make several pricelists available in the Point of Sale. You can also apply a pricelist to specific customers from their contact form (in Sales tab). To be valid, this pricelist must be listed here as an available pricelist. Otherwise the default pricelist will apply.")
     allowed_pricelist_ids = fields.Many2many(
@@ -319,7 +319,7 @@ class PosConfig(models.Model):
     @api.constrains('pricelist_id', 'use_pricelist', 'available_pricelist_ids', 'journal_id', 'invoice_journal_id', 'payment_method_ids')
     def _check_currencies(self):
         for config in self:
-            if config.use_pricelist and config.pricelist_id not in config.available_pricelist_ids:
+            if config.use_pricelist and config.pricelist_id and config.pricelist_id not in config.available_pricelist_ids:
                 raise ValidationError(_("The default pricelist must be included in the available pricelists."))
         if any(self.available_pricelist_ids.mapped(lambda pricelist: pricelist.currency_id != self.currency_id)):
             raise ValidationError(_("All available pricelists must be in the same currency as the company or"

@@ -107,7 +107,8 @@
                                 <tr>
                                     <td t-if="len(categories)" class='td-top-left border-top-0'/>
                                     <td t-foreach="products" t-as="product" class="border-top-0">
-                                        <t t-set="combination_info" t-value="product._get_combination_info_variant()"/>
+                                        <t t-set="combination_info" t-value="product._get_combination_info_variant(currency=website.currency_id)"/>
+                                        <!--        TODO edm no currency nor pricelist passed here?-->
                                         <div class='product_summary'>
                                             <a class="o_product_comparison_table" t-att-href="product.website_url">
                                                 <span t-esc="combination_info['display_name']"></span><br/>
@@ -159,6 +160,7 @@
 
     <template id="product_product" name="Comparator - Product row in comparator popover">
         <t t-set="combination_info" t-value="product._get_combination_info_variant()"/>
+<!--        TODO edm no currency nor pricelist passed here?-->
         <div class="row no-gutters align-items-center my-1 o_product_row" t-att-data-category_ids="product.public_categ_ids.ids">
             <div class="col-3 text-center">
                 <img class="img o_image_64_max" t-att-src="website.image_url(product, 'image_128')" alt="Product image"/>

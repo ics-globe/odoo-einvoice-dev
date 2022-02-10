@@ -27,7 +27,7 @@ odoo.define('point_of_sale.SetPricelistButton', function(require) {
             const selectionList = this.env.pos.pricelists.map(pricelist => ({
                 id: pricelist.id,
                 label: pricelist.name,
-                isSelected: pricelist.id === this.currentOrder.pricelist.id,
+                isSelected: pricelist.id === this.currentOrder.pricelist ? this.currentOrder.pricelist.id : false,
                 item: pricelist,
             }));
 
@@ -49,7 +49,7 @@ odoo.define('point_of_sale.SetPricelistButton', function(require) {
     ProductScreen.addControlButton({
         component: SetPricelistButton,
         condition: function() {
-            return this.env.pos.config.use_pricelist && this.env.pos.pricelists.length > 1;
+            return this.env.pos.config.use_pricelist && this.env.pos.pricelists.length > 0;
         },
     });
 
