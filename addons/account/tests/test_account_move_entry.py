@@ -313,8 +313,10 @@ class TestAccountMove(AccountTestInvoicingCommon):
         # lines[3] = 'move 2 counterpart line'
         draft_moves.action_post()
         lines = draft_moves.mapped('line_ids').sorted('balance')
+        print(lines.mapped(lambda l: (l.debit, l.credit)))
 
         (lines[0] + lines[2]).reconcile()
+        lines._check_reconciliation()
 
         # You can't write something impacting the reconciliation on an already reconciled line.
         with self.assertRaises(UserError), self.cr.savepoint():
@@ -417,8 +419,11 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # === Change the date to change the currency conversion's rate ===
 
+        print('do it')
         with Form(move) as move_form:
             move_form.date = fields.Date.from_string('2017-01-01')
+            print('save')
+        print('done')
 
         self.assertRecordValues(
             move.line_ids.sorted('debit'),
@@ -545,6 +550,19 @@ class TestAccountMove(AccountTestInvoicingCommon):
         })
         reversal = move_reversal.reverse_moves()
         reversed_move = self.env['account.move'].browse(reversal['res_id'])
+        self.assertRecordValues(reversed_move.line_ids, [
+            {
+                **self.entry_line_vals_1,
+                'debit': 0.0,
+                'credit': 500.0,
+            }, {
+                **self.entry_line_vals_2,
+                'debit': 500.0,
+                'credit': 0.0,
+            }
+        ])
+        
+        reversed_move.is_storno = True
 
         self.assertRecordValues(reversed_move.line_ids, [
             {

@@ -839,7 +839,7 @@ class AccountMove(models.Model):
             )
             currency_id = taxes_map_entry['grouping_dict']['currency_id']
             to_write_on_line = {
-                'amount_currency': taxes_map_entry['amount'],
+                # 'amount_currency': taxes_map_entry['amount'],
                 'currency_id': currency_id,
                 'balance': balance,
                 'tax_base_amount': tax_base_amount,
@@ -913,9 +913,9 @@ class AccountMove(models.Model):
             :return:                        The newly created rounding line.
             '''
             rounding_line_vals = {
-                'balance': balance,
+                'balance': diff_balance,
                 'quantity': 1.0,
-                'amount_currency': diff_amount_currency,
+                # 'amount_currency': diff_amount_currency,
                 'partner_id': self.partner_id.id,
                 'move_id': self.id,
                 'currency_id': self.currency_id.id,
@@ -956,9 +956,8 @@ class AccountMove(models.Model):
             # Create or update the cash rounding line.
             if cash_rounding_line:
                 cash_rounding_line.update({
-                    'amount_currency': rounding_line_vals['amount_currency'],
-                    'debit': rounding_line_vals['debit'],
-                    'credit': rounding_line_vals['credit'],
+                    # 'amount_currency': rounding_line_vals['amount_currency'],
+                    'balance': rounding_line_vals['debit'] - rounding_line_vals['credit'],
                     'account_id': rounding_line_vals['account_id'],
                 })
             else:
@@ -1079,7 +1078,7 @@ class AccountMove(models.Model):
                     existing_terms_lines_index += 1
                     candidate.update({
                         'date_maturity': date_maturity,
-                        'amount_currency': -amount_currency,
+                        # 'amount_currency': -amount_currency,
                         'balance': -balance,
                     })
                 else:
@@ -1088,7 +1087,7 @@ class AccountMove(models.Model):
                         'name': self.payment_reference or '',
                         'balance': -balance,
                         'quantity': 1.0,
-                        'amount_currency': -amount_currency,
+                        # 'amount_currency': -amount_currency,
                         'date_maturity': date_maturity,
                         'move_id': self.id,
                         'currency_id': self.currency_id.id,
@@ -1259,6 +1258,7 @@ class AccountMove(models.Model):
 
     @api.onchange('name', 'highest_name')
     def _onchange_name_warning(self):
+        return
         if self.name and self.name != '/' and self.name <= (self.highest_name or ''):
             self.show_name_warning = True
         else:
@@ -2477,10 +2477,6 @@ class AccountMove(models.Model):
 
         move_vals = self.with_context(include_business_fields=True).copy_data(default=default_values)[0]
 
-        is_storno_move = move_vals['move_type'] in ('entry', 'out_refund', 'in_refund') and self.company_id.account_storno
-        if is_storno_move:
-            move_vals['is_storno'] = True
-
         tax_repartition_lines_mapping = compute_tax_repartition_lines_mapping(move_vals)
         is_refund = False
         if move_vals['move_type'] in ('out_refund', 'in_refund'):
@@ -2498,25 +2494,14 @@ class AccountMove(models.Model):
         for line_command in move_vals.get('line_ids', []):
             line_vals = line_command[2]  # (0, 0, {...})
 
-            # ==== Non-Storno: Inverse debit <-> credit and negate amount_currency ====
-            amount_currency = -line_vals.get('amount_currency', 0.0)
-            debit = line_vals['credit']
-            credit = line_vals['debit']
-
-            # ==== Storno: Negate debit / credit / amount_currency in same column====
-            if is_storno_move:
-                debit = -line_vals['debit']
-                credit = -line_vals['credit']
-
             if 'tax_tag_invert' in line_vals:
                 # This is an editable computed field; we want to it recompute itself
                 del line_vals['tax_tag_invert']
 
             line_vals.update({
-                'amount_currency': amount_currency,
-                'debit': debit,
-                'credit': credit,
+                'balance': line_vals.pop('credit') - line_vals.pop('debit'),
             })
+            line_vals.pop('amount_currency', None)  # todo copy=False?
 
             if not is_refund:
                 continue
@@ -3390,17 +3375,17 @@ class AccountMoveLine(models.Model):
         compute="_compute_price_unit", store=True, readonly=False, precompute=True)
     discount = fields.Float(string='Discount (%)', digits='Discount', default=0.0)
     debit = fields.Monetary(
-        string='Debit', currency_field='company_currency_id', precompute=True,
-        compute='_compute_debit_credit', inverse="_inverse_debit", store=True, readonly=False)
+        string='Debit', currency_field='company_currency_id',
+        compute='_compute_debit_credit', inverse='_inverse_debit_credit', precompute=True,
+        store=True, readonly=False)
     credit = fields.Monetary(
-        string='Credit', currency_field='company_currency_id', precompute=True,
-        compute='_compute_debit_credit', inverse="_inverse_credit", store=True, readonly=False)
+        string='Credit', currency_field='company_currency_id',
+        compute='_compute_debit_credit', inverse='_inverse_debit_credit', precompute=True,
+        store=True, readonly=False)
     balance = fields.Monetary(
         string='Balance', store=True,
         readonly=False,
         currency_field='company_currency_id',
-        compute='_compute_balance',
-        precompute=True,
         help="Technical field holding the debit - credit in order to open meaningful graph views from reports")
     cumulated_balance = fields.Monetary(string='Cumulated Balance', store=False,
         currency_field='company_currency_id',
@@ -3879,7 +3864,7 @@ class AccountMoveLine(models.Model):
         amount_currency = price_subtotal * sign
         balance = currency._convert(amount_currency, company.currency_id, company, date or fields.Date.context_today(self))
         return {
-            'amount_currency': amount_currency,
+            # 'amount_currency': amount_currency,
             'currency_id': currency.id,
             'balance': balance,
         }
@@ -4064,18 +4049,9 @@ class AccountMoveLine(models.Model):
                 continue
             line.price_unit = line._get_computed_price_unit()
 
-    def _inverse_credit(self):
-        for line in self:
-            if line.credit:
-                line.debit = 0.0
-
-    def _inverse_debit(self):
-        for line in self:
-            if line.debit:
-                line.credit = 0.0
-
-    @api.depends('balance')
+    @api.depends('balance', 'move_id.is_storno')
     def _compute_debit_credit(self):
+        # print('_compute_debit_credit', self)
         for line in self:
             if not line.is_storno:
                 line.debit = line.balance if line.balance > 0.0 else 0.0
@@ -4083,13 +4059,23 @@ class AccountMoveLine(models.Model):
             else:
                 line.debit = line.balance if line.balance < 0.0 else 0.0
                 line.credit = -line.balance if line.balance > 0.0 else 0.0
-            print('d/c', line, line.debit, line.credit)
+            # print('d/c', line, line.balance, line.debit, line.credit, line.is_storno)
+        # print('end _compute_debit_credit', self)
+
+    @api.onchange('debit', 'credit')
+    def _inverse_debit_credit(self):
+        print('_inverse_debit_credit', self)
+        for line in self:
+            print(line.balance, line.debit, line.credit)
+            line.balance = line.debit - line.credit
+            print(line.balance, line.debit, line.credit)
+        print('end _inverse_debit_credit', self)
 
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
         for line in self:
             if not line.move_id.is_invoice(include_receipts=True):
-                line.amount_currency = line.debit - line.credit  # todo _compute_amount_currency_notused
+                line.amount_currency = line.amount_currency or (line.debit - line.credit)  # todo _compute_amount_currency_notused
                 continue
             if line.exclude_from_invoice_tab:
                 continue
@@ -4098,28 +4084,31 @@ class AccountMoveLine(models.Model):
 
     @api.depends('balance', 'currency_id', 'journal_id', 'move_id.date')
     def _compute_amount_currency(self):
-        print('compute', self)
+        print('_compute_amount_currency', self)
         for line in self:
+            print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
             line.amount_currency = line.company_currency_id._convert(
                 from_amount=line.balance, 
                 to_currency=line.currency_id, 
                 company=line.journal_id.company_id, 
                 date=line.move_id.date or fields.Date.context_today(line),
             )
-            print(line, line.move_id.date, line.balance, line.amount_currency)
+            print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
+        print('end _compute_amount_currency', self)
 
+    @api.onchange('amount_currency')
     def _inverse_amount_currency(self):
-        print('inverse', self)
+        # print('_inverse_amount_currency', self)
         for line in self:
-            print(line, line.move_id.date, line.balance, line.amount_currency)
+            # print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
             line.balance = line.currency_id._convert(
                 from_amount=line.amount_currency, 
                 to_currency=line.company_currency_id, 
                 company=line.company_id, 
                 date=line.move_id.date or fields.Date.context_today(line),
             )
-            print(line, line.move_id.date, line.balance, line.amount_currency)
-            line._compute_debit_credit()  # todo why needs to be explicit?
+            # print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
+        # print('end _inverse_amount_currency', self)
 
     # @api.depends('debit', 'credit', 'currency_id')
     # def _compute_amount_currency_notused(self):
@@ -4143,11 +4132,6 @@ class AccountMoveLine(models.Model):
                 record.matching_number = 'P'
             else:
                 record.matching_number = None
-
-    @api.depends('debit', 'credit')
-    def _compute_balance(self):
-        for line in self:
-            line.balance = line.debit - line.credit
 
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
@@ -4321,7 +4305,9 @@ class AccountMoveLine(models.Model):
                                 % format_date(self.env, move.company_id.tax_lock_date))
 
     def _check_reconciliation(self):
+        print('_check_reconciliation')
         for line in self:
+            print(line.matched_credit_ids, line.matched_debit_ids)
             if line.matched_debit_ids or line.matched_credit_ids:
                 raise UserError(_("You cannot do this modification on a reconciled journal entry. "
                                   "You can just change some non legal fields or you must unreconcile first.\n"
@@ -4624,12 +4610,17 @@ class AccountMoveLine(models.Model):
                 else:
                     credit_amount_residual_currency = credit_amount_residual
                     credit_line_currency = credit_line.company_currency_id
+            print(debit_line, credit_line)
 
             min_amount_residual = min(debit_amount_residual, -credit_amount_residual)
             has_debit_residual_left = not debit_line.company_currency_id.is_zero(debit_amount_residual) and debit_amount_residual > 0.0
             has_credit_residual_left = not credit_line.company_currency_id.is_zero(credit_amount_residual) and credit_amount_residual < 0.0
             has_debit_residual_curr_left = not debit_line_currency.is_zero(debit_amount_residual_currency) and debit_amount_residual_currency > 0.0
             has_credit_residual_curr_left = not credit_line_currency.is_zero(credit_amount_residual_currency) and credit_amount_residual_currency < 0.0
+            print(min_amount_residual)
+            print(debit_line_currency, credit_line_currency)
+            print(debit_amount_residual_currency, credit_amount_residual_currency)
+            print(has_debit_residual_curr_left, has_credit_residual_curr_left, has_debit_residual_left)
 
             if debit_line_currency == credit_line_currency:
                 # Reconcile on the same currency.
@@ -4752,7 +4743,7 @@ class AccountMoveLine(models.Model):
                         'name': _('Currency exchange rate difference'),
                         'debit': -line.amount_residual if line.amount_residual < 0.0 else 0.0,
                         'credit': line.amount_residual if line.amount_residual > 0.0 else 0.0,
-                        'amount_currency': -line.amount_residual_currency,
+                        # 'amount_currency': -line.amount_residual_currency,
                         'account_id': line.account_id.id,
                         'currency_id': line.currency_id.id,
                         'partner_id': line.partner_id.id,
@@ -4762,7 +4753,7 @@ class AccountMoveLine(models.Model):
                         'name': _('Currency exchange rate difference'),
                         'debit': line.amount_residual if line.amount_residual > 0.0 else 0.0,
                         'credit': -line.amount_residual if line.amount_residual < 0.0 else 0.0,
-                        'amount_currency': line.amount_residual_currency,
+                        # 'amount_currency': line.amount_residual_currency,
                         'account_id': exchange_line_account.id,
                         'currency_id': line.currency_id.id,
                         'partner_id': line.partner_id.id,
@@ -5124,7 +5115,7 @@ class AccountMoveLine(models.Model):
         not_paid_invoices\
             .filtered(lambda move: move.payment_state in ('paid', 'in_payment'))\
             .action_invoice_paid()
-
+        print(self, results)
         return results
 
     def remove_move_reconcile(self):
@@ -5146,7 +5137,7 @@ class AccountMoveLine(models.Model):
                 values['name'] = ''
             # Don't copy restricted fields of notes
             if line.display_type in ('line_section', 'line_note'):
-                values['amount_currency'] = 0
+                # values['amount_currency'] = 0
                 values['debit'] = 0
                 values['credit'] = 0
                 values['account_id'] = False
