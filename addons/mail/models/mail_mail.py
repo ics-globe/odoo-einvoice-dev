@@ -213,6 +213,7 @@ class MailMail(models.Model):
                     # TDE TODO: could be great to notify message-based, not notifications-based, to lessen number of notifs
                     messages._notify_message_notification_update()  # notify user that we have a failure
 
+        if mail_to_delete_ids:
             self.browse(mail_to_delete_ids).sudo().unlink()
         return True
 
@@ -224,27 +225,76 @@ class MailMail(models.Model):
         """Return a specific ir_email body. The main purpose of this method
         is to be inherited to add custom content depending on some module."""
         self.ensure_one()
-        return self.body_html or ''
+        if not tools.is_html_empty(self.body_html):
+            return self.env['mail.render.mixin']._replace_local_links(self.body_html)
+        return ''
 
-    def _send_prepare_values(self, partner=None):
+    def _send_prepare_outgoing_list(self):
         """Return a dictionary for specific email values, depending on a
         partner, or generic to the whole recipients given by mail.email_to.
 
-            :param Model partner: specific recipient partner
+        # prepare recipients: use email_to if defined or if no other recipient
+                # to keep a failed email in case we have no recipients, as this should
+                # be highlighted
         """
         self.ensure_one()
         body = self._send_prepare_body()
         body_alternative = tools.html2plaintext(body)
-        if partner:
-            email_to = [tools.formataddr((partner.name or 'False', partner.email or 'False'))]
-        else:
+
+        # headers
+        headers = {}
+        ICP = self.env['ir.config_parameter'].sudo()
+        bounce_alias = ICP.get_param("mail.bounce.alias")
+        catchall_domain = ICP.get_param("mail.catchall.domain")
+        if bounce_alias and catchall_domain:
+            headers['Return-Path'] = '%s@%s' % (bounce_alias, catchall_domain)
+        if self.headers:
+            try:
+                headers.update(ast.literal_eval(self.headers))
+            except Exception:
+                pass
+
+        # prepare recipients: use email_to if defined then check recipient_ids
+        # that receive a specific email, notably due to link shortening / redirect
+        # that is recipients-dependent. Keep original email/partner as this is
+        # used in post-processing to know failures, like missing recipients
+        email_list = []
+        if self.email_to:
             email_to = tools.email_split_and_format(self.email_to)
-        res = {
-            'body': body,
-            'body_alternative': body_alternative,
-            'email_to': email_to,
-        }
-        return res
+            email_list.append({
+                'email_to': email_to,
+                'email_to_origin': (self.email_to or '').strip(),
+            })
+        # add all cc once, either to the "To", either as a single entry (do not mix
+        # with partner-specific sending)
+        if self.email_cc:
+            if email_list:
+                email_list[0]['email_cc'] = tools.email_split(self.email_cc)
+            else:
+                email_list.append({
+                    'email_cc':  tools.email_split(self.email_cc),
+                })
+        # specific behavior to customize the send email for notified partners
+        for partner in self.recipient_ids:
+            # check partner email content
+            email_to = [tools.formataddr((partner.name or '', partner.email or 'False'))]
+            email_list.append({
+                'email_to': email_to,
+                'email_to_origin': (partner.email or '').strip(),
+                'partner_id': partner,
+            })
+
+        return [
+            {'body': body,
+             'body_alternative': body_alternative,
+             'email_cc': False,
+             'email_to': False,
+             'email_to_origin': False,
+             'headers': headers,
+             'partner_id': False,
+             **email_values,
+            } for email_values in email_list
+        ]
 
     def _split_by_mail_configuration(self):
         """Group the <mail.mail> based on their "email_from" and their "mail_server_id".
@@ -336,6 +386,7 @@ class MailMail(models.Model):
         IrAttachment = self.env['ir.attachment']
         for mail_id in self.ids:
             success_pids = []
+            failure_reason = False
             failure_type = None
             processing_pid = None
             mail = None
@@ -358,34 +409,13 @@ class MailMail(models.Model):
                 attachments = [(a['name'], base64.b64decode(a['datas']), a['mimetype'])
                                for a in attachments.sudo().read(['name', 'datas', 'mimetype']) if a['datas'] is not False]
 
-                # specific behavior to customize the send email for notified partners
-                email_list = []
-                if mail.email_to:
-                    email_list.append(mail._send_prepare_values())
-                for partner in mail.recipient_ids:
-                    values = mail._send_prepare_values(partner=partner)
-                    values['partner_id'] = partner
-                    email_list.append(values)
-
-                # headers
-                headers = {}
-                ICP = self.env['ir.config_parameter'].sudo()
-                bounce_alias = ICP.get_param("mail.bounce.alias")
-                catchall_domain = ICP.get_param("mail.catchall.domain")
-                if bounce_alias and catchall_domain:
-                    headers['Return-Path'] = '%s@%s' % (bounce_alias, catchall_domain)
-                if mail.headers:
-                    try:
-                        headers.update(ast.literal_eval(mail.headers))
-                    except Exception:
-                        pass
-
                 # Writing on the mail object may fail (e.g. lock on user) which
                 # would trigger a rollback *after* actually sending the email.
                 # To avoid sending twice the same email, provoke the failure earlier
                 mail.write({
                     'state': 'exception',
                     'failure_reason': _('Error without exception. Probably due do sending an email without computed recipients.'),
+                    'failure_type': 'unknown',
                 })
                 # Update notification in a transient exception state to avoid concurrent
                 # update in case an email bounces while sending all emails related to current
@@ -408,16 +438,25 @@ class MailMail(models.Model):
 
                 # build an RFC2822 email.message.Message object and send it without queuing
                 res = None
-                # TDE note: could be great to pre-detect missing to/cc and skip sending it
-                # to go directly to failed state update
+                email_list = mail._send_prepare_outgoing_list()
+
+                # pre-detect missing to/cc and skip building email and sending to
+                # directly set to failed state
+                if not email_list or not any(email.get('email_to_origin') or email.get('email_cc') for email in email_list):
+                    failure_type = "mail_email_missing"
+                    failure_reason = IrMailServer.NO_VALID_RECIPIENT
+                elif not any(email.get('email_to') or email.get('email_cc') for email in email_list):
+                    failure_type = "mail_email_invalid"
+                    failure_reason = IrMailServer.NO_VALID_RECIPIENT
+                # send each sub-email
                 for email in email_list:
                     msg = IrMailServer.build_email(
                         email_from=mail.email_from,
-                        email_to=email.get('email_to'),
+                        email_to=email['email_to'],
                         subject=mail.subject,
-                        body=email.get('body'),
-                        body_alternative=email.get('body_alternative'),
-                        email_cc=tools.email_split(mail.email_cc),
+                        body=email['body'],
+                        body_alternative=email['body_alternative'],
+                        email_cc=email['email_cc'],
                         reply_to=mail.reply_to,
                         attachments=attachments,
                         message_id=mail.message_id,
@@ -425,7 +464,7 @@ class MailMail(models.Model):
                         object_id=mail.res_id and ('%s-%s' % (mail.res_id, mail.model)),
                         subtype='html',
                         subtype_alternative='plain',
-                        headers=headers)
+                        headers=email['headers'])
                     processing_pid = email.pop("partner_id", None)
                     try:
                         res = IrMailServer.send_email(
@@ -436,7 +475,7 @@ class MailMail(models.Model):
                     except AssertionError as error:
                         if str(error) == IrMailServer.NO_VALID_RECIPIENT:
                             # if we have a list of void emails for email_list -> email missing, otherwise generic email failure
-                            if not email.get('email_to') and failure_type != "mail_email_invalid":
+                            if not email.get('email_to_origin') and failure_type != "mail_email_invalid":
                                 failure_type = "mail_email_missing"
                             else:
                                 failure_type = "mail_email_invalid"
@@ -449,15 +488,15 @@ class MailMail(models.Model):
                         else:
                             raise
                 if res:  # mail has been sent at least once, no major exception occurred
-                    mail.write({'state': 'sent', 'message_id': res, 'failure_reason': False})
+                    mail.write({'state': 'sent', 'message_id': res, 'failure_reason': False, 'failure_type': False})
                     _logger.info('Mail with ID %r and Message-Id %r successfully sent', mail.id, mail.message_id)
                     # /!\ can't use mail.state here, as mail.refresh() will cause an error
                     # see revid:odo@openerp.com-20120622152536-42b2s28lvdv3odyr in 6.1
                 mail._postprocess_sent_message(
                     bool(res),
                     success_pids=success_pids,
-                    failure_reason=False,
-                    failure_type=failure_type
+                    failure_reason=failure_reason,
+                    failure_type=failure_type,
                 )
             except MemoryError:
                 # prevent catching transient MemoryErrors, bubble up to notify user or abort cron job

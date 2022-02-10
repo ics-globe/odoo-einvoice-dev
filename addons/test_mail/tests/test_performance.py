@@ -775,6 +775,30 @@ class TestMailComplexPerformance(BaseMailPerformance):
         self.assertEqual(mail.body_html, '<p>Test</p>')
         self.assertEqual(mail.reply_to, formataddr(('%s %s' % (self.env.company.name, self.container.name), 'test-alias@example.com')))
 
+    # @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    # @users('__system__', 'employee')
+    # @warmup
+    # def test_complex_mail_mail_send_batch(self):
+    #     message = self.env['mail.message'].sudo().create({
+    #         'subject': 'Test',
+    #         'body': '<p>Test</p>',
+    #         'author_id': self.env.user.partner_id.id,
+    #         'email_from': self.env.user.partner_id.email,
+    #         'model': 'mail.test.container',
+    #         'res_id': self.container.id,
+    #     })
+    #     mail = self.env['mail.mail'].sudo().create({
+    #         'body_html': '<p>Test</p>',
+    #         'mail_message_id': message.id,
+    #         'recipient_ids': [(4, pid) for pid in self.partners.ids],
+    #     })
+    #     mail_ids = mail.ids
+    #     with self.assertQueryCount(__system__=8, employee=8):
+    #         self.env['mail.mail'].sudo().browse(mail_ids).send()
+
+    #     self.assertEqual(mail.body_html, '<p>Test</p>')
+    #     self.assertEqual(mail.reply_to, formataddr(('%s %s' % (self.env.company.name, self.container.name), 'test-alias@example.com')))
+
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('__system__', 'employee')
     @warmup
