@@ -64,6 +64,7 @@ class MailMail(models.Model):
         # generic
         ("unknown", "Unknown error"),
         # mail
+        ("mail_from_invalid", "Invalid From"),
         ("mail_email_invalid", "Invalid email address"),
         ("mail_email_missing", "Missing email"),
         ("mail_smtp", "Connection failed (outgoing mail server problem)"),
@@ -515,12 +516,17 @@ class MailMail(models.Model):
                 raise
             except Exception as e:
                 failure_reason = tools.ustr(e)
+                print(failure_reason)
+                failure_type = 'unknown'
+                if failure_reason and failure_reason in (IrMailServer.NO_VALID_EMAIL_FROM, IrMailServer.NO_VALID_SMTP_FROM):
+                    failure_type = 'mail_from_invalid'
+
                 _logger.exception('failed sending mail (id: %s) due to %s', mail.id, failure_reason)
                 mail._postprocess_sent_message(
                     False,
                     success_pids=success_pids,
                     failure_reason=failure_reason,
-                    failure_type='unknown'
+                    failure_type=failure_type,
                 )
                 if raise_exception:
                     if isinstance(e, (AssertionError, UnicodeEncodeError)):

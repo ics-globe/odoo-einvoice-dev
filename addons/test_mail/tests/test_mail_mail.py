@@ -107,9 +107,9 @@ class TestMailMail(TestMailCommon):
         self.assertIn(
             'You must either provide a sender address explicitly or configure using the combination of `mail.catchall.domain` and `mail.default.from` ICPs',
             mail.failure_reason)
-        self.assertEqual(mail.failure_type, 'unknown', 'Mail: void from: unknown failure type, should be updated')
+        self.assertEqual(mail.failure_type, 'mail_from_invalid')
         self.assertEqual(mail.state, 'exception')
-        self.assertEqual(notification.failure_type, 'unknown', 'Mail: void from: unknown failure type, should be updated')
+        self.assertEqual(notification.failure_type, 'mail_from_invalid')
         self.assertEqual(notification.notification_status, 'exception')
 
         # MailServer.send_email(): _prepare_email_message: unexpected ASCII
