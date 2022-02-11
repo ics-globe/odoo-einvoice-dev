@@ -1,89 +1,161 @@
 id,Name,code,user_type_id/id,reconcile
-,ASSETS,,,
-,CURRENT ASSETS,,,
-,Cash,,,
+,ASSETS,1,,
+,CURRENT ASSETS,10,,
+,Cash,100000,,
 ,,,,
-ee_coa_101100,Financial investments,101100,data_account_type_current_assets,FALSE
-,,,,
-,Receivables and prepayments,,,
+ee_coa_101000,Financial investments,101000,data_account_type_current_assets,FALSE
+ee_coa_,,,,
+ee_coa_102,Receivables and prepayments,102,,
 ee_coa_,Trade receivables (current asset),,,
-ee_coa_101300,Account receivable,101300,data_account_type_receivable,FALSE
-ee_coa_101301,Account receivable (pos),101301,data_account_type_receivable,FALSE
+ee_coa_102000,Account receivable,102000,data_account_type_receivable,FALSE
+ee_coa_102001,Account receivable (pos),102001,data_account_type_receivable,FALSE
+ee_coa_,,,,
+ee_coa_1021,Receivables from connected parties (current asset),1021,,
+ee_coa_102100,Short-term receivables from associated undertakings,102100,data_account_type_receivable,FALSE
+ee_coa_102101,Short-term receivables from the owners,102101,data_account_type_receivable,FALSE
+ee_coa_,,,,
+ee_coa_102200,Prepaid and deferred taxes (current asset),102200,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_1023,Other short-term receivables ,1023,,
+ee_coa_102300,Interest receivables,102300,data_account_type_receivable,FALSE
+ee_coa_102301,Other accrued income,102301,data_account_type_receivable,FALSE
+ee_coa_102302,Reimbursements by the state,102302,data_account_type_receivable,FALSE
+ee_coa_102303,Doubtful receivables,102303,data_account_type_receivable,FALSE
+ee_coa_102304,Other short-term receivables,102304,data_account_type_receivable,FALSE
+ee_coa_,,,,
+ee_coa_102400,Prepayment (current assets),102400,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_102500,Investment properties (fixed asset),102500,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_103,Inventories,103,,
+ee_coa_103000,Inventory – raw materials,103000,data_account_type_current_assets,FALSE
+ee_coa_103001,Inventory – work in progress,103001,data_account_type_current_assets,FALSE
+ee_coa_103002,Inventory – finished goods,103002,data_account_type_current_assets,FALSE
+ee_coa_103003,Inventory – goods purchased for resale ,103003,data_account_type_current_assets,FALSE
+ee_coa_103004,Inventory – prepayments for inventories,103004,data_account_type_current_assets,FALSE
+ee_coa_,,,,
+ee_coa_104000,Biological current assets,104000,data_account_type_current_assets,FALSE
+ee_coa_,,,,
+ee_coa_11,FIXED ASSETS,11,,
+ee_coa_110,Investments in subsidiaries and affiliated undertakings,110,,
+ee_coa_110000,Shares of subsidiaries ,110000,data_account_type_fixed_assets,FALSE
+ee_coa_110001,Shares of affiliated undertakings,110001,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_111000,Financial investments (fixed asset),111000,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_,Receivables and prepayments,,,
+ee_coa_112,Trade receivables (fixed asset),112,,
+ee_coa_112100,Fixed assets receivable account,112100,data_account_type_fixed_assets,
 ,,,,
-,Receivables from connected parties (current asset),,,
-ee_coa_101305,Short-term receivables from associated undertakings,101305,data_account_type_receivable,FALSE
-ee_coa_101306,Short-term receivables from the owners,101306,data_account_type_receivable,FALSE
+ee_coa_,Receivables from connected parties (fixed asset),,,
+ee_coa_112200,Long-term receivables from associated undertakings,112200,data_account_type_receivable,FALSE
+ee_coa_112201,Long-term receivables from the owners,112201,data_account_type_receivable,
 ,,,,
-ee_coa_100110,Prepaid and deferred taxes (current asset),100110,data_account_type_fixed_assets,FALSE
+ee_coa_112300,Prepaid and deferred taxes (fixed asset),112300,data_account_type_fixed_assets,FALSE
+ee_coa_112400,Other long-term receivables,112400,data_account_type_fixed_assets,
+ee_coa_112500,Prepayment (fixed assets),112500,data_account_type_fixed_assets,FALSE
 ,,,,
-,Other short-term receivables ,,,
-ee_coa_101308,Interest receivables,101308,data_account_type_receivable,FALSE
-ee_coa_101310,Other accrued income,101310,data_account_type_receivable,FALSE
-ee_coa_101311,Reimbursements by the state,101311,data_account_type_receivable,FALSE
-ee_coa_101304,Doubtful receivables,101304,data_account_type_receivable,FALSE
-ee_coa_,Other short-term receivables,,data_account_type_receivable,FALSE
+ee_coa_113000,Investment properties (fixed asset),113000,data_account_type_fixed_assets,FALSE
 ,,,,
-ee_coa_100109,Prepayment (current assets),100109,data_account_type_fixed_assets,FALSE
-,,,,
-ee_coa_100200,Investment properties (fixed asset),100200,data_account_type_fixed_assets,FALSE
-,,,,
-,,,,
-,Inventories,,,
-ee_coa_101300,Inventory – raw materials,101300,data_account_type_current_assets,FALSE
-ee_coa_101303,Inventory – work in progress,101303,data_account_type_current_assets,FALSE
-ee_coa_101304,Inventory – finished goods,101304,data_account_type_current_assets,FALSE
-ee_coa_101305,Inventory – goods purchased for resale ,101305,data_account_type_current_assets,FALSE
-ee_coa_101306,Inventory – prepayments for inventories,101306,data_account_type_current_assets,FALSE
-,,,,
-ee_coa_101400,Biological current assets,101400,data_account_type_current_assets,FALSE
-,,,,
-,FIXED ASSETS,,,
-,Investments in subsidiaries and affiliated undertakings,,,
-ee_coa_100001,Shares of subsidiaries ,100001,data_account_type_fixed_assets,FALSE
-ee_coa_100002,Shares of affiliated undertakings,100002,data_account_type_fixed_assets,FALSE
-,,,,
-ee_coa_100100,Financial investments (fixed asset),100100,data_account_type_fixed_assets,FALSE
-,,,,
-,Receivables and prepayments,,,
-ee_coa_,Trade receivables (fixed asset),,data_account_type_fixed_assets,
-ee_coa_,Receivables from connected parties (fixed asset),,data_account_type_fixed_assets,
-ee_coa_101312,Long-term receivables from associated undertakings,101312,data_account_type_receivable,FALSE
-,,,,
-ee_coa_100110,Prepaid and deferred taxes (fixed asset),100110,data_account_type_fixed_assets,FALSE
-ee_coa_,Other long-term receivables,,data_account_type_fixed_assets,
-ee_coa_100109,Prepayment (fixed assets),100109,data_account_type_fixed_assets,FALSE
-,,,,
-ee_coa_100200,Investment properties (fixed asset),100200,data_account_type_fixed_assets,FALSE
-,,,,
-,Tangible assets,,,
-ee_coa_100300,Land ,100300,data_account_type_fixed_assets,FALSE
-ee_coa_100301,Buildings,100301,data_account_type_fixed_assets,FALSE
-ee_coa_100302,Computers and computer systems,100302,data_account_type_fixed_assets,FALSE
-ee_coa_100303,Means of transportation ,100303,data_account_type_fixed_assets,FALSE
-ee_coa_100304,Machinery and equipment,100304,data_account_type_fixed_assets,FALSE
-ee_coa_100107,Other tangible fixed assets,100107,data_account_type_fixed_assets,FALSE
-,,,,
-ee_coa_100108,Biological fixed assets,100108,data_account_type_fixed_assets,FALSE
-,,,,
-,Intangible assets,,,
-ee_coa_102502,Construction in progress (TANGIBLE NON?),102502,data_account_type_non_current_assets,FALSE
-ee_coa_102503,"Patents, licences, and trade marks",102503,data_account_type_non_current_assets,FALSE
-ee_coa_102504,Goodwill,102504,data_account_type_non_current_assets,FALSE
-ee_coa_102501,Other intangible fixed assets,102501,data_account_type_non_current_assets,FALSE
-,,,,
-,,,,
-,,,,
-,LIABILITIES AND OWNERS' EQUITY,,,
-,Liabilities,,,
-,,,,
+ee_coa_114,Tangible assets,114,,
+ee_coa_114001,Land ,114001,data_account_type_fixed_assets,FALSE
+ee_coa_114002,Buildings,114002,data_account_type_fixed_assets,FALSE
+ee_coa_114003,Computers and computer systems,114003,data_account_type_fixed_assets,FALSE
+ee_coa_114004,Means of transportation ,114004,data_account_type_fixed_assets,FALSE
+ee_coa_114005,Machinery and equipment,114005,data_account_type_fixed_assets,FALSE
+ee_coa_114006,Other tangible fixed assets,114006,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_115000,Biological fixed assets,115000,data_account_type_fixed_assets,FALSE
+ee_coa_,,,,
+ee_coa_116,Intangible assets,116,,
+ee_coa_116000,Construction in progress (TANGIBLE NON?),116000,data_account_type_non_current_assets,FALSE
+ee_coa_116001,"Patents, licences, and trade marks",116001,data_account_type_non_current_assets,FALSE
+ee_coa_116002,Goodwill,116002,data_account_type_non_current_assets,FALSE
+ee_coa_116003,Other intangible fixed assets,116003,data_account_type_non_current_assets,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,LIABILITIES AND OWNERS' EQUITY,,,
+ee_coa_,Liabilities,,,
+ee_coa_,Current liabilities,,,
+ee_coa_,Loan liabilities,,,
+ee_coa_,Short-term loans ,,,FALSE
+ee_coa_,Short-term notes ,,,
+ee_coa_,Current portion of long-term debt obligations,,data_account_type_current_liabilities,FALSE
+ee_coa_,Current portion of long-term financial lease liabilities,,data_account_type_current_liabilities,FALSE
+ee_coa_111119,Interest arrears,111119,data_account_type_payable,FALSE
+ee_coa_,Payable and prepayments,,,
+ee_coa_,Trade creditors,,,
+ee_coa_,Payable account,,,
+ee_coa_,,,,
+ee_coa_,Employee-related liabilities,,,
+ee_coa_,Wage accruals,,,
+ee_coa_,Unemployment insurance premium,,,
+ee_coa_,,,,
+ee_coa_,Taxes payable,,,
+ee_coa_,,,,
+ee_coa_,Other payable,,,
+ee_coa_111116,Debt of the traveling expenses,111116,data_account_type_payable,FALSE
+ee_coa_111118,Dividend arrears,111118,data_account_type_payable,FALSE
+ee_coa_,,,,
+ee_coa_,Prepaid revenues,,,
+ee_coa_,Other received prepayments,,,
+ee_coa_,Provisions ,,,
+ee_coa_111128,Provision for warranty,111128,data_account_type_payable,
+ee_coa_111129,Provision for taxation,111129,data_account_type_payable,
+ee_coa_,Other provision,,,
+ee_coa_,Targeted financing ???,,,
+ee_coa_,Non-current liabilities,,,
+ee_coa_,Loan liabilities,,,
+ee_coa_,Long-term loans,,,
+ee_coa_,Long-term notes,,,
+ee_coa_,Long-term financial lease ,,,
+ee_coa_,,,,
+ee_coa_,Payable and prepayments,,,
+ee_coa_,Trade creditors,,,
+ee_coa_,Employee-related liabilities,,,
+ee_coa_,Taxes payable,,,
+ee_coa_,Other payable,,,
+ee_coa_,Prepaid revenues,,,
+ee_coa_,Other received prepayments,,,
+ee_coa_,Provisions ,,,
+ee_coa_111128,Provision for warranty,111128,data_account_type_payable,
+ee_coa_111129,Provision for taxation,111129,data_account_type_payable,
+ee_coa_,Other provision,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_111100,Payable account,111100,data_account_type_payable,FALSE
+ee_coa_111101,Employee-related liabilities,111101,data_account_type_current_liabilities,FALSE
+ee_coa_111102,Other wage accruals,111102,data_account_type_current_liabilities,FALSE
+ee_coa_111104,Debts to the parent company and other enterprises belonging to the same consolidated group,111104,data_account_type_payable,FALSE
+ee_coa_111105,Payables to associated undertakings,111105,data_account_type_payable,FALSE
+ee_coa_111106,Other short-term payables,111106,data_account_type_payable,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_111117,Withholdings from salary,111117,data_account_type_payable,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_111124,Long-term convertible debt,111124,data_account_type_payable,FALSE
+ee_coa_111125,Long-term payables to parent undertakings and other enterprises belonging to the same consolidated group,111125,data_account_type_payable,FALSE
+ee_coa_111126,Long-term payables associated undertakings,111126,data_account_type_payable,FALSE
+ee_coa_111127,Other long-term payables,111127,data_account_type_payable,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
 ee_coa_300101,Cash registry,300101,data_account_type_liquidity,FALSE
 ee_coa_300102,Bank account,300102,data_account_type_liquidity,FALSE
 ee_coa_300103,Money in transit,300103,data_account_type_liquidity,FALSE
 ee_coa_300104,Other reserves,300104,data_account_type_liquidity,FALSE
 ee_coa_300105,Legal reserve,300105,data_account_type_liquidity,FALSE
-,,,,
-,,,,
-,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
 ee_coa_305000,Nominal value of share capital,305000,data_account_type_equity,FALSE
 ee_coa_305001,Unpaid share capital,305001,data_account_type_equity,FALSE
 ee_coa_305002,Share premium,305002,data_account_type_equity,FALSE
@@ -91,48 +163,15 @@ ee_coa_305003,Own shares (minus),305003,data_account_type_equity,FALSE
 ee_coa_305004,Shares in subsidiaries,305004,data_account_type_equity,FALSE
 ee_coa_305005,Shares in associated undertakings,305005,data_account_type_equity,FALSE
 ee_coa_305006,Shares and other securities,305006,data_account_type_equity,FALSE
-,,,,
+ee_coa_,,,,
 ee_coa_999999,Current year earnings,999999,data_unaffected_earnings,FALSE
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-ee_coa_111100,Payable account,111100,data_account_type_payable,FALSE
-ee_coa_111101,Employee-related liabilities,111101,data_account_type_current_liabilities,FALSE
-ee_coa_111102,Other wage accruals,111102,data_account_type_current_liabilities,FALSE
-ee_coa_111103,Trade creditors,111103,data_account_type_payable,FALSE
-ee_coa_111104,Debts to the parent company and other enterprises belonging to the same consolidated group,111104,data_account_type_payable,FALSE
-ee_coa_111105,Payables to associated undertakings,111105,data_account_type_payable,FALSE
-ee_coa_111106,Other short-term payables,111106,data_account_type_payable,FALSE
-ee_coa_111109,Unemployment insurance premium,111109,data_account_type_payable,FALSE
-ee_coa_111110,Funded pension payments,111110,data_account_type_payable,FALSE
-ee_coa_111116,Debt of the traveling expenses,111116,data_account_type_payable,FALSE
-ee_coa_111117,Withholdings from net salary,111117,data_account_type_payable,FALSE
-ee_coa_111118,Dividend arrears,111118,data_account_type_payable,FALSE
-ee_coa_111119,Interest arrears,111119,data_account_type_payable,FALSE
-ee_coa_111121,Long-term loans,111121,data_account_type_non_current_liabilities,FALSE
-ee_coa_111122,Long-term notes,111122,data_account_type_non_current_liabilities,FALSE
-ee_coa_111123,Long-term financial lease payables,111123,data_account_type_non_current_liabilities,FALSE
-ee_coa_111124,Long-term convertible debt,111124,data_account_type_payable,FALSE
-ee_coa_111125,Long-term payables to parent undertakings and other enterprises belonging to the same consolidated group,111125,data_account_type_payable,FALSE
-ee_coa_111126,Long-term payables associated undertakings,111126,data_account_type_payable,FALSE
-ee_coa_111127,Other long-term payables,111127,data_account_type_payable,FALSE
-ee_coa_111128,Provision for warranty,111128,data_account_type_payable,FALSE
-ee_coa_111129,Provision for taxation,111129,data_account_type_payable,FALSE
-,Other provision,,data_account_type_non_current_liabilities,
-ee_coa_111501,Short-term loans and notes,111501,data_account_type_non_current_liabilities,FALSE
-ee_coa_111502,Current portion of long-term debt obligations,111502,data_account_type_non_current_liabilities,FALSE
-ee_coa_111503,Current portion of long-term financial lease liabilities,111503,data_account_type_non_current_liabilities,FALSE
-,,,,
-,,,,
+ee_coa_,,,,
 ee_coa_200100,Income account,200100,data_account_type_revenue,TRUE
 ee_coa_200101,Sale of goods in Estonia ,200101,data_account_type_revenue,FALSE
 ee_coa_200102,Sale of services in Estonia ,200102,data_account_type_revenue,FALSE
 ee_coa_200103,Sale of goods in the EU ,200103,data_account_type_revenue,FALSE
 ee_coa_200104,Sale of services in the EU ,200104,data_account_type_revenue,FALSE
-,Other operating revenue,,data_account_type_revenue,
+ee_coa_,Other operating revenue,,data_account_type_revenue,
 ee_coa_200105,Turnover,200105,data_account_type_revenue,FALSE
 ee_coa_200106,Asset sales ,200106,data_account_type_revenue,FALSE
 ee_coa_200107,Asset sales intermediate account,200107,data_account_type_revenue,FALSE
@@ -149,22 +188,22 @@ ee_coa_201201,Deferred income from targeted financing,201201,data_account_type_r
 ee_coa_201301,Other operating revenue,201301,data_account_type_other_income,FALSE
 ee_coa_201302,Other financial income,201302,data_account_type_other_income,FALSE
 ee_coa_201303,Special income,201303,data_account_type_other_income,FALSE
-,,,,
-,,,,
-,,,,
-,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
 ee_coa_202100,Expense account,202100,data_account_type_expenses,FALSE
-,Cost of goods sold,,,
+ee_coa_,Cost of goods sold,,,
 ee_coa_202102,Purchase of goods in Estonia ,202102,data_account_type_expenses,FALSE
 ee_coa_202103,Purchase of services in Estonia ,202103,data_account_type_expenses,FALSE
 ee_coa_202104,Purchase of goods in the EU ,202104,data_account_type_expenses,FALSE
 ee_coa_202105,Purchase of services in the EU ,202105,data_account_type_expenses,FALSE
-,,,,
+ee_coa_,,,,
 ee_coa_202107,"Instructions, packaging",202107,data_account_type_expenses,FALSE
 ee_coa_202108,Handing expenses for goods at purchase,202108,data_account_type_expenses,FALSE
 ee_coa_202109,Customs expenses,202109,data_account_type_expenses,FALSE
 ee_coa_202110,Transportation expense at purchase,202110,data_account_type_expenses,FALSE
-,,,,
+ee_coa_,,,,
 ee_coa_202111,Other operating costs,202111,data_account_type_expenses,FALSE
 ee_coa_202112,Lease expenses,202112,data_account_type_expenses,FALSE
 ee_coa_202113,"Utilities (electricity, water, heat, administrative)",202113,data_account_type_expenses,FALSE
@@ -220,9 +259,9 @@ ee_coa_202164,Other financial expenses,202164,data_account_type_expenses,FALSE
 ee_coa_202165,Special expenses,202165,data_account_type_expenses,FALSE
 ee_coa_202166,Development costs,202166,data_account_type_expenses,FALSE
 ee_coa_202167,Holiday reserve,202167,data_account_type_expenses,FALSE
-,,,,
-,,,,
-,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
 ee_coa_205000,Accumulated depreciation –  investment properties,205000,data_account_type_depreciation,FALSE
 ee_coa_205001,Accumulated depreciation –  buildings,205001,data_account_type_depreciation,FALSE
 ee_coa_205002,Accumulated depreciation –  machinery and equipment,205002,data_account_type_depreciation,FALSE
@@ -234,30 +273,30 @@ ee_coa_250001,Prepaid expenses for future periods,250001,data_account_type_prepa
 ee_coa_250002,Prepayments to suppliers,250002,data_account_type_prepayments,FALSE
 ee_coa_250003,Prepayments for tangible assets,250003,data_account_type_prepayments,FALSE
 ee_coa_250004,Prepayments for intangible assets,250004,data_account_type_prepayments,FALSE
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
-,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
 ee_coa_,Tax – fringe benefit social tax debt,,data_account_type_payable,FALSE
 ee_coa_,Tax – income tax on fringe benefits,,,FALSE
 ee_coa_,Tax – income tax on the costs of entertaining guests,,,FALSE
@@ -278,3 +317,11 @@ ee_coa_,Tax – on transaction between associated persons ,,,FALSE
 ee_coa_,Tax – profit tax on controlled foreign companies (cfc),,,FALSE
 ee_coa_,Tax – withholding tax on payments to non residents,,,FALSE
 ee_coa_202148,Tax – social security costs,202148,data_account_type_expenses,FALSE
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
+ee_coa_,,,,
