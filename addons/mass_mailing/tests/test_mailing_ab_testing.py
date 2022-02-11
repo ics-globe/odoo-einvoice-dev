@@ -155,3 +155,21 @@ class TestMailingABTesting(MassMailCommon):
         compare_version_record_count = self.env['mailing.mailing'].search_count(compare_version.get('domain'))
         # Record with mailing_type equals to sms should not be included in compare version count
         self.assertEqual(compare_version_record_count, 2, 'Number of records should be according to mailing type')
+
+    @mute_logger('odoo.addons.mail.models.mail_mail')
+    @users('user_marketing')
+    def test_send_minimum_one_mail_for_ab_testing(self):
+        """ Test that it should send minimum one mail(if possible) when ab_testing_pc is zero."""
+        ab_testing = self.env['mailing.mailing'].create({
+            'subject': 'A/B Testing SMS V1',
+            'contact_list_ids': self.mailing_list.ids,
+            'ab_testing_enabled': True,
+            'ab_testing_pc': 0,
+            'ab_testing_schedule_datetime': datetime.now(),
+            'mailing_type': 'mail',
+            'campaign_id': self.ab_testing_campaign.id,
+        })
+        with self.mock_mail_gateway():
+            ab_testing.action_send_mail()
+        self.assertEqual(ab_testing.state, 'done')
+        self.assertEqual(len(self._mails), 1)
