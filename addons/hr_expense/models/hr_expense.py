@@ -374,9 +374,27 @@ class HrExpense(models.Model):
             'context': {'search_default_my_expenses': 1, 'search_default_no_report': 1},
         }
 
+    def _delete_expense_attachments(self):
+        """
+            Synchronizing expense and sheet attachments:
+            Here we delete the sheet attachments that were originally copied from expenses
+        """
+        attachment_ids = self.env['ir.attachment'].search([
+            ('res_model', '=', 'hr.expense'),
+            ('res_id', 'in', self.ids)
+        ])
+        self.env['ir.attachment'].search([
+            ('res_model', '=', 'hr.expense.sheet'),
+            ('original_id', 'in', attachment_ids.ids),
+        ]).unlink()
+
     # ----------------------------------------
     # ORM Overrides
     # ----------------------------------------
+
+    def unlink(self):
+        self._delete_expense_attachments()
+        return super().unlink()
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_posted_or_approved(self):
@@ -1051,13 +1069,43 @@ class HrExpenseSheet(models.Model):
         })
         sheets = super(HrExpenseSheet, self.with_context(context)).create(vals_list)
         sheets.activity_update()
+        for sheet in sheets:
+            sheet._copy_expense_attachments()
         return sheets
+
+    def write(self, vals):
+        previous_lines = self.expense_line_ids
+        res = super().write(vals)
+
+        new_lines = self.expense_line_ids - previous_lines
+        if new_lines:
+            self._copy_expense_attachments(new_lines)
+
+        removed_line_ids = previous_lines - self.expense_line_ids
+        if removed_line_ids:
+            removed_line_ids._delete_expense_attachments()
+        return res
+
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_posted_or_paid(self):
         for expense in self:
             if expense.state in ['post', 'done']:
                 raise UserError(_('You cannot delete a posted or paid expense.'))
+
+    def _copy_expense_attachments(self, expense_ids=False):
+        """
+        We copy all the sheet.expense_line_ids' attachments
+        to sheet attachments, unless expense_ids variable is given
+        """
+        self.ensure_one()
+        expense_ids = expense_ids or self.expense_line_ids
+        attachment_ids = self.env['ir.attachment'].search([
+            ('res_model', '=', 'hr.expense'),
+            ('res_id', 'in', expense_ids.ids)
+        ])
+        for attachment in attachment_ids:
+            attachment.copy({'res_model': 'hr.expense.sheet', 'res_id': self.id, 'original_id': attachment.id})
 
     # --------------------------------------------
     # Mail Thread
