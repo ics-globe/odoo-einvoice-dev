@@ -3486,6 +3486,7 @@ class AccountMoveLine(models.Model):
         help="Technical field. True if the balance of this move line needs to be "
              "inverted when computing its total for each tag (for sales invoices, for example).")
     all_taxes_are_on_payment = fields.Boolean(compute='_compute_all_taxes_are_on_payment', store=True)
+    has_taxes = fields.Boolean(compute='_compute_all_taxes_are_on_payment', store=True)
 
     # ==== Reconciliation fields ====
     amount_residual = fields.Monetary(string='Residual Amount', store=True,
@@ -3929,7 +3930,7 @@ class AccountMoveLine(models.Model):
             '|', ('move_id.always_tax_exigible', '=', True),
 
             # Lines with only tags are always exigible
-            '|', '&', ('tax_line_id', '=', False), ('tax_ids', '=', False),
+            '|', ('has_taxes', '=', False),
 
             # Lines from CABA entries are always exigible
             '|', ('move_id.tax_cash_basis_rec_id', '!=', False),
@@ -4209,6 +4210,7 @@ class AccountMoveLine(models.Model):
     @api.depends('tax_line_id.tax_exigibility', 'tax_ids.tax_exigibility')
     def _compute_all_taxes_are_on_payment(self):
         for record in self:
+            record.has_taxes = (record.tax_line_id or record.tax_ids)
             record.all_taxes_are_on_payment = (
                 (not record.tax_line_id or record.tax_line_id.tax_exigibility == "on_payment")
                 and all(tax.tax_exigibility == "on_payment" for tax in record.tax_ids)
