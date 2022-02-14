@@ -37,10 +37,9 @@ Bu modül kurulduktan sonra, Muhasebe yapılandırma sihirbazı çalışır
 
     ],
     'demo': [
-        'demo/demo_company.xml',
         'demo/res_partner_demo.xml',
         'demo/product_demo.xml',
-        'demo/demo_try_loading.xml',
+        'demo/demo_company.xml',
     ],
     'license': 'LGPL-3',
 }

@@ -32,6 +32,8 @@ class AccountChartTemplate(models.Model):
         ref = self.env.ref
 
         # Do not load generic demo data on these companies
+        # We use dedicated demo invoices in order to demonstrate the special
+        # feature of this localization
         tr_demo_companies = (
             ref('l10n_tr.demo_company_tr', raise_if_not_found=False),
         )
@@ -40,8 +42,6 @@ class AccountChartTemplate(models.Model):
 
         if created._name == 'account.move':
             created = created.with_context(check_move_validity=False)
-            # We need to recompute some onchanges. Invoice lines VS journal items are already
-            # synchronized in the create, but the onchange were not applied on the invoice lines.
             # This will remove the manually set Fiscal Position on the move because there is a
             # Domestic (standard) FP and an Export ones that one of them will apply. In reality
             # the user first sets the partner, then the FP and finally the lines, we have to do the same
@@ -69,8 +69,6 @@ class AccountChartTemplate(models.Model):
                     move.action_post()
                 except (UserError, ValidationError):
                     _logger.exception('Error while posting demo data')
-        elif created._name == 'account.bank.statement':
-            created.button_post()
 
     @api.model
     def _get_demo_data_move_tr(self):

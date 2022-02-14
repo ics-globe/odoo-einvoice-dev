@@ -27,4 +27,8 @@
         <value eval="{'company_ids': [(4, ref('l10n_tr.demo_company_tr'))]}"/>
     </function>
 
+    <function model="account.chart.template" name="try_loading">
+        <value eval="[ref('l10n_tr.chart_template_7b')]"/>
+        <value model="res.company" eval="obj().env.ref('l10n_tr.demo_company_tr')"/>
+    </function>
 </odoo>
