@@ -96,6 +96,7 @@
         <we-colorpicker string="Background" data-customize-website-layer2-color="null"
             t-attf-data-layer-color="o-cc#{number}-bg"
             t-attf-data-layer-gradient="o-cc#{number}-bg-gradient"
+            data-loader-on-option-panel="true"
             data-no-bundle-reload="true" data-with-gradients="true"/>
         <we-colorpicker string="Text" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-text"/>
         <we-collapse>
@@ -111,6 +112,7 @@
             <we-colorpicker title="Background" data-customize-website-layer2-color="null"
                 t-attf-data-layer-color="o-cc#{number}-btn-primary"
                 t-attf-data-layer-gradient="o-cc#{number}-btn-primary-gradient"
+                data-loader-on-option-panel="true"
                 data-no-bundle-reload="true" data-with-gradients="true"/>
             <we-colorpicker title="Border" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-primary-border"/>
         </we-row>
@@ -118,6 +120,7 @@
             <we-colorpicker title="Background" data-customize-website-layer2-color="null"
                 t-attf-data-layer-color="o-cc#{number}-btn-secondary"
                 t-attf-data-layer-gradient="o-cc#{number}-btn-secondary-gradient"
+                data-loader-on-option-panel="true"
                 data-no-bundle-reload="true" data-with-gradients="true"/>
             <we-colorpicker title="Border" data-customize-website-color="null" t-attf-data-color="o-cc#{number}-btn-secondary-border"/>
         </we-row>
