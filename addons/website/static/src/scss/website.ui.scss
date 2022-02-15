@@ -55,8 +55,6 @@ body {
     direction: ltr;
 }
 body.o_connected_user {
-    padding-top: $o-navbar-height!important;
-
     &.o_fullscreen_transition {
         transition: padding 400ms ease 0s;
 
@@ -87,38 +85,6 @@ body.o_connected_user {
             top: 0 !important;
             right: 0 !important;
         }
-    }
-}
-
-//FULLSCREEN INDICATION LAYOUT
-.o_fullscreen_indication {
-    display: flex;
-    position: absolute;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    top: 0;
-    margin-top: $o-navbar-height!important;
-    opacity: 0;
-    pointer-events: none;
-
-    p {
-        padding: 15px 30px;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        span {
-            border: 1px solid white;
-            border-color: white;
-            border-radius: 5px;
-            padding: 7px 5px;
-            margin: 5px;
-        }
-    }
-    &.o_transition {
-        transition: opacity 400ms;
-    }
-    &.o_visible {
-        opacity: 1;
     }
 }
 
@@ -491,18 +457,6 @@ body .modal {
     }
     .fa-check, .fa-eye-slash {
         color: $info;
-    }
-}
-
-// Page Properties
-.o_redirect_old_url {
-    @include media-breakpoint-down(sm) {
-        // Because o_technical_modal class class has a higher z-index than $zindex-modal.
-        z-index: $o-we-technical-modal-zindex + ($zindex-popover - $zindex-modal);
-    }
-    .popover-body {
-        overflow-y: auto;
-        max-height: 14.2rem;
     }
 }
 
