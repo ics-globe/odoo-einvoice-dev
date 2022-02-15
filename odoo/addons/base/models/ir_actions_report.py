@@ -21,7 +21,7 @@ import json
 
 from lxml import etree
 from contextlib import closing
-from distutils.version import LooseVersion
+from packaging.version import Version
 from reportlab.graphics.barcode import createBarcodeDrawing
 from PyPDF2 import PdfFileWriter, PdfFileReader, utils
 from collections import OrderedDict
@@ -69,12 +69,12 @@ else:
     match = re.search(b'([0-9.]+)', out)
     if match:
         version = match.group(0).decode('ascii')
-        if LooseVersion(version) < LooseVersion('0.12.0'):
+        if Version(version) < Version('0.12.0'):
             _logger.info('Upgrade Wkhtmltopdf to (at least) 0.12.0')
             wkhtmltopdf_state = 'upgrade'
         else:
             wkhtmltopdf_state = 'ok'
-        if LooseVersion(version) >= LooseVersion('0.12.2'):
+        if Version(version) >= Version('0.12.2'):
             wkhtmltopdf_dpi_zoom_ratio = True
 
         if config['workers'] == 1:

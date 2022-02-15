@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, models, fields, Command, _
-
+from odoo import models, Command, _
+from odoo.addons.account.models.chart_template import delegate_to_super_if_code_doesnt_match
 
 class AccountChartTemplate(models.AbstractModel):
     _inherit = 'account.chart.template'
 
-    def _get_template_data(self):
-        if self.env.company.chart_template != 'be':
-            return super()._get_template_data()
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_template_data(self, template_code, company):
         return {
             'bank_account_code_prefix': '550',
             'cash_account_code_prefix': '570',
@@ -28,47 +27,47 @@ class AccountChartTemplate(models.AbstractModel):
             'account_journal_suspense_account_id': 'a499',
         }
 
-    def _get_chart_template_data(self):
-        res = super()._get_chart_template_data()
-        if self.env.company.chart_template == 'be':
-            res['account.fiscal.position'] = self._get_fiscal_position()
+    def _get_chart_template_data(self, template_code, company):
+        res = super()._get_chart_template_data(template_code, company)
+        if template_code == 'be':
+            res['account.fiscal.position'] = self._get_fiscal_position(template_code, company)
         return res
 
-    def _get_res_company(self):
-        cid = self.env.company.id
-        if self.env.company.chart_template == 'be':
-            return {
-                self.env.company.get_metadata()[0]['xmlid']: {
-                    'currency_id': "base.EUR",
-                    'account_fiscal_country_id': "base.be",
-                    # 'default_cash_difference_income_account_id': f'account.{cid}_cash_diff_income',
-                    # 'default_cash_difference_expense_account_id': f'account.{cid}_cash_diff_expense',
-                    # 'account_cash_basis_base_account_id': f'account.{cid}_cash_diff_income',  # TODO
-                    # 'account_default_pos_receivable_account_id': f'account.{cid}_cash_diff_income',  # TODO
-                    # 'income_currency_exchange_account_id': f'account.{cid}_income_currency_exchange',
-                    # 'expense_currency_exchange_account_id': f'account.{cid}_expense_currency_exchange',
-                }
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_res_company(self, template_code, company):
+        # cid = company.id
+        return {
+            company.get_metadata()[0]['xmlid']: {
+                'currency_id': "base.EUR",
+                'account_fiscal_country_id': "base.be",
+                # 'default_cash_difference_income_account_id': f'account.{cid}_cash_diff_income',
+                # 'default_cash_difference_expense_account_id': f'account.{cid}_cash_diff_expense',
+                # 'account_cash_basis_base_account_id': f'account.{cid}_cash_diff_income',  # TODO
+                # 'account_default_pos_receivable_account_id': f'account.{cid}_cash_diff_income',  # TODO
+                # 'income_currency_exchange_account_id': f'account.{cid}_income_currency_exchange',
+                # 'expense_currency_exchange_account_id': f'account.{cid}_expense_currency_exchange',
             }
-        return super()._get_res_company()
+        }
 
-    def _get_account_journal(self):
-        cid = self.env.company.id
-        data = super()._get_account_journal()
-        if self.env.company.chart_template == 'be':
-            data[f"{cid}_sale"].update({
-                'default_account_id': f'account.{cid}_a7000',
-                'refund_sequence': True,
-            })
-            data[f"{cid}_purchase"].update({
-                'default_account_id': f'account.{cid}_a600',
-                'refund_sequence': True,
-            })
-            data[f"{cid}_cash"]['suspense_account_id'] = f'account.{cid}_a499'
-            data[f"{cid}_bank"]['suspense_account_id'] = f'account.{cid}_a499'
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_account_journal(self, template_code, company):
+        cid = company.id
+        data = super()._get_account_journal(template_code, company)
+        data[f"{cid}_sale"].update({
+            'default_account_id': f'account.{cid}_a7000',
+            'refund_sequence':  True
+        })
+        data[f"{cid}_purchase"].update({
+            'default_account_id': f'account.{cid}_a600',
+            'refund_sequence': True
+        })
+        data[f"{cid}_cash"]['suspense_account_id'] = f'account.{cid}_a499'
+        data[f"{cid}_bank"]['suspense_account_id'] = f'account.{cid}_a499'
         return data
 
-    def _get_fiscal_position(self):
-        cid = self.env.company.id
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_fiscal_position(self, template_code, company):
+        cid = company.id
         return {
             f"{cid}_fiscal_position_template_1": {
                 'sequence': 1,
@@ -391,8 +390,9 @@ class AccountChartTemplate(models.AbstractModel):
             },
         }
 
-    def _get_reconcile_model(self):
-        cid = self.env.company.id
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_reconcile_model(self, template_code, company):
+        cid = company.id
         return {
             f"{cid}_escompte_template": {
                 'name': _("Escompte"),
@@ -435,7 +435,7 @@ class AccountChartTemplate(models.AbstractModel):
                 'line_ids': [
                     Command.create({
                         'account_id': self.env['account.account'].search([
-                            ('code', '=like', self._get_template_data('transfer_account_code_prefix') + '%').id,
+                            ('code', '=like', self._get_template_data('transfer_account_code_prefix', company) + '%').id,
                             ('company_id', '=', cid)
                         ]).id,
                         'amount_type': 'percentage',
@@ -457,10 +457,9 @@ class AccountChartTemplate(models.AbstractModel):
             },
         }
 
-    def _get_account_tax(self):
-        cid = self.env.company.id
-        if self.env.company.chart_template != 'be':
-            return super()._get_account_tax()
+    @delegate_to_super_if_code_doesnt_match('be')
+    def _get_account_tax(self, template_code, company):
+        cid = company.id
         return {
             f'{cid}_attn_VAT-OUT-21-L': {
                 'sequence': 10,
