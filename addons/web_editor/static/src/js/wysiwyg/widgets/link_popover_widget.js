@@ -1,9 +1,9 @@
 /** @odoo-module **/
 
 import Widget from 'web.Widget';
-import {_t} from 'web.core';
+import {_t, bus} from 'web.core';
 import {DropPrevious} from 'web.concurrency';
-import { ancestors } from '@web_editor/js/common/wysiwyg_utils';
+import {isImg, ancestors} from '@web_editor/js/common/wysiwyg_utils';
 
 const LinkPopoverWidget = Widget.extend({
     template: 'wysiwyg.widgets.link.edit.tooltip',
@@ -97,6 +97,12 @@ const LinkPopoverWidget = Widget.extend({
         this.$target.on('mousedown.link_popover', (e) => {
             if (!popoverShown) {
                 this.$target.popover('show');
+            }
+        });
+        this.$target.on('href_changed.link_popover', (e) => {
+            // Do not change shown/hidden state.
+            if (popoverShown) {
+                this._loadAsyncLinkPreview();
             }
         });
         const onClickDocument = (e) => {
@@ -234,10 +240,14 @@ const LinkPopoverWidget = Widget.extend({
      */
     _onEditLinkClick(ev) {
         ev.preventDefault();
-        this.options.wysiwyg.toggleLinkTools({
-            forceOpen: true,
-            link: this.$target[0],
-        });
+        if (isImg(this.options.wysiwyg.lastElement)) {
+            bus.trigger('activate_image_link_tool');
+        } else {
+            this.options.wysiwyg.toggleLinkTools({
+                forceOpen: true,
+                link: this.$target[0],
+            });
+        }
         ev.stopImmediatePropagation();
     },
     /**
@@ -248,7 +258,11 @@ const LinkPopoverWidget = Widget.extend({
      */
     _onRemoveLinkClick(ev) {
         ev.preventDefault();
-        this.options.wysiwyg.odooEditor.execCommand('unlink');
+        if (isImg(this.options.wysiwyg.lastElement)) {
+            bus.trigger('deactivate_image_link_tool');
+        } else {
+            this.options.wysiwyg.odooEditor.execCommand('unlink');
+        }
         ev.stopImmediatePropagation();
     },
 });
