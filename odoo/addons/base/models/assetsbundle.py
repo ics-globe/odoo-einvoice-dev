@@ -1028,9 +1028,6 @@ class SassStylesheetAsset(PreprocessedCSS):
 
 
 class ScssStylesheetAsset(PreprocessedCSS):
-    @property
-    def bootstrap_path(self):
-        return get_resource_path('web', 'static', 'lib', 'bootstrap', 'scss')
 
     @property
     def bootstrap4_path(self):
@@ -1044,16 +1041,11 @@ class ScssStylesheetAsset(PreprocessedCSS):
             return super(ScssStylesheetAsset, self).compile(source)
 
         try:
-            # As we had Bootstrap 4 for the frontend and Bootstrap 5 for the backend
-            # we need to specify a different path to include to LibSASS
-            bundle_matches = ['frontend', 'website', 'public', 'bs4']
-            is_bootstrap_4 = any(valid_string in self.bundle.name for valid_string in bundle_matches)
-
             profiler.force_hook()
             return libsass.compile(
                 string=source,
                 include_paths=[
-                    self.bootstrap4_path if is_bootstrap_4 else self.bootstrap_path,
+                    self.bootstrap4_path,
                 ],
                 output_style=self.output_style,
                 precision=self.precision,
@@ -1066,7 +1058,7 @@ class ScssStylesheetAsset(PreprocessedCSS):
             sassc = misc.find_in_path('sassc')
         except IOError:
             sassc = 'sassc'
-        return [sassc, '--stdin', '--precision', str(self.precision), '--load-path', self.bootstrap_path, '-t', self.output_style]
+        return [sassc, '--stdin', '--precision', str(self.precision), '--load-path', self.bootstrap4_path, '-t', self.output_style]
 
 
 class LessStylesheetAsset(PreprocessedCSS):

@@ -320,7 +320,7 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_primary_variables'),
             ('include', 'web._assets_secondary_variables'),
 
-            'web/static/lib/bootstrap/scss/_mixins.scss',
+            ('include', 'web._lib_boostrap_mixins'),
             'web/static/src/bs_mixins_forward_port.scss',
             'web/static/src/legacy/scss/bs_mixins_overrides.scss',
             'web/static/src/legacy/scss/bs_mixins_overrides_bs5.scss',
@@ -344,7 +344,7 @@ This module provides the core of the Odoo Web Client.
         ],
         'web._assets_bootstrap_load_mandatory': [
             'web/static/lib/bootstrap/scss/_variables.scss',
-            'web/static/lib/bootstrap/scss/_mixins.scss',
+            ('include', 'web._lib_boostrap_mixins'),
         ],
         'web._assets_bootstrap_load_optional': [
             'web/static/lib/bootstrap/scss/_root.scss',
@@ -355,7 +355,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/lib/bootstrap/scss/_containers.scss',
             'web/static/lib/bootstrap/scss/_grid.scss',
             'web/static/lib/bootstrap/scss/_tables.scss',
-            'web/static/lib/bootstrap/scss/_forms.scss',
+            ('include', 'web._lib_boostrap_forms'),
             'web/static/lib/bootstrap/scss/_buttons.scss',
             'web/static/lib/bootstrap/scss/_transitions.scss',
             'web/static/lib/bootstrap/scss/_dropdown.scss',
@@ -379,7 +379,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/lib/bootstrap/scss/_spinners.scss',
             'web/static/lib/bootstrap/scss/_offcanvas.scss',
             'web/static/lib/bootstrap/scss/_placeholders.scss',
-            'web/static/lib/bootstrap/scss/_helpers.scss',
+            ('include', 'web._lib_boostrap_helpers'),
             'web/static/lib/bootstrap/scss/utilities/_api.scss',
 
             'web/static/src/legacy/scss/bootstrap_review.scss',
@@ -605,6 +605,60 @@ This module provides the core of the Odoo Web Client.
         # Used during the transition of the web architecture
         'web.frontend_legacy': [
             'web/static/src/legacy/frontend/**/*',
+        ],
+
+        # From 'web/static/lib/bootstrap/scss/_forms.scss' to avoid @include
+        'web._lib_boostrap_forms': [
+            'web/static/lib/bootstrap/scss/forms/_labels.scss',
+            'web/static/lib/bootstrap/scss/forms/_form-text.scss',
+            'web/static/lib/bootstrap/scss/forms/_form-control.scss',
+            'web/static/lib/bootstrap/scss/forms/_form-select.scss',
+            'web/static/lib/bootstrap/scss/forms/_form-check.scss',
+            'web/static/lib/bootstrap/scss/forms/_form-range.scss',
+            'web/static/lib/bootstrap/scss/forms/_floating-labels.scss',
+            'web/static/lib/bootstrap/scss/forms/_input-group.scss',
+            'web/static/lib/bootstrap/scss/forms/_validation.scss',
+        ],
+        # From 'web/static/lib/bootstrap/scss/_helpers.scss' to avoid @include
+        'web._lib_boostrap_helpers': [
+            'web/static/lib/bootstrap/scss/helpers/_clearfix.scss',
+            'web/static/lib/bootstrap/scss/helpers/_colored-links.scss',
+            'web/static/lib/bootstrap/scss/helpers/_ratio.scss',
+            'web/static/lib/bootstrap/scss/helpers/_position.scss',
+            'web/static/lib/bootstrap/scss/helpers/_stacks.scss',
+            'web/static/lib/bootstrap/scss/helpers/_visually-hidden.scss',
+            'web/static/lib/bootstrap/scss/helpers/_stretched-link.scss',
+            'web/static/lib/bootstrap/scss/helpers/_text-truncation.scss',
+            'web/static/lib/bootstrap/scss/helpers/_vr.scss',
+        ],
+        # From 'web/static/lib/bootstrap/scss/_mixins.scss' to avoid @include
+        'web._lib_boostrap_mixins': [
+            'web/static/lib/bootstrap/scss/vendor/_rfs.scss',
+            'web/static/lib/bootstrap/scss/mixins/_deprecate.scss',
+            'web/static/lib/bootstrap/scss/mixins/_breakpoints.scss',
+            'web/static/lib/bootstrap/scss/mixins/_color-scheme.scss',
+            'web/static/lib/bootstrap/scss/mixins/_image.scss',
+            'web/static/lib/bootstrap/scss/mixins/_resize.scss',
+            'web/static/lib/bootstrap/scss/mixins/_visually-hidden.scss',
+            'web/static/lib/bootstrap/scss/mixins/_reset-text.scss',
+            'web/static/lib/bootstrap/scss/mixins/_text-truncate.scss',
+            'web/static/lib/bootstrap/scss/mixins/_utilities.scss',
+            'web/static/lib/bootstrap/scss/mixins/_alert.scss',
+            'web/static/lib/bootstrap/scss/mixins/_backdrop.scss',
+            'web/static/lib/bootstrap/scss/mixins/_buttons.scss',
+            'web/static/lib/bootstrap/scss/mixins/_caret.scss',
+            'web/static/lib/bootstrap/scss/mixins/_pagination.scss',
+            'web/static/lib/bootstrap/scss/mixins/_lists.scss',
+            'web/static/lib/bootstrap/scss/mixins/_list-group.scss',
+            'web/static/lib/bootstrap/scss/mixins/_forms.scss',
+            'web/static/lib/bootstrap/scss/mixins/_table-variants.scss',
+            'web/static/lib/bootstrap/scss/mixins/_border-radius.scss',
+            'web/static/lib/bootstrap/scss/mixins/_box-shadow.scss',
+            'web/static/lib/bootstrap/scss/mixins/_gradients.scss',
+            'web/static/lib/bootstrap/scss/mixins/_transition.scss',
+            'web/static/lib/bootstrap/scss/mixins/_clearfix.scss',
+            'web/static/lib/bootstrap/scss/mixins/_container.scss',
+            'web/static/lib/bootstrap/scss/mixins/_grid.scss',
         ],
 
         # ---------------------------------------------------------------------
