@@ -58,24 +58,6 @@ class AccountMove(models.Model):
             ON account_move(journal_id, state, payment_state, move_type, date);
         """)
 
-    def create_invoice(self):
-        partners = self.env['res.partner'].search([], limit=1)
-        products = self.env['product.product'].search([('sale_ok','=',1)], limit=1)
-        journals = self.env['account.journal'].search([('type','=','sale')], limit=1)
-        vals = {
-            "partner_id": partners[0].id,
-            "journal_id": journals[0].id,
-            "move_type": "out_invoice",
-            "invoice_line_ids": [
-                (0, 0, {
-                    'product_id': products[0].id,
-                    'price_unit': 100,
-                })
-            ],
-        }
-        result = self.env["account.move"].create(vals)
-        return result.id
-
     @property
     def _sequence_monthly_regex(self):
         return self.journal_id.sequence_override_regex or super()._sequence_monthly_regex
@@ -2024,6 +2006,8 @@ class AccountMove(models.Model):
 
         query_res = self._cr.fetchall()
         if query_res:
+            from pprint import pprint
+            pprint([(line.debit, line.credit) for line in self.line_ids])
             error_msg = _("There was a problem with the following move(s):\n")
             for move in query_res:
                 id_, balance, negative_normal, positive_storno = move
@@ -2139,6 +2123,7 @@ class AccountMove(models.Model):
         res = super(AccountMove, self.with_context(**ctx)).write(vals)
         if "line_ids" in vals or "invoice_line_ids" in vals:
             self._recompute_dynamic_lines(recompute_taxes='invoice_line_ids' in vals)
+        self._recompute_dynamic_lines(recompute_taxes=True)  # TODO what about journal entries?
 
         # You can't change the date of a not-locked move to a locked period.
         # You can't post a new journal entry inside a locked period.
@@ -2587,9 +2572,9 @@ class AccountMove(models.Model):
             move_vals_list.append(move.with_context(move_reverse_cancel=cancel)._reverse_move_vals(default_values, cancel=cancel))
 
         reverse_moves = self.env['account.move'].create(move_vals_list)
-        for move, reverse_move in zip(self, reverse_moves.with_context(check_move_validity=False)):
-            reverse_move._recompute_dynamic_lines()
-        reverse_moves._check_balanced()
+        # for move, reverse_move in zip(self, reverse_moves.with_context(check_move_validity=False)):
+        #     reverse_move._recompute_dynamic_lines()
+        # reverse_moves._check_balanced()
 
         # Reconcile moves together to cancel the previous one.
         if cancel:
@@ -3343,7 +3328,7 @@ class AccountMoveLine(models.Model):
     parent_state = fields.Selection(related='move_id.state', store=True, readonly=True)
     journal_id = fields.Many2one(
         related='move_id.journal_id', store=True, index=True, copy=False, precompute=True)
-    company_id = fields.Many2one(related='move_id.company_id', store=True, readonly=True)
+    company_id = fields.Many2one(related='move_id.company_id', store=True, readonly=True, precompute=True)
     company_currency_id = fields.Many2one(related='company_id.currency_id', string='Company Currency',
         readonly=True, store=True,
         help='Utility field to express amount currency')
@@ -4051,7 +4036,6 @@ class AccountMoveLine(models.Model):
 
     @api.depends('balance', 'move_id.is_storno')
     def _compute_debit_credit(self):
-        # print('_compute_debit_credit', self)
         for line in self:
             if not line.is_storno:
                 line.debit = line.balance if line.balance > 0.0 else 0.0
@@ -4059,17 +4043,11 @@ class AccountMoveLine(models.Model):
             else:
                 line.debit = line.balance if line.balance < 0.0 else 0.0
                 line.credit = -line.balance if line.balance > 0.0 else 0.0
-            # print('d/c', line, line.balance, line.debit, line.credit, line.is_storno)
-        # print('end _compute_debit_credit', self)
 
     @api.onchange('debit', 'credit')
     def _inverse_debit_credit(self):
-        print('_inverse_debit_credit', self)
         for line in self:
-            print(line.balance, line.debit, line.credit)
             line.balance = line.debit - line.credit
-            print(line.balance, line.debit, line.credit)
-        print('end _inverse_debit_credit', self)
 
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
@@ -4082,19 +4060,19 @@ class AccountMoveLine(models.Model):
 
             line.update(line._get_price_total_and_subtotal())
 
-    @api.depends('balance', 'currency_id', 'journal_id', 'move_id.date')
+    @api.depends('currency_id', 'company_id', 'move_id.date')
     def _compute_amount_currency(self):
-        print('_compute_amount_currency', self)
+        # print('_compute_amount_currency', self)
         for line in self:
-            print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
+            # print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
             line.amount_currency = line.company_currency_id._convert(
                 from_amount=line.balance, 
                 to_currency=line.currency_id, 
                 company=line.journal_id.company_id, 
                 date=line.move_id.date or fields.Date.context_today(line),
             )
-            print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
-        print('end _compute_amount_currency', self)
+            # print(line, line.move_id.date, line.balance, line.amount_currency, line.debit, line.credit)
+        # print('end _compute_amount_currency', self)
 
     @api.onchange('amount_currency')
     def _inverse_amount_currency(self):
@@ -4173,8 +4151,11 @@ class AccountMoveLine(models.Model):
             This amount will be 0 for fully reconciled lines or lines from a non-reconcilable account, the original line amount
             for unreconciled lines, and something in-between for partially reconciled lines.
         """
+        print('_compute_amount_residual', self)
         for line in self:
             if line.id and (line.account_id.reconcile or line.account_id.internal_type == 'liquidity'):
+                print(line, line.amount_currency, line.balance)
+                # line._compute_amount_currency()
                 reconciled_balance = sum(line.matched_credit_ids.mapped('amount')) \
                                      - sum(line.matched_debit_ids.mapped('amount'))
                 reconciled_amount_currency = sum(line.matched_credit_ids.mapped('debit_amount_currency'))\
@@ -4305,9 +4286,9 @@ class AccountMoveLine(models.Model):
                                 % format_date(self.env, move.company_id.tax_lock_date))
 
     def _check_reconciliation(self):
-        print('_check_reconciliation')
+        # print('_check_reconciliation')
         for line in self:
-            print(line.matched_credit_ids, line.matched_debit_ids)
+            # print(line.matched_credit_ids, line.matched_debit_ids)
             if line.matched_debit_ids or line.matched_credit_ids:
                 raise UserError(_("You cannot do this modification on a reconciled journal entry. "
                                   "You can just change some non legal fields or you must unreconcile first.\n"
@@ -4369,12 +4350,25 @@ class AccountMoveLine(models.Model):
         if not cr.fetchone():
             cr.execute('CREATE INDEX account_move_line_partner_id_ref_idx ON account_move_line (partner_id, ref)')
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        return super().create(vals_list)
+
     def write(self, vals):
         ACCOUNTING_FIELDS = ('debit', 'credit', 'amount_currency')
         BUSINESS_FIELDS = ('price_unit', 'quantity', 'discount', 'tax_ids')
         PROTECTED_FIELDS_TAX_LOCK_DATE = ['debit', 'credit', 'tax_line_id', 'tax_ids', 'tax_tag_ids']
         PROTECTED_FIELDS_LOCK_DATE = PROTECTED_FIELDS_TAX_LOCK_DATE + ['account_id', 'journal_id', 'amount_currency', 'currency_id', 'partner_id']
         PROTECTED_FIELDS_RECONCILIATION = ('account_id', 'date', 'debit', 'credit', 'amount_currency', 'currency_id')
+
+        if not self.env.context.get('from_move'):
+            self_set = set(self.ids)
+            for move in self.move_id:
+                move.with_context(from_move=True).write({'line_ids': [
+                    Command.update(id, vals)
+                    for id in set(move.line_ids.ids) & self_set
+                ]})
+            return
 
         account_to_write = self.env['account.account'].browse(vals['account_id']) if 'account_id' in vals else None
 
@@ -4383,7 +4377,12 @@ class AccountMoveLine(models.Model):
             raise UserError(_('You cannot use a deprecated account.'))
 
 
+        line_to_write = self
         for line in self:
+            if not any(self.env['account.move']._field_will_change(line, vals, field_name) for field_name in vals):
+                line_to_write -= line
+                continue
+
             if line.parent_state == 'posted':
                 if line.move_id.restrict_mode_hash_table and set(vals).intersection(INTEGRITY_HASH_LINE_FIELDS):
                     raise UserError(_("You cannot edit the following fields due to restrict mode being activated on the journal: %s.") % ', '.join(INTEGRITY_HASH_LINE_FIELDS))
@@ -4414,6 +4413,9 @@ class AccountMoveLine(models.Model):
                             or (account_type != 'payable' and account_to_write.user_type_id.type == 'payable'):
                         raise UserError(_("You can only set an account having the payable type on payment terms lines for vendor bill."))
 
+        self = line_to_write
+        if not self:
+            return True
         # Tracking stuff can be skipped for perfs using tracking_disable context key
         if not self.env.context.get('tracking_disable', False):
             # Get all tracked fields (without related fields because these fields must be manage on their own model)

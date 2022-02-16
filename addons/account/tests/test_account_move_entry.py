@@ -316,7 +316,6 @@ class TestAccountMove(AccountTestInvoicingCommon):
         print(lines.mapped(lambda l: (l.debit, l.credit)))
 
         (lines[0] + lines[2]).reconcile()
-        lines._check_reconciliation()
 
         # You can't write something impacting the reconciliation on an already reconciled line.
         with self.assertRaises(UserError), self.cr.savepoint():
