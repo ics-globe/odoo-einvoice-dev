@@ -20,7 +20,7 @@ Odoo Web tours.
         'web.assets_qweb': [
             'web_tour/static/src/debug/tour_dialog_component.xml',
         ],
-        'web.assets_common': [
+        'web_tour.assets_common_all_version': [
             'web_tour/static/src/scss/**/*',
             'web_tour/static/src/js/running_tour_action_helper.js',
             'web_tour/static/src/js/tip.js',
@@ -28,6 +28,12 @@ Odoo Web tours.
             'web_tour/static/src/js/tour_service.js',
             'web_tour/static/src/js/tour_step_utils.js',
             'web_tour/static/src/js/tour_utils.js',
+        ],
+        'web.assets_common': [
+            ('include', 'web_tour.assets_common_all_version')
+        ],
+        'web.assets_common_bs4': [
+            ('include', 'web_tour.assets_common_all_version')
         ],
         'web.assets_backend': [
             'web_tour/static/src/debug/debug_manager.js',
