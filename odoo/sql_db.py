@@ -19,7 +19,8 @@ import warnings
 import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED, ISOLATION_LEVEL_REPEATABLE_READ
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED, \
+    ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.pool import PoolError
 from psycopg2.sql import SQL, Identifier
 from werkzeug import urls
@@ -37,24 +38,29 @@ def unbuffer(symb, cr):
         return None
     return str(symb)
 
+
 def undecimalize(symb, cr):
     if symb is None:
         return None
     return float(symb)
 
-psycopg2.extensions.register_type(psycopg2.extensions.new_type((700, 701, 1700,), 'float', undecimalize))
 
+psycopg2.extensions.register_type(psycopg2.extensions.new_type((700, 701, 1700,), 'float', undecimalize))
 
 from . import tools
 
 from .tools import parse_version as pv
+
 if pv(psycopg2.__version__) < pv('2.7'):
     from psycopg2._psycopg import QuotedString
+
+
     def adapt_string(adapted):
         """Python implementation of psycopg/psycopg2#459 from v2.7"""
         if '\x00' in adapted:
             raise ValueError("A string literal cannot contain NUL (0x00) characters.")
         return QuotedString(adapted)
+
 
     psycopg2.extensions.register_adapter(str, adapt_string)
 
@@ -78,6 +84,7 @@ def clear_env(cr):
 
 
 import re
+
 re_from = re.compile('.* from "?([a-zA-Z_0-9]+)"? .*$')
 re_into = re.compile('.* into "?([a-zA-Z_0-9]+)"? .*$')
 
@@ -102,6 +109,7 @@ class Savepoint:
 
     :param BaseCursor cr: the cursor to execute the `SAVEPOINT` queries on
     """
+
     def __init__(self, cr):
         self.name = str(uuid.uuid1())
         self._name = Identifier(self.name)
@@ -128,6 +136,7 @@ class Savepoint:
         self._cr.execute(SQL('RELEASE SAVEPOINT {}').format(self._name))
         self.closed = True
 
+
 class _FlushingSavepoint(Savepoint):
     def __init__(self, cr):
         cr.flush()
@@ -141,6 +150,7 @@ class _FlushingSavepoint(Savepoint):
         if not rollback:
             self._cr.flush()
         super()._close(rollback)
+
 
 class BaseCursor:
     """ Base class for cursors that manage pre/post commit hooks. """
@@ -273,7 +283,7 @@ class Cursor(BaseCursor):
             *any* data which may be modified during the life of the cursor.
 
     """
-    IN_MAX = 1000   # decent limit on size of IN queries - guideline = Oracle limit
+    IN_MAX = 1000  # decent limit on size of IN queries - guideline = Oracle limit
 
     def __init__(self, pool, dbname, dsn, serialized=True):
         super().__init__()
@@ -303,7 +313,7 @@ class Cursor(BaseCursor):
             self.__caller = frame_codeinfo(currentframe(), 2)
         else:
             self.__caller = False
-        self._closed = False   # real initialisation value
+        self._closed = False  # real initialisation value
         self.autocommit(False)
 
         self._default_log_exceptions = True
@@ -313,11 +323,14 @@ class Cursor(BaseCursor):
 
     def __build_dict(self, row):
         return {d.name: row[i] for i, d in enumerate(self._obj.description)}
+
     def dictfetchone(self):
         row = self._obj.fetchone()
         return row and self.__build_dict(row)
+
     def dictfetchmany(self, size):
         return [self.__build_dict(row) for row in self._obj.fetchmany(size)]
+
     def dictfetchall(self):
         return [self.__build_dict(row) for row in self._obj.fetchall()]
 
@@ -395,6 +408,7 @@ class Cursor(BaseCursor):
 
         if not self.sql_log:
             return
+
         def process(type):
             sqllogs = {'from': self.sql_from_log, 'into': self.sql_into_log}
             sum = 0
@@ -409,6 +423,7 @@ class Cursor(BaseCursor):
             sum = timedelta(microseconds=sum)
             _logger.debug("SUM %s:%s/%d [%d]", type, sum, self.sql_log_count, sql_counter)
             sqllogs[type].clear()
+
         process('from')
         process('into')
         self.sql_log_count = 0
@@ -489,8 +504,8 @@ class Cursor(BaseCursor):
             #       unavailable for use with pg 9.1.
             isolation_level = \
                 ISOLATION_LEVEL_REPEATABLE_READ \
-                if self._serialized \
-                else ISOLATION_LEVEL_READ_COMMITTED
+                    if self._serialized \
+                    else ISOLATION_LEVEL_READ_COMMITTED
         self._cnx.set_isolation_level(isolation_level)
 
     def after(self, event, func):
@@ -573,6 +588,7 @@ class TestCursor(BaseCursor):
         +------------------------+---------------------------------------------------+
     """
     _cursors_stack = []
+
     def __init__(self, cursor, lock):
         super().__init__()
         self._closed = False
@@ -616,7 +632,7 @@ class TestCursor(BaseCursor):
         self.clear()
         self.prerollback.clear()
         self.postrollback.clear()
-        self.postcommit.clear()         # TestCursor ignores post-commit hooks
+        self.postcommit.clear()  # TestCursor ignores post-commit hooks
 
     def rollback(self):
         """ Perform an SQL `ROLLBACK` """
@@ -645,6 +661,7 @@ class ConnectionPool(object):
         The connections are *not* automatically closed. Only a close_db()
         can trigger that.
     """
+
     def __init__(self, maxconn=64):
         self._connections = []
         self._maxconn = max(maxconn, 1)
@@ -659,12 +676,11 @@ class ConnectionPool(object):
         _logger_conn.debug(('%r ' + msg), self, *args)
 
     @locked
-    def borrow(self, connection_info):
+    def _free_leaked_connections(self):
         """
-        :param dict connection_info: dict of psql connection keywords
-        :rtype: PsycoConnection
+        a connection is leaked when it has been deleted without closing it.
+        This function also removes the connections that have been closed
         """
-        # free dead and leaked connections
         for i, (cnx, _) in tools.reverse_enumerate(self._connections):
             if cnx.closed:
                 self._connections.pop(i)
@@ -676,22 +692,29 @@ class ConnectionPool(object):
                 self._connections.append((cnx, False))
                 _logger.info('%r: Free leaked connection to %r', self, cnx.dsn)
 
+    @locked
+    def _pop_available_connection(self, connection_info):
+        """finds an available connection, removes it from the pool and return it"""
         for i, (cnx, used) in enumerate(self._connections):
             if not used and cnx._original_dsn == connection_info:
-                try:
-                    cnx.reset()
-                except psycopg2.OperationalError:
-                    self._debug('Cannot reset connection at index %d: %r', i, cnx.dsn)
-                    # psycopg2 2.4.4 and earlier do not allow closing a closed connection
-                    if not cnx.closed:
-                        cnx.close()
-                    continue
-                self._connections.pop(i)
-                self._connections.append((cnx, True))
-                self._debug('Borrow existing connection to %r at index %d', cnx.dsn, i)
+                conn = self._connections.pop(i)
+                return conn, i
+        return (None, False), -1
 
-                return cnx
+    @locked
+    def _create_new_connection(self, connection_info):
+        try:
+            result = psycopg2.connect(connection_factory=PsycoConnection, **connection_info)
+        except psycopg2.Error:
+            _logger.info('Connection to the database failed')
+            raise
+        result._original_dsn = connection_info
+        self._connections.append((result, True))
+        self._debug('Create new connection backend PID %d', result.get_backend_pid())
+        return result
 
+    @locked
+    def _recycle_older_connections(self):
         if len(self._connections) >= self._maxconn:
             # try to remove the oldest connection not used
             for i, (cnx, used) in enumerate(self._connections):
@@ -705,17 +728,30 @@ class ConnectionPool(object):
                 # note: this code is called only if the for loop has completed (no break)
                 raise PoolError('The Connection Pool Is Full')
 
-        try:
-            result = psycopg2.connect(
-                connection_factory=PsycoConnection,
-                **connection_info)
-        except psycopg2.Error:
-            _logger.info('Connection to the database failed')
-            raise
-        result._original_dsn = connection_info
-        self._connections.append((result, True))
-        self._debug('Create new connection backend PID %d', result.get_backend_pid())
-        return result
+    def borrow(self, connection_info):
+        """
+        :param dict connection_info: dict of psql connection keywords
+        :rtype: PsycoConnection
+        """
+        self._free_leaked_connections()
+        (conn, used), index = self._pop_available_connection(connection_info)
+        while conn and len(self._connections) > 0:
+            try:
+                conn.reset()
+                self._connections.append((conn, True))
+                self._debug('Borrow existing connection to %r at index %d', conn.dsn, index)
+                return conn
+            except psycopg2.OperationalError:
+                self._debug('Cannot reset connection at index %d: %r', index, conn.dsn)
+                # psycopg2 2.4.4 and earlier do not allow closing a closed conn
+                if not conn.closed:
+                    conn.close()
+                    self._debug('Removing closed connection at index %d: %r', index, conn.dsn)
+            conn, index = self._pop_available_connection(connection_info)
+
+        self._recycle_older_connections()
+
+        return self._create_new_connection(connection_info)
 
     @locked
     def give_back(self, connection, keep_in_pool=True):
@@ -743,12 +779,13 @@ class ConnectionPool(object):
                 last = self._connections.pop(i)[0]
                 count += 1
         _logger.info('%r: Closed %d connections %s', self, count,
-                    (dsn and last and 'to %r' % last.dsn) or '')
+                     (dsn and last and 'to %r' % last.dsn) or '')
 
 
 class Connection(object):
     """ A lightweight instance of a connection to postgres
     """
+
     def __init__(self, pool, dbname, dsn):
         self.dbname = dbname
         self.dsn = dsn
@@ -764,7 +801,9 @@ class Connection(object):
 
     def __bool__(self):
         raise NotImplementedError()
+
     __nonzero__ = __bool__
+
 
 def connection_info_for(db_or_uri):
     """ parse the given `db_or_uri` and return a 2-tuple (dbname, connection_params)
@@ -797,7 +836,9 @@ def connection_info_for(db_or_uri):
 
     return db_or_uri, connection_info
 
+
 _Pool = None
+
 
 def db_connect(to, allow_uri=False):
     global _Pool
@@ -809,11 +850,13 @@ def db_connect(to, allow_uri=False):
         raise ValueError('URI connections not allowed')
     return Connection(_Pool, db, info)
 
+
 def close_db(db_name):
     """ You might want to call odoo.modules.registry.Registry.delete(db_name) along this function."""
     global _Pool
     if _Pool:
         _Pool.close_all(connection_info_for(db_name)[1])
+
 
 def close_all():
     global _Pool
