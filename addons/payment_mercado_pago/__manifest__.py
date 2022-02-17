@@ -15,10 +15,5 @@
     ],
     'application': True,
     'uninstall_hook': 'uninstall_hook',
-    'assets': {
-        'web.assets_frontend': [
-            'payment_mercado_pago/static/src/js/payment_form.js',
-        ],
-    },
     'license': 'LGPL-3',
 }

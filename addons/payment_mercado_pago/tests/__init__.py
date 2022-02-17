@@ -1,4 +1,4 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import common
-from . import mercado_pago
+from . import test_mercado_pago
