@@ -162,8 +162,10 @@ var SnippetEditor = Widget.extend({
         this.trigger_up('snippet_editor_destroyed');
 
         this._super(...arguments);
-        this.$target.removeData('snippet-editor');
-        this.$target.off('.snippet_editor');
+        if (this.$target) {
+            this.$target.removeData('snippet-editor');
+            this.$target.off('.snippet_editor');
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -1920,10 +1922,12 @@ var SnippetsMenu = Widget.extend({
                 return snippetEditor.__isStarted;
             }
 
-            let editableArea = self.getEditableArea();
-            snippetEditor = new SnippetEditor(parentEditor || self, $snippet, self.templateOptions, $snippet.closest('[data-oe-type="html"], .oe_structure').add(editableArea), self.options);
-            self.snippetEditors.push(snippetEditor);
-            return snippetEditor.appendTo(self.$snippetEditorArea);
+            let $editableArea = $snippet.closest('[data-oe-type="html"], .oe_structure').add(self.getEditableArea());
+            if ($editableArea.length) {
+                snippetEditor = new SnippetEditor(parentEditor || self, $snippet, self.templateOptions, $editableArea, self.options);
+                self.snippetEditors.push(snippetEditor);
+                return snippetEditor.appendTo(self.$snippetEditorArea);
+            }
         }).then(function () {
             return snippetEditor;
         });

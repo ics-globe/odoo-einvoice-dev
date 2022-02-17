@@ -1091,37 +1091,48 @@ options.registry.menu_data = options.Class.extend({
      */
     onFocus: function () {
         var self = this;
-        (new Dialog(this, {
-            title: _t("Confirmation"),
-            $content: $(core.qweb.render('website.leaving_current_page_edition')),
-            buttons: [
-                {text: _t("Go to Link"), classes: 'btn-primary', click: function () {
-                    self.trigger_up('request_save', {
-                        reload: false,
-                        onSuccess: function () {
-                            window.location.href = self.$target.attr('href');
-                        },
-                    });
-                }},
-                {text: _t("Edit the menu"), classes: 'btn-primary', click: function () {
-                    this.trigger_up('action_demand', {
-                        actionName: 'edit_menu',
-                        params: [
-                            function () {
-                                var prom = new Promise(function (resolve, reject) {
-                                    self.trigger_up('request_save', {
-                                        onSuccess: resolve,
-                                        onFailure: reject,
-                                    });
-                                });
-                                return prom;
-                            },
-                        ],
-                    });
-                }},
-                {text: _t("Stay on this page"), close: true}
-            ]
-        })).open();
+        this.getSession().rpc('/web/dataset/call_kw/res.users/has_group', {
+            "model": "res.users",
+            "method": "has_group",
+            "args": ["website.group_website_designer"],
+            "kwargs": {}
+        }).then(isWebsiteDesigner => {
+            (new Dialog(this, {
+                title: _t("Confirmation"),
+                $content: $(core.qweb.render('website.leaving_current_page_edition')),
+                buttons: [
+                    {
+                        text: _t("Go to Link"), classes: 'btn-primary', click: function () {
+                            self.trigger_up('request_save', {
+                                reload: false,
+                                onSuccess: function () {
+                                    window.location.href = self.$target.attr('href');
+                                },
+                            });
+                        }
+                    },
+                    isWebsiteDesigner ? {
+                        text: _t("Edit the menu"), classes: 'btn-primary', click: function () {
+                            this.trigger_up('action_demand', {
+                                actionName: 'edit_menu',
+                                params: [
+                                    function () {
+                                        var prom = new Promise(function (resolve, reject) {
+                                            self.trigger_up('request_save', {
+                                                onSuccess: resolve,
+                                                onFailure: reject,
+                                            });
+                                        });
+                                        return prom;
+                                    },
+                                ],
+                            });
+                        }
+                    } : {},
+                    {text: _t("Stay on this page"), close: true}
+                ].filter(dict => Object.keys(dict).length !== 0)
+            })).open();
+        });
     },
 });
 
