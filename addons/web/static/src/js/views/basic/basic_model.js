@@ -3289,6 +3289,7 @@ var BasicModel = AbstractModel.extend({
     _generateX2ManyCommands: function (record, options) {
         var self = this;
         options = options || {};
+        const changesOnly = options.changesOnly;
         var fields = record.fields;
         if (options.fieldNames) {
             fields = _.pick(fields, options.fieldNames);
@@ -3381,7 +3382,11 @@ var BasicModel = AbstractModel.extend({
                             if (!this.isNew(relRecord.id)) {
                                 // the subrecord already exists in db
                                 commands[fieldName].push(x2ManyCommands.link_to(relRecord.res_id));
-                                if (this.isDirty(relRecord.id)) {
+                                // Don't send a UPDATE command to the server when we are creating the main record.
+                                // In that case, _changes contains value actually corresponding to default_get.
+                                // And we don't want to bypass the ORM create algo by sending it default_values, that it
+                                // will re-compute anyway.
+                                if (changesOnly ? Object.keys(changes).length : this.isDirty(relRecord.id)) {
                                     delete changes.id;
                                     commands[fieldName].push(x2ManyCommands.update(relRecord.res_id, changes));
                                 }
