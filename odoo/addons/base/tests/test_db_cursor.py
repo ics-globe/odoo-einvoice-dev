@@ -3,6 +3,8 @@
 import logging
 from functools import partial
 
+import psycopg2
+
 import odoo
 from odoo.sql_db import TestCursor
 from odoo.tests import common
@@ -31,6 +33,15 @@ class TestExecute(BaseCase):
             with self.assertRaises(ValueError):
                 cr.execute("SELECT id FROM res_users WHERE id=%s", '1')
 
+    @mute_logger('odoo.sql_db')
+    def test_normal_cursor(self):
+        with registry().cursor() as cr:
+            cr.close()
+            with self.assertRaises(psycopg2.InterfaceError):
+                cr.execute("SELECT 1")
+        with registry().cursor() as cr:
+            cr.close()
+            cr.close()
 
 class TestTestCursor(common.TransactionCase):
     def setUp(self):
