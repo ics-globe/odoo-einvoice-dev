@@ -616,7 +616,6 @@ class IrActionsReport(models.Model):
         return result_stream
 
     def _render_qweb_pdf_prepare_streams(self, data, res_ids=None):
-        self.ensure_one()
         if not data:
             data = {}
         data.setdefault('report_type', 'pdf')
@@ -760,21 +759,21 @@ class IrActionsReport(models.Model):
 
         return collected_streams
 
-    def _render_qweb_pdf(self, res_ids=None, data=None):
-        self.ensure_one()
+    def _render_qweb_pdf(self, report_ref, res_ids=None, data=None):
         if not data:
             data = {}
         if isinstance(res_ids, int):
             res_ids = [res_ids]
         data.setdefault('report_type', 'pdf')
-        self_sudo = self.sudo()
-
         # In case of test environment without enough workers to perform calls to wkhtmltopdf,
         # fallback to render_html.
         if (tools.config['test_enable'] or tools.config['test_file']) and not self.env.context.get('force_report_rendering'):
-            return self_sudo._render_qweb_html(res_ids, data=data)
+            return self._render_qweb_html(report_ref, res_ids, data=data)
 
         collected_streams = self._render_qweb_pdf_prepare_streams(data, res_ids=res_ids)
+
+        # access the report details with sudo() but keep evaluation context as current user
+        report_sudo = self._get_report(report_ref)
 
         # Generate the ir.attachment if needed.
         if self.attachment:
@@ -784,8 +783,8 @@ class IrActionsReport(models.Model):
                 if stream_data['attachment']:
                     continue
 
-                record = self.env[self_sudo.model].browse(res_id)
-                attachment_name = safe_eval(self.attachment, {'object': record, 'time': time})
+                record = self.env[report_sudo.model].browse(res_id)
+                attachment_name = safe_eval(report_sudo.attachment, {'object': record, 'time': time})
 
                 # Unable to compute a name for the attachment.
                 if not attachment_name:
@@ -794,7 +793,7 @@ class IrActionsReport(models.Model):
                 attachment_vals_list.append({
                     'name': attachment_name,
                     'raw': stream_data['stream'].getvalue(),
-                    'res_model': self.model,
+                    'res_model': report_sudo.model,
                     'res_id': record.id,
                     'type': 'binary',
                 })
@@ -820,65 +819,59 @@ class IrActionsReport(models.Model):
             stream.close()
 
         if res_ids:
-            _logger.info("The PDF report has been generated for model: %s, records %s.", self_sudo.model, str(res_ids))
+            _logger.info("The PDF report has been generated for model: %s, records %s.", report_sudo.model, str(res_ids))
 
         return pdf_content, 'pdf'
 
     @api.model
-    def _render_qweb_text(self, docids, data=None):
-        """
-        :rtype: bytes
-        """
+    def _render_qweb_text(self, report_ref, docids, data=None):
         if not data:
             data = {}
         data.setdefault('report_type', 'text')
-        data = self._get_rendering_context(docids, data)
-        return self._render_template(self.report_name, data), 'text'
+        report = self._get_report(report_ref)
+        data = self._get_rendering_context(report, docids, data)
+        return self._render_template(report.report_name, data), 'text'
 
     @api.model
-    def _render_qweb_html(self, docids, data=None):
-        """This method generates and returns html version of a report.
-
-        :rtype: bytes
-        """
+    def _render_qweb_html(self, report_ref, docids, data=None):
         if not data:
             data = {}
         data.setdefault('report_type', 'html')
-        data = self._get_rendering_context(docids, data)
-        return self._render_template(self.report_name, data), 'html'
+        report = self._get_report(report_ref)
+        data = self._get_rendering_context(report, docids, data)
+        return self._render_template(report.report_name, data), 'html'
 
-    def _get_rendering_context_model(self):
-        report_model_name = 'report.%s' % self.report_name
+    def _get_rendering_context_model(self, report):
+        report_model_name = 'report.%s' % report.report_name
         return self.env.get(report_model_name)
 
-    def _get_rendering_context(self, docids, data):
+    def _get_rendering_context(self, report, docids, data):
         # If the report is using a custom model to render its html, we must use it.
         # Otherwise, fallback on the generic html rendering.
-        report_model = self._get_rendering_context_model()
+        report_model = self._get_rendering_context_model(report)
 
         data = data and dict(data) or {}
 
         if report_model is not None:
-            # _render_ may be executed in sudo but evaluation context as real user
-            report_model = report_model.sudo(False)
             data.update(report_model._get_report_values(docids, data=data))
         else:
-            # _render_ may be executed in sudo but evaluation context as real user
-            docs = self.env[self.model].sudo(False).browse(docids)
+            docs = self.env[report.model].browse(docids)
             data.update({
                 'doc_ids': docids,
-                'doc_model': self.model,
+                'doc_model': report.model,
                 'docs': docs,
             })
         data['is_html_empty'] = is_html_empty
         return data
 
-    def _render(self, res_ids, data=None):
-        report_type = self.report_type.lower().replace('-', '_')
+    @api.model
+    def _render(self, report_ref, res_ids, data):
+        report = self._get_report(report_ref)
+        report_type = report.report_type.lower().replace('-', '_')
         render_func = getattr(self, '_render_' + report_type, None)
         if not render_func:
             return None
-        return render_func(res_ids, data=data)
+        return render_func(report_ref, res_ids, data=data)
 
     def report_action(self, docids, data=None, config=True):
         """Return an action of type ir.actions.report.
