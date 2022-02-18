@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.3alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-21 18:37+0000\n"
-"PO-Revision-Date: 2022-03-21 18:37+0000\n"
+"POT-Creation-Date: 2022-03-29 15:07+0000\n"
+"PO-Revision-Date: 2022-03-29 15:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -584,8 +584,6 @@ msgid "Liquid Assests"
 msgstr ""
 
 #. module: l10n_tr
-#: model:account.account,name:l10n_tr.1_chart_template_common_liquidity_transfer
-#: model:account.account,name:l10n_tr.2_chart_template_common_liquidity_transfer
 #: model:account.account.template,name:l10n_tr.chart_template_common_liquidity_transfer
 msgid "Liquidity Transfer"
 msgstr ""
@@ -696,6 +694,22 @@ msgstr ""
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr102997
 msgid "Non-collected Payments"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_no_vat
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_no_vat
+msgid "Not Subjected"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_no_vat
+msgid "Not Subjected to VAT (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_no_vat
+msgid "Not Subjected to VAT (Sales)"
 msgstr ""
 
 #. module: l10n_tr
@@ -1452,20 +1466,361 @@ msgid "Unpaid Capital (-)"
 msgstr ""
 
 #. module: l10n_tr
-#: model:account.tax.group,name:l10n_tr.tax_group_kdv_18
-#: model:account.tax.template,description:l10n_tr.tr_vat_purchase_18
-#: model:account.tax.template,description:l10n_tr.tr_vat_sale_18
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_0
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_0
+msgid "VAT %0"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_0
+msgid "VAT %0 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_0
+msgid "VAT %0 (Sale)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_1
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_1
+msgid "VAT %1"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_1
+msgid "VAT %1 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_1
+msgid "VAT %1 (Sale)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_1_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_1_inc
+msgid "VAT %1 Inc."
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_1_inc
+msgid "VAT %1 Included (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_1_inc
+msgid "VAT %1 Included (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18
 msgid "VAT %18"
 msgstr ""
 
 #. module: l10n_tr
-#: model:account.tax.template,name:l10n_tr.tr_vat_purchase_18
-msgid "VAT %18(purchase)"
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18
+msgid "VAT %18 (Purchase)"
 msgstr ""
 
 #. module: l10n_tr
-#: model:account.tax.template,name:l10n_tr.tr_vat_sale_18
-msgid "VAT %18(sale)"
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18
+msgid "VAT %18 (Sale)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_inc
+msgid "VAT %18 Inc."
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_inc
+msgid "VAT %18 Included (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_inc
+msgid "VAT %18 Included (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8
+msgid "VAT %8"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8
+msgid "VAT %8 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8
+msgid "VAT %8 (Sale)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_inc
+msgid "VAT %8 Inc."
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_inc
+msgid "VAT %8 Included (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_inc
+msgid "VAT %8 Included (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10) (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10) (Sales)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv2_purchase_18
+#: model:account.tax.template,name:l10n_tr.tr_kdv2_purchase_18
+msgid "VAT2 %18"
 msgstr ""
 
 #. module: l10n_tr
@@ -1489,6 +1844,42 @@ msgid "Wages And Expenses Of Workers"
 msgstr ""
 
 #. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kira_stopaj_purchase_20
+msgid "Withholding %20 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_15
+msgid "Withholding I.T.  %15"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kira_stopaj_purchase_20
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_20
+msgid "Withholding I.T.  %20"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_10
+msgid "Withholding I.T. %10"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_10
+msgid "Withholding Income Tax  %10 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_15
+msgid "Withholding Income Tax  %15 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_20
+msgid "Withholding income Tax %20 (Purchase)"
+msgstr ""
+
+#. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr195
 msgid "Work Advances"
 msgstr ""
@@ -1497,3 +1888,4 @@ msgstr ""
 #: model:account.account.template,name:l10n_tr.tr151
 msgid "Work-In-Process – Production"
 msgstr ""
+

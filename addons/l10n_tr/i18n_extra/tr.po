@@ -6,19 +6,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 15.3alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-21 19:00+0000\n"
-"PO-Revision-Date: 2022-03-21 19:00+0000\n"
+"POT-Creation-Date: 2022-03-29 15:07+0000\n"
+"PO-Revision-Date: 2022-03-24 13:47+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+"X-Generator: Translate Toolkit 3.6.0\n"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr278
 msgid "Accumulated Depletion (-)"
-msgstr "BIRIKMIŞ TÜKENME PAYLARI (-)"
+msgstr "BİRİKMİŞ TÜKENME PAYLARI (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr257
@@ -29,13 +31,13 @@ msgstr "BİRİKMİŞ AMORTİSMANLAR (-)"
 #: model:account.account.template,name:l10n_tr.tr268
 #: model:account.account.template,name:l10n_tr.tr299
 msgid "Accumulated Depreciation (-)"
-msgstr "BIRIKMIŞ AMORTISMANLAR (-)"
+msgstr "BİRİKMİŞ AMORTİSMANLAR (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr269
 #: model:account.account.template,name:l10n_tr.tr279
 msgid "Advances Given"
-msgstr "VERILEN AVANSLAR"
+msgstr "VERİLEN AVANSLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr196
@@ -68,7 +70,7 @@ msgstr "ÖZEL TÜKENMEYE TABİ VARLIKLAR"
 #: model:account.account.template,name:l10n_tr.tr300
 #: model:account.account.template,name:l10n_tr.tr400
 msgid "Bank Loans"
-msgstr "BANKA KREDILERI"
+msgstr "BANKA KREDİLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr102999
@@ -83,17 +85,17 @@ msgstr "ÇIKARILMIŞ BONOLAR VE SENETLER"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr405
 msgid "Bonds Issued"
-msgstr "ÇIKARILMIŞ TAHVILLER"
+msgstr "ÇIKARILMIŞ TAHVİLLER"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr732
 msgid "Budget Differences Of General Production Expenses"
-msgstr "GENEL ÜRETIM GIDERLERI BÜTÇE FARKLARI"
+msgstr "GENEL ÜRETİM GİDERLERİ BÜTÇE FARKLARI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr252
 msgid "Buildings"
-msgstr "BINALAR"
+msgstr "BİNALAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr123
@@ -103,7 +105,7 @@ msgstr "ALICILAR (POS)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr734
 msgid "Capacity Differences Of General Production Expenses"
-msgstr "GENEL ÜRETIM GIDERLERI KAPASITE FARKLARI"
+msgstr "GENEL ÜRETİM GİDERLERİ KAPASİTE FARKLARI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr500
@@ -143,17 +145,17 @@ msgstr "TİCARİ MALLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr653
 msgid "Commission Expenses (-)"
-msgstr "KOMISYON GIDERLERI (-)"
+msgstr "KOMİSYON GİDERLERİ (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr643
 msgid "Commission Income"
-msgstr "KOMISYON GELIRLERI"
+msgstr "KOMİSYON GELİRLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr110
 msgid "Common Stocks"
-msgstr "HISSE SENETLERI"
+msgstr "HİSSE SENETLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr258
@@ -173,7 +175,7 @@ msgstr "MALİYET HESAPLARI (7/A SEÇENEĞİ)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr524
 msgid "Cost Increases Fund"
-msgstr "MALIYET ARTIŞLARI FONU"
+msgstr "MALİYET ARTIŞLARI FONU"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr621
@@ -188,7 +190,7 @@ msgstr "SATILAN MAMÜLLER MALİYETİ (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr623
 msgid "Cost Of Other Sales (-)"
-msgstr "DIĞER SATIŞLARIN MALIYETI (-)"
+msgstr "DİĞER SATIŞLARIN MALİYETİ (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr799
@@ -199,12 +201,12 @@ msgstr "ÜRETİM MALİYET HESABI"
 #: model:account.account.template,name:l10n_tr.tr740
 #: model:account.group.template,name:l10n_tr.tr_group_74
 msgid "Cost Of Production Of Services"
-msgstr "HIZMET ÜRETIM MALIYETI"
+msgstr "HİZMET ÜRETİM MALİYETİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr742
 msgid "Cost Of Production Of Services Difference Account"
-msgstr "HIZMET ÜRETIM MALIYETI FARK HESAPLARI"
+msgstr "HİZMET ÜRETİM MALİYETİ FARK HESAPLARI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_62
@@ -214,7 +216,7 @@ msgstr "SATIŞLARIN MALİYETİ (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr622
 msgid "Cost Of Services Sold (-)"
-msgstr "SATILAN HIZMET MALIYETI (-)"
+msgstr "SATILAN HİZMET MALİYETİ (-)"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_1
@@ -230,7 +232,7 @@ msgstr "ALICILAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr191
 msgid "Deductible Vat"
-msgstr "İNDIRILECEK KDV"
+msgstr "İNDİRİLECEK KATMA DEĞER VERGİSİ (KDV)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr302
@@ -260,19 +262,19 @@ msgstr "ERTELENMİŞ FİNANSAL KİRALAMA BORÇLANMA MALİYETLERİ (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr190
 msgid "Deferred Vat"
-msgstr "DEVREDEN KDV"
+msgstr "DEVREDEN KATMA DEĞER VERGİSİ (KDV)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr126
 #: model:account.account.template,name:l10n_tr.tr226
 #: model:account.account.template,name:l10n_tr.tr326
 msgid "Deposits And Guarantees Given"
-msgstr "VERILEN DEPOZITO VE TEMINATLAR"
+msgstr "VERİLEN DEPOZİTO VE TEMİNATLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr426
 msgid "Deposits And Guarantees Taken"
-msgstr "ALINAN DEPOZITO VE TEMINATLAR"
+msgstr "ALINAN DEPOZİTO VE TEMİNATLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr796
@@ -283,7 +285,7 @@ msgstr "AMORTİSMANLAR VE TÜKENME PAYLARI"
 #: model:account.account.template,name:l10n_tr.tr720
 #: model:account.group.template,name:l10n_tr.tr_group_72
 msgid "Direct Labour Expenses"
-msgstr "DIREKT İŞÇILIK GIDERLERI"
+msgstr "DİREKT İŞÇİLİK GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr723
@@ -304,7 +306,7 @@ msgstr "DİREKT İLKMADDE VE MALZEME GİDERLERİ"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr710
 msgid "Direct Raw Materials And Supplies Expenses"
-msgstr "DIREKT İLK MADDE VE MALZEME GIDERLERI"
+msgstr "DİREKT İLKMADDE VE MALZEME GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr647
@@ -360,17 +362,17 @@ msgstr "İŞTİRAKLERDEN TEMETTÜ GELİRLERİ"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr600
 msgid "Domestic Sales"
-msgstr "YURTIÇI SATIŞLAR"
+msgstr "YURTİÇİ SATIŞLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr128
 msgid "Doubtful Trade Receivables"
-msgstr "ŞÜPHELI TICARI ALACAKLAR"
+msgstr "ŞÜPHELİ TİCARİ ALACAKLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr381
 msgid "Expense Accruals"
-msgstr "GIDER TAHAKKUKLARI"
+msgstr "GİDER TAHAKKUKLARI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_65
@@ -412,7 +414,7 @@ msgstr "OLAĞANDIŞI GELİR VE KÂRLAR"
 #: model:account.account.template,name:l10n_tr.tr797
 #: model:account.group.template,name:l10n_tr.tr_group_78
 msgid "Financial Expenses"
-msgstr "FINANSMAN GIDERLERI"
+msgstr "FİNANSMAN GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_66
@@ -422,7 +424,7 @@ msgstr "FİNANSMAN GİDERLERİ (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr782
 msgid "Financial Expenses Difference Account"
-msgstr "FINANSMAN GIDERLERI FARK HESABI"
+msgstr "FİNANSMAN GİDERLERİ FARK HESABI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_30
@@ -438,7 +440,7 @@ msgstr "MALİ DURAN VARLIKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr152
 msgid "Finished Goods"
-msgstr "MAMULLER"
+msgstr "MAMÜLLER"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr259
@@ -463,7 +465,7 @@ msgstr "KAMBIYO ZARARLARI (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr255
 msgid "Furniture And Fixtures"
-msgstr "DEMIRBAŞLAR"
+msgstr "DEMİRBAŞLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr648
@@ -490,7 +492,7 @@ msgstr "GENEL YÖNETİM GİDERLERİ (-)"
 #: model:account.account.template,name:l10n_tr.tr730
 #: model:account.group.template,name:l10n_tr.tr_group_73
 msgid "General Production Expenses"
-msgstr "GENEL ÜRETIM GIDERLERI"
+msgstr "GENEL ÜRETİM GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr542
@@ -500,7 +502,7 @@ msgstr "OLAĞANÜSTÜ YEDEKLER"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr261
 msgid "Goodwill"
-msgstr "ŞEREFIYE"
+msgstr "ŞEREFİYE"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_60
@@ -516,7 +518,7 @@ msgstr "MERKEZ VE ŞUBELER CARİ HESABI"
 #: model:account.account.template,name:l10n_tr.tr181
 #: model:account.account.template,name:l10n_tr.tr281
 msgid "Income Accruals"
-msgstr "GELIR TAHAKKUKLARI"
+msgstr "GELİR TAHAKKUKLARI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_64
@@ -551,7 +553,7 @@ msgstr "REESKONT FAIZ GIDERLERI (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr642
 msgid "Interest Income"
-msgstr "FAIZ GELIRLERI"
+msgstr "FAİZ GELİRLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr224
@@ -561,7 +563,7 @@ msgstr "KAZANILMAMIŞ FINANSAL KIRALAMA FAIZ GELIRLERI(-) "
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr250
 msgid "Land"
-msgstr "ARAZI VE ARSALAR"
+msgstr "ARAZİ VE ARSALAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr264
@@ -584,8 +586,6 @@ msgid "Liquid Assests"
 msgstr "HAZIR DEĞERLER"
 
 #. module: l10n_tr
-#: model:account.account,name:l10n_tr.1_chart_template_common_liquidity_transfer
-#: model:account.account,name:l10n_tr.2_chart_template_common_liquidity_transfer
 #: model:account.account.template,name:l10n_tr.chart_template_common_liquidity_transfer
 msgid "Liquidity Transfer"
 msgstr "LIKIDITE TRANSFERI"
@@ -613,12 +613,12 @@ msgstr "GELECEK YILLAR İHTİYACI STOKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr697
 msgid "Long-term Construction Inflation Adjustment Account"
-msgstr "YILLARA YAYGIN İNŞAAT ENFLASYON DÜZELTME HESABI"
+msgstr "YILLARA YAYGIN İNŞAAT VE ENFLASYON DÜZELTME"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr658
 msgid "Loss From Inflation Adjustments (-)"
-msgstr "ENFLASYON DÜZELTMESI ZARARLARI (-)"
+msgstr "ENFLASYON DÜZELTMESI ZARARLARI(-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr253
@@ -649,12 +649,12 @@ msgstr "PAZARLAMA SATIŞ VE DAĞITIM GİDERLERİ"
 #: model:account.account.template,name:l10n_tr.tr760
 #: model:account.group.template,name:l10n_tr.tr_group_76
 msgid "Marketing, Sales And Distribution Expenses"
-msgstr "PAZARLAMA, SATIŞ VE DAĞITIM GIDERLERI"
+msgstr "PAZARLAMA SATIŞ YE DAĞITIM GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr762
 msgid "Marketing, Sales And Distribution Expenses Difference Account"
-msgstr "PAZARLAMA, SATIŞ VE DAĞITIM GIDERLERI FARK HESABI"
+msgstr "PAZARLAMA SATIŞ VE DAĞITIM GİDERLERİ FARK HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr794
@@ -681,7 +681,7 @@ msgstr "DÖNEM NET KÂRI (ZARARI)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr590
 msgid "Net Profit For The Period"
-msgstr "DÖNEM NET KARI"
+msgstr "DÖNEM NET KÂRI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_2
@@ -699,20 +699,37 @@ msgid "Non-collected Payments"
 msgstr "TAHSIL EDILMEYEN ÖDEMELER"
 
 #. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_no_vat
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_no_vat
+msgid "Not Subjected"
+msgstr "Özel Matrah"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_no_vat
+msgid "Not Subjected to VAT (Purchase)"
+msgstr "Özel Matrah(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_no_vat
+msgid "Not Subjected to VAT (Sales)"
+msgstr "Özel Matrah(Satış)"
+
+#. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr321
 #: model:account.account.template,name:l10n_tr.tr421
 msgid "Notes Payable"
-msgstr "BORÇ SENETLERI"
+msgstr "BORÇ SENETLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr121
 msgid "Notes Receivable"
-msgstr "ALACAK SENETLERI"
+msgstr "ALACAK SENETLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr221
+#, fuzzy
 msgid "Notes Receivables "
-msgstr ""
+msgstr "ALACAK SENETLERİ"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_63
@@ -734,7 +751,7 @@ msgstr "DİĞER SERMAYE YEDEKLERİ"
 #: model:account.account.template,name:l10n_tr.tr198
 #: model:account.group.template,name:l10n_tr.tr_group_19
 msgid "Other Current Assets"
-msgstr "DIĞER ÇEŞITLI DÖNEN VARLIKLAR"
+msgstr "DİĞER DÖNEN VARLIKLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr277
@@ -743,18 +760,19 @@ msgstr "DİĞER ÖZEL TÜKENMEYE TABİ VARLIKLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr612
+#, fuzzy
 msgid "Other Discounts (-) "
-msgstr ""
+msgstr "SATIŞ İSKONTOLARI (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr138
 msgid "Other Doubtful Receivables"
-msgstr "ŞÜPHELI DIĞER ALACAKLAR"
+msgstr "ŞÜPHELİ DİĞER ALACAKLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr659
 msgid "Other Expenses And Losses (-)"
-msgstr "DIĞER OLAĞAN GIDER VE ZARARLAR (-)"
+msgstr "DİĞER GİDER VE ZARARLAR (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr689
@@ -770,12 +788,12 @@ msgstr "DİĞER OLAĞANDIŞI GELİR VE KÂRLAR"
 #: model:account.account.template,name:l10n_tr.tr309
 #: model:account.account.template,name:l10n_tr.tr409
 msgid "Other Financial Liabilities"
-msgstr "DIĞER MALI BORÇLAR"
+msgstr "DİĞER MALİ BORÇLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr649
 msgid "Other Income And Profit From Operations"
-msgstr "DIĞER OLAĞAN GELIR VE KARLAR"
+msgstr "FAALİYETLE İLGİLİ DİĞER GELİR VE KÂRLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr267
@@ -790,7 +808,7 @@ msgstr "ÖDENECEK DİĞER YÜKÜMLÜLÜKLER"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr108
 msgid "Other Liquid Assets"
-msgstr "DIĞER HAZIR DEĞERLER"
+msgstr "DİĞER HAZIR DEĞERLER"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_49
@@ -800,13 +818,13 @@ msgstr "DİĞER UZUN VADELİ YABANCI KAYNAKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr118
 msgid "Other Marketable Securities"
-msgstr "DIĞER MENKUL KIYMETLER"
+msgstr "DİĞER MENKUL KIYMETLER"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr306
 #: model:account.account.template,name:l10n_tr.tr407
 msgid "Other Marketable Securities Issued"
-msgstr "ÇIKARILMIŞ DIĞER MENKUL KIYMETLER"
+msgstr "ÇIKARILMIŞ DİĞER MENKUL KIYMETLER"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr499
@@ -869,7 +887,7 @@ msgstr "DİĞER KÂR YEDEKLERİ"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr602
 msgid "Other Sales"
-msgstr "DIĞER GELIRLER"
+msgstr "DİĞER GELİRLER"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_39
@@ -893,20 +911,21 @@ msgstr "DİĞER TİCARİ BORÇLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr329
+#, fuzzy
 msgid "Other Trade Payables "
-msgstr ""
+msgstr "DİĞER TİCARİ BORÇLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr127
 msgid "Other Trade Receivables"
-msgstr "DIĞER TICARI ALACAKLAR"
+msgstr "DİĞER TİCARİ ALACAKLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr192
 #: model:account.account.template,name:l10n_tr.tr292
 #: model:account.account.template,name:l10n_tr.tr392
 msgid "Other Vat"
-msgstr "DIĞER KDV"
+msgstr "DİĞER KATMA DEĞER VERGİSİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr368
@@ -995,8 +1014,9 @@ msgstr "GELECEK AYLARA AİT GİDERLER"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr295
+#, fuzzy
 msgid "Prepaid Tax And Funds "
-msgstr ""
+msgstr "PEŞİN ÖDENEN VERGİLER VE FONLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr371
@@ -1006,12 +1026,12 @@ msgstr "DÖNEM KÂRININ PEŞİN ÖDENEN VERGİ VE DİĞER YÜKÜMLÜLÜKLERİ (-
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr193
 msgid "Prepaid Taxes And Funds"
-msgstr "PEŞIN ÖDENEN VERGILER VE FONLAR"
+msgstr "PEŞİN ÖDENEN VERGİLER VE FONLAR"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr272
 msgid "Preparation And Development Expenses"
-msgstr "HAZIRLIK VE GELIŞTIRME GIDERLERI"
+msgstr "HAZIRLIK VE GELİŞTİRME GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr580
@@ -1028,7 +1048,7 @@ msgstr "GEÇMİŞ YILLAR KÂRLARI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr712
 msgid "Price Differences Of Direct Raw Materials And Supplies"
-msgstr "DIREKT İLK MADDE VE MALZEME FIYAT FARKI"
+msgstr "DİREKT İLKMADDE VE MALZEME FİYAT FARKI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr303
@@ -1048,7 +1068,7 @@ msgstr "ÖZEL KESİM TAHVİL, SENET VE BONOLARI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr733
 msgid "Productivity Differences Of General Production Expenses"
-msgstr "GENEL ÜRETIM GIDERLERI VERIMLILIK FARKLARI"
+msgstr "GENEL ÜRETİM GİDERLERİ VERİMLİLİK FARKLARI"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_59
@@ -1099,12 +1119,12 @@ msgstr "ŞÜPHELİ TİCARİ ALACAKLAR KARŞILIĞI (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr373
 msgid "Provision For Expenses Relating To Costing"
-msgstr "MALIYET GIDERLERI KARŞILIĞI"
+msgstr "MALİYET GİDERLERİ KARŞILIĞI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr199
 msgid "Provision For Other Current Assets (-)"
-msgstr "DIĞER ÇEŞITLI DÖNEN VARLIKLAR KARŞILIĞI (-)"
+msgstr "DİĞER DÖNEN VARLIKLAR KARŞILIĞI (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr139
@@ -1114,7 +1134,7 @@ msgstr "ŞÜPHELİ DİĞER ALACAKLAR KARŞILIĞI (-)"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr379
 msgid "Provision For Other Liabilities And Expenses"
-msgstr "DIĞER BORÇ VE GIDER KARŞILIKLARI"
+msgstr "DİĞER BORÇ VE GİDER KARŞILIKLARI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr249
@@ -1145,7 +1165,7 @@ msgstr "BORÇ VE GİDER KARŞILIKLARI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr479
 msgid "Provisions For Other Liabilities And Expenses"
-msgstr "DIĞER BORÇ VE GIDER KARŞILIKLARI"
+msgstr "DİĞER BORÇ VE GİDER KARŞILIKLARI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr472
@@ -1155,8 +1175,7 @@ msgstr "KIDEM TAZMİNATI KARŞILIĞI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr370
 msgid ""
-"Provisions For Tax And Other Liabilities Relating To The Profit Of The "
-"Period"
+"Provisions For Tax And Other Liabilities Relating To The Profit Of The Period"
 msgstr "DÖNEM KÂRI VERGİ VE DİĞER YASAL YÜKÜMLÜLÜK KARŞILIKLARI"
 
 #. module: l10n_tr
@@ -1172,7 +1191,7 @@ msgstr "KAMU KESİMİ TAHVİL, SENET VE BONOLARI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr713
 msgid "Quantity Differences Of Direct Raw Materials And Supplies"
-msgstr "DIREKT İLK MADDE VE MALZEME MIKTAR FARKI"
+msgstr "DİREKT İLKMADDE VE MALZEME MİKTAR FARKI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr150
@@ -1210,17 +1229,17 @@ msgstr "İŞTİRAKLERDEN ALACAKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr741
 msgid "Reflection Account For Cost Of Production Of Services"
-msgstr "HIZMET ÜRETIM MALIYETI YANSITMA HESABI"
+msgstr "HİZMET ÜRETİM MALİYETİ YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr721
 msgid "Reflection Account For Direct Labour Expenses"
-msgstr "DIREKT İŞÇILIK GIDERLERI YANSITMA HESABI"
+msgstr "DİREKT İŞCİLİK GİDERLERİ YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr711
 msgid "Reflection Account For Direct Raw Materials And Supplies"
-msgstr "DIREKT İLK MADDE VE MALZEME YANSITMA HESABI"
+msgstr "DİREKT İLKMADDE VE MALZEME YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr798
@@ -1230,7 +1249,7 @@ msgstr "GİDER ÇEŞİTLERİ YANSITMA HESABI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr781
 msgid "Reflection Account For Financial Expenses"
-msgstr "FINANSMAN GIDERLERI YANSITMA HESABI"
+msgstr "FİNANSMAN GİDERLERİ YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr771
@@ -1240,12 +1259,12 @@ msgstr "GENEL YÖNETİM GİDERLERİ YANSITMA HESABI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr731
 msgid "Reflection Account For General Production Expenses"
-msgstr "GENEL ÜRETIM GIDERLERI YANSITMA HESABI"
+msgstr "GENEL ÜRETİM GİDERLERİ YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr761
 msgid "Reflection Account For Marketing, Sales And Distribution Expenses"
-msgstr "PAZARLAMA, SATIŞ VE DAĞITIM GIDERLERI YANSITMA HESABI"
+msgstr "PAZARLAMA SATIŞ VE DAĞITIM GİDERLERİ YANSITMA HESABI"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr751
@@ -1262,12 +1281,12 @@ msgstr "MALİYET MUHASEBESİ YANSITMA HESABI"
 #: model:account.account.template,name:l10n_tr.tr750
 #: model:account.group.template,name:l10n_tr.tr_group_75
 msgid "Research And Development Expenses"
-msgstr "ARAŞTIRMA VE GELIŞTIRME GIDERLERI"
+msgstr "ARAŞTIRMA VE GELİŞTİRME GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr630
 msgid "Research And Development Expenses (-)"
-msgstr "ARAŞTIRMA VE GELIŞTIRME GIDERLERI (-)"
+msgstr "ARAŞTIRMA VE GELİŞTİRME GİDERLERİ (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr752
@@ -1277,7 +1296,7 @@ msgstr "ARAŞTIRMA VE GELİŞTİRME GİDER FARKLARI"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr271
 msgid "Research Expenses"
-msgstr "ARAMA GIDERLERI"
+msgstr "ARAMA GİDERLERİ"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_54
@@ -1327,7 +1346,7 @@ msgstr "KISA VADELİ YABANCI KAYNAKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr361
 msgid "Social Security Premiums Payable"
-msgstr "ÖDENECEK SOSYAL GÜVENLIK KESINTILERI"
+msgstr "ÖDENECEK SOSYAL GÜVENLİK KESİNTİLERİ"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr549
@@ -1383,7 +1402,7 @@ msgstr "MADDİ DURAN VARLIKLAR"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr360
 msgid "Taxes And Funds Payable"
-msgstr "ÖDENECEK VERGI VE FONLAR"
+msgstr "ÖDENECEK VERGİ VE FONLAR"
 
 #. module: l10n_tr
 #: model:account.group.template,name:l10n_tr.tr_group_36
@@ -1445,7 +1464,7 @@ msgstr "YER ALTI VE YER ÜSTÜ DÜZENLERİ"
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr124
 msgid "Unearned Lease Interest Income (-)"
-msgstr "KAZANILMAMIŞ FINANSAL KIRALAMA FAIZ GELIRLERI (-)"
+msgstr "KAZANILMAMIŞ FİNANSAL KİRALAMA FAİZ GELİRLERİ (-)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr501
@@ -1453,21 +1472,362 @@ msgid "Unpaid Capital (-)"
 msgstr "ÖDENMEMİŞ SERMAYE (-)"
 
 #. module: l10n_tr
-#: model:account.tax.group,name:l10n_tr.tax_group_kdv_18
-#: model:account.tax.template,description:l10n_tr.tr_vat_purchase_18
-#: model:account.tax.template,description:l10n_tr.tr_vat_sale_18
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_0
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_0
+msgid "VAT %0"
+msgstr "KDV %0"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_0
+msgid "VAT %0 (Purchase)"
+msgstr "KDV %0(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_0
+msgid "VAT %0 (Sale)"
+msgstr "KDV %0(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_1
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_1
+msgid "VAT %1"
+msgstr "KDV %1"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_1
+msgid "VAT %1 (Purchase)"
+msgstr "KDV %1(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_1
+msgid "VAT %1 (Sale)"
+msgstr "KDV %1(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_1_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_1_inc
+msgid "VAT %1 Inc."
+msgstr "KDV %1 Dahıl"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_1_inc
+msgid "VAT %1 Included (Purchase)"
+msgstr "KDV %1 Dahıl(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_1_inc
+msgid "VAT %1 Included (Sales)"
+msgstr "KDV %1 Dahıl(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18
 msgid "VAT %18"
-msgstr "KDV 18%"
+msgstr "KDV %18"
 
 #. module: l10n_tr
-#: model:account.tax.template,name:l10n_tr.tr_vat_purchase_18
-msgid "VAT %18(purchase)"
-msgstr "KDV 18%(alış)"
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18
+msgid "VAT %18 (Purchase)"
+msgstr "KDV %18(Alım)"
 
 #. module: l10n_tr
-#: model:account.tax.template,name:l10n_tr.tr_vat_sale_18
-msgid "VAT %18(sale)"
-msgstr "KDV 18%(satış)"
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18
+msgid "VAT %18 (Sale)"
+msgstr "KDV %18(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_inc
+msgid "VAT %18 Inc."
+msgstr "KDV %18 Dahıl"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_inc
+msgid "VAT %18 Included (Purchase)"
+msgstr "KDV %18 Dahıl(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_inc
+msgid "VAT %18 Included (Sales)"
+msgstr "KDV %18 Dahıl(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10)"
+msgstr "KDV %18 Tevkifat (2/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (2/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_2
+msgid "VAT %18 Withholding (2/10) (Sales)"
+msgstr "KDV %18 Tevkifat (2/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10)"
+msgstr "KDV %18 Tevkifat (3/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (3/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_3
+msgid "VAT %18 Withholding (3/10) (Sales)"
+msgstr "KDV %18 Tevkifat (3/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10)"
+msgstr "KDV %18 Tevkifat (4/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (4/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_4
+msgid "VAT %18 Withholding (4/10) (Sales)"
+msgstr "KDV %18 Tevkifat (4/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10)"
+msgstr "KDV %18 Tevkifat (5/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (5/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_5
+msgid "VAT %18 Withholding (5/10) (Sales)"
+msgstr "KDV %18 Tevkifat (5/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10)"
+msgstr "KDV %18 Tevkifat (7/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (7/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_7
+msgid "VAT %18 Withholding (7/10) (Sales)"
+msgstr "KDV %18 Tevkifat (7/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_18_withholding_group_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10)"
+msgstr "KDV %18 Tevkifat (9/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10) (Purchase)"
+msgstr "KDV %18 Tevkifat (9/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_18_withholding_group_9
+msgid "VAT %18 Withholding (9/10) (Sales)"
+msgstr "KDV %18 Tevkifat (9/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8
+msgid "VAT %8"
+msgstr "KDV %8"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8
+msgid "VAT %8 (Purchase)"
+msgstr "KDV %8(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8
+msgid "VAT %8 (Sale)"
+msgstr "KDV %8(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_inc
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_inc
+msgid "VAT %8 Inc."
+msgstr "KDV %8 Dahıl"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_inc
+msgid "VAT %8 Included (Purchase)"
+msgstr "KDV %8 Dahıl(Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_inc
+msgid "VAT %8 Included (Sales)"
+msgstr "KDV %8 Dahıl(Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_2
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10)"
+msgstr "KDV %8 Tevkifat (2/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (2/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_2
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_2
+msgid "VAT %8 Withholding (2/10) (Sales)"
+msgstr "KDV %8 Tevkifat (2/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_3
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10)"
+msgstr "KDV %8 Tevkifat (3/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (3/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_3
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_3
+msgid "VAT %8 Withholding (3/10) (Sales)"
+msgstr "KDV %8 Tevkifat (3/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_4
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10)"
+msgstr "KDV %8 Tevkifat (4/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (4/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_4
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_4
+msgid "VAT %8 Withholding (4/10) (Sales)"
+msgstr "KDV %8 Tevkifat (4/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_5
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10)"
+msgstr "KDV %8 Tevkifat (5/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (5/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_5
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_5
+msgid "VAT %8 Withholding (5/10) (Sales)"
+msgstr "KDV %8 Tevkifat (5/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_7
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10)"
+msgstr "KDV %8 Tevkifat (7/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (7/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_7
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_7
+msgid "VAT %8 Withholding (7/10) (Sales)"
+msgstr "KDV %8 Tevkifat (7/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_purchase_8_withholding_group_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_9
+#: model:account.tax.template,description:l10n_tr.tr_kdv_sale_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10)"
+msgstr "KDV %8 Tevkifat (9/10)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_purchase_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10) (Purchase)"
+msgstr "KDV %8 Tevkifat (9/10) (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_9
+#: model:account.tax.template,name:l10n_tr.tr_kdv_sale_8_withholding_group_9
+msgid "VAT %8 Withholding (9/10) (Sales)"
+msgstr "KDV %8 Tevkifat (9/10) (Satış)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kdv2_purchase_18
+#: model:account.tax.template,name:l10n_tr.tr_kdv2_purchase_18
+msgid "VAT2 %18"
+msgstr "KDV2 %18"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr391
@@ -1488,6 +1848,42 @@ msgstr "GELECEK YILLARA ERTELENEN VEYA TERKİN EDİLEN KATMA DEĞER VERGİSİ(1)
 #: model:account.account.template,name:l10n_tr.tr791
 msgid "Wages And Expenses Of Workers"
 msgstr "İŞÇİ ÜCRET VE GİDERLERİ"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_kira_stopaj_purchase_20
+msgid "Withholding %20 (Purchase)"
+msgstr "K.V. STOPAJ %20 (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_15
+msgid "Withholding I.T.  %15"
+msgstr "G.V. STOPAJ %15"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_kira_stopaj_purchase_20
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_20
+msgid "Withholding I.T.  %20"
+msgstr "G.V. STOPAJ %20"
+
+#. module: l10n_tr
+#: model:account.tax.template,description:l10n_tr.tr_stopaj_purchase_10
+msgid "Withholding I.T. %10"
+msgstr "G.V. STOPAJ %10"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_10
+msgid "Withholding Income Tax  %10 (Purchase)"
+msgstr "G.V. STOPAJ %10 (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_15
+msgid "Withholding Income Tax  %15 (Purchase)"
+msgstr "G.V. STOPAJ %15 (Alım)"
+
+#. module: l10n_tr
+#: model:account.tax.template,name:l10n_tr.tr_stopaj_purchase_20
+msgid "Withholding income Tax %20 (Purchase)"
+msgstr "G.V. STOPAJ %20 (Alım)"
 
 #. module: l10n_tr
 #: model:account.account.template,name:l10n_tr.tr195

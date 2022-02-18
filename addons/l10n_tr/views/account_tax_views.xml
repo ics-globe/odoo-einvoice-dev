@@ -6,26 +6,10 @@
         <field name="inherit_id" ref="account.view_tax_form"/>
         <field name="arch" type="xml">
             <field name="type_tax_use" position="after">
-                <field name="l10n_tr_code" attrs="{
-                            'invisible': ['|',
-                                            ('country_id', '!=', %(base.tr)d) ,
-                                            ('l10n_tr_tax_type', '=', 'normal'),
-                                         ]}"/>
-                <field name="l10n_tr_tax_type" attrs="{'invisible': [('country_id', '!=', %(base.tr)d)]}"/>
+                <field name="l10n_tr_exception_code_ids" attrs="{'invisible': [('country_code', '!=', 'TR')]}"
+                       widget="many2many_tags"/>
             </field>
         </field>
     </record>
 
-    <record id="account_tax_group_view_tree" model="ir.ui.view">
-        <field name="name">account.tax.group.view.tree</field>
-        <field name="model">account.tax.group</field>
-        <field name="inherit_id" ref="account.view_tax_group_tree"/>
-        <field name="arch" type="xml">
-
-            <field name="code" position="after">
-                <field name="l10n_tr_tax_type"/>
-            </field>
-
-        </field>
-    </record>
 </odoo>
