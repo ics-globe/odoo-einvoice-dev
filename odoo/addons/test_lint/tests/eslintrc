@@ -35,6 +35,7 @@
         "moment": "readonly",
         "py": "readonly",
         "ClipboardJS": "readonly",
+        "Modal": "readonly",
         "globalThis": "readonly"
     }
 }
