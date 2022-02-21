@@ -153,7 +153,7 @@ class Website(models.Model):
 
     def _compute_menu(self):
         for website in self:
-            menus = self.env['website.menu'].browse(website._get_menu_ids())
+            menus = self.env['website.menu'].browse(website._get_menu_ids()['menu_ids'])
 
             # use field parent_id (1 query) to determine field child_id (2 queries by level)"
             for menu in menus:
@@ -172,7 +172,8 @@ class Website(models.Model):
     # self.env.uid for ir.rule groups on menu
     @tools.ormcache('self.env.uid', 'self.id')
     def _get_menu_ids(self):
-        return self.env['website.menu'].search([('website_id', '=', self.id)]).ids
+        menus = self.env['website.menu'].search([('website_id', '=', self.id)])
+        return {'menu_ids': menus.ids, 'page_ids': menus.mapped('page_id').ids}
 
     @api.model_create_multi
     def create(self, vals_list):
