@@ -347,6 +347,8 @@ class Cursor(BaseCursor):
 
         if self.sql_log:
             _logger.debug("query: %s", self._format(query, params))
+            import traceback;
+            _logger.debug("stack: " + "".join(['File: %r | line %d | %s | %s\n' % (filename, lineno, name, line) for filename, lineno, name, line in traceback.extract_stack()[:-3] if '/odoo/' in filename]))
         start = time.time()
         try:
             params = params or None
