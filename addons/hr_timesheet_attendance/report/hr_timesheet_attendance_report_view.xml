@@ -22,6 +22,9 @@
                     <field name="total_attendance" type="measure" widget="timesheet_uom"/>
                     <field name="total_timesheet" type="measure" widget="timesheet_uom"/>
                     <field name="total_difference" type="measure" widget="timesheet_uom"/>
+                    <field name="timesheets_cost" type="measure"/>
+                    <field name="attendance_cost" type="measure"/>
+                    <field name="cost_difference" type="measure"/>
                 </pivot>
             </field>
         </record>
