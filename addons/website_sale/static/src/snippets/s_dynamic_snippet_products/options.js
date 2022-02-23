@@ -20,6 +20,8 @@ const dynamicSnippetProductsOptions = s_dynamic_snippet_carousel_options.extend(
         if (!this.hasProductTemplateId) {
             this.contextualFilterDomain.push(['product_cross_selling', '=', false]);
         }
+        // The alternative product filter is a special filter injected in the product view.
+        this.isAlternativeProductSnippet = this.$target.hasClass('o_wsale_alternative_products');
         this.productCategories = {};
     },
     //--------------------------------------------------------------------------
@@ -48,7 +50,18 @@ const dynamicSnippetProductsOptions = s_dynamic_snippet_carousel_options.extend(
      */
     _renderCustomXML: async function (uiFragment) {
         await this._super.apply(this, arguments);
-        await this._renderProductCategorySelector(uiFragment);
+        if (!this.isAlternativeProductSnippet) {
+            await this._renderProductCategorySelector(uiFragment);
+        } else {
+            // We do not want any of these options in case we are in our alternative products snippet.
+            const optsToRemove = [
+                "filter_opt", "product_category_opt", "product_tag_opt",
+                "product_names_opt", "number_of_records_opt"
+            ];
+            for (const opt of optsToRemove) {
+                uiFragment.querySelector(`[data-name="${opt}"]`).remove();
+            }
+        }
     },
     /**
      * Renders the product categories option selector content into the provided uiFragment.

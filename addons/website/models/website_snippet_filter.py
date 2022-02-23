@@ -19,6 +19,7 @@ class WebsiteSnippetFilter(models.Model):
     _order = 'name ASC'
 
     name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
     action_server_id = fields.Many2one('ir.actions.server', 'Server Action', ondelete='cascade')
     field_names = fields.Char(help="A list of comma-separated field names", required=True)
     filter_id = fields.Many2one('ir.filters', 'Filter', ondelete='cascade')
