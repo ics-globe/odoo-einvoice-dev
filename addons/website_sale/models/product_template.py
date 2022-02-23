@@ -468,7 +468,7 @@ class ProductTemplate(models.Model):
                 combination_info = product._get_combination_info(only_template=True)
                 data['price'], list_price = self._search_render_results_prices(
                     mapping, combination_info
-                )
+                ) if combination_info['price'] else ''
                 if list_price:
                     data['list_price'] = list_price
             if with_image:
