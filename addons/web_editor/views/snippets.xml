@@ -566,12 +566,14 @@
             </we-button>
         </we-row>
 
-        <we-button-group string="Width" data-css-property="width">
-            <we-button data-select-style="" title="Resize Auto">Auto</we-button>
-            <we-button data-select-style="25%" title="Resize Quarter">25%</we-button>
-            <we-button data-select-style="50%" title="Resize Half">50%</we-button>
-            <we-button data-select-style="100%" title="Resize Full">100%</we-button>
-        </we-button-group>
+        <div data-selector="img:not(.o_media_left, .o_media_right)">
+            <we-button-group string="Width" data-css-property="width">
+                <we-button data-select-style="" title="Resize Auto">Auto</we-button>
+                <we-button data-select-style="25%" title="Resize Quarter">25%</we-button>
+                <we-button data-select-style="50%" title="Resize Half">50%</we-button>
+                <we-button data-select-style="100%" title="Resize Full">100%</we-button>
+            </we-button-group>
+        </div>
     </div>
 
     <div data-selector="span.fa, i.fa, img">

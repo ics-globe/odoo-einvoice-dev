@@ -1,0 +1,72 @@
+.s_image_comparison {
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    *, *:before, *:after{
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    figure, img {
+        width: 100%;
+        height: 100%;
+    }
+    .o_media_left {
+        clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+        @include o-position-absolute(0, 0, 0, 0);
+    }
+    @mixin input-thumb {
+        -webkit-appearance: none;
+        height: 30px;
+        width: 30px;
+        background: url('/web/image/website.s_image_comparison_slider'), rgba($color: white, $alpha: 0.3);
+        border: 1px solid white;
+        border-radius: 50%;
+        background-size: contain;
+        cursor: pointer;
+    }
+    input[type='range'] {
+        @include o-position-absolute(0, 0, 0, 0);
+        -webkit-appearance: none;
+        width: calc(100% + 30px);
+        height: 100%;
+        margin-left: -15px;
+        background-color: transparent;
+        outline: none;
+        // Google Chrome
+        &::-webkit-slider-thumb {
+            @include input-thumb;
+        }
+        // Firefox
+        &::-moz-range-thumb {
+            @include input-thumb;
+        }
+        // Internet Explorer
+        &::-ms-thumb {
+            @include input-thumb;
+        }
+    }
+    .o_description {
+        @include o-position-absolute(0, 0, unset, 0);
+        z-index: 99;
+        padding: 0 1em;
+        background-color: rgba($color: black, $alpha: 0.4);
+        color: white;
+    }
+    .o_left_description {
+        right: unset;
+    }
+    .o_right_description {
+        left: unset;
+    }
+    .o_enlarge_button {
+        @include o-position-absolute(auto, 0, 0, unset);
+        z-index: 99;
+        color: black !important;
+        background-color: rgba($color: white, $alpha: 0.3);
+        width: 23px;
+        height: 23px;
+        color: white !important;
+        border: 1px solid white;
+    }
+}
