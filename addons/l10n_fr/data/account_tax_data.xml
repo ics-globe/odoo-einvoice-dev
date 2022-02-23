@@ -16,6 +16,7 @@
             - Services (Based Payment)
 
          No tax were removed from the old 14.0 version ! Only some were split, the others were kept (but modified)
+         All taxes but the TTC have "include_base_amount" set to "1"
     -->
 
 
@@ -30,6 +31,7 @@
         <field name="sequence" eval="9"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -70,6 +72,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -110,6 +113,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -150,6 +154,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -190,6 +195,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -231,6 +237,7 @@
         <field name="sequence" eval="9"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -276,7 +283,7 @@
         ]"/>
     </record>  <!-- new one, not in odoo-->
 
-    <record model="account.tax.template" id="tva_purchase_good_fuel_ttc">
+    <record model="account.tax.template" id="tva_purchase_good_fuel_TTC">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
         <field name="name">TVA 20% CARBURANT TTC</field>
         <field name="description">TVA 20%</field>
@@ -547,6 +554,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -587,6 +595,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -627,6 +636,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -667,6 +677,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -707,6 +718,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -748,6 +760,7 @@
         <field name="sequence" eval="11"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -802,6 +815,7 @@
         <field name="sequence" eval="11"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -856,6 +870,7 @@
         <field name="sequence" eval="11"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -910,6 +925,7 @@
         <field name="sequence" eval="11"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -964,6 +980,7 @@
         <field name="sequence" eval="11"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1019,6 +1036,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1076,6 +1094,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1128,6 +1147,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1185,6 +1205,7 @@
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -1227,6 +1248,7 @@
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -1268,6 +1290,7 @@
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -1310,6 +1333,7 @@
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -1340,6 +1364,7 @@
         ]"/>
     </record>
 
+    <!-- TTC -->
     <record model="account.tax.template" id="tva_acq_encaissement_TTC">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
         <field name="name">TVA 20,0% TTC</field>
@@ -1428,7 +1453,7 @@
 
     <record model="account.tax.template" id="tva_acq_encaissement_reduite_TTC">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 5,5% TTC ???</field>
+        <field name="name">TVA 5,5% TTC *not in lpde*</field>
         <field name="description">TVA 5,5% TTC</field>
         <field name="price_include" eval="1"/>
         <field name="amount" eval="5.5"/>
@@ -1471,7 +1496,7 @@
 
     <record model="account.tax.template" id="tva_acq_encaissement_super_reduite_TTC">
       <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-      <field name="name">TVA 2,1% TTC ???</field>
+      <field name="name">TVA 2,1% TTC *not in lpde*</field>
       <field name="description">TVA 2,1% TTC</field>
       <field name="price_include" eval="1"/>
       <field name="amount" eval="2.1"/>
@@ -1512,6 +1537,7 @@
         ]"/>
     </record> <!-- not in Didier six DB -->
 
+    <!-- Others -->
     <record model="account.tax.template" id="tva_purchase_imm_normale">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
         <field name="name">TVA 20,0% IMMO</field>
@@ -1524,6 +1550,7 @@
         <field name="cash_basis_transition_account_id" ref="pcg_44564" />
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -1566,6 +1593,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1606,6 +1634,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1646,6 +1675,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1686,6 +1716,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1726,6 +1757,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1967,6 +1999,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -1993,6 +2026,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2019,6 +2053,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2049,6 +2084,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_20"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2092,6 +2128,7 @@
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">service</field>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
                 'factor_percent': 100,
@@ -2133,6 +2170,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2175,6 +2213,7 @@
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">sale</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2386,6 +2425,7 @@
         <field name="tax_scope">service</field>
         <field name="tax_exigibility">on_payment</field>
         <field name="cash_basis_transition_account_id" ref="pcg_44574"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2414,6 +2454,7 @@
         <field name="tax_scope">service</field>
         <field name="tax_exigibility">on_payment</field>
         <field name="cash_basis_transition_account_id" ref="pcg_44574"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2442,6 +2483,7 @@
         <field name="tax_scope">service</field>
         <field name="tax_exigibility">on_payment</field>
         <field name="cash_basis_transition_account_id" ref="pcg_44574"/>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_0"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2466,13 +2508,14 @@
     <!-- ACHATS INTRACOMMUNAUTAIRE -->
     <record model="account.tax.template" id="tva_intra_specifique_biens">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 8,5% INTRACOM ???</field>
+        <field name="name">TVA 8,5% INTRACOM *not in lpde*</field>
         <field name="description">TVA 8,5% INTRACOM</field>
         <field name="amount" eval="8.5"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2520,13 +2563,14 @@
 
     <record model="account.tax.template" id="tva_intra_specifique_services">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 8,5% INTRACOM ???</field>
+        <field name="name">TVA 8,5% INTRACOM *not in lpde*</field>
         <field name="description">TVA 8,5% INTRACOM</field>
         <field name="amount" eval="8.5"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_85"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2574,13 +2618,14 @@
 
     <record model="account.tax.template" id="tva_intra_intermediaire_biens">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 10% INTRACOM ???</field>
+        <field name="name">TVA 10% INTRACOM *not in lpde*</field>
         <field name="description">TVA 10% INTRACOM</field>
         <field name="amount" eval="10.0"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2628,13 +2673,14 @@
 
     <record model="account.tax.template" id="tva_intra_intermediaire_services">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 10% INTRACOM ???</field>
+        <field name="name">TVA 10% INTRACOM *not in lpde*</field>
         <field name="description">TVA 10% INTRACOM</field>
         <field name="amount" eval="10.0"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_10"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2682,13 +2728,14 @@
 
     <record model="account.tax.template" id="tva_intra_reduite_biens">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 5,5% INTRACOM ???</field>
+        <field name="name">TVA 5,5% INTRACOM *not in lpde*</field>
         <field name="description">TVA 5,5% EU</field>
         <field name="amount" eval="5.5"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2736,13 +2783,14 @@
 
     <record model="account.tax.template" id="tva_intra_reduite_services">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 5,5% INTRACOM ???</field>
+        <field name="name">TVA 5,5% INTRACOM *not in lpde*</field>
         <field name="description">TVA 5,5% INTRACOM</field>
         <field name="amount" eval="5.5"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_55"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2790,13 +2838,14 @@
 
     <record model="account.tax.template" id="tva_intra_super_reduite_biens">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 2,1% INTRACOM ???</field>
+        <field name="name">TVA 2,1% INTRACOM *not in lpde*</field>
         <field name="description">TVA 2,1% INTRACOM</field>
         <field name="amount" eval="2.1"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">consu</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
@@ -2844,13 +2893,14 @@
 
     <record model="account.tax.template" id="tva_intra_super_reduite_services">
         <field name="chart_template_id" ref="l10n_fr_pcg_chart_template"/>
-        <field name="name">TVA 2,1% INTRACOM ???</field>
+        <field name="name">TVA 2,1% INTRACOM *not in lpde*</field>
         <field name="description">TVA 2,1% INTRACOM</field>
         <field name="amount" eval="2.1"/>
         <field name="amount_type">percent</field>
         <field name="sequence" eval="10"/>
         <field name="type_tax_use">purchase</field>
         <field name="tax_scope">service</field>
+        <field name="include_base_amount" eval="1"/>
         <field name="tax_group_id" ref="tax_group_tva_21"/>
         <field name="invoice_repartition_line_ids" eval="[(5, 0, 0),
             (0,0, {
