@@ -6,13 +6,7 @@ import { clear, insertAndReplace, replace } from '@mail/model/model_field_comman
 
 registerModel({
     name: 'Dialog',
-    identifyingFields: [[
-        'attachmentCardOwnerAsAttachmentDeleteConfirm',
-        'attachmentImageOwnerAsAttachmentDeleteConfirm',
-        'attachmentListOwnerAsAttachmentView',
-        'followerOwnerAsSubtypeList',
-        'messageActionListOwnerAsDeleteConfirm',
-    ]],
+    identifyingFields: ['owner'],
     recordMethods: {
         /**
          * @param {Element} element
@@ -26,9 +20,6 @@ registerModel({
          * @returns {FieldCommand}
          */
         _computeAttachmentDeleteConfirmView() {
-            if (this.attachmentCardOwnerAsAttachmentDeleteConfirm) {
-                return insertAndReplace();
-            }
             if (this.attachmentImageOwnerAsAttachmentDeleteConfirm) {
                 return insertAndReplace();
             }
@@ -59,13 +50,9 @@ registerModel({
          * @returns {string}
          */
         _computeComponentClassName() {
-            if (this.attachmentDeleteConfirmView) {
-                return 'o_Dialog_componentMediumSize align-self-start mt-5';
-            }
             if (this.deleteMessageConfirmView) {
                 return 'o_Dialog_componentLargeSize align-self-start mt-5';
             }
-            return '';
         },
         /**
          * @private
@@ -75,16 +62,12 @@ registerModel({
             if (this.attachmentViewer) {
                 return 'AttachmentViewer';
             }
-            if (this.attachmentDeleteConfirmView) {
-                return 'AttachmentDeleteConfirm';
-            }
             if (this.deleteMessageConfirmView) {
                 return 'DeleteMessageConfirm';
             }
             if (this.followerSubtypeList) {
                 return 'FollowerSubtypeList';
             }
-            return clear();
         },
         /**
          * @private
@@ -133,9 +116,6 @@ registerModel({
             if (this.attachmentViewer) {
                 return replace(this.attachmentViewer);
             }
-            if (this.attachmentDeleteConfirmView) {
-                return replace(this.attachmentDeleteConfirmView);
-            }
             if (this.deleteMessageConfirmView) {
                 return replace(this.deleteMessageConfirmView);
             }
@@ -152,19 +132,6 @@ registerModel({
         },
     },
     fields: {
-        attachmentCardOwnerAsAttachmentDeleteConfirm: one('AttachmentCard', {
-            inverse: 'attachmentDeleteConfirmDialog',
-            readonly: true,
-        }),
-        attachmentDeleteConfirmView: one('AttachmentDeleteConfirmView', {
-            compute: '_computeAttachmentDeleteConfirmView',
-            inverse: 'dialogOwner',
-            isCausal: true,
-        }),
-        attachmentImageOwnerAsAttachmentDeleteConfirm: one('AttachmentImage', {
-            inverse: 'attachmentDeleteConfirmDialog',
-            readonly: true,
-        }),
         attachmentListOwnerAsAttachmentView: one('AttachmentList', {
             inverse: 'attachmentListViewDialog',
             readonly: true,
@@ -179,6 +146,7 @@ registerModel({
         }),
         componentClassName: attr({
             compute: '_computeComponentClassName',
+            default: '',
         }),
         componentName: attr({
             compute: '_computeComponentName',
@@ -210,6 +178,12 @@ registerModel({
         messageActionListOwnerAsDeleteConfirm: one('MessageActionList', {
             inverse: 'deleteConfirmDialog',
             readonly: true,
+        }),
+        owner: one('Model', {
+            inverse: 'dialog',
+            isCausal: true,
+            readonly: true,
+            required: true,
         }),
         /**
          * Content of dialog that is directly linked to a record that models

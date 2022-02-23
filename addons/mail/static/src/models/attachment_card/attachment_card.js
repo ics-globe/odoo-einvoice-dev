@@ -46,8 +46,8 @@ registerModel({
             readonly: true,
             required: true,
         }),
-        attachmentDeleteConfirmDialog: one('Dialog', {
-            inverse: 'attachmentCardOwnerAsAttachmentDeleteConfirm',
+        attachmentDeleteConfirmDialog: one('AttachmentCard.AttachmentDeleteConfirmDialog', {
+            inverse: 'attachmentCardOwner',
             isCausal: true,
         }),
         /**

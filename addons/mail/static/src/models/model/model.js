@@ -264,5 +264,10 @@ registerModel({
             readonly: true,
             required: true,
         }),
+        dialog: one('Dialog', {
+            inverse: 'owner',
+            isCausal: true,
+            readonly: true,
+        }),
     },
 });

@@ -6,7 +6,7 @@ import { clear, replace } from '@mail/model/model_field_command';
 
 registerModel({
     name: 'AttachmentDeleteConfirmView',
-    identifyingFields: ['dialogOwner'],
+    identifyingFields: [['attachmentCardAttachmentDeleteConfirmDialogOwner', 'attachmentImageAttachmentDeleteConfirmDialogOwner']],
     recordMethods: {
         /**
          * Returns whether the given html element is inside this attachment delete confirm view.
@@ -18,7 +18,12 @@ registerModel({
             return Boolean(this.component && this.component.root.el && this.component.root.el.contains(element));
         },
         onClickCancel() {
-            this.dialogOwner.delete();
+            if (this.attachmentCardAttachmentDeleteConfirmDialogOwner) {
+                this.attachmentCardAttachmentDeleteConfirmDialogOwner.delete();
+            }
+            if (this.attachmentImageAttachmentDeleteConfirmDialogOwner) {
+                this.attachmentImageAttachmentDeleteConfirmDialogOwner.delete();
+            }
         },
         async onClickOk() {
             await this.attachment.remove();
@@ -31,11 +36,11 @@ registerModel({
          * @returns {FieldCommand}
          */
         _computeAttachment() {
-            if (this.dialogOwner && this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm) {
-                return replace(this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm.attachment);
+            if (this.attachmentCardAttachmentDeleteConfirmDialogOwner) {
+                return replace(this.attachmentCardAttachmentDeleteConfirmDialogOwner.attachmentCardOwner.attachment);
             }
-            if (this.dialogOwner && this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm) {
-                return replace(this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm.attachment);
+            if (this.attachmentImageAttachmentDeleteConfirmDialogOwner) {
+                return replace(this.attachmentImageAttachmentDeleteConfirmDialogOwner.attachmentImageOwner.attachment);
             }
             return clear();
         },
@@ -52,18 +57,18 @@ registerModel({
          */
         _computeChatter() {
             if (
-                this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm &&
-                this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner &&
-                this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner.chatter
+                this.attachmentCardAttachmentDeleteConfirmDialogOwner &&
+                this.attachmentCardAttachmentDeleteConfirmDialogOwner.attachmentCardOwner.attachmentList.attachmentBoxViewOwner &&
+                this.attachmentCardAttachmentDeleteConfirmDialogOwner.attachmentCardOwner.attachmentList.attachmentBoxViewOwner.chatter
             ) {
-                return replace(this.dialogOwner.attachmentCardOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner.chatter);
+                return replace(this.attachmentCardAttachmentDeleteConfirmDialogOwner.attachmentCardOwner.attachmentList.attachmentBoxViewOwner.chatter);
             }
             if (
-                this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm &&
-                this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner &&
-                this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner.chatter
+                this.attachmentImageAttachmentDeleteConfirmDialogOwner &&
+                this.attachmentImageAttachmentDeleteConfirmDialogOwner.attachmentImageOwner.attachmentList.attachmentBoxViewOwner &&
+                this.attachmentImageAttachmentDeleteConfirmDialogOwner.attachmentImageOwner.attachmentList.attachmentBoxViewOwner.chatter
             ) {
-                return replace(this.dialogOwner.attachmentImageOwnerAsAttachmentDeleteConfirm.attachmentList.attachmentBoxViewOwner.chatter);
+                return replace(this.attachmentImageAttachmentDeleteConfirmDialogOwner.attachmentImageOwner.attachmentList.attachmentBoxViewOwner.chatter);
             }
             return clear();
         },
@@ -81,10 +86,14 @@ registerModel({
             compute: '_computeChatter',
         }),
         component: attr(),
-        dialogOwner: one('Dialog', {
+        // TODO SEB make model common to both
+        attachmentCardAttachmentDeleteConfirmDialogOwner: one('AttachmentCard.AttachmentDeleteConfirmDialog', {
             inverse: 'attachmentDeleteConfirmView',
             readonly: true,
-            required: true,
+        }),
+        attachmentImageAttachmentDeleteConfirmDialogOwner: one('AttachmentImage.AttachmentDeleteConfirmDialog', {
+            inverse: 'attachmentDeleteConfirmView',
+            readonly: true,
         }),
     },
 });
