@@ -248,11 +248,12 @@ class ResCompany(models.Model):
         return new_prefix + current_code.replace(old_prefix, '', 1).lstrip('0').rjust(digits-len(new_prefix), '0')
 
     def reflect_code_prefix_change(self, old_code, new_code):
-        accounts = self.env['account.account'].search([('code', 'like', old_code), ('internal_type', '=', 'liquidity'),
+        if not old_code:
+            return
+        accounts = self.env['account.account'].search([('code', 'like', old_code + '%'), ('internal_type', '=', 'liquidity'),
             ('company_id', '=', self.id)], order='code asc')
         for account in accounts:
-            if account.code.startswith(old_code):
-                account.write({'code': self.get_new_account_code(account.code, old_code, new_code)})
+            account.write({'code': self.get_new_account_code(account.code, old_code, new_code)})
 
     def _validate_fiscalyear_lock(self, values):
         if values.get('fiscalyear_lock_date'):
