@@ -48,6 +48,9 @@
         'web.assets_common': [
             'website_event/static/src/js/tours/**/*',
         ],
+        'web.assets_common_bs4': [
+            'website_event/static/src/js/tours/**/*',
+        ],
         'web.assets_tests': [
             'website_event/static/tests/**/*',
         ],
