@@ -1493,7 +1493,7 @@ class TestAccountBankStatementLine(TestAccountBankStatementCommon):
         partner = self.env['res.partner'].create({'name': 'test'})
 
         receivable_account = self.company_data['default_account_receivable']
-        outstanding_account = self.env['account.account'].search([('code', '=', '101402'), ('company_id', '=', self.env.company.id)])
+        outstanding_account = self.company_data['company'].account_journal_payment_debit_account_id
 
         payments = self.env['account.payment'].create([
             {
