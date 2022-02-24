@@ -52,6 +52,9 @@ Key Features
         'web.assets_common': [
             'event/static/src/js/tours/**/*',
         ],
+        'web.assets_common_bs4': [
+            'event/static/src/js/tours/**/*',
+        ],
         'web.assets_qweb': [
             'event/static/src/xml/**/*',
         ],
