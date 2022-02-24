@@ -185,9 +185,17 @@ class AccountPartialReconcile(models.Model):
                     counterpart_line = partial.debit_move_id
 
                 if move_values['currency'] == move.company_id.currency_id:
+                    # Ignore the exchange difference.
+                    if move.company_currency_id.is_zero(partial_amount):
+                        continue
+
                     # Percentage made on company's currency.
                     percentage = partial_amount / move_values['total_balance']
                 else:
+                    # Ignore the exchange difference.
+                    if move.currency_id.is_zero(partial_amount_currency):
+                        continue
+
                     # Percentage made on foreign currency.
                     percentage = partial_amount_currency / move_values['total_amount_currency']
 
