@@ -201,6 +201,31 @@ describe('Link', () => {
                     contentAfter: '<p><a href="exist">a</a>bc[]de<a href="exist">f</a></p>',
                 });
             });
+            it('should remove the link even if it has a class', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>a<a href="exist" class="btn">bcd[]</a>e</p>',
+                    stepFunction: async editor => {
+                        await unlink(editor);
+                    },
+                    contentAfter: '<p>abcd[]e</p>',
+                });
+            });
+            it('should move nodes outside the link and remove it', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>a<a href="#">bc[]d<span class="icon"></span></a>e</p>',
+                    stepFunction: editor => editor.execCommand('unlink'),
+                    contentAfter: '<p>abc[]d<span class="icon"></span>e</p>',
+                });
+            });
+            it('should move nodes outside the link only for current link', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>a<a href="#">bc[]d<span class="icon"></span></a>e</p>' +
+                        '<p>x<a href="#">y<span class="icon"></span></a>z</p>',
+                    stepFunction: editor => editor.execCommand('unlink'),
+                    contentAfter: '<p>abc[]d<span class="icon"></span>e</p>' +
+                        '<p>x<a href="#">y<span class="icon"></span></a>z</p>',
+                });
+            });
         });
         describe('range not collapsed', () => {
             it('should remove the link in the selected range at the end of a link', async () => {

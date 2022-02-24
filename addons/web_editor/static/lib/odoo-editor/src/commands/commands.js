@@ -643,11 +643,27 @@ export const editorCommands = {
         if (closestEl && closestEl.getAttribute('contenteditable') === 'true') {
             editor._activateContenteditable();
         }
+        if (closestEl) {
+            // Prevent Firefox from turning the `<a>` into a `<span>` to keep classes.
+            closestEl.removeAttribute('class');
+        }
         if (sel.isCollapsed) {
             const cr = preserveCursor(editor.document);
             const node = closestElement(sel.focusNode, 'a');
+            // Prevent Chrome from wrongly determining the end of the selection
+            // by temporarily including an extra text node in the selection
+            // while the `unlink` command is being executed.
+            const fillerText = node.childNodes.length > 1 &&
+                    node.childNodes[node.childNodes.length - 1].nodeType !== Node.TEXT_NODE &&
+                    document.createTextNode('\u200B');
+            if (fillerText) {
+                node.appendChild(fillerText);
+            }
             setSelection(node, 0, node, node.childNodes.length, false);
             editor.document.execCommand('unlink');
+            if (fillerText && fillerText.parentNode) {
+                fillerText.parentNode.removeChild(fillerText);
+            }
             cr();
         } else {
             editor.document.execCommand('unlink');
