@@ -82,6 +82,10 @@
             'website_sale/static/src/js/tours/tour_utils.js',
             'website_sale/static/src/js/tours/website_sale_shop.js',
         ],
+        'web.assets_common_bs4': [
+            'website_sale/static/src/js/tours/tour_utils.js',
+            'website_sale/static/src/js/tours/website_sale_shop.js',
+        ],
         'web.assets_tests': [
             'website_sale/static/tests/**/*',
         ],
