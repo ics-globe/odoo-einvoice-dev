@@ -241,7 +241,6 @@
             'website/static/src/xml/website.backend.xml',
             'website/static/src/xml/website_widget.xml',
             'website/static/src/xml/theme_preview.xml',
-            'website/static/src/components/configurator/configurator.xml',
         ],
         'website.test_bundle': [
             '/web/static/lib/qweb/qweb2.js',
