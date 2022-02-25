@@ -2,7 +2,7 @@
 
 import { registry } from '@mail/model/model_core';
 import { ModelField } from '@mail/model/model_field';
-import { FieldCommand, unlinkAll } from '@mail/model/model_field_command';
+import { FieldCommand, insert, insertAndReplace, set, unlinkAll } from '@mail/model/model_field_command';
 import { RelationSet } from '@mail/model/model_field_relation_set';
 import { Listener } from '@mail/model/model_listener';
 import { followRelations } from '@mail/model/model_utils';
@@ -143,7 +143,8 @@ export class ModelManager {
         /**
          * Create the messaging singleton record.
          */
-        const messaging = this.models['Messaging'].insert(values);
+        const messaging = this.models['Messaging'].findFromIdentifyingData();
+        this._update(messaging, values, { allowWriteReadonly: true });
         Object.assign(odoo.__DEBUG__, { messaging });
         this.messagingCreatedPromise.resolve();
         await this.messaging.start();
@@ -423,6 +424,7 @@ export class ModelManager {
                 data2[field.fieldName] = field.default;
             }
         }
+        data2.model2 = insertAndReplace({ name: model.name });
         return data2;
     }
 
@@ -607,23 +609,6 @@ export class ModelManager {
                 }
                 if (!field.inverse) {
                     throw new Error(`${field} on ${model} must define an inverse relation name in "inverse".`);
-                }
-                if (!field.to) {
-                    throw new Error(`${field} on ${model} must define a model name in "to" (1st positional parameter of relation field helpers).`);
-                }
-                const relatedModel = this.models[field.to];
-                if (!relatedModel) {
-                    throw new Error(`${field} on ${model} defines a relation to model(${field.to}), but there is no model registered with this name.`);
-                }
-                const inverseField = relatedModel.__fieldMap[field.inverse];
-                if (!inverseField) {
-                    throw new Error(`${field} on ${model} defines its inverse as field(${field.inverse}) on ${relatedModel}, but it does not exist.`);
-                }
-                if (inverseField.inverse !== fieldName) {
-                    throw new Error(`The name of ${field} on ${model} does not match with the name defined in its inverse ${inverseField} on ${relatedModel}.`);
-                }
-                if (![model.name, 'Record'].includes(inverseField.to)) {
-                    throw new Error(`${field} on ${model} has its inverse ${inverseField} on ${relatedModel} referring to an invalid model (model(${inverseField.to})).`);
                 }
             }
             for (const identifyingField of model.__identifyingFieldsFlattened) {
@@ -960,6 +945,33 @@ export class ModelManager {
          * relational field definitions have an inverse.
          */
         this._processDeclaredFieldsOnModels();
+        // Create Model and Model.Field records.
+        this.models['Model'].insert(Object.values(this.models).map(model => {
+            return {
+                identifyingFields: model.__identifyingFields,
+                modelFields: insertAndReplace(model.__fieldList.map(field => {
+                    return {
+                        compute: field.compute,
+                        default: set(field.default),
+                        inverses: field.inverse ? insert({
+                            model: insertAndReplace({
+                                name: field.to,
+                            }),
+                            name: field.inverse,
+                        }) : undefined,
+                        isCausal: field.isCausal,
+                        name: field.fieldName,
+                        readonly: field.readonly,
+                        related: field.related,
+                        relationType: field.relationType,
+                        required: field.required,
+                        sort: field.sort,
+                        type: field.fieldType,
+                    };
+                })),
+                name: model.name
+            };
+        }));
         /**
          * Check that all model fields are correct, notably one relation
          * should have matching reversed relation.

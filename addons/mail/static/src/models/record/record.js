@@ -264,5 +264,11 @@ registerModel({
             readonly: true,
             required: true,
         }),
+        // 2 for now, model is taken on thread
+        model2: one('Model', {
+            inverse: 'records',
+            readonly: true,
+            required: true,
+        }),
     },
 });
