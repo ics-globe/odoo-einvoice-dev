@@ -586,55 +586,6 @@ export class ModelManager {
 
     /**
      * @private
-     * @throws {Error} in case some fields are not correct.
-     */
-    _checkProcessedFieldsOnModels() {
-        for (const model of Object.values(this.models)) {
-            for (const field of model.__fieldList) {
-                const fieldName = field.fieldName;
-                if (!(['attribute', 'relation'].includes(field.fieldType))) {
-                    throw new Error(`${field} on ${model} has unsupported type ${field.fieldType}.`);
-                }
-                if (field.compute && field.related) {
-                    throw new Error(`${field} on ${model} cannot be a related and compute field at the same time.`);
-                }
-                if (field.fieldType === 'attribute') {
-                    continue;
-                }
-                if (!field.relationType) {
-                    throw new Error(`${field} on ${model} must define a relation type in "relationType".`);
-                }
-                if (!(['many', 'one'].includes(field.relationType))) {
-                    throw new Error(`${field} on ${model} has invalid relation type "${field.relationType}".`);
-                }
-                if (!field.inverse) {
-                    throw new Error(`${field} on ${model} must define an inverse relation name in "inverse".`);
-                }
-            }
-            for (const identifyingField of model.__identifyingFieldsFlattened) {
-                const field = model.__fieldMap[identifyingField];
-                if (!field) {
-                    throw new Error(`Identifying field "${identifyingField}" is not a field on ${model}.`);
-                }
-                if (!field.readonly) {
-                    throw new Error(`Identifying field "${identifyingField}" on ${model} is lacking readonly.`);
-                }
-                if (field.to) {
-                    if (field.relationType !== 'one') {
-                        throw new Error(`Identifying field "${identifyingField}" on ${model} has a relation of type "${field.relationType}" but identifying field is only supported for "one".`);
-                    }
-                    const relatedModel = this.models[field.to];
-                    const inverseField = relatedModel.__fieldMap[field.inverse];
-                    if (!inverseField.isCausal) {
-                        throw new Error(`Identifying field "${identifyingField}" on ${model} has an inverse "${field.inverse}" not declared as "isCausal" on ${relatedModel}.`);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @private
      * @param {Object} model
      * @param {string} localId
      * @returns {Record}
@@ -972,11 +923,6 @@ export class ModelManager {
                 name: model.name
             };
         }));
-        /**
-         * Check that all model fields are correct, notably one relation
-         * should have matching reversed relation.
-         */
-        this._checkProcessedFieldsOnModels();
     }
 
     /**
