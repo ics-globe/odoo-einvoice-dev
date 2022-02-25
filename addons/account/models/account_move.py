@@ -3461,6 +3461,15 @@ class AccountMoveLine(models.Model):
         context={'active_test': False},
         check_company=True,
         help="Taxes that apply on the base amount")
+    tax_move_line_ids = fields.Many2many(
+        comodel_name="account.move.line",
+        string="Related Tax lines",
+        compute="_compute_tax_move_line_ids",
+        store=True,
+        relation="base_tax_line_mapping",
+        column1="base_line_id",
+        column2="tax_line_id",
+        help="Technical field for the General Tax Report")
     group_tax_id = fields.Many2one(
         comodel_name='account.tax',
         string="Originator Group of Taxes",
@@ -4085,7 +4094,6 @@ class AccountMoveLine(models.Model):
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
     # -------------------------------------------------------------------------
-
     @api.depends('full_reconcile_id.name', 'matched_debit_ids', 'matched_credit_ids')
     def _compute_matching_number(self):
         for record in self:
@@ -4215,6 +4223,53 @@ class AccountMoveLine(models.Model):
                 (not record.tax_line_id or record.tax_line_id.tax_exigibility == "on_payment")
                 and all(tax.tax_exigibility == "on_payment" for tax in record.tax_ids)
             )
+
+    @api.depends('tax_ids', 'move_id.line_ids')
+    def _compute_tax_move_line_ids(self):
+        # prefetch
+        self.mapped('move_id.line_ids')
+        def endswith(a, b):
+            for i, x in enumerate(reversed(a)):
+                if b[-1-i] != x:
+                    return False
+            return True
+
+        def line2taxes(line):
+            return (
+                (line.tax_ids | line.tax_ids.children_tax_ids)
+                .filtered(lambda tax: tax.amount_type != "group" and tax.is_base_affected)
+                .sorted(lambda tax: (tax.sequence, tax.id))
+            )
+
+        for base_line in self:
+            tax_line_ids = []
+            if not base_line.tax_repartition_line_id:
+                tax_line_ids = base_line.move_id.line_ids.filtered(
+                    lambda tax_line:
+                        tax_line.tax_line_id
+                        and tax_line.tax_repartition_line_id
+                        and (tax_line.group_tax_id or tax_line.tax_line_id) in base_line.tax_ids
+                        # see https://github.com/odoo/odoo/commit/48d60151254045768d5aac1b29c5acf84b70cef2
+                        and (tax_line.move_id.move_type != 'entry' or tax_line.balance * base_line.balance * tax_line.tax_line_id.amount * tax_line.tax_repartition_line_id.factor_percent > 0)
+                        and base_line.partner_id == tax_line.partner_id  # TODO: is it needed?
+                        and base_line.currency_id == tax_line.currency_id  # TODO: is it needed?
+                        and ((tax_line.tax_repartition_line_id.account_id or base_line.account_id) == tax_line.account_id
+                             or tax_line.tax_line_id.tax_exigibility == 'on_payment' and tax_line.tax_line_id.cash_basis_transition_account_id
+                        )
+                        and (
+                            not tax_line.tax_line_id.analytic
+                            or not base_line.analytic_account_id and not tax_line.analytic_account_id
+                            or base_line.analytic_account_id == tax_line.analytic_account_id
+                        )
+                        and (
+                            not tax_line.tax_line_id.include_base_amount
+                            or endswith(
+                                tax_line.tax_line_id | line2taxes(tax_line),
+                                line2taxes(base_line)
+                            )
+                        )
+                ).ids
+            base_line.tax_move_line_ids = [Command.set(tax_line_ids)]
 
     @api.depends('move_id.move_type', 'tax_ids', 'tax_repartition_line_id', 'debit', 'credit', 'tax_tag_ids')
     def _compute_tax_tag_invert(self):

@@ -175,6 +175,18 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
 
         base_lines, tax_lines = self._dispatch_move_lines(invoice)
 
+        #  Name            Tax_line_id         Tax_ids                 Debit       Credit      Base lines
+        #  ---------------------------------------------------------------------------------------------------
+        #  base_line_0                         taxG(tax20a, tax10, tax5)1000
+        #  base_line_1                         tax10                   1000
+        #  base_line_2                         tax10                   1000
+        #  base_line_3                         tax20a, tax10           1000
+        #  tax_line_0      tax10                                                   440         base_line_1/2/3
+        #  tax_line_1      tax20a              tax10                               400         base_line_0/3
+        #  tax_line_2      tax                                                     200         base_line_0
+        #  tax_line_3      tax10                                                   100         base_line_0
+        #  tax_line_4      tax                                                     50+10         base_line_0
+
         tax_details = self._get_tax_details()
         self.assertTaxDetailsValues(tax_details, [
             {
