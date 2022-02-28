@@ -140,8 +140,8 @@ var FileWidget = SearchableMediaWidget.extend({
     }),
     existingAttachmentsTemplate: undefined,
 
-    IMAGE_MIMETYPES: ['image/jpg', 'image/jpeg', 'image/jpe', 'image/png', 'image/svg+xml', 'image/gif'],
-    IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.jpe', '.png', '.svg', '.gif'],
+    IMAGE_MIMETYPES: ['image/jpg', 'image/jpeg', 'image/jpe', 'image/png', 'image/svg+xml', 'image/gif', 'image/webp'],
+    IMAGE_EXTENSIONS: ['.jpg', '.jpeg', '.jpe', '.png', '.svg', '.gif', '.webp'],
     NUMBER_OF_ATTACHMENTS_TO_DISPLAY: 30,
     MAX_DB_ATTACHMENTS: 5,
 

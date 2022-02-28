@@ -197,6 +197,7 @@ registerModel({
                 'image/svg+xml',
                 'image/tiff',
                 'image/x-icon',
+                'image/webp',
             ];
             return imageMimetypes.includes(this.mimetype);
         },

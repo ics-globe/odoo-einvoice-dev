@@ -20,7 +20,7 @@ const setupSteps = [{
     run: "drag_and_drop #wrap",
 }];
 
-const formatErrorMsg = "format is not supported. Try with: .gif, .jpe, .jpeg, .jpg, .png, .svg";
+const formatErrorMsg = "format is not supported. Try with: .gif, .jpe, .jpeg, .jpg, .png, .svg, .webp";
 
 tour.register('test_image_upload_progress', {
     url: '/test_image_progress',
@@ -51,7 +51,7 @@ tour.register('test_image_upload_progress', {
         run: function () {}, // it's a check
     }, {
         content: "check upload progress bar is correctly shown (2)",
-        trigger: `.o_we_progressbar:contains('image.webp'):contains('${formatErrorMsg}')`,
+        trigger: ".o_we_progressbar:contains('image.webp'):contains('File has been uploaded')",
         in_modal: false,
         run: function () {}, // it's a check
     }, {

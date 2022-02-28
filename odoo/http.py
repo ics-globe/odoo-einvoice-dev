@@ -170,6 +170,7 @@ _logger = logging.getLogger(__name__)
 mimetypes.add_type('application/font-woff', '.woff')
 mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
 mimetypes.add_type('application/x-font-ttf', '.ttf')
+mimetypes.add_type('image/webp', '.webp')
 # Add potentially wrong (detected on windows) svg mime types
 mimetypes.add_type('image/svg+xml', '.svg')
 
@@ -244,7 +245,13 @@ ROUTING_KEYS = {
 }
 
 # The mimetypes of safe image types
-SAFE_IMAGE_MIMETYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/x-icon'}
+SAFE_IMAGE_MIMETYPES = {
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/x-icon',
+    'image/webp',
+}
 
 # The duration of a user session before it is considered expired,
 # three months.
