@@ -16,7 +16,7 @@
                     </t>
                 </a>
                 <t t-if="messagingMenu.isOpen">
-                    <div class="o_MessagingMenu_dropdownMenu dropdown-menu dropdown-menu-right" t-att-class="{ 'o-mobile': messaging.device.isMobile, 'o-messaging-not-initialized': !messaging.isInitialized }" role="menu">
+                    <div class="o_MessagingMenu_dropdownMenu dropdown-menu dropdown-menu-end" t-att-class="{ 'o-mobile': messaging.device.isMobile, 'o-messaging-not-initialized': !messaging.isInitialized }" role="menu" data-bs-popper="none">
                         <t t-if="!messaging.isInitialized">
                             <span><i class="o_MessagingMenu_dropdownLoadingIcon fa fa-circle-o-notch fa-spin"/>Please wait...</span>
                         </t>
