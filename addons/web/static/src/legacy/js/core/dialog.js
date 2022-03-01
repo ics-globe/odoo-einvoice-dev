@@ -194,7 +194,7 @@ var Dialog = Widget.extend({
         $('.tooltip').remove(); // remove open tooltip if any to prevent them staying when modal is opened
 
         var self = this;
-        this.appendTo($('<div/>')).then(function () {
+        this.appendTo($('<div/>')).then(async function () {
             if (self.isDestroyed()) {
                 return;
             }
@@ -204,11 +204,33 @@ var Dialog = Widget.extend({
             if (self.$parentNode) {
                 self.$modal.appendTo(self.$parentNode);
             }
-            self.$modal.modal({
-                backdrop: self.backdrop,
-                keyboard: false,
-            });
-            self.$modal.show();
+            if (Modal && Modal.VERSION && Modal.VERSION.startsWith('5')) {
+                // BS5 variant
+                let promiseResolve, promiseReject;
+                const promise = new Promise(((resolve, reject) => {
+                    promiseResolve = resolve;
+                    promiseReject = reject;
+                }));
+                const timeoutSecond = 5000;
+                const timeoutTimer = setTimeout(promiseReject, timeoutSecond);
+                const modalNode = self.$modal[0];
+                const modal = new Modal(modalNode, {
+                    backdrop: self.backdrop,
+                    keyboard: false,
+                });
+                modalNode.addEventListener('shown.bs.modal', () => {
+                    clearTimeout(timeoutTimer);
+                    promiseResolve();
+                });
+                modal.show();
+                await promise.catch(() => console.error(`BS5 Modal didn't shown in ${timeoutSecond} second`));
+            } else {
+                self.$modal.modal({
+                    backdrop: self.backdrop,
+                    keyboard: false,
+                });
+                self.$modal.show();
+            }
             self._openedResolver();
             if (options && options.shouldFocusButtons) {
                 self._onFocusControlButton();
@@ -238,7 +260,7 @@ var Dialog = Widget.extend({
      * @param {boolean} [options.silent=false] if set, do not call the
      *   `on_close` handler.
      */
-    destroy: function (options) {
+    destroy: async function (options) {
         // Need to trigger before real destroy but if 'closed' handler destroys
         // the widget again, we want to avoid infinite recursion
         if (!this.__closed) {
@@ -272,7 +294,27 @@ var Dialog = Widget.extend({
             if (this.on_detach_callback) {
                 this.on_detach_callback();
             }
-            this.$modal.modal('hide');
+            if (Modal && Modal.VERSION && Modal.VERSION.startsWith('5')) {
+                // BS5 variant
+                const modalNode = this.$modal[0];
+                const modal = Modal.getInstance(modalNode)
+                let promiseResolve, promiseReject;
+                const promise = new Promise(((resolve, reject) => {
+                    promiseResolve = resolve;
+                    promiseReject = reject;
+                }));
+                const timeoutSecond = 5000;
+                const timeoutTimer = setTimeout(promiseReject, timeoutSecond);
+                modalNode.addEventListener('hidden.bs.modal', () => {
+                    clearTimeout(timeoutTimer);
+                    promiseResolve();
+                });
+                modal.hide();
+                await promise.catch(() => console.error(`BS5 Modal didn't hide in ${timeoutSecond} second`));
+                modal.dispose();
+            } else {
+                this.$modal.modal('hide');
+            }
             this.$modal.remove();
         }
 
