@@ -1111,11 +1111,15 @@ var IconWidget = SearchableMediaWidget.extend({
     /**
      * @override
      */
-    save: function () {
+    save: async function () {
         var style = this.$media.attr('style') || '';
         var iconFont = this._getFont(this.selectedIcon) || {base: 'fa', font: ''};
         if (!this.$media.is('span, i')) {
             var $span = $('<span/>');
+            // Make sure jquery data() is clean.
+            const feedback = {};
+            this.$media.trigger('before_replace_target', feedback);
+            await feedback.isDone;
             $span.data(this.$media.data());
             this.$media = $span;
             this.media = this.$media[0];

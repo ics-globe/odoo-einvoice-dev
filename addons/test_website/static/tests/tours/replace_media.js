@@ -12,6 +12,13 @@ import tour from 'web_tour.tour';
  * -> click on replace image
  * -> select gif
  * -> check image size is NOT displayed
+ * -> click on replace image
+ * -> select pictogram tab
+ * -> select an icon
+ * -> check icon options are displayed
+ * -> select footer
+ * -> select icon
+ * -> check icon options are still displayed
  */
 
 tour.register('test_replace_media', {
@@ -49,6 +56,36 @@ tour.register('test_replace_media', {
     {
         content: "ensure image size is not displayed",
         trigger: "#oe_snippets we-title:contains('Image'):not(:has(span.o_we_image_weight:not(.d-none)))",
+        run: function () {}, // check
+    },
+    {
+        content: "replace image",
+        trigger: "#oe_snippets we-button[data-replace-media]",
+    },
+    {
+        content: "go to pictogram tab",
+        trigger: ".o_select_media_dialog .nav-link#editor-media-icon-tab",
+    },
+    {
+        content: "select an icon",
+        trigger: ".o_select_media_dialog .tab-pane#editor-media-icon span.fa-lemon-o",
+    },
+    {
+        content: "ensure icon block is displayed",
+        trigger: "#oe_snippets we-customizeblock-options we-title:contains('Icon')",
+        run: function () {}, // check
+    },
+    {
+        content: "select footer",
+        trigger: "#wrapwrap footer",
+    },
+    {
+        content: "select icon",
+        trigger: "#wrapwrap .s_picture figure span.fa-lemon-o",
+    },
+    {
+        content: "ensure icon block is still displayed",
+        trigger: "#oe_snippets we-customizeblock-options we-title:contains('Icon')",
         run: function () {}, // check
     },
 ]);

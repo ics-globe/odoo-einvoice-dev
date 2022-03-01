@@ -257,6 +257,21 @@ var SnippetEditor = Widget.extend({
         // each detected transition/animation end so that the user does not see
         // a flickering when not needed.
         this.$target.on('transitionend.snippet_editor, animationend.snippet_editor', postAnimationCover);
+        // When a change in the target requires a change of its editor, the
+        // two following events can be used:
+        // - before_replace_target: before the target gets replaced, makes sure
+        //   jquery data() do not reference the old editor anymore - isDone can
+        //   be awaited on to ensure the operation is completed,
+        // - replace_target: after the replacement happened in the DOM,
+        //   activates the replacement element.
+        this.$target.on('before_replace_target.snippet_editor', (ev, options) => {
+            ev.stopPropagation();
+            options.isDone = new Promise(resolve => options.markDone = resolve);
+            this.trigger_up('destroy_editor', Object.assign({}, options, {editor: this}));
+        });
+        this.$target.on('replace_target.snippet_editor', (ev, replacementEl) => {
+            this.trigger_up('activate_snippet', {$snippet: $(replacementEl)});
+        });
 
         return Promise.all(defs).then(() => {
             this.__isStartedResolveFunc(this);
@@ -1144,6 +1159,7 @@ var SnippetsMenu = Widget.extend({
         'clone_snippet': '_onCloneSnippet',
         'cover_update': '_onOverlaysCoverUpdate',
         'deactivate_snippet': '_onDeactivateSnippet',
+        'destroy_editor': '_onDestroyEditor',
         'drag_and_drop_stop': '_onSnippetDragAndDropStop',
         'drag_and_drop_start': '_onSnippetDragAndDropStart',
         'get_snippet_versions': '_onGetSnippetVersions',
@@ -2824,6 +2840,16 @@ var SnippetsMenu = Widget.extend({
      */
     _onDeactivateSnippet: function () {
         this._activateSnippet(false);
+    },
+    /**
+     * Called when a child editor asks to be destroyed.
+     *
+     * @private
+     */
+    _onDestroyEditor: function (ev) {
+        this._mutex.exec(() => ev.data.editor.destroy())
+        .then(ev.data.markDone)
+        .guardedCatch(ev.data.markDone);
     },
     /**
     * Called when a snippet will move in the page.
