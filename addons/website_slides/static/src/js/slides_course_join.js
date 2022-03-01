@@ -33,8 +33,8 @@ var CourseJoinWidget = publicWidget.Widget.extend({
         this.channel = options.channel;
         this.isMember = options.isMember;
         this.publicUser = options.publicUser;
-        this.joinMessage = options.joinMessage || _t('Join Course'),
-        this.beforeJoin = options.beforeJoin || Promise.resolve();
+        this.joinMessage = options.joinMessage || _t('Join Course');
+        this.beforeJoin = options.beforeJoin || function () {return Promise.resolve();};
         this.afterJoin = options.afterJoin || function () {document.location.reload();};
     },
 
@@ -89,6 +89,7 @@ var CourseJoinWidget = publicWidget.Widget.extend({
     _popoverAlert: function ($el, message) {
         $el.popover({
             trigger: 'focus',
+            delay: {'hide': 300},
             placement: 'bottom',
             container: 'body',
             html: true,
@@ -117,11 +118,9 @@ var CourseJoinWidget = publicWidget.Widget.extend({
                 self.afterJoin();
             } else {
                 if (data.error === 'public_user') {
-                    var message = _t('Please <a href="/web/login?redirect=%s">login</a> to join this course');
-                    var signupAllowed = data.error_signup_allowed || false;
-                    if (signupAllowed) {
-                        message = _t('Please <a href="/web/signup?redirect=%s">create an account</a> to join this course');
-                    }
+                    const message = data.error_signup_allowed ?
+                        _t('Please <a href="/web/login?redirect=%s">login</a> or <a href="/web/signup?redirect=%s">create an account</a> to join this course'):
+                        _t('Please <a href="/web/login?redirect=%s">login</a> to join this course');
                     self._popoverAlert(self.$el, _.str.sprintf(message, (document.URL)));
                 } else if (data.error === 'join_done') {
                     self._popoverAlert(self.$el, _t('You have already joined this channel'));

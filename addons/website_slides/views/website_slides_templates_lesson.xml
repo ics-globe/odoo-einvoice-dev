@@ -189,7 +189,7 @@
                             </t>
                             <li t-elif="aside_slide.channel_id.enroll == 'public'" class="text-decoration-none small">
                                 <i class="fa fa-download mr-1"/>
-                                <t t-call="website_slides.join_course_link"/>
+                                <t t-call="website_slides.join_course_link_resources"/>
                             </li>
                         </div>
                         <li class="pl-4">
@@ -282,12 +282,12 @@
     <div class="mb-5">
         <ul class="nav nav-tabs o_wslides_lesson_nav" role="tablist">
             <li class="nav-item">
-                <a href="#about" aria-controls="about" class="nav-link active" role="tab" data-toggle="tab">
+                <a href="#about" aria-controls="about" t-att-class="'nav-link active' if not comments else 'nav-link'" role="tab" data-toggle="tab">
                     <i class="fa fa-home"></i> About
                 </a>
             </li>
-            <li t-if="slide.channel_id.allow_comment" class="nav-item">
-                <a href="#discuss" aria-controls="discuss" class="nav-link" role="tab" data-toggle="tab">
+            <li class="nav-item">
+                <a href="#discuss" aria-controls="discuss" t-att-class="'nav-link active' if comments else 'nav-link'" role="tab" data-toggle="tab">
                     <i class="fa fa-comments"></i> Comments (<span t-esc="slide.comments_count"/>)
                 </a>
             </li>
@@ -322,10 +322,37 @@
                 </div>
             </div>
             <div role="tabpanel" t-att-class="comments and 'tab-pane fade in show active' or 'tab-pane fade'" id="discuss">
-                <t t-call="portal.message_thread">
-                    <t t-set="object" t-value="slide"/>
-                    <t t-set="disable_composer" t-value="not (slide.channel_id.can_comment and slide.channel_id.allow_comment)"/>
-                    <t t-set="display_rating" t-value="False"/>
+                <t t-if="not (slide.channel_id.allow_comment and slide.channel_id.channel_type == 'training')">
+                    <t t-set="enable_portal_chatter" t-value="0"/>
+                    <p>Commenting is not enabled on this course.</p>
+                </t>
+                <t t-elif="not slide.comments_count">
+                    <t t-if="not slide.channel_id.is_member">
+                        <t t-set="enable_portal_chatter" t-value="0"/>
+                        <p><span> There are no comments for now.</span>
+                            <t t-if="slide.channel_id.enroll != 'invite'">
+                                <span class="o_wslides_js_course_join" t-call="website_slides.join_course_link"/>
+                                <span>to be the first to leave a comment.</span>
+                            </t>
+                        </p>
+                    </t>
+                    <t t-elif="not slide.channel_id.can_comment">
+                        <t t-set="enable_portal_chatter" t-value="0"/>
+                        <p>There are no comments for now. Earn more Karma to be the first to leave a comment.</p>
+                    </t><t t-else="">
+                        <t t-set="enable_portal_chatter" t-value="1"/>
+                    </t>
+                </t>
+                <t t-else="">
+                    <t t-set="enable_portal_chatter" t-value="1"/>
+                    <t t-if="not slide.channel_id.can_comment"><p>Earn more Karma to leave a comment.</p></t>
+                </t>
+                <t t-if="enable_portal_chatter">
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="slide"/>
+                        <t t-set="disable_composer" t-value="not (slide.channel_id.can_comment and slide.channel_id.allow_comment)"/>
+                        <t t-set="display_rating" t-value="False"/>
+                    </t>
                 </t>
             </div>
             <div role="tabpanel" class="tab-pane fade" id="statistic" t-att-slide-url="slide.website_url">
@@ -336,18 +363,23 @@
                                 <tr>
                                     <th colspan="2" class="border-top-0">Views</th>
                                 </tr>
-                                <tr class="border-top-0">
-                                    <th class="border-top-0"><span t-esc="slide.total_views"/></th>
-                                    <td class="border-top-0 w-100">Total Views</td>
-                                </tr>
-                                <tr>
-                                    <th><span t-esc="slide.slide_views"/></th>
-                                    <td>Members Views</td>
-                                </tr>
-                                <tr>
-                                    <th><span t-esc="slide.public_views"/></th>
-                                    <td>Public Views</td>
-                                </tr>
+                                <t t-if="slide.channel_id.is_member or not is_public_user">
+                                    <tr class="border-top-0">
+                                        <th class="border-top-0"><span t-esc="slide.total_views"/></th>
+                                        <td class="border-top-0 w-100">Total Views</td>
+                                    </tr>
+                                    <tr>
+                                        <th><span t-esc="slide.slide_views"/></th>
+                                        <td>Members Views</td>
+                                    </tr>
+                                    <tr>
+                                        <th><span t-esc="slide.public_views"/></th>
+                                        <td>Public Views</td>
+                                    </tr>
+                                </t>
+                                <t t-else="">
+                                    <tr><td colspan="2"><span t-esc="slide.total_views"/> views</td></tr>
+                                </t>
                             </tbody>
                         </table>
                     </div>
@@ -421,7 +453,7 @@
                     </t>
                 </div>
                 <div t-elif="slide.channel_id.enroll == 'public'" class="text-muted mr-auto border-left pl-3">
-                    <t t-call="website_slides.join_course_link"/>
+                    <t t-call="website_slides.join_course_link_resources"/>
                 </div>
             </div>
         </group>
