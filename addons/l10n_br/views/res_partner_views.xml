@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="br_partner_tax_fields_form" model="ir.ui.view">
+            <field name="name">res.partner.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='vat']" position="after">
+                    <field name="cpf_code" attrs="{'invisible': [('country_id', '!=', %(base.br)d)]}"/>
+                    <field name="ie_code" attrs="{'invisible': [('country_id', '!=', %(base.br)d)]}"/>
+                    <field name="im_code" attrs="{'invisible': [('country_id', '!=', %(base.br)d)]}"/>
+                    <field name="isuf_code" attrs="{'invisible': [('country_id', '!=', %(base.br)d)]}"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

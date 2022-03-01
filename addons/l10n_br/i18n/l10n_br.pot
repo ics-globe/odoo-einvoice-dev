@@ -1,0 +1,256 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_br
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.4alpha1+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-03 09:14+0000\n"
+"PO-Revision-Date: 2022-05-03 09:14+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_chart_template
+msgid "Account Chart Template"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.ui.menu,name:l10n_br.account_reports_br_statements_menu
+msgid "Brazil"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_cofins_0
+msgid "COFINS 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_cofins_3
+msgid "COFINS 3%"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_res_company__cpf_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_partner__cpf_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_users__cpf_code
+msgid "CPF"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_csll_0
+msgid "CSLL 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_res_partner
+msgid "Contact"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax__tax_discount
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax_template__tax_discount
+msgid "Discount this Tax in Prince"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_fiscal_position
+msgid "Fiscal Position"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_icms_0
+msgid "ICMS 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_icms_12
+msgid "ICMS 12%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_icms_17
+msgid "ICMS 17%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_icms_7
+msgid "ICMS 7%"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_res_company__ie_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_partner__ie_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_users__ie_code
+msgid "IE"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_ii_0
+msgid "II"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_res_company__im_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_partner__im_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_users__im_code
+msgid "IM"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_inss_0
+msgid "INSS"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_ipi_0
+msgid "IPI 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_ipi_10
+msgid "IPI 10%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_ir_0
+msgid "IR 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_irpj_0
+msgid "IRPJ 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_issqn_2
+msgid "ISSQN 2%"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position__l10n_br_fp_type__internal
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position_template__l10n_br_fp_type__internal
+msgid "Internal"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_account_fiscal_position__l10n_br_fp_type
+#: model:ir.model.fields,field_description:l10n_br.field_account_fiscal_position_template__l10n_br_fp_type
+msgid "Interstate Fiscal Position Type"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax__amount_mva
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax_template__amount_mva
+msgid "MVA Percent"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_account_tax__tax_discount
+#: model:ir.model.fields,help:l10n_br.field_account_tax_template__tax_discount
+msgid "Mark it for (ICMS, PIS e etc.)."
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_res_company__im_code
+#: model:ir.model.fields,help:l10n_br.field_res_partner__im_code
+#: model:ir.model.fields,help:l10n_br.field_res_users__im_code
+msgid "Municipal Tax Identification Number"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_res_company__nire_code
+msgid "NIRE"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_res_company__cpf_code
+#: model:ir.model.fields,help:l10n_br.field_res_partner__cpf_code
+#: model:ir.model.fields,help:l10n_br.field_res_users__cpf_code
+msgid "Natural Persons Register."
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position__l10n_br_fp_type__interstate
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position_template__l10n_br_fp_type__interstate
+msgid "Other interstate"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_pis_0
+msgid "PIS 0%"
+msgstr ""
+
+#. module: l10n_br
+#: model:account.tax.group,name:l10n_br.tax_group_pis_065
+msgid "PIS 0.65%"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax__base_reduction
+#: model:ir.model.fields,field_description:l10n_br.field_account_tax_template__base_reduction
+msgid "Redution"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,field_description:l10n_br.field_res_partner__isuf_code
+#: model:ir.model.fields,field_description:l10n_br.field_res_users__isuf_code
+msgid "SUFRAMA code"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_res_partner__isuf_code
+#: model:ir.model.fields,help:l10n_br.field_res_users__isuf_code
+msgid "SUFRAMA registration number."
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position__l10n_br_fp_type__ss_nnm
+#: model:ir.model.fields.selection,name:l10n_br.selection__account_fiscal_position_template__l10n_br_fp_type__ss_nnm
+msgid "South/Southeast selling to North/Northeast/Midwest"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_res_company__nire_code
+msgid "State Commercial Identification Number. Should contain 11 digits."
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_res_company__ie_code
+#: model:ir.model.fields,help:l10n_br.field_res_partner__ie_code
+#: model:ir.model.fields,help:l10n_br.field_res_users__ie_code
+msgid "State Tax Identification Number. Should contain 9-14 digits."
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_tax
+msgid "Tax"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_fiscal_position_template
+msgid "Template for Fiscal Position"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model,name:l10n_br.model_account_tax_template
+msgid "Templates for Taxes"
+msgstr ""
+
+#. module: l10n_br
+#: model:ir.model.fields,help:l10n_br.field_account_tax__amount_mva
+#: model:ir.model.fields,help:l10n_br.field_account_tax__base_reduction
+#: model:ir.model.fields,help:l10n_br.field_account_tax_template__amount_mva
+#: model:ir.model.fields,help:l10n_br.field_account_tax_template__base_reduction
+msgid "Um percentual decimal em % entre 0-1."
+msgstr ""
