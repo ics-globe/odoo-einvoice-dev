@@ -36,6 +36,7 @@
         "py": "readonly",
         "ClipboardJS": "readonly",
         "Modal": "readonly",
+        "Dropdown": "readonly",
         "globalThis": "readonly"
     }
 }

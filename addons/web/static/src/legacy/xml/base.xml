@@ -1069,7 +1069,7 @@
                 <span class="o_badge_text" t-att-title="el.display_name"><span role="img" t-attf-aria-label="Tag color: #{colornames[color]}"/><span class="o_tag_badge_text" t-esc="el.display_name"/></span>
             </t>
             <t t-if="hasDropdown">
-                <a role="button" href="#" class="dropdown-toggle o-no-caret" data-toggle="dropdown" aria-expanded="false">
+                <a role="button" href="#" class="dropdown-toggle o-no-caret" aria-expanded="false">
                     <t t-out="_badge_text"/>
                 </a>
             </t>
