@@ -2915,7 +2915,9 @@ var FormFieldMany2ManyTags = FieldMany2ManyTags.extend({
             }));
 
             $(ev.currentTarget).after(this.$color_picker);
-            this.$color_picker.dropdown();
+            ev.currentTarget.setAttribute('data-bs-toggle', 'dropdown');
+            const dropdownToggle = new Dropdown(ev.currentTarget);
+            dropdownToggle.show();
             this.$color_picker.attr("tabindex", 1).focus();
             if (!tagColor) {
                 this.$('.custom-checkbox input').prop('checked', true);
