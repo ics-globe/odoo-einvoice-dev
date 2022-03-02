@@ -1413,9 +1413,12 @@ var SnippetsMenu = Widget.extend({
         const $autoFocusEls = $('.o_we_snippet_autofocus');
         this._activateSnippet($autoFocusEls.length ? $autoFocusEls.first() : false);
 
-        // Add tooltips on we-title elements whose text overflows
+        // Add tooltips on we-title elements whose text overflows and on all
+        // elements with available tooltip text. Note that the tooltips of the
+        // blocks should not be taken into account here because they have
+        // tooltips with a particular behavior (see _showSnippetTooltip).
         this.$el.tooltip({
-            selector: 'we-title, [data-tooltip="true"]',
+            selector: 'we-title, [title]:not(.oe_snippet)',
             placement: 'bottom',
             delay: 100,
             title: function () {
