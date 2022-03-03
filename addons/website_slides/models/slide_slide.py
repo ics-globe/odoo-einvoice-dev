@@ -17,7 +17,7 @@ from odoo import api, fields, models, _
 from odoo.addons.http_routing.models.ir_http import slug, url_for
 from odoo.exceptions import RedirectWarning, UserError, AccessError
 from odoo.http import request
-from odoo.tools import html2plaintext, sql
+from odoo.tools import html2plaintext, sql, pdf_utils
 
 _logger = logging.getLogger(__name__)
 
@@ -227,12 +227,16 @@ class Slide(models.Model):
         ('exclusion_html_content_and_url', "CHECK(html_content IS NULL OR url IS NULL)", "A slide is either filled with a url or HTML content. Not both.")
     ]
 
-    @api.depends('slide_category', 'source_type', 'image_binary_content')
+    @api.depends('slide_category', 'source_type', 'image_binary_content', 'document_binary_content')
     def _compute_image_1920(self):
         for slide in self:
             if slide.slide_category == 'infographic' and slide.source_type == 'local_file' and slide.image_binary_content:
                 slide.image_1920 = slide.image_binary_content
-            elif not slide.image_1920:
+            elif slide.slide_category == 'document' and slide.slide_type == 'pdf' and slide.document_binary_content:
+                pdf_preview = pdf_utils.render_first_page_of_pdf_base64_to_jpeg_base64(slide.document_binary_content)
+                if pdf_preview:  # Only update if preview has succeeded because preview can also be sent by the front
+                    slide.image_1920 = pdf_preview
+            if not slide.image_1920:
                 slide.image_1920 = False
 
     @api.depends('date_published', 'is_published')
