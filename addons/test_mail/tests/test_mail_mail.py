@@ -60,6 +60,42 @@ class TestMailMail(TestMailCommon):
         self.test_mail.write({'failure_reason': False, 'failure_type': False, 'state': 'outgoing'})
         self.test_notification.write({'failure_type': False, 'notification_status': 'ready'})
 
+    def test_message_hidden_preview(self):
+        test_mail_expected_preview = 'Body'
+        self.assertEqual(self.test_mail.hidden_preview, test_mail_expected_preview)
+
+        mail_values = {
+            'email_from': False,
+            'email_to': 'test@example.com',
+            'is_notification': True,
+            'subject': 'Subject',
+        }
+        self.test_mail_complex_body = self.env['mail.mail'].create([{
+            **mail_values,
+            'body': """<p class="o-super-class">Start of a long body content,
+with a <a href="https://odoo.com">link</a> and nested html tags.
+Note the whitespace strip hereafter.</p>
+<br/>
+<img src="https://odoo.com/whatever.png"/>""",
+        }])
+        test_mail_complex_body_expected_preview = (
+            """Start of a long body content, with a link and nested html tags. Note the whitespace strip hereafter."""
+        )
+        self.assertEqual(self.test_mail_complex_body.hidden_preview, test_mail_complex_body_expected_preview)
+
+        self.test_mail_long_body = self.env['mail.mail'].create([{
+            **mail_values,
+            'body': """<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua.</p>
+<p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+ sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>""",
+        }])
+        test_mail_long_body_expected_preview = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore "
+            "et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris [...]"""
+        )
+        self.assertEqual(self.test_mail_long_body.hidden_preview, test_mail_long_body_expected_preview)
 
     @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_mail_mail_recipients(self):
