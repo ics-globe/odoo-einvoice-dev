@@ -13,3 +13,4 @@ from . import test_website_sale_image
 from . import test_website_sequence
 from . import test_website_sale_visitor
 from . import test_website_sale_product
+from . import test_website_editor

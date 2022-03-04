@@ -54,6 +54,7 @@ odoo.define('website_sale.editor', function (require) {
 
 var options = require('web_editor.snippets.options');
 const Wysiwyg = require('web_editor.wysiwyg');
+const weWidgets = require('wysiwyg.widgets')
 const {qweb, _t} = require('web.core');
 const {Markup} = require('web.utils');
 const Dialog = require('web.Dialog');
@@ -714,5 +715,36 @@ options.registry.WebsiteSaleProductAttribute = options.Class.extend({
         }
         return this._super(methodName, params);
     },
+});
+
+options.registry.WebsiteSaleProduct = options.Class.extend({
+    willStart: async function () {
+        const _super = this._super.bind(this);
+        this.productID = parseInt(this.$target.find('[data-oe-model="product.product"]').data('oe-id'));
+        return _super(...arguments);
+    },
+
+    replaceMainImage: function() {
+        // Based on the default behaviour of the image button : /addons/web_editor/static/src/js/editor/snippets.options.js#L4771
+        $(this.$target.find('[data-oe-model="product.product"][data-oe-field=image_1920]')).find('img').dblclick();
+    },
+
+    addImages: function() {
+        const dialog = new weWidgets.MediaDialog(this, {multiImages: true, onlyImages: true}).open();
+        dialog.on('save', this, (attachments) => {
+            this._rpc({
+                route: `/shop/product/${this.productID}/extra-images`,
+                params: {
+                    images: attachments,
+                }
+            }).then(reload);
+        });
+    },
+
+    clearImages: function() {
+        this._rpc({
+            route: `/shop/product/${this.productID}/clear-images`,
+        }).then(reload);
+    }
 });
 });

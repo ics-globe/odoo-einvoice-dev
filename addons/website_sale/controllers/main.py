@@ -388,6 +388,29 @@ class WebsiteSale(http.Controller):
         # Compatibility pre-v14
         return request.redirect(_build_url_w_params("/shop/%s" % slug(product), request.params), code=301)
 
+    @http.route(['/shop/product/<model("product.product"):product>/extra-images'], type='json', auth='user', website=True)
+    def add_product_images(self, product, images, **kwargs):
+        """
+        Turns a list of image ids refering to ir.attachments to product.images,
+        links all of them to product.
+        :raises AccessError : If te user is not allowed to access Attachmet model or Product Model.
+        """
+        image_ids = request.env["ir.attachment"].browse(i['id'] for i in images)
+
+        product.write({
+            'product_variant_image_ids': [(0, 0, {
+                'name': image.name,
+                'image_1920': image.datas,
+            }) for image in image_ids],
+        })
+
+    @http.route(['/shop/product/<model("product.product"):product>/clear-images'], type='json', auth='user', website=True)
+    def clear_product_images(self, product):
+        """
+        Unlinks all images from the product.
+        """
+        product.product_variant_image_ids.unlink()
+
     def _prepare_product_values(self, product, category, search, **kwargs):
         ProductCategory = request.env['product.public.category']
 
