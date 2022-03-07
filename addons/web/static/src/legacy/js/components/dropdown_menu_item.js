@@ -44,11 +44,54 @@ odoo.define('web.DropdownMenuItem', function (require) {
 
         /**
          * @private
+         * @param {MouseEvent} ev
+         */
+        _onWindowClick(ev) {
+            if (
+                this.state.open &&
+                !this.el.contains(ev.target) &&
+                !this.el.contains(document.activeElement)
+            ) {
+                this.state.open = false;
+            }
+        }
+
+        /**
+         * @private
          * @param {KeyboardEvent} ev
          */
         _onKeydown(ev) {
             if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                 return;
+            }
+            // Inspired from BS5 dropdown
+            if (['ArrowUp', 'ArrowDown'].includes(ev.key)) {
+                const { key, target } = ev;
+                const items = [].concat(...Element.prototype.querySelectorAll.call(this.el.parentElement, '.o-dropdown-menu .dropdown-item:not(.disabled):not(:disabled)'))
+
+                if (!items.length) {
+                    return
+                }
+                const shouldGetNext = key === 'ArrowDown';
+
+                const isCycleAllowed = !items.includes(target);
+
+                let index = items.indexOf(target)
+
+                // if the element does not exist in the list return an element depending on the direction and if cycle is allowed
+                if (index === -1) {
+                    items[!shouldGetNext && isCycleAllowed ? items.length - 1 : 0].focus();
+                } else {
+                    const listLength = items.length
+
+                    index += shouldGetNext ? 1 : -1
+
+                    if (isCycleAllowed) {
+                        index = (index + listLength) % listLength
+                    }
+
+                    items[Math.max(0, Math.min(index, listLength - 1))].focus();
+                }
             }
             switch (ev.key) {
                 case 'ArrowLeft':
@@ -76,20 +119,6 @@ odoo.define('web.DropdownMenuItem', function (require) {
                         }
                         this.state.open = false;
                     }
-            }
-        }
-
-        /**
-         * @private
-         * @param {MouseEvent} ev
-         */
-        _onWindowClick(ev) {
-            if (
-                this.state.open &&
-                !this.el.contains(ev.target) &&
-                !this.el.contains(document.activeElement)
-            ) {
-                this.state.open = false;
             }
         }
     }
