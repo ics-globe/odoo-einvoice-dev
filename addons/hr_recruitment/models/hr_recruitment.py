@@ -257,27 +257,33 @@ class Applicant(models.Model):
 
     @api.depends_context('lang')
     @api.depends('meeting_ids', 'meeting_ids.start')
-    def _compute_meeting_display(self):
-        applicant_with_meetings = self.filtered('meeting_ids')
-        (self - applicant_with_meetings).update({
+    def _set_meetings_display(self, applicants, applicant_meetings):
+        (self - applicants).write({
             'meeting_display_text': _('No Meeting'),
             'meeting_display_date': ''
         })
         today = fields.Date.today()
-        for applicant in applicant_with_meetings:
-            count = len(applicant.meeting_ids)
-            dates = applicant.meeting_ids.mapped('start')
-            min_date, max_date = min(dates).date(), max(dates).date()
-            if min_date >= today:
-                applicant.meeting_display_date = min_date
-            else:
-                applicant.meeting_display_date = max_date
-            if count == 1:
-                applicant.meeting_display_text = _('1 Meeting')
-            elif applicant.meeting_display_date >= today:
-                applicant.meeting_display_text = _('Next Meeting')
-            else:
-                applicant.meeting_display_text = _('Last Meeting')
+        for applicant, meetings in zip(applicants, applicant_meetings):
+            count = len(meetings)
+            dates = meetings.mapped('start')
+            if dates:
+                min_date, max_date = min(dates).date(), max(dates).date()
+                if min_date >= today:
+                    applicant.meeting_display_date = min_date
+                else:
+                    applicant.meeting_display_date = max_date
+                if count == 1:
+                    applicant.meeting_display_text = _('1 Meeting')
+                elif applicant.meeting_display_date >= today:
+                    applicant.meeting_display_text = _('Next Meeting')
+                else:
+                    applicant.meeting_display_text = _('Last Meeting')
+
+    @api.depends_context('lang')
+    @api.depends('meeting_ids', 'meeting_ids.start')
+    def _compute_meeting_display(self):
+        applicant_with_meetings = self.filtered('meeting_ids')
+        self._set_meetings_display(applicant_with_meetings, applicant_with_meetings.meeting_ids)
 
     def _get_attachment_number(self):
         read_group_res = self.env['ir.attachment']._read_group(
@@ -468,6 +474,8 @@ class Applicant(models.Model):
             'default_user_id': self.env.uid,
             'default_name': self.name,
             'default_categ_ids': category and [category.id] or False,
+            'active_id': self.id,
+            'active_model': self._name,
         }
         return res
 
