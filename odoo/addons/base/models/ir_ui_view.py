@@ -40,6 +40,23 @@ _logger = logging.getLogger(__name__)
 
 MOVABLE_BRANDING = ['data-oe-model', 'data-oe-id', 'data-oe-field', 'data-oe-xpath', 'data-oe-source-id']
 
+ref_re = re.compile(r"""
+# first match 'form_view_ref' key, backrefs are used to handle single or
+# double quoting of the value
+(['"])(?P<view_type>\w+_view_ref)\1
+# colon separator (with optional spaces around)
+\s*:\s*
+# open quote for value
+(['"])
+(?P<view_id>
+    # we'll just match stuff which is normally part of an xid:
+    # word and "." characters
+    [.\w]+
+)
+# close with same quote as opening
+\3
+""", re.VERBOSE)
+
 
 def quick_eval(expr, globals_dict):
     """ Functionally identical to safe_eval(), but optimized with special-casing. """
@@ -1151,11 +1168,28 @@ actual arch.
                     # no point processing view-level ``groups`` anymore, return
                     return
                 views = {}
+                if field.type in ('one2many', 'many2many') and self.env.context.get('postprocess_x2many_level', 1) > 0:
+                    comodel = self.env[field.comodel_name].sudo(False)
+                    view_types = set(node.get('mode', 'tree').split(',') + ['form'])
+                    missing_views = [view_type for view_type in view_types if not node.xpath('./%s' % view_type)]
+                    if missing_views:
+                        if node.get('context'):
+                            refs = {
+                                m.group('view_type'): m.group('view_id')
+                                for m in ref_re.finditer(node.get('context'))
+                            }
+                            if refs:
+                                comodel = comodel.with_context(**refs)
+                        for view_type in missing_views:
+                            view = comodel._fields_view_get(view_type=view_type)
+                            node.append(etree.fromstring(view['arch']))
                 for child in node:
                     if child.tag in ('form', 'tree', 'graph', 'kanban', 'calendar'):
                         node.remove(child)
+                        level = self.env.context.get('postprocess_x2many_level', 1) - 1 if child.tag == 'form' else 0
                         sub_name_manager = self.with_context(
                             base_model_name=name_manager.model._name,
+                            postprocess_x2many_level=level,
                         )._postprocess_view(
                             child, field.comodel_name, editable=node_info['editable'],
                         )
