@@ -280,7 +280,8 @@ class TestAccountMailPerformance(BaseMailAccountPerformance):
         self.user_admin.notification_type = 'email'
         self.assertEqual(self.test_account_moves.user_id, self.user_account_other)
 
-        with self.mock_mail_gateway(mail_unlink_sent=True), \
+        with self.profile(collectors=['sql']) as profile, \
+             self.mock_mail_gateway(mail_unlink_sent=True), \
              self.assertQueryCount(user_account=407):  # acc: 352 / com 407
             account_moves = self.env['account.move'].browse(self.test_account_moves.ids)
             account_moves.write({

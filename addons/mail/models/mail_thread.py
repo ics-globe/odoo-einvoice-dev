@@ -2159,7 +2159,7 @@ class MailThread(models.AbstractModel):
         self = self._fallback_lang()
 
         msg_vals = msg_vals if msg_vals else {}
-        recipients_data = self._notify_get_recipients(message, msg_vals)
+        recipients_data = self._notify_get_recipients(message, [msg_vals])[self.id if self else 0]
         if not recipients_data:
             return recipients_data
 
@@ -2506,12 +2506,15 @@ class MailThread(models.AbstractModel):
             final_mail_values.update(additional_values)
         return final_mail_values
 
-    def _notify_get_recipients(self, message, msg_vals):
+    def _notify_get_recipients(self, messages, msg_vals_list):
         """ Compute recipients to notify based on subtype and followers. This
         method returns data structured as expected for ``_notify_recipients``.
 
         TDE/XDO TODO: flag rdata directly, with for example r['notif'] = 'ocn_client' and r['needaction']=False
         and correctly override _notify_get_recipients
+
+        :param messages: UPDATE ME
+        :param msg_vals_list: UPDATE ME
 
         :return list recipients_data: this is a list of recipients information (see
           ``MailFollowers._get_recipient_data()`` for more details) formatted like
@@ -2523,25 +2526,43 @@ class MailThread(models.AbstractModel):
             'type': 'customer', 'portal', 'user;'
            }, {...}]
         """
-        msg_sudo = message.sudo()
+        messages_sudo = messages.sudo()
+
         # get values from msg_vals or from message if msg_vals doen't exists
-        pids = msg_vals.get('partner_ids', []) if msg_vals else msg_sudo.partner_ids.ids
-        message_type = msg_vals.get('message_type') if msg_vals else msg_sudo.message_type
-        subtype_id = msg_vals.get('subtype_id') if msg_vals else msg_sudo.subtype_id.id
+        pids, message_types, subtype_ids = [], [], []
+        for msg_sudo, msg_vals in zip(messages_sudo, msg_vals_list):
+            pids += msg_vals.get('partner_ids', []) if msg_vals else msg_sudo.partner_ids.ids
+            message_types.append(msg_vals.get('message_type') if msg_vals else msg_sudo.message_type)
+            subtype_ids.append(msg_vals.get('subtype_id') if msg_vals else msg_sudo.subtype_id.id)
+        if len(set(message_types)) > 1:
+            raise ValueError('Notify should group notification per message type')
+        if len(set(subtype_ids)) > 1:
+            raise ValueError('Notify should group notification per subtypes')
+
         # is it possible to have record but no subtype_id ?
-        recipients_data = []
+        rdata = self.env['mail.followers']._get_recipient_data(self, message_types[0], subtype_ids[0], pids)
 
-        res = self.env['mail.followers']._get_recipient_data(self, message_type, subtype_id, pids)[self.id if self else 0]
-        if not res:
-            return recipients_data
+        # classify per record
+        recipients_data = {}
+        for res_id, msg_sudo, msg_vals in zip(self.ids or [0], messages_sudo, msg_vals_list):
+            record_rdata = rdata[res_id]
+            # early skip: if no value, skip access to author and post processing
+            if not record_rdata:
+                recipients_data[res_id] = record_rdata
+                continue
 
-        author_id = msg_vals.get('author_id') or message.author_id.id
-        for pid, pdata in res.items():
-            if pid and pid == author_id and not self.env.context.get('mail_notify_author'):  # do not notify the author of its own messages
-                continue
-            if pdata['active'] is False:
-                continue
-            recipients_data.append(pdata)
+            record_recipients = []
+            author_id = msg_vals.get('author_id') or msg_sudo.author_id.id
+            for pid, pdata in record_rdata.items():
+                if pid and pid == author_id and not self.env.context.get('mail_notify_author'):  # do not notify the author of its own messages
+                    continue
+                if pdata['active'] is False:
+                    continue
+                if pid and pid not in msg_vals.get('partner_ids', []) if msg_vals else msg_sudo.partner_ids.ids:
+                    continue
+                record_recipients.append(pdata)
+            recipients_data[res_id] = record_recipients
+
         return recipients_data
 
     def _notify_get_recipients_groups(self, msg_vals=None):
