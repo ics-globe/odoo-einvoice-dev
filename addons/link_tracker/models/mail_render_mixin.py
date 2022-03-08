@@ -35,22 +35,22 @@ class MailRenderMixin(models.AbstractModel):
         """
         base_url = base_url or self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         short_schema = base_url + '/r/'
-        for match in set(re.findall(tools.HTML_TAG_URL_REGEX, html)):
-            long_url = match[1]
+        for match in set(re.findall(rf'({tools.HTML_TAG_IMAGE_ALT_REGEX})', html)):
+            long_url = match[2]
             # Don't shorten already-shortened links
             if long_url.startswith(short_schema):
                 continue
             # Don't shorten urls present in blacklist (aka to skip list)
             if blacklist and any(s in long_url for s in blacklist):
                 continue
-            label = (match[3] or '').strip()
+            label = (match[6] or match[4] or '').strip()
 
             create_vals = dict(link_tracker_vals, url=utils.unescape(long_url), label=utils.unescape(label))
             link = self.env['link.tracker'].search_or_create(create_vals)
             if link.short_url:
                 # `str` manipulation required to support replacing "&" characters, common in urls
-                new_href = match[0].replace(long_url, link.short_url)
-                html = html.replace(markupsafe.Markup(match[0]), markupsafe.Markup(new_href))
+                new_fragment = match[0].replace(long_url, link.short_url, 1)
+                html = html.replace(markupsafe.Markup(match[0]), markupsafe.Markup(new_fragment))
 
         return html
 

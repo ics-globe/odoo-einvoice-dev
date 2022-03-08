@@ -132,7 +132,7 @@ class LinkTracker(models.Model):
 
         return title
 
-    @api.constrains('url', 'campaign_id', 'medium_id', 'source_id')
+    @api.constrains('url', 'campaign_id', 'medium_id', 'source_id', 'label')
     def _check_unicity(self):
         """Check that the link trackers are unique."""
         # build a query to fetch all needed link trackers at once
@@ -142,6 +142,7 @@ class LinkTracker(models.Model):
                 [('campaign_id', '=', tracker.campaign_id.id)],
                 [('medium_id', '=', tracker.medium_id.id)],
                 [('source_id', '=', tracker.source_id.id)],
+                [('label', '=', tracker.label)],
             ])
             for tracker in self
         ])
@@ -156,13 +157,16 @@ class LinkTracker(models.Model):
                 and l.campaign_id == tracker.campaign_id
                 and l.medium_id == tracker.medium_id
                 and l.source_id == tracker.source_id
+                and l.label == tracker.label
             ) != tracker:
                 raise UserError(_(
-                    'Link Tracker values (URL, campaign, medium and source) must be unique (%s, %s, %s, %s).',
+                    'Link Tracker values (URL, campaign, medium, source, and label) '
+                    'must be unique (%s, %s, %s, %s, %s).',
                     tracker.url,
                     tracker.campaign_id.name,
                     tracker.medium_id.name,
                     tracker.source_id.name,
+                    tracker.label,
                 ))
 
     @api.model_create_multi
@@ -204,7 +208,7 @@ class LinkTracker(models.Model):
         search_domain = [
             (fname, '=', value)
             for fname, value in vals.items()
-            if fname in ['url', 'campaign_id', 'medium_id', 'source_id']
+            if fname in {'url', 'campaign_id', 'medium_id', 'source_id', 'label'}
         ]
         result = self.search(search_domain, limit=1)
 

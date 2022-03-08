@@ -85,7 +85,6 @@ class TestMailRenderMixin(common.TransactionCase):
             'This is another: <a href="{base_url}/web#debug=1&more=2">{base_url}</a><br/>\n'
             'And a third: <a href="{base_url}">Here</a>\n'
             'And a forth: <a href="{base_url}">Here</a>\n'
-            'And a fifth: <a href="{base_url}">Here too</a>\n'
             'And a last, more complex: <a href="https://boinc.berkeley.edu/forum_thread.php?id=14544&postid=106833">There!</a>'
             .format(base_url=self.base_url)
         )
@@ -94,7 +93,6 @@ class TestMailRenderMixin(common.TransactionCase):
             'This is another: <a href="{base_url}/r/[\\w]+">{base_url}</a><br/>\n'
             'And a third: <a href="{base_url}/r/([\\w]+)">Here</a>\n'
             'And a forth: <a href="{base_url}/r/([\\w]+)">Here</a>\n'
-            'And a fifth: <a href="{base_url}/r/([\\w]+)">Here too</a>\n'
             'And a last, more complex: <a href="{base_url}/r/([\\w]+)">There!</a>'
             .format(base_url=self.base_url)
         )
@@ -104,8 +102,36 @@ class TestMailRenderMixin(common.TransactionCase):
         matches = expected_pattern.search(new_content).groups()
         # 3rd and 4th lead to the same short_url
         self.assertEqual(matches[0], matches[1])
-        # 5th has different label but should currently lead to the same link
-        self.assertEqual(matches[1], matches[2])
+
+    def test_shorten_links_html_different_labels(self):
+        content = (
+            'There is a <a href="https://www.odoo.com">link</a> here, '
+            '<a href="https://www.odoo.com">there</a>, and in this '
+            '<a href="https://www.odoo.com"><img src="https://www.odoo.com/logo.png" alt="image"/></a>'
+            .format(base_url=self.base_url)
+        )
+        expected_pattern = re.compile(
+            'There is a <a href="{base_url}/r/([\\w]+)+">link</a> here, '
+            '<a href="{base_url}/r/([\\w]+)+">there</a>, and in this '
+            '<a href="{base_url}/r/([\\w]+)+"><img src="https://www.odoo.com/logo.png" alt="image"/></a>'
+            .format(base_url=self.base_url)
+        )
+        new_content = self.env["mail.render.mixin"]._shorten_links(content, {})
+
+        self.assertRegex(new_content, expected_pattern)
+
+        trackers_to_find = [
+            [("url", "=", "https://www.odoo.com"), ("label", "=", "link")],
+            [("url", "=", "https://www.odoo.com"), ("label", "=", "there")],
+            [("url", "=", "https://www.odoo.com"), ("label", "=", "image")],
+        ]
+        for tracker_to_find in trackers_to_find:
+            self.assertTrue(self.env["link.tracker"].search(tracker_to_find))
+
+        matches = expected_pattern.search(new_content).groups()
+        self.assertNotEqual(matches[0], matches[1])
+        self.assertNotEqual(matches[1], matches[2])
+        self.assertNotEqual(matches[0], matches[2])
 
     def test_shorten_links_text_including_base_url(self):
         content = (

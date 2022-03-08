@@ -259,7 +259,17 @@ def html_sanitize(src, silent=True, sanitize_tags=True, sanitize_attributes=Fals
 URL_REGEX = r'(\bhref=[\'"](?!mailto:|tel:|sms:)([^\'"]+)[\'"])'
 TEXT_URL_REGEX = r'https?://[\w@:%.+&~#=/-]+(?:\?\S+)?'
 # retrieve inner content of the link
-HTML_TAG_URL_REGEX = URL_REGEX + r'([^<>]*>([^<>]+)<\/)?'
+TEXT_BEFORE_CLOSING_TAG_REGEX = r'([^<>]*>([^<>]+)<\/)?'
+NO_TAG = r'[^<>]*'
+QUOTE = r'[\'\"]'
+NO_QUOTE = r'[^\'\"]'
+
+HTML_TAG_URL_REGEX = URL_REGEX + TEXT_BEFORE_CLOSING_TAG_REGEX
+HTML_TAG_IMAGE_ALT_REGEX = (
+        URL_REGEX
+        + rf'({NO_TAG}>{NO_TAG}\<img{NO_TAG}alt={QUOTE}({NO_QUOTE}+){QUOTE})?'
+        + TEXT_BEFORE_CLOSING_TAG_REGEX
+)
 
 
 def validate_url(url):
