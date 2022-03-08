@@ -11,6 +11,7 @@ from . import ir_asset
 from . import ir_actions
 from . import ir_actions_report
 from . import ir_attachment
+from . import ir_async
 from . import ir_cron
 from . import ir_filters
 from . import ir_default

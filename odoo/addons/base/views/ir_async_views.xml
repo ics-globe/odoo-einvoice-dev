@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_async_view_form" model="ir.ui.view">
+        <field name="name">ir.async.view.form</field>
+        <field name="model">ir.async</field>
+        <field name="arch" type="xml">
+            <form string="Async Task">
+                <sheet>
+                    <group>
+                        <field name="state"/>
+                        <field name="call_at"/>
+                    </group>
+                    <group>
+                        <field name="model_name"/>
+                        <field name="method_name"/>
+                        <field name="records_ids"/>
+                        <field name="args"/>
+                        <field name="kwargs"/>
+                    </group>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="context"/>
+                        <field name="is_super_user"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="ir_async_view_tree" model="ir.ui.view">
+        <field name="name">ir.async.view.tree</field>
+        <field name="model">ir.async</field>
+        <field name="arch" type="xml">
+            <tree string="Async Tasks">
+                <field name="id"/>
+                <field name="state"/>
+                <field name="call_at"/>
+                <field name="model_name"/>
+                <field name="method_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="ir_async_view_search" model="ir.ui.view">
+        <field name="name">ir.async.view.search</field>
+        <field name="model">ir.async</field>
+        <field name="arch" type="xml">
+            <search string="Async Tasks">
+                <field name="state"/>
+                <field name="call_at"/>
+                <field name="model_name"/>
+                <field name="method_name"/>
+                <field name="user_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="ir_async_action" model="ir.actions.act_window">
+        <field name="name">Job Queue</field>
+        <field name="res_model">ir.async</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="ir_async_menu"
+        action="ir_async_action"
+        parent="base.menu_automation"
+        sequence="4"/>
+
+</odoo>

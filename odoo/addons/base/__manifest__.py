@@ -31,6 +31,7 @@ The kernel of Odoo, needed for all installation.
         'data/res.country.state.csv',
         'views/ir_actions_views.xml',
         'views/ir_asset_views.xml',
+        'views/ir_async_views.xml',
         'views/ir_config_parameter_views.xml',
         'views/ir_cron_views.xml',
         'views/ir_cron_trigger_views.xml',
