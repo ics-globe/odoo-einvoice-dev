@@ -2020,14 +2020,14 @@
                         </div>
                     </t>
                 </div>
-                <t t-if="len(product_images) > 1">
+                <div id="o_carousel_product_controls" t-attf-class="#{'' if len(product_images) > 1 else 'd-none'}">
                     <a class="carousel-control-prev" href="#o-carousel-product" role="button" data-slide="prev">
                         <span class="fa fa-chevron-left fa-2x" role="img" aria-label="Previous" title="Previous"/>
                     </a>
                     <a class="carousel-control-next" href="#o-carousel-product" role="button" data-slide="next">
                         <span class="fa fa-chevron-right fa-2x" role="img" aria-label="Next" title="Next"/>
                     </a>
-                </t>
+                </div>
             </div>
         </div>
     </template>
@@ -2053,7 +2053,7 @@
 
     <template id="carousel_product_indicators" name="Carousel Product">
         <div t-ignore="True" t-attf-class="o_carousel_product_indicators {{indicators_div_class}}">
-            <ol t-if="len(product_images) > 1" t-attf-class="carousel-indicators {{indicators_list_class}} position-static pt-2 pt-lg-0 mx-auto my-0 text-left">
+            <ol t-attf-class="carousel-indicators {{indicators_list_class}} position-static pt-2 pt-lg-0 mx-auto my-0 text-left #{'' if len(product_images) > 1 else 'd-none'} ">
                 <li t-foreach="product_images" t-as="product_image"
                     t-attf-class="align-top position-relative {{'active' if product_image_first else ''}}"
                     data-target="#o-carousel-product"

@@ -54,7 +54,7 @@ odoo.define('website_sale.editor', function (require) {
 
 var options = require('web_editor.snippets.options');
 const Wysiwyg = require('web_editor.wysiwyg');
-const weWidgets = require('wysiwyg.widgets')
+const weWidgets = require('wysiwyg.widgets');
 const {qweb, _t} = require('web.core');
 const {Markup} = require('web.utils');
 const Dialog = require('web.Dialog');
@@ -721,30 +721,61 @@ options.registry.WebsiteSaleProduct = options.Class.extend({
     willStart: async function () {
         const _super = this._super.bind(this);
         this.productID = parseInt(this.$target.find('[data-oe-model="product.product"]').data('oe-id'));
+        this.productIndicators = $(".o_carousel_product_indicators");
+        this.carouselIndicators = $(".carousel-indicators");
         return _super(...arguments);
     },
 
-    replaceMainImage: function() {
+    replaceMainImage: function () {
         // Based on the default behaviour of the image button : /addons/web_editor/static/src/js/editor/snippets.options.js#L4771
         $(this.$target.find('[data-oe-model="product.product"][data-oe-field=image_1920]')).find('img').dblclick();
     },
 
-    addImages: function() {
+    addImages: function () {
+        let images = [];
         const dialog = new weWidgets.MediaDialog(this, {multiImages: true, onlyImages: true}).open();
         dialog.on('save', this, (attachments) => {
+            images = attachments;
             this._rpc({
                 route: `/shop/product/${this.productID}/extra-images`,
                 params: {
                     images: attachments,
                 }
-            }).then(reload);
+            }).then(() => {
+                // Shows product Indicators (thumbnails)
+                this.carouselIndicators.removeClass("d-none");
+
+                // Adds all uploaded images to the list. Purely cosmetic as the images are not yet linked to the backend
+                images.forEach(i => {
+                    $('<li></li>', {
+                        class: 'align-top position-relative active overflow-hidden'
+                        }).append($("<div></div>", {
+                            'data-oe-model': 'product.image'
+                        }).append($("<img/>", {
+                            src: i.image_src,
+                            class: 'w-100 o_image_64_cover'
+                        }))).appendTo(this.carouselIndicators);
+                    });
+
+                // Informs the user to save the page before editing new pictures.
+                // This lets him also save other unrelated modifications aswell.
+
+                this.displayNotification({
+                    message: _t("Save your modifications to edit newly added pictures"),
+                    type: 'info'
+                });
+            });
         });
     },
 
-    clearImages: function() {
+    clearImages: function () {
+        this.productIndicators.find("[data-oe-model='product.product']").click();
         this._rpc({
             route: `/shop/product/${this.productID}/clear-images`,
-        }).then(reload);
+        }).then(() => {
+            // Remove extra images from the thumbnails
+            this.carouselIndicators.find("[data-oe-model='product.image']").parent().remove();
+        });
     }
 });
 });

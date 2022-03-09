@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from base64 import b64encode
 import json
 import logging
+import requests
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.urls import url_decode, url_encode, url_parse
 
@@ -399,8 +401,8 @@ class WebsiteSale(http.Controller):
 
         product.write({
             'product_variant_image_ids': [(0, 0, {
-                'name': image.name,
-                'image_1920': image.datas,
+                'name': image.name,                          # Images uploaded from url do not have any data. This recovers them manually
+                'image_1920': image.datas if image.datas else b64encode(requests.get(image.url, stream=True).content),
             }) for image in image_ids],
         })
 
