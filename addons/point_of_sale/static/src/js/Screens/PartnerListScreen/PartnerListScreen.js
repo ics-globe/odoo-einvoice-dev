@@ -144,11 +144,9 @@ odoo.define('point_of_sale.PartnerListScreen', function(require) {
         }
         async saveChanges(event) {
             try {
-                let partnerId = await this.rpc({
-                    model: 'res.partner',
-                    method: 'create_from_ui',
-                    args: [event.detail.processedChanges],
-                });
+                let partnerId = await this.env.services.orm.call('res.partner', 'create_from_ui', [
+                    event.detail.processedChanges,
+                ]);
                 await this.env.pos.load_new_partners();
                 this.state.selectedPartner = this.env.pos.db.get_partner_by_id(partnerId);
                 this.state.detailIsShown = false;
@@ -180,24 +178,14 @@ odoo.define('point_of_sale.PartnerListScreen', function(require) {
             if(this.state.query) {
                 domain = [["name", "ilike", this.state.query + "%"]];
             }
-            const result = await this.env.services.rpc(
-                {
-                    model: 'pos.session',
-                    method: 'get_pos_ui_res_partner_by_params',
-                    args: [
-                        [odoo.pos_session_id],
-                        {
-                            domain,
-                            limit: 10,
-                        },
-                    ],
-                    context: this.env.session.user_context,
-                },
-                {
-                    timeout: 3000,
-                    shadow: true,
-                }
-            );
+            const result = await this.env.services.orm.silent
+                .call('pos.session', 'get_pos_ui_res_partner_by_params', [
+                    [odoo.pos_session_id],
+                    {
+                        domain,
+                        limit: 10,
+                    },
+                ]);
             return result;
         }
     }

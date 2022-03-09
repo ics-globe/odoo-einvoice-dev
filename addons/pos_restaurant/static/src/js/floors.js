@@ -124,22 +124,10 @@ const PosRestaurantPosGlobalState = (PosGlobalState) => class PosRestaurantPosGl
     /**
      * Request the orders of the table with given id.
      * @param {number} table_id.
-     * @param {dict} options.
-     * @param {number} options.timeout optional timeout parameter for the rpc call.
      * @return {Promise}
      */
-    _get_from_server (table_id, options) {
-        options = options || {};
-        var timeout = typeof options.timeout === 'number' ? options.timeout : 7500;
-        return this.env.services.rpc({
-                model: 'pos.order',
-                method: 'get_table_draft_orders',
-                args: [table_id],
-                kwargs: {context: this.env.session.user_context},
-            }, {
-                timeout: timeout,
-                shadow: false,
-            })
+    _get_from_server (table_id) {
+        return this.env.services.orm.call('pos.order', 'get_table_draft_orders', [table_id]);
     }
 
     transfer_order_to_table(table) {

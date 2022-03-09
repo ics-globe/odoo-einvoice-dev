@@ -254,16 +254,8 @@ odoo.define('pos_mercury.PaymentScreen', function (require) {
                     });
                 }
 
-                this.rpc(
-                    {
-                        model: 'pos_mercury.mercury_transaction',
-                        method: 'do_payment',
-                        args: [transaction],
-                    },
-                    {
-                        timeout: self.server_timeout_in_ms,
-                    }
-                )
+                this.env.services.orm
+                    .call('pos_mercury.mercury_transaction', 'do_payment', [transaction])
                     .then(function (data) {
                         // if not receiving a response from Vantiv, we should retry
                         if (data === 'timeout') {
@@ -464,16 +456,8 @@ odoo.define('pos_mercury.PaymentScreen', function (require) {
                     });
                 }
 
-                this.rpc(
-                    {
-                        model: 'pos_mercury.mercury_transaction',
-                        method: rpc_method,
-                        args: [request_data],
-                    },
-                    {
-                        timeout: self.server_timeout_in_ms,
-                    }
-                )
+                this.env.services.orm
+                    .call('pos_mercury.mercury_transaction', rpc_method, [request_data])
                     .then(function (data) {
                         if (data === 'timeout') {
                             self.retry_mercury_transaction(

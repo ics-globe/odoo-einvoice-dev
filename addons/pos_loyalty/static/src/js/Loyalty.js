@@ -2,7 +2,6 @@
 
 import { Order, Orderline, PosGlobalState} from 'point_of_sale.models';
 import Registries from 'point_of_sale.Registries';
-import session from 'web.session';
 import concurrency from 'web.concurrency';
 import { Gui } from 'point_of_sale.Gui';
 import { round_precision } from 'web.utils';
@@ -94,16 +93,7 @@ const PosLoyaltyGlobalState = (PosGlobalState) => class PosLoyaltyGlobalState ex
      * @param {int} limit Default to 1
      */
     async fetchCoupons(domain, limit=1) {
-        const result = await this.env.services.rpc({
-            model: 'loyalty.card',
-            method: 'search_read',
-            kwargs: {
-                domain: domain,
-                fields: ['id', 'points', 'code', 'partner_id', 'program_id'],
-                limit: limit,
-                context: session.user_context,
-            }
-        });
+        const result = await this.env.services.orm.searchRead('loyalty.card', domain, ['id', 'points', 'code', 'partner_id', 'program_id'], { limit });
         if (Object.keys(this.couponCache).length + result.length > COUPON_CACHE_MAX_SIZE) {
             this.couponCache = {};
             // Make sure that the current order has no invalid data.
@@ -1272,17 +1262,8 @@ const PosLoyaltyOrder = (Order) => class PosLoyaltyOrder extends Order {
                 return _t('That coupon code has already been scanned and activated.');
             }
             const customer = this.get_partner();
-            const { successful, payload } = await this.pos.env.services.rpc({
-                model: 'pos.config',
-                method: 'use_coupon_code',
-                args: [
-                    [this.pos.config.id],
-                    code,
-                    this.creation_date,
-                    customer ? customer.id : false,
-                ],
-                kwargs: { context: session.user_context },
-            });
+            const args = [[this.pos.config.id], code, this.creation_date, customer ? customer.id : false];
+            const { successful, payload } = await this.pos.env.services.orm.call('pos.config', 'use_coupon_code', args);
             if (successful) {
                 const coupon = new PosLoyaltyCard(code, payload.coupon_id, payload.program_id, payload.partner_id, payload.points);
                 this.pos.couponCache[coupon.id] = coupon;

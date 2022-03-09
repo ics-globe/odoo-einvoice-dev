@@ -148,13 +148,7 @@ class PosGlobalState extends PosModel {
         };
     }
     async load_product_uom_unit() {
-        const params = {
-            model: 'ir.model.data',
-            method:'check_object_reference',
-            args: ['uom', 'product_uom_unit'],
-        };
-
-        const uom_id = await this.env.services.rpc(params);
+        const uom_id = await this.env.services.orm.call('ir.model.data', 'check_object_reference', ['uom', 'product_uom_unit']);
         this.uom_unit_id = uom_id[1];
     }
 
@@ -165,11 +159,7 @@ class PosGlobalState extends PosModel {
     }
 
     async load_server_data(){
-        const loadedData = await this.env.services.rpc({
-            model: 'pos.session',
-            method: 'load_pos_data',
-            args: [[odoo.pos_session_id]],
-        });
+        const loadedData = await this.env.services.orm.call('pos.session', 'load_pos_data', [[odoo.pos_session_id]]);
         await this._processData(loadedData);
         return this.after_load_server_data();
     }
@@ -282,7 +272,7 @@ class PosGlobalState extends PosModel {
                 reject();
             };
             this.company_logo.crossOrigin = "anonymous";
-            this.company_logo.src = '/web/binary/company_logo' + '?dbname=' + this.env.session.db + '&company=' + this.company.id + '&_' + Math.random();
+            this.company_logo.src = '/web/binary/company_logo' + '?dbname=' + this.env.services.user.db.name + '&company=' + this.company.id + '&_' + Math.random();
         });
 
     }
@@ -295,21 +285,16 @@ class PosGlobalState extends PosModel {
     load_new_partners(){
         return new Promise((resolve, reject)  => {
             var domain = this.prepare_new_partners_domain();
-            this.env.services.rpc({
-                model: 'pos.session',
-                method: 'get_pos_ui_res_partner_by_params',
-                args: [[odoo.pos_session_id], {domain}],
-            }, {
-                timeout: 3000,
-                shadow: true,
-            })
-            .then(partners => {
-                if (this.db.add_partners(partners)) {   // check if the partners we got were real updates
-                    resolve();
-                } else {
-                    reject('Failed in updating partners.');
-                }
-            }, function (type, err) { reject(); });
+            this.env.services.orm.silent
+                .call('pos.session', 'get_pos_ui_res_partner_by_params', [[odoo.pos_session_id], { domain }])
+                .then((partners) => {
+                    if (this.db.add_partners(partners)) {
+                        // check if the partners we got were real updates
+                        resolve();
+                    } else {
+                        reject('Failed in updating partners.');
+                    }
+                }).catch(() => reject());
         });
     }
 
@@ -419,25 +404,24 @@ class PosGlobalState extends PosModel {
                 }
             }
         }
-        const products = await this.env.services.rpc({
-            model: 'pos.session',
-            method: 'get_pos_ui_product_product_by_params',
-            args: [odoo.pos_session_id, {domain: [['id', 'in', [...missingProductIds]]]}],
-        });
+        const products = await this.env.services.orm.call('pos.session', 'get_pos_ui_product_product_by_params', [
+            odoo.pos_session_id,
+            { domain: [['id', 'in', [...missingProductIds]]] },
+        ]);
         this._loadProductProduct(products);
     }
     async loadProductsBackground() {
         let page = 0;
         let products = [];
         do {
-            products = await this.env.services.rpc({
-                model: 'pos.session',
-                method: 'get_pos_ui_product_product_by_params',
-                args: [odoo.pos_session_id, {
+            // Background loading should be silent, should not show the block ui.
+            products = await this.env.services.orm.silent.call('pos.session', 'get_pos_ui_product_product_by_params', [
+                odoo.pos_session_id,
+                {
                     offset: page * this.config.limited_products_amount,
                     limit: this.config.limited_products_amount,
-                }],
-            }, { shadow: true });
+                },
+            ]);
             this._loadProductProduct(products);
             page += 1;
         } while(products.length == this.config.limited_products_amount);
@@ -448,18 +432,14 @@ class PosGlobalState extends PosModel {
         let i = 0;
         let partners = [];
         do {
-            partners = await this.env.services.rpc({
-                model: 'pos.session',
-                method: 'get_pos_ui_res_partner_by_params',
-                args: [
-                    [odoo.pos_session_id],
-                    {
-                        limit: this.config.limited_partners_amount,
-                        offset: this.config.limited_partners_amount * i,
-                    },
-                ],
-                context: this.env.session.user_context,
-            }, { shadow: true });
+            // Background loading should be silent, should not show the block ui.
+            partners = await this.env.services.orm.silent.call('pos.session', 'get_pos_ui_res_partner_by_params', [
+                [odoo.pos_session_id],
+                {
+                    limit: this.config.limited_partners_amount,
+                    offset: this.config.limited_partners_amount * i,
+                },
+            ]);
             this.db.add_partners(partners);
             i += 1;
         } while(partners.length);
@@ -689,7 +669,6 @@ class PosGlobalState extends PosModel {
         options = options || {};
 
         var self = this;
-        var timeout = typeof options.timeout === 'number' ? options.timeout : 30000 * orders.length;
 
         // Keep the order ids that are about to be sent to the
         // backend. In between create_from_ui and the success callback
@@ -703,24 +682,19 @@ class PosGlobalState extends PosModel {
                 return order;
             })];
         args.push(options.draft || false);
-        return this.env.services.rpc({
-                model: 'pos.order',
-                method: 'create_from_ui',
-                args: args,
-                kwargs: {context: this.env.session.user_context},
-            }, {
-                timeout: timeout,
-                shadow: !options.to_invoice
-            })
+        return this.env.services.orm
+            .call('pos.order', 'create_from_ui', args)
             .then(function (server_ids) {
                 _.each(order_ids_to_sync, function (order_id) {
                     self.db.remove_order(order_id);
                 });
                 self.failed = false;
                 return server_ids;
-            }).catch(function (error){
+            })
+            .catch(function (error) {
                 console.warn('Failed to send orders:', orders);
-                if(error.code === 200 ){    // Business Logic Error, not a connection problem
+                if (error.code === 200) {
+                    // Business Logic Error, not a connection problem
                     // Hide error if already shown before ...
                     if ((!self.failed || options.show_error) && !options.to_invoice) {
                         self.failed = error;
@@ -745,17 +719,9 @@ class PosGlobalState extends PosModel {
         }
 
         var self = this;
-        var timeout = typeof options.timeout === 'number' ? options.timeout : 7500 * server_ids.length;
 
-        return this.env.services.rpc({
-                model: 'pos.order',
-                method: 'remove_from_ui',
-                args: [server_ids],
-                kwargs: {context: this.env.session.user_context},
-            }, {
-                timeout: timeout,
-                shadow: true,
-            })
+        return this.env.services.orm.silent
+            .call('pos.order', 'remove_from_ui', [server_ids])
             .then(function (data) {
                 return self._post_remove_from_server(server_ids, data)
             }).catch(function (reason){
@@ -893,31 +859,6 @@ class PosGlobalState extends PosModel {
         }
     }
 
-    /**
-     * TODO: We can probably remove this here and put it somewhere else.
-     * And that somewhere else becomes the parent of the proxy.
-     * Directly calls the requested service, instead of triggering a
-     * 'call_service' event up, which wouldn't work as services have no parent
-     *
-     * @param {OdooEvent} ev
-     */
-    _trigger_up (ev) {
-        if (ev.is_stopped()) {
-            return;
-        }
-        const payload = ev.data;
-        if (ev.name === 'call_service') {
-            let args = payload.args || [];
-            if (payload.service === 'ajax' && payload.method === 'rpc') {
-                // ajax service uses an extra 'target' argument for rpc
-                args = args.concat(ev.target);
-            }
-            const service = this.env.services[payload.service];
-            const result = service[payload.method].apply(service, args);
-            payload.callback(result);
-        }
-    }
-
     isProductQtyZero(qty) {
         return utils.float_is_zero(qty, this.dp['Product Unit of Measure']);
     }
@@ -992,18 +933,12 @@ class PosGlobalState extends PosModel {
      */
     async _addProducts(ids, setAvailable=true){
         if(setAvailable){
-            await this.env.services.rpc({
-                model: 'product.product',
-                method: 'write',
-                args: [ids, {'available_in_pos': true}],
-                context: this.env.session.user_context,
-            });
+            await this.env.services.orm.write('product.product', ids, { available_in_pos: true });
         }
-        let product = await this.env.services.rpc({
-            model: 'pos.session',
-            method: 'get_pos_ui_product_product_by_params',
-            args: [odoo.pos_session_id, {domain: [['id', 'in', ids]]}],
-        });
+        let product = await this.env.services.orm.call('pos.session', 'get_pos_ui_product_product_by_params', [
+            odoo.pos_session_id,
+            { domain: [['id', 'in', ids]] },
+        ]);
         this._loadProductProduct(product);
     }
     htmlToImgLetterRendering() {

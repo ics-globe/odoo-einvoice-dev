@@ -24,15 +24,12 @@ odoo.define('point_of_sale.ProductInfoPopup', function(require) {
             try {
                 // check back-end method `get_product_info_pos` to see what it returns
                 // We do this so it's easier to override the value returned and use it in the component template later
-                this.productInfo = await this.rpc({
-                    model: 'product.product',
-                    method: 'get_product_info_pos',
-                    args: [[this.props.product.id],
-                        this.props.product.get_price(order.pricelist, this.props.quantity),
-                        this.props.quantity,
-                        this.env.pos.config.id],
-                    kwargs: {context: this.env.session.user_context},
-                });
+                this.productInfo = await this.env.services.orm.call('product.product', 'get_product_info_pos', [
+                    [this.props.product.id],
+                    this.props.product.get_price(order.pricelist, this.props.quantity),
+                    this.props.quantity,
+                    this.env.pos.config.id,
+                ]);
 
                 const priceWithoutTax = this.productInfo['all_prices']['price_without_tax'];
                 const margin = priceWithoutTax - this.props.product.standard_price;

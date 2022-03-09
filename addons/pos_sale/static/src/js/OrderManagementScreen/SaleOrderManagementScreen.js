@@ -242,12 +242,11 @@ odoo.define('pos_sale.SaleOrderManagementScreen', function (require) {
         }
 
         async _getSaleOrder(id) {
-            let sale_order = await this.rpc({
-                model: 'sale.order',
-                method: 'read',
-                args: [[id],['order_line', 'partner_id', 'pricelist_id', 'fiscal_position_id', 'amount_total', 'amount_untaxed']],
-                context: this.env.session.user_context,
-              });
+            let sale_order = await this.env.services.orm.read(
+                'sale.order',
+                [id],
+                ['order_line', 'partner_id', 'pricelist_id', 'fiscal_position_id', 'amount_total', 'amount_untaxed']
+            );
 
             let sale_lines = await this._getSOLines(sale_order[0].order_line);
             sale_order[0].order_line = sale_lines;
@@ -256,12 +255,7 @@ odoo.define('pos_sale.SaleOrderManagementScreen', function (require) {
         }
 
         async _getSOLines(ids) {
-          let so_lines = await this.rpc({
-              model: 'sale.order.line',
-              method: 'read_converted',
-              args: [ids],
-              context: this.env.session.user_context,
-          });
+          let so_lines = await this.env.services.orm.call('sale.order.line', 'read_converted', [ids]);
           return so_lines;
         }
 

@@ -78,12 +78,12 @@ odoo.define('pos_sale.SaleOrderFetcher', function (require) {
             return sale_orders;
         }
         async _getOrderIdsForCurrentPage(limit, offset) {
-            return await this.rpc({
-                model: 'sale.order',
-                method: 'search_read',
-                args: [this.searchDomain ? this.searchDomain : [], ['name', 'partner_id', 'amount_total', 'date_order', 'state', 'user_id'], offset, limit],
-                context: this.comp.env.session.user_context,
-            });
+            return await this.comp.env.services.orm.searchRead(
+                'sale.order',
+                this.searchDomain ? this.searchDomain : [],
+                ['name', 'partner_id', 'amount_total', 'date_order', 'state', 'user_id'],
+                { offset, limit }
+            );
         }
 
         nextPage() {
@@ -117,13 +117,6 @@ odoo.define('pos_sale.SaleOrderFetcher', function (require) {
         }
         setPage(page) {
             this.currentPage = page;
-        }
-
-        async rpc() {
-            Gui.setSyncStatus('connecting');
-            const result = await this.comp.rpc(...arguments);
-            Gui.setSyncStatus('connected');
-            return result;
         }
     }
 

@@ -121,14 +121,8 @@ export class GiftCardPopup extends AbstractAwaitablePopup {
             this.state.error = _t('No gift card code set');
             return;
         }
-        const coupon = await this.rpc({
-            model: 'loyalty.card',
-            method: 'search_read',
-            args: [
-                [['code', '=', this.code], ['program_id', '=', this.env.pos.config.gift_card_program_id[0]]],
-                ['points'],
-            ],
-        });
+        const domain = [['code', '=', this.code], ['program_id', '=', this.env.pos.config.gift_card_program_id[0]]];
+        const coupon = await this.env.services.orm.searchRead('loyalty.card', domain, ['points']);
         if (!coupon || !coupon.length) {
             this.state.error = _t('No gift card found');
         } else {

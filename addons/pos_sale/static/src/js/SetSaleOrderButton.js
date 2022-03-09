@@ -18,12 +18,7 @@ odoo.define('pos_sale.SetSaleOrderButton', function(require) {
         async onClick() {
           try {
               // ping the server, if no error, show the screen
-              await this.rpc({
-                  model: 'sale.order',
-                  method: 'browse',
-                  args: [[]],
-                  kwargs: { context: this.env.session.user_context },
-              });
+              await this.env.services.orm.call('sale.order', 'browse', [[]]);
               this.showScreen('SaleOrderManagementScreen');
           } catch (error) {
               if (isConnectionError(error)) {
