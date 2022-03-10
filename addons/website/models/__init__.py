@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from . import assets
+from . import digest
 from . import ir_actions
 from . import ir_asset
 from . import ir_attachment
