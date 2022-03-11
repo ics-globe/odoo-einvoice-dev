@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="mail.MessageTrackingValue" owl="1">
+        <t t-if="messageTrackingValue">
+            <div class="o_MessageTrackingValue d-inline-block" t-attf-class="{{ className }}" t-ref="root">
+                <span class="o_MessageTrackingValue_changedField">
+                    <t t-esc="messageTrackingValue.changedFieldAsString"/>
+                </span>
+                <span class="o_MessageTrackingValue_oldValue">
+                    <t t-esc="messageTrackingValue.oldValueAsString"/>
+                </span>
+                <span class="o_MessageTrackingValue_arrow">
+                    <i class="o_MessageTrackingValue_arrowIcon fa fa-long-arrow-right mx-1" role="img"/>
+                </span>
+                <span class="o_MessageTrackingValue_newValue">
+                    <t t-esc="messageTrackingValue.newValueAsString"/>
+                </span>
+            </div>
+        </t>
+    </t>
+</templates>

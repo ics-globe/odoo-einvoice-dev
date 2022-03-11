@@ -44,11 +44,17 @@
                         </t>
                     </div>
                     <div class="o_ThreadPreview_core">
-                        <span class="o_ThreadPreview_coreItem o_ThreadPreview_inlineText text-truncate" t-att-class="{ 'o-empty': inlineLastMessageBody.length === 0 }">
-                            <t t-if="threadPreviewView.messageAuthorPrefixView">
-                                <MessageAuthorPrefix localId="threadPreviewView.messageAuthorPrefixView.localId"/>
+                        <span class="o_ThreadPreview_coreItem o_ThreadPreview_inlineText text-truncate"
+                              t-att-class="{ 'o-empty': inlineLastMessageBody.length === 0 and !(threadPreviewView.thread.lastMessage and threadPreviewView.thread.lastMessage.lastTrackingValue) }">
+                            <t t-if="threadPreviewView.thread.lastMessage and threadPreviewView.thread.lastMessage.lastTrackingValue">
+                                <MessageTrackingValue localId="threadPreviewView.thread.lastMessage and threadPreviewView.thread.lastMessage.lastTrackingValue.localId"/>
                             </t>
-                            <t t-esc="inlineLastMessageBody"/>
+                            <t t-else="">
+                                <t t-if="threadPreviewView.messageAuthorPrefixView">
+                                    <MessageAuthorPrefix localId="threadPreviewView.messageAuthorPrefixView.localId"/>
+                                </t>
+                                <t t-esc="inlineLastMessageBody"/>
+                            </t>
                         </span>
                         <span class="o-autogrow"/>
                         <t t-if="threadPreviewView.thread.localMessageUnreadCounter > 0">

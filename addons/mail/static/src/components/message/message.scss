@@ -113,20 +113,6 @@
     margin-right: map-get($spacers, 1);
 }
 
-.o_Message_trackingValues {
-    margin-top: map-get($spacers, 2);
-}
-
-.o_Message_trackingValue {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.o_Message_trackingValueItem {
-    margin-inline-end: map-get($spacers, 1);
-}
-
 // ------------------------------------------------------------------
 // Style
 // ------------------------------------------------------------------
