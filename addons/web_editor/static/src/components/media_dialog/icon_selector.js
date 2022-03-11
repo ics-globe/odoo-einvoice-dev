@@ -40,6 +40,7 @@ export class IconSelector extends Component {
                             return false;
                         })[0];
                         if (selectedIcon) {
+                            this.props.setInitialIconClasses(selectedIcon.names);
                             await this.props.selectMedia(selectedIcon, { save: false });
                         }
                     }
