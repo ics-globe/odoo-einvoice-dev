@@ -997,6 +997,46 @@ actual arch.
                     del node.attrib['attrs']    # avoid making field visible later
             del node.attrib['groups']
 
+    @api.model
+    def _prepare_client_field_keys(self):
+        return [
+            # 'attachment',
+            # 'change_default',
+            # 'company_dependent',
+            # 'context',
+            # 'currency_field',
+            # 'default_export_compatible',
+            # 'depends',
+            'digits',
+            # 'domain',
+            'group_operator',
+            # 'groups',
+            'help',
+            # 'manual',
+            # 'name',
+            'readonly',
+            # 'related',
+            'relation',
+            'relation_field',
+            'required',
+            # 'sanitize',
+            # 'sanitize_attributes',
+            # 'sanitize_style',
+            # 'sanitize_tags',
+            # 'searchable',
+            'selection',
+            # 'size',
+            # 'sortable',
+            'states',
+            'store',
+            'string',
+            'strip_classes',
+            'strip_style',
+            'translate',
+            'trim',
+            'type',
+        ]
+
     #------------------------------------------------------
     # Postprocessing: translation, groups and modifiers
     #------------------------------------------------------
@@ -2204,7 +2244,7 @@ class NameManager:
 
     @lazy_property
     def field_info(self):
-        return self.model.fields_get()
+        return self.model.fields_get(attributes=self.model.env['ir.ui.view']._prepare_client_field_keys())
 
     def has_field(self, name, info=frozendict()):
         self.available_fields[name].update(info)

@@ -1631,7 +1631,7 @@ class BaseModel(metaclass=MetaModel):
                                          toolbar=toolbar if v_type != 'search' else False)
             for [v_id, v_type] in views
         }
-        result['fields'] = self.fields_get()
+        result['fields'] = self.fields_get(attributes=self.env['ir.ui.view']._prepare_client_field_keys())
 
         if options.get('load_filters'):
             result['filters'] = self.env['ir.filters'].get_filters(self._name, options.get('action_id'))
@@ -3131,15 +3131,11 @@ class BaseModel(metaclass=MetaModel):
             if field.groups and not self.env.su and not self.user_has_groups(field.groups):
                 continue
 
-            description = field.get_description(self.env)
+            description = field.get_description(self.env, attributes=attributes)
             description['name'] = fname
             if readonly:
                 description['readonly'] = True
                 description['states'] = {}
-            if attributes:
-                description = {key: val
-                               for key, val in description.items()
-                               if key in attributes}
             res[fname] = description
 
         return res
