@@ -39,7 +39,7 @@ class AccountEdiFormat(models.Model):
         self.ensure_one()
         if self.code == 'efff_1' and self._is_ubl(filename, tree):
             return self._create_invoice_from_ubl(tree)
-        return super()._create_invoice_from_xml_tree(filename, tree, journal)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()

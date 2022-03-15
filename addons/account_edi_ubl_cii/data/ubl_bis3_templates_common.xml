@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="ubl_bis3_PartyType" inherit_id="account_edi_ubl_cii.ubl_20_PartyType" primary="True">
+            <xpath expr="//*[local-name()='WebsiteURI']" position="replace"/>
+        </template>
+
+    </data>
+</odoo>
