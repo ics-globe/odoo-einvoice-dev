@@ -2,10 +2,16 @@
 """Utilities for generating, parsing and checking XML/XSD files on top of the lxml.etree module."""
 
 import base64
+import logging
+import requests
+import zipfile
 from io import BytesIO
 from lxml import etree
 
 from odoo.exceptions import UserError
+
+
+_logger = logging.getLogger(__name__)
 
 
 class odoo_resolver(etree.Resolver):
@@ -139,3 +145,130 @@ def cleanup_xml_node(xml_node_or_string, remove_blank_text=True, remove_blank_no
 
     leaf_iter(None, xml_node, indent_level)
     return xml_node
+
+
+def modify_xsd_content(xsd_content, to_be_replaced=b'schemaLocation="../common/', replace_by=b'schemaLocation="'):
+    """Replaces parts of the XSD content with another part.
+    Typically, this is used when XSD files depend on each other (with the schemaLocation attribute), but it can be used for any purpose.
+
+    Both arguments (to_be_replaced and replace_by) have to be of the same length when they are lists.
+
+    :param xsd_content: the XSD content to be modified
+    :param list | bytes to_be_replaced: the (list of) bytes string to be replaced inside the XSD
+    :param list | bytes replace_by: the (list of) bytes string to be replaced by inside the XSD
+    :return: the modified XSD content
+    """
+    to_be_replaced = [to_be_replaced] if not isinstance(to_be_replaced, list) else to_be_replaced
+    replace_by = [replace_by] if not isinstance(replace_by, list) else replace_by
+
+    len_1 = len(to_be_replaced)
+    len_2 = len(replace_by)
+    if len_1 != len_2:
+        _logger.warning("Both lists have to be of the same length. %s != %s", len_1, len_2)
+        return xsd_content
+
+    for before, after in zip(to_be_replaced, replace_by):
+        xsd_content = xsd_content.replace(before, after)
+    return xsd_content
+
+
+def load_xsd_from_url(env, url, xsd_name, force_reload=False, request_max_timeout=10, to_be_replaced=None, replace_by=None):
+    """Load XSD file or ZIP archive and save it as ir.attachment.
+
+    If the XSD file/archive has already been saved in database, then just return the attachment.
+    In such a case, the attachment content can also be updated by force if desired.
+
+    If to_be_replaced and replace_by are specified, the XSD file content will be modified
+    according to these two parameters (see :func:`_modify_xsd_content`)
+
+    :param odoo.api.Environment env: environment of calling module
+    :param str url: URL of XSD file/ZIP archive
+    :param str xsd_name: the name given to the XSD attachment
+    :param bool force_reload: if True, reload the attachment from URL, even if it is already cached
+    :param int request_max_timeout: maximum time (in seconds) before the request times out
+    :param list | bytes to_be_replaced: the (list of) bytes string to be replaced inside the XSD
+    :param list | bytes replace_by: the (list of) bytes string to be replaced by inside the XSD
+    :rtype: odoo.api.ir.attachment
+    :return: the attachment or False if an error occurred (see warning logs)
+    """
+    if not url.endswith(('.xsd', '.zip')):
+        _logger.warning("The given URL (%s) needs to lead to an XSD file or a ZIP archive", url)
+        return False
+
+    fetched_attachment = env['ir.attachment'].search([('name', '=', xsd_name)])
+    if fetched_attachment:
+        if not force_reload:
+            _logger.info("Retrieved attachment from database, with name: %s", fetched_attachment.name)
+            return fetched_attachment
+        _logger.info("Found the attachment with name %s in database, but forcing the reloading.", fetched_attachment.name)
+
+    try:
+        _logger.info("Fetching file/archive from given URL: %s", url)
+        response = requests.get(url, timeout=request_max_timeout)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as error:
+        _logger.warning('HTTP error: %s with the given URL: %s', error, url)
+        return False
+    except requests.exceptions.ConnectionError as error:
+        _logger.warning('Connection error: %s with the given URL: %s', error, url)
+        return False
+    except requests.exceptions.Timeout as error:
+        _logger.warning('Request timeout: %s with the given URL: %s', error, url)
+        return False
+
+    content = response.content
+    if to_be_replaced and replace_by:
+        content = modify_xsd_content(content, to_be_replaced, replace_by)
+
+    if fetched_attachment:
+        _logger.info("Updating the content of ir.attachment with name: %s", xsd_name)
+        fetched_attachment.update({
+            'raw': content
+        })
+        return fetched_attachment
+
+    _logger.info("Saving XSD file as ir.attachment, with name: %s", xsd_name)
+    return env['ir.attachment'].create({
+        'name': xsd_name,
+        'raw': content,
+        'public': True,
+    })
+
+
+def unzip_and_save_all_xsd(env, zip_file, to_be_replaced=None, replace_by=None):
+    """Unzip and save all XSD files as ir.attachment.
+
+    Some XSD files depend on others (and require them for some structure declarations for instance).
+    In order to resolve such XSD files (see :func:`_check_with_xsd` and :class:`odoo_resolver`), they all need to be saved as ir.attachment.
+
+    If to_be_replaced and replace_by are specified, every XSD file content will be modified
+    according to these two parameters (see :func:`_modify_xsd_content`)
+
+    :param odoo.api.Environment env: environment of calling module
+    :param zip_file: ZIP archive containing XSD files
+    :param list | bytes to_be_replaced: the (list of) bytes string to be replaced inside the XSD
+    :param list | bytes replace_by: the (list of) bytes string to be replaced by inside the XSD
+    :return: True if all went well, False otherwise (an error occurred - check log warnings)
+    """
+    raised_errors = False
+    archive = zipfile.ZipFile(BytesIO(zip_file))
+    for file_path in archive.namelist():
+        if file_path.endswith('.xsd'):
+            _, file_name = file_path.rsplit('/', 1)
+            attachment = env['ir.attachment'].search([('name', '=', file_name)])
+            if attachment:
+                continue
+            try:
+                content = archive.open(file_path).read()
+                if to_be_replaced and replace_by:
+                    content = modify_xsd_content(content, to_be_replaced, replace_by)
+                env['ir.attachment'].create({
+                    'name': file_name,
+                    'raw': content,
+                    'public': True,
+                })
+            except KeyError:
+                _logger.warning("Failed to retrieve XSD file with name %s from ZIP archive", file_name)
+                raised_errors = True
+
+    return not raised_errors
