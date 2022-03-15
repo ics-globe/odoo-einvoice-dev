@@ -22,6 +22,21 @@ from odoo.tools.translate import _
 
 _logger = logging.getLogger(__name__)
 
+BAD_X_SENDFILE_WARNING = """\
+Odoo is running with --x-sendfile. It means nginx should be serving the
+/web/filesystem route however Odoo is receiving the request. Is nginx
+correctly configured? Is Odoo only accessible through nginx? Does the
+requested file's permissions allow nginx to read it?
+
+Make sure the /web/filesystem location block exists and contains a
+configuration similar to:
+
+    location /web/filesystem {
+        internal;
+        alias /;
+    }
+"""
+
 
 def clean(name):
     return name.replace('\x3c', '')
@@ -29,83 +44,60 @@ def clean(name):
 
 class Binary(http.Controller):
 
+    @http.route('/web/filesystem/<path:_path>', type='http', auth='none')
+    def content_filesystem(self, _path):
+        if odoo.tools.config['x_sendfile']:
+            _logger.warning(BAD_X_SENDFILE_WARNING)
+        raise http.request.not_found()
+
     @http.route(['/web/content',
         '/web/content/<string:xmlid>',
         '/web/content/<string:xmlid>/<string:filename>',
-        '/web/content/<int:id>',
-        '/web/content/<int:id>/<string:filename>',
-        '/web/content/<string:model>/<int:id>/<string:field>',
-        '/web/content/<string:model>/<int:id>/<string:field>/<string:filename>'], type='http', auth="public")
-    def content_common(self, xmlid=None, model='ir.attachment', id=None, field='datas',
-                       filename=None, filename_field='name', unique=None, mimetype=None,
-                       download=None, data=None, token=None, access_token=None, **kw):
-
-        return request.env['ir.http']._get_content_common(xmlid=xmlid, model=model, res_id=id, field=field, unique=unique, filename=filename,
-            filename_field=filename_field, download=download, mimetype=mimetype, access_token=access_token, token=token)
+        '/web/content/<int:res_id>',
+        '/web/content/<int:res_id>/<string:filename>',
+        '/web/content/<string:model>/<int:res_id>/<string:field>',
+        '/web/content/<string:model>/<int:res_id>/<string:field>/<string:filename>'], type='http', auth="public")
+    def content_common(self, xmlid=None, model='ir.attachment', res_id=None, field='raw',
+                       filename=None, filename_field='name', mimetype=None,
+                       download=False, token=None, access_token=None, **kw):
+        record = request.env['ir.binary']._find_record(xmlid, model, res_id, access_token)
+        stream = request.env['ir.binary']._get_stream_from(record, field, filename, filename_field, mimetype)
+        return stream.get_response(as_attachment=download)
 
     @http.route(['/web/assets/debug/<string:filename>',
         '/web/assets/debug/<path:extra>/<string:filename>',
-        '/web/assets/<int:id>/<string:filename>',
-        '/web/assets/<int:id>-<string:unique>/<string:filename>',
-        '/web/assets/<int:id>-<string:unique>/<path:extra>/<string:filename>'], type='http', auth="public")
-    def content_assets(self, id=None, filename=None, unique=None, extra=None, **kw):
-        id = id or request.env['ir.attachment'].sudo().search_read(
-            [('url', '=like', f'/web/assets/%/{extra}/{filename}' if extra else f'/web/assets/%/{filename}')],
-             fields=['id'], limit=1)[0]['id']
-
-        return request.env['ir.http']._get_content_common(xmlid=None, model='ir.attachment', res_id=id, field='datas', unique=unique, filename=filename,
-            filename_field='name', download=None, mimetype=None, access_token=None, token=None)
+        '/web/assets/<int:res_id>/<string:filename>',
+        '/web/assets/<int:res_id>/<path:extra>/<string:filename>'], type='http', auth="public")
+    def content_assets(self, res_id=None, filename=None, extra=None, **kw):
+        if not id:
+            domain = [('url', '=like', '/web/assets/%/' + ('{extra}/{filename}' if extra else filename))]
+            res_id = request.env['ir.attachment'].sudo().search_read(domain, fields=['id'], limit=1)[0]['id']
+        record = request.env['ir.binary']._find_record(res_id=res_id)
+        stream = request.env['ir.binary']._get_stream_from(record, 'raw', filename)
+        return stream.get_response(as_attachment=False)
 
     @http.route(['/web/image',
         '/web/image/<string:xmlid>',
         '/web/image/<string:xmlid>/<string:filename>',
         '/web/image/<string:xmlid>/<int:width>x<int:height>',
         '/web/image/<string:xmlid>/<int:width>x<int:height>/<string:filename>',
-        '/web/image/<string:model>/<int:id>/<string:field>',
-        '/web/image/<string:model>/<int:id>/<string:field>/<string:filename>',
-        '/web/image/<string:model>/<int:id>/<string:field>/<int:width>x<int:height>',
-        '/web/image/<string:model>/<int:id>/<string:field>/<int:width>x<int:height>/<string:filename>',
-        '/web/image/<int:id>',
-        '/web/image/<int:id>/<string:filename>',
-        '/web/image/<int:id>/<int:width>x<int:height>',
-        '/web/image/<int:id>/<int:width>x<int:height>/<string:filename>',
-        '/web/image/<int:id>-<string:unique>',
-        '/web/image/<int:id>-<string:unique>/<string:filename>',
-        '/web/image/<int:id>-<string:unique>/<int:width>x<int:height>',
-        '/web/image/<int:id>-<string:unique>/<int:width>x<int:height>/<string:filename>'], type='http', auth="public")
-    def content_image(self, xmlid=None, model='ir.attachment', id=None, field='raw',
-                      filename_field='name', unique=None, filename=None, mimetype=None,
-                      download=None, width=0, height=0, crop=False, access_token=None,
-                      **kwargs):
-        # other kwargs are ignored on purpose
-        return request.env['ir.http']._content_image(xmlid=xmlid, model=model, res_id=id, field=field,
-            filename_field=filename_field, unique=unique, filename=filename, mimetype=mimetype,
-            download=download, width=width, height=height, crop=crop,
-            quality=int(kwargs.get('quality', 0)), access_token=access_token)
-
-    # backward compatibility
-    @http.route(['/web/binary/image'], type='http', auth="public")
-    def content_image_backward_compatibility(self, model, id, field, resize=None, **kw):
-        width = None
-        height = None
-        if resize:
-            width, height = resize.split(",")
-        return request.env['ir.http']._content_image(model=model, res_id=id, field=field, width=width, height=height)
-
-    @http.route('/web/binary/upload', type='http', auth="user")
-    def upload(self, ufile, callback=None):
-        # TODO: might be useful to have a configuration flag for max-length file uploads
-        out = """<script language="javascript" type="text/javascript">
-                    var win = window.top.window;
-                    win.jQuery(win).trigger(%s, %s);
-                </script>"""
-        try:
-            data = ufile.read()
-            args = [len(data), ufile.filename,
-                    ufile.content_type, pycompat.to_text(base64.b64encode(data))]
-        except Exception as e:
-            args = [False, str(e)]
-        return out % (json.dumps(clean(callback)), json.dumps(args)) if callback else json.dumps(args)
+        '/web/image/<string:model>/<int:res_id>/<string:field>',
+        '/web/image/<string:model>/<int:res_id>/<string:field>/<string:filename>',
+        '/web/image/<string:model>/<int:res_id>/<string:field>/<int:width>x<int:height>',
+        '/web/image/<string:model>/<int:res_id>/<string:field>/<int:width>x<int:height>/<string:filename>',
+        '/web/image/<int:res_id>',
+        '/web/image/<int:res_id>/<string:filename>',
+        '/web/image/<int:res_id>/<int:width>x<int:height>',
+        '/web/image/<int:res_id>/<int:width>x<int:height>/<string:filename>'], type='http', auth="public")
+    def content_image(self, xmlid=None, model='ir.attachment', res_id=None, field='raw',
+                      filename_field='name', filename=None, mimetype=None,
+                      download=False, width=0, height=0, crop=False, access_token=None):
+        record = request.env['ir.binary']._find_record(xmlid, model, res_id, access_token)
+        stream = request.env['ir.binary']._get_image_stream_from(
+            record, field, filename=filename, filename_field=filename_field,
+            mimetype=mimetype, width=width, height=height, crop=crop,
+        )
+        return stream.get_response(as_attachment=download)
 
     @http.route('/web/binary/upload_attachment', type='http', auth="user")
     def upload_attachment(self, model, id, ufile, callback=None):

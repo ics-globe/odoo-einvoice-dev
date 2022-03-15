@@ -267,7 +267,7 @@ class Web_Editor(http.Controller):
             url_segment = id_match.group(1)
             number_match = re.match('^(\d+)', url_segment)
             if '.' in url_segment: # xml-id
-                attachment = request.env['ir.http']._xmlid_to_obj(request.env, url_segment)
+                attachment = request.env['ir.binary']._find_record(xmlid=url_segment)
             elif number_match: # numeric id
                 attachment = request.env['ir.attachment'].browse(int(number_match.group(1)))
         else:
@@ -617,10 +617,17 @@ class Web_Editor(http.Controller):
     @http.route(['/web_editor/image_shape/<string:img_key>/<module>/<path:filename>'], type='http', auth="public", website=True)
     def image_shape(self, module, filename, img_key, **kwargs):
         svg = self._get_shape_svg(module, 'image_shapes', filename)
-        _, _, image = request.env['ir.http'].binary_content(
-            xmlid=img_key, model='ir.attachment', field='datas', default_mimetype='image/png')
-        if not image:
-            image = request.env['ir.http']._placeholder()
+
+        record = request.env['ir.binary']._find_record(img_key)
+        stream = request.env['ir.binary']._get_stream_from(record, placeholder=request.env['ir.http']._placeholder_path())
+        if stream.type == 'url':
+            raise UserError('Impossible to reshape a link.')
+        if stream.type == 'path':
+            with open(stream.path, 'rb') as file:
+                image = file.read()
+        else:
+            image = stream.data
+
         img = binary_to_image(image)
         width, height = tuple(str(size) for size in img.size)
         root = etree.fromstring(svg)

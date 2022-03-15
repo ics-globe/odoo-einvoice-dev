@@ -137,6 +137,14 @@ def exec_pg_command_pipe(name, *args):
 # File paths
 #----------------------------------------------------------
 
+def is_file_path(file_path, filter_ext=(',')):
+    try:
+        file_path(file_path, filter_ext)
+    except Exception:
+        return False
+    else:
+        return True
+
 def file_path(file_path, filter_ext=('',)):
     """Verify that a file exists under a known `addons_path` directory and return its full path.
 

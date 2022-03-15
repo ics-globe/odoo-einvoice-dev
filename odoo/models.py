@@ -6580,8 +6580,8 @@ Fields:
             set on web/static/img by default, or the
             complete path to access it (eg: module/path/to/image.png).
 
-            If a falsy value is returned, "ir.http"._placeholder() will use
-            the default placeholder 'web/static/img/placeholder.png'.
+            If a falsy value is returned, "ir.binary"._image_placeholder()
+            will use the default placeholder 'web/static/img/placeholder.png'.
         """
         return False
 

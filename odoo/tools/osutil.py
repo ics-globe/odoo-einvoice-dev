@@ -7,6 +7,7 @@ Some functions related to the os and os.path module
 import logging
 import os
 import re
+import socket
 import tempfile
 import zipfile
 
@@ -53,6 +54,19 @@ def clean_filename(name, replacement=''):
     if WINDOWS_RESERVED.match(name):
         return "Untitled"
     return re.sub(r'[^\w_.()\[\] -]+', replacement, name).lstrip('.-') or "Untitled"
+
+def is_host_up(host, port):
+    """ Determine if the host is up by openning a IPv4/TCP socket.
+
+    :param str host: the host to connect to
+    :param int port: the port to connect to
+    """
+    try:
+        socket.create_connection((host, port), timeout=1).close()
+    except Exception:
+        return False
+    else:
+        return True
 
 def listdir(dir, recursive=False):
     """Allow to recursively get the file listing following symlinks, returns

@@ -757,8 +757,9 @@ class WebAsset(object):
                 return
             try:
                 # Test url against ir.attachments
-                attach = self.bundle.env['ir.attachment'].sudo().get_serve_attachment(self.url)
-                self._ir_attach = attach[0]
+                attach = self.bundle.env['ir.attachment'].sudo()._get_serve_attachment(self.url)
+                attach.ensure_one()
+                self._ir_attach = attach
             except Exception:
                 raise AssetNotFound("Could not find %s" % self.name)
 
@@ -772,7 +773,7 @@ class WebAsset(object):
             if self._filename:
                 return datetime.fromtimestamp(os.path.getmtime(self._filename))
             elif self._ir_attach:
-                return self._ir_attach['__last_update']
+                return self._ir_attach.__last_update
         except Exception:
             pass
         return datetime(1970, 1, 1)
@@ -791,7 +792,7 @@ class WebAsset(object):
                 with closing(file_open(self._filename, 'rb', filter_ext=EXTENSIONS)) as fp:
                     return fp.read().decode('utf-8')
             else:
-                return base64.b64decode(self._ir_attach['datas']).decode('utf-8')
+                return self._ir_attach.raw.decode('utf-8')
         except UnicodeDecodeError:
             raise AssetError('%s is not utf-8 encoded.' % self.name)
         except IOError:

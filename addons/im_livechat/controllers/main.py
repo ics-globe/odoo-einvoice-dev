@@ -17,13 +17,12 @@ class LivechatController(http.Controller):
         files, _ = request.env["ir.qweb"]._get_asset_content(bundle)
         asset = AssetsBundle(bundle, files)
 
-        mock_attachment = getattr(asset, ext)()
-        if isinstance(mock_attachment, list):  # suppose that CSS asset will not required to be split in pages
-            mock_attachment = mock_attachment[0]
-        # can't use /web/content directly because we don't have attachment ids (attachments must be created)
-        _, headers, content = request.env['ir.http'].binary_content(id=mock_attachment.id, unique=asset.checksum)
-        headers.append(('Content-Length', len(content)))
-        return request.make_response(content, headers)
+        attachment = getattr(asset, ext)()
+        if isinstance(attachment, list):  # suppose that CSS asset will not required to be split in pages
+            attachment = attachment[0]
+
+        stream = request.env['ir.binary']._get_stream_from(attachment)
+        return stream.get_response()
 
     @http.route('/im_livechat/load_templates', type='json', auth='none', cors="*")
     def load_templates(self, **kwargs):

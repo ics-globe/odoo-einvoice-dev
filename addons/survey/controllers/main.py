@@ -416,10 +416,13 @@ class Survey(http.Controller):
         return self._get_background_image(section._name, section.id)
 
     def _get_background_image(self, model_name, res_id):
-        status, headers, image_base64 = request.env['ir.http'].sudo().binary_content(
-            model=model_name, id=res_id, field='background_image',
-            default_mimetype='image/png')
-        return request.env['ir.http']._content_image_get_response(status, headers, image_base64)
+        stream = request.env['ir.binary']._get_stream_from(
+            request.env[model_name].sudo().browse(res_id),
+            field='background_image',
+            default_mimetype='image/png',
+            placeholder='web/static/img/placeholder.png',
+        )
+        return stream.get_response()
 
     @http.route('/survey/get_question_image/<string:survey_token>/<string:answer_token>/<int:question_id>/<int:suggested_answer_id>', type='http', auth="public", website=True, sitemap=False)
     def survey_get_question_image(self, survey_token, answer_token, question_id, suggested_answer_id):
@@ -433,11 +436,13 @@ class Survey(http.Controller):
                           .suggested_answer_ids.filtered(lambda a: a.id == suggested_answer_id):
             return werkzeug.exceptions.NotFound()
 
-        status, headers, image_base64 = request.env['ir.http'].sudo().binary_content(
-            model='survey.question.answer', id=suggested_answer_id, field='value_image',
-            default_mimetype='image/png')
-
-        return request.env['ir.http']._content_image_get_response(status, headers, image_base64)
+        stream = request.env['ir.binary']._get_stream_from(
+            request.env['survey.question.answer'].sudo().browse(suggested_answer_id),
+            field='value_image',
+            default_mimetype='image/png',
+            placeholder='web/static/img/placeholder.png',
+        )
+        return stream.get_response()
 
     # ----------------------------------------------------------------
     # JSON ROUTES to begin / continue survey (ajax navigation) + Tools
