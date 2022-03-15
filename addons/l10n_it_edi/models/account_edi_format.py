@@ -183,7 +183,7 @@ class AccountEdiFormat(models.Model):
         self.ensure_one()
         if self._is_fattura_pa(filename, tree):
             return self._import_fattura_pa(tree, self.env['account.move'])
-        return super()._create_invoice_from_xml_tree(filename, tree, journal)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()
