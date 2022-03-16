@@ -86,13 +86,25 @@ class WebsiteHrRecruitment(http.Controller):
         jobs = details[0].get('results', Jobs).sudo()
 
         # Deduce offices, departments and countries offices of those jobs
-        offices = set(j.address_id or None for j in jobs)
-        departments = list(set(j.department_id or None for j in jobs))
-        if None in departments:
-            # Put "Others" last.
-            departments.remove(None)
-            departments.append(None)
-        countries = set(o and o.country_id or None for o in offices)
+        def sort(items, key):
+            """ Sort items alphabetically followed by None if present
+
+            :param set items: set of model ids and None
+            :param str key: field on which to sort
+            :return: sorted list of items
+            """
+            has_special = None in items
+            if has_special:
+                items.remove(None)
+            items = list(items)
+            items.sort(key=lambda item: item[key])
+            if has_special:
+                items.append(None)
+            return items
+
+        offices = sort(set(j.address_id or None for j in jobs), 'city')
+        departments = sort(set(j.department_id or None for j in jobs), 'name')
+        countries = sort(set(o and o.country_id or None for o in offices), 'name')
 
         total = len(jobs)
 
