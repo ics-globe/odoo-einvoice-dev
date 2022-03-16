@@ -21,20 +21,30 @@ class WebsiteHrRecruitment(http.Controller):
         '/jobs/page/<int:page>',
         '/jobs/country/<model("res.country"):country>',
         '/jobs/country/<model("res.country"):country>/page/<int:page>',
+        '/jobs/department/other',
+        '/jobs/department/other/page/<int:page>',
         '/jobs/department/<model("hr.department"):department>',
         '/jobs/department/<model("hr.department"):department>/page/<int:page>',
+        '/jobs/country/<model("res.country"):country>/department/other',
+        '/jobs/country/<model("res.country"):country>/department/other/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/page/<int:page>',
         '/jobs/office/<int:office_id>',
         '/jobs/office/<int:office_id>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/office/<int:office_id>',
         '/jobs/country/<model("res.country"):country>/office/<int:office_id>/page/<int:page>',
+        '/jobs/department/other/office/<int:office_id>',
+        '/jobs/department/other/office/<int:office_id>/page/<int:page>',
         '/jobs/department/<model("hr.department"):department>/office/<int:office_id>',
         '/jobs/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
+        '/jobs/country/<model("res.country"):country>/department/other/office/<int:office_id>',
+        '/jobs/country/<model("res.country"):country>/department/other/office/<int:office_id>/page/<int:page>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>',
         '/jobs/country/<model("res.country"):country>/department/<model("hr.department"):department>/office/<int:office_id>/page/<int:page>',
         '/jobs/remote',
         '/jobs/remote/page/<int:page>',
+        '/jobs/remote/department/other',
+        '/jobs/remote/department/other/page/<int:page>',
         '/jobs/remote/department/<model("hr.department"):department>',
         '/jobs/remote/department/<model("hr.department"):department>/page/<int:page>',
     ], type='http', auth="public", website=True, sitemap=sitemap_jobs)
@@ -45,6 +55,7 @@ class WebsiteHrRecruitment(http.Controller):
         Jobs = env['hr.job']
 
         is_remote = 'remote' in request.httprequest.path.split('/')
+        is_other_department = '/department/other' in request.httprequest.path and not department
 
         # Default search by user country
         if not (country or department or office_id or kwargs.get('all_countries')):
@@ -67,6 +78,7 @@ class WebsiteHrRecruitment(http.Controller):
             'department': str(department.id) if department else None,
             'office_id': office_id,
             'is_remote': is_remote,
+            'is_other_department': is_other_department,
         }
         total, details, fuzzy_search_term = request.website._search_with_fuzzy("jobs", search,
             limit=1000, order="is_published desc, sequence, no_of_recruitment desc", options=options)
@@ -75,7 +87,11 @@ class WebsiteHrRecruitment(http.Controller):
 
         # Deduce offices, departments and countries offices of those jobs
         offices = set(j.address_id or None for j in jobs)
-        departments = set(j.department_id for j in jobs if j.department_id)
+        departments = list(set(j.department_id or None for j in jobs))
+        if None in departments:
+            # Put "Others" last.
+            departments.remove(None)
+            departments.append(None)
         countries = set(o and o.country_id or None for o in offices)
 
         total = len(jobs)
@@ -86,6 +102,9 @@ class WebsiteHrRecruitment(http.Controller):
         count_per_department = {'all': total}
         for d, jobs_list in groupby(jobs, lambda job: job.department_id):
             count_per_department[d] = len(jobs_list)
+        count_other_department = len(jobs.filtered(lambda job: not job.department_id))
+        if count_other_department:
+            count_per_department[None] = count_other_department
         count_per_office = {'all': total}
         for o, jobs_list in groupby(jobs, lambda job: job.address_id):
             count_per_office[o] = len(jobs_list)
@@ -116,6 +135,7 @@ class WebsiteHrRecruitment(http.Controller):
             'department_id': department,
             'office_id': office,
             'is_remote': is_remote,
+            'is_other_department': is_other_department,
             'pager': pager,
             'search': fuzzy_search_term or search,
             'search_count': total,

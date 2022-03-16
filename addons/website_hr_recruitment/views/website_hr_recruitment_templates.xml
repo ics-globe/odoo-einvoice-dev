@@ -55,7 +55,7 @@
 <template id="topbar_customizations" name="Topbar" priority="10">
     <!-- Sets -->
     <t t-set="current_country_path" t-valuef="#{ '/remote' if is_remote else ('/country/%s' % slug(country_id) if country_id else '') }"/>
-    <t t-set="current_department_path" t-valuef="#{ '/department/%s' % slug(department_id) if department_id else '' }"/>
+    <t t-set="current_department_path" t-valuef="#{ '/department/%s' % slug(department_id) if department_id else '/department/other' if is_other_department else '' }"/>
     <t t-set="current_office_path" t-valuef="#{ '' if is_remote else '/office/%s' % office_id.id if office_id else '' }"/>
     <t t-set="opt_jobs_filter_countries" t-value="is_view_active('website_hr_recruitment.job_filter_by_countries')"/>
     <t t-set="opt_jobs_filter_departments" t-value="is_view_active('website_hr_recruitment.job_filter_by_departments')"/>
@@ -111,20 +111,30 @@
             <a href="#" role="button" class="btn dropdown-toggle w-100" data-toggle="dropdown">
                 <i class="fa fa-sitemap"/>
                 <t t-if="department_id" t-out="department_id.name"/>
+                <t t-elif="is_other_department">Others</t>
                 <t t-else=""><span t-attf-class="#{(opt_jobs_filter_countries or opt_jobs_filter_offices) and 'd-none d-md-inline-block'}">All Departments</span></t>
             </a>
             <div class="dropdown-menu">
                 <a  t-attf-href="/jobs#{current_country_path}#{current_office_path}"
-                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if department_id else ' active'}">
+                    t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link#{'' if department_id or is_other_department else ' active'}">
                     All Departments
                     <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get('all', '0')"/>
                 </a>
                 <t t-foreach="departments" t-as="department">
-                    <a  t-attf-href="/jobs#{current_country_path}/department/#{ slug(department) }#{current_office_path}"
-                        t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if department_id and department_id.id == department.id else ''}">
-                        <t t-out="department.name"/>
-                        <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(department, '0')"/>
-                    </a>
+                    <t t-if="department">
+                        <a  t-attf-href="/jobs#{current_country_path}/department/#{ slug(department) }#{current_office_path}"
+                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if department_id and department_id.id == department.id else ''}">
+                            <t t-out="department.name"/>
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(department, '0')"/>
+                        </a>
+                    </t>
+                    <t t-else="">
+                        <a  t-attf-href="/jobs#{current_country_path}/department/other#{current_office_path}"
+                            t-attf-class="dropdown-item d-flex align-items-center justify-content-between nav-link #{' active' if is_other_department else ''}">
+                            Others
+                            <span class="badge badge-pill badge-primary ml-2" t-out="count_per_department.get(None, '0')"/>
+                        </a>
+                    </t>
                 </t>
             </div>
         </li>

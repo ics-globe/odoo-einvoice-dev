@@ -95,6 +95,7 @@ class Job(models.Model):
         department_id = options.get('department')
         office_id = options.get('office_id')
         is_remote = options.get('is_remote')
+        is_other_department = options.get('is_other_department')
 
         domain = [website.website_domain()]
         if country_id:
@@ -102,6 +103,8 @@ class Job(models.Model):
             requires_sudo = True
         if department_id:
             domain.append([('department_id', '=', unslug(department_id)[1])])
+        elif is_other_department:
+            domain.append([('department_id', '=', None)])
         if office_id:
             domain.append([('address_id', '=', office_id)])
         elif is_remote:
