@@ -97,7 +97,7 @@ class WebsiteHrRecruitment(http.Controller):
             if has_special:
                 items.remove(None)
             items = list(items)
-            items.sort(key=lambda item: item[key])
+            items.sort(key=lambda item: item[key] or '')
             if has_special:
                 items.append(None)
             return items
