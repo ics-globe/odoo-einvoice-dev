@@ -43,6 +43,7 @@ import {
     isEmptyBlock,
     getUrlsInfosInString,
     URL_REGEX,
+    URL_REGEX_WITH_INFOS,
     isSelectionFormat,
     YOUTUBE_URL_GET_VIDEO_ID,
     unwrapContents,
@@ -2239,7 +2240,9 @@ export class OdooEditor extends EventTarget {
                     ev.data &&
                     ev.data.includes(' ') &&
                     selection &&
-                    selection.anchorNode
+                    selection.anchorNode &&
+                    selection.anchorNode.nodeType === Node.TEXT_NODE &&
+                    selection.anchorNode.textContent.slice(0, selection.anchorOffset).trim().split(' ').pop().match(URL_REGEX_WITH_INFOS)
                     && (!this.commandBar._active ||
                         this.commandBar._currentOpenOptions.closeOnSpace !== true)
                 ) {
