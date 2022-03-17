@@ -3779,7 +3779,7 @@ var FieldDomain = AbstractField.extend({
      */
     _onShowSelectionButtonClick: function (e) {
         e.preventDefault();
-        new view_dialogs.SelectCreateDialog(this, {
+        const dialog = new view_dialogs.SelectCreateDialog(this, {
             title: _t("Selected records"),
             res_model: this._domainModel,
             context: this.record.getContext({fieldName: this.name, viewType: this.viewType}),
@@ -3787,7 +3787,12 @@ var FieldDomain = AbstractField.extend({
             no_create: true,
             readonly: true,
             disable_multiple_selection: true,
-        }).open();
+        });
+        // Auto refresh record count when closing the dialog as records can be altered in that dialog
+        dialog.on('closed', this, () => {
+            this._fetchCount(true).then(() => this._replaceContent());
+        });
+        dialog.open();
     },
     /**
      * Called when the "Edit domain" button is clicked (when using the in_dialog

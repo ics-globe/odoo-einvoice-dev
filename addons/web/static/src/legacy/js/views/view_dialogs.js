@@ -456,12 +456,20 @@ var SelectCreateDialog = ViewDialog.extend({
      * @private
      */
     _prepareButtons: function () {
-        this.__buttons = [{
-            text: _t("Cancel"),
-            classes: 'btn-secondary o_form_button_cancel',
-            close: true,
-            hotkey: 'z'
-        }];
+        if (this.options.readonly) {
+            this.__buttons = [{
+                text: _t("Close"),
+                classes: 'btn-secondary o_form_button_cancel',
+                close: true
+            }];
+        } else {
+            this.__buttons = [{
+                text: _t("Cancel"),
+                classes: 'btn-secondary o_form_button_cancel',
+                close: true,
+                hotkey: 'z'
+            }];
+        }
         if (!this.options.no_create) {
             this.__buttons.unshift({
                 text: _t("Create"),
