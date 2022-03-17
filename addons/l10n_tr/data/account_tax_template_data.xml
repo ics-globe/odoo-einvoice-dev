@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- account.tax.template -->
-    <record id="tr_kdv_satis_sale_18" model="account.tax.template">
+    <record id="tr_vat_sale_18" model="account.tax.template">
         <field name="sequence">11</field>
-        <field name="description">KDV %18(sale)</field>
-        <field name="name">KDV %18(sale)</field>
+        <field name="description">VAT %18</field>
+        <field name="name">VAT %18(sale)</field>
         <field name="price_include" eval="0"/>
         <field name="amount">18</field>
         <field name="amount_type">percent</field>
@@ -35,10 +35,10 @@
         ]"/>
     </record>
 
-    <record id="tr_kdv_satis_purchase_18" model="account.tax.template">
+    <record id="tr_vat_purchase_18" model="account.tax.template">
         <field name="sequence">11</field>
-        <field name="description">KDV %18(purchase)</field>
-        <field name="name">KDV %18(purchase)</field>
+        <field name="description">VAT %18</field>
+        <field name="name">VAT %18(purchase)</field>
         <field name="price_include" eval="0"/>
         <field name="amount">18</field>
         <field name="amount_type">percent</field>
