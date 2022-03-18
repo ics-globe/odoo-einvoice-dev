@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'U.A.E. - Point of Sale',
+    'icon': '/l10n_ar/static/description/icon.svg',
     'author': 'Odoo PS',
     'category': 'Accounting/Localizations/Point of Sale',
     'description': """
