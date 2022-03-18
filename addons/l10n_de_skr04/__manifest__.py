@@ -32,7 +32,7 @@
 
 {
     'name': 'Germany SKR04 - Accounting',
-    'icon': '/l10n_de/static/description/icon.png',
+    'icon': '/l10n_de/static/description/icon.svg',
     'version': '3.0',
     'author': 'openbig.org',
     'website': 'http://www.openbig.org',

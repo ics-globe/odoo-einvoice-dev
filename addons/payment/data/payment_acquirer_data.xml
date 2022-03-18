@@ -33,7 +33,7 @@
     <record id="payment_acquirer_alipay" model="payment.acquirer">
         <field name="name">Alipay</field>
         <field name="display_as">Credit Card (powered by Alipay)</field>
-        <field name="image_128" type="base64" file="payment_alipay/static/description/icon.png"/>
+        <field name="image_128" type="base64" file="payment_alipay/static/description/icon.svg"/>
         <field name="module_id" ref="base.module_payment_alipay"/>
         <field name="description" type="html">
             <p>

@@ -36,7 +36,7 @@ _DEFAULT_MANIFEST = {
     'depends': [],
     'description': '',
     'external_dependencies': [],
-    #icon: f'/{module}/static/description/icon.png',  # automatic
+    #icon: f'/{module}/static/description/icon.svg',  # automatic
     'init_xml': [],
     'installable': True,
     'images': [],  # website

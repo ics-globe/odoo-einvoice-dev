@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Norway - E-Invoicing (EHF 3)',
-    'icon': '/l10n_no/static/description/icon.png',
+    'icon': '/l10n_no/static/description/icon.svg',
     'version': '0.1',
     'category': 'Accounting/Localizations/EDI',
     'summary': 'E-Invoicing, Universal Business Language (EHF 3)',
