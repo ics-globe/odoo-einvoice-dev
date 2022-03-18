@@ -260,7 +260,7 @@ var Dialog = Widget.extend({
      * @param {boolean} [options.silent=false] if set, do not call the
      *   `on_close` handler.
      */
-    destroy: async function (options) {
+    destroy: function (options) {
         // Need to trigger before real destroy but if 'closed' handler destroys
         // the widget again, we want to avoid infinite recursion
         if (!this.__closed) {
@@ -294,27 +294,7 @@ var Dialog = Widget.extend({
             if (this.on_detach_callback) {
                 this.on_detach_callback();
             }
-            if (Modal && Modal.VERSION && Modal.VERSION.startsWith('5')) {
-                // BS5 variant
-                const modalNode = this.$modal[0];
-                const modal = Modal.getInstance(modalNode)
-                let promiseResolve, promiseReject;
-                const promise = new Promise(((resolve, reject) => {
-                    promiseResolve = resolve;
-                    promiseReject = reject;
-                }));
-                const timeoutSecond = 5000;
-                const timeoutTimer = setTimeout(promiseReject, timeoutSecond);
-                modalNode.addEventListener('hidden.bs.modal', () => {
-                    clearTimeout(timeoutTimer);
-                    promiseResolve();
-                });
-                modal.hide();
-                await promise.catch(() => console.error(`BS5 Modal didn't hide in ${timeoutSecond} second`));
-                modal.dispose();
-            } else {
-                this.$modal.modal('hide');
-            }
+            this.$modal.modal('hide');
             this.$modal.remove();
         }
 
