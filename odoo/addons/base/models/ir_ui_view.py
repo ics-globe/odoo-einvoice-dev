@@ -620,17 +620,13 @@ actual arch.
         them as a recordset, ordered by priority then by id.
         """
         self.check_access_rights('read')
-        domain = self._get_inheriting_views_domain()
-        e = expression(domain, self.env['ir.ui.view'])
-        from_clause, where_clause, where_params = e.query.get_sql()
-        assert from_clause == '"ir_ui_view"', f"Unexpected from clause: {from_clause}"
 
-        self._flush_search(domain, fields=['inherit_id', 'priority', 'model', 'mode'], order='id')
-        query = f"""
+        self._flush_search([], fields=['inherit_id', 'priority', 'model', 'mode'], order='id')
+        query = """
             WITH RECURSIVE ir_ui_view_inherits AS (
                 SELECT id, inherit_id, priority, mode, model
                 FROM ir_ui_view
-                WHERE id IN %s AND ({where_clause})
+                WHERE id IN %s AND active = true
             UNION
                 SELECT ir_ui_view.id, ir_ui_view.inherit_id, ir_ui_view.priority,
                        ir_ui_view.mode, ir_ui_view.model
@@ -638,7 +634,7 @@ actual arch.
                 INNER JOIN ir_ui_view_inherits parent ON parent.id = ir_ui_view.inherit_id
                 WHERE coalesce(ir_ui_view.model, '') = coalesce(parent.model, '')
                       AND ir_ui_view.mode = 'extension'
-                      AND ({where_clause})
+                      AND active = true
             )
             SELECT
                 v.id, v.inherit_id, v.mode,
@@ -654,7 +650,7 @@ actual arch.
         # 2/ sort by view id: the order the views were inserted in the
         #    database. e.g. base views are placed before stock ones.
 
-        self.env.cr.execute(query, [tuple(self.ids)] + where_params + where_params)
+        self.env.cr.execute(query, [tuple(self.ids)])
         rows = self.env.cr.fetchall()
 
         # filter out forbidden views
