@@ -197,6 +197,8 @@
             'website/static/src/systray_items/*.scss',
             'website/static/src/js/new_content_form.js',
             'website/static/src/js/utils.js',
+            'website/static/src/client_actions/configurator/configurator.js',
+            'website/static/src/client_actions/configurator/configurator.scss',
         ],
         'web.qunit_suite_tests': [
             'website/static/tests/dashboard_tests.js',
@@ -286,7 +288,6 @@
             'website/static/src/xml/website.backend.xml',
             'website/static/src/xml/website_widget.xml',
             'website/static/src/xml/theme_preview.xml',
-            'website/static/src/components/configurator/configurator.xml',
             'website/static/src/components/dialog/*',
             'website/static/src/components/webclient/webclient.xml',
             'website/static/src/components/editor/editor.xml',
@@ -302,15 +303,6 @@
             'http://test.external.link/javascript2.js',
             'http://test.external.link/style2.css',
         ],
-        'website.website_configurator_assets_js': [
-            '/website/static/src/components/configurator/configurator.js',
-        ],
-        'website.website_configurator_assets_scss': [
-            ('include', 'web.assets_frontend'),
-            '/website/static/src/scss/configurator.scss',
-            '/website/static/src/scss/website.theme_install.scss',
-            '/website/static/src/scss/website.wysiwyg.scss'
-        ]
     },
     'license': 'LGPL-3',
 }
