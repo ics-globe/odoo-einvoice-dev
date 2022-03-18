@@ -103,13 +103,21 @@ class ThemeMenu(models.Model):
     page_id = fields.Many2one('theme.website.page', ondelete='cascade')
     new_window = fields.Boolean('New Window')
     sequence = fields.Integer()
-    parent_id = fields.Many2one('theme.website.menu', index=True, ondelete="cascade")
+    parent_id = fields.Reference(index=True, ondelete="cascade", selection=[
+        ('website.menu', 'website.menu'), ('theme.website.menu', 'theme.website.menu')
+    ])
     copy_ids = fields.One2many('website.menu', 'theme_template_id', 'Menu using a copy of me', copy=False, readonly=True)
 
     def _convert_to_base_model(self, website, **kwargs):
         self.ensure_one()
         page_id = self.page_id.copy_ids.filtered(lambda x: x.website_id == website)
-        parent_id = self.copy_ids.filtered(lambda x: x.website_id == website)
+        if self.parent_id and self.parent_id._name == 'theme.website.menu':
+            parent_id = self.parent_id.copy_ids.filtered(lambda x: x.website_id == website)
+        else:
+            default_menu = self.env.ref('website.main_menu', raise_if_not_found=False)
+            # Adding a top level menu for the website
+            if default_menu and self.parent_id == default_menu:
+                parent_id = website.menu_id
         new_menu = {
             'name': self.name,
             'url': self.url,
@@ -117,6 +125,7 @@ class ThemeMenu(models.Model):
             'new_window': self.new_window,
             'sequence': self.sequence,
             'parent_id': parent_id and parent_id.id or False,
+            'website_id': website.id,
             'theme_template_id': self.id,
         }
         return new_menu
