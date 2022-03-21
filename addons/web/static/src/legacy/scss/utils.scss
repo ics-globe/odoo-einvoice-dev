@@ -210,6 +210,34 @@
     }
 }
 
+// ------------------------------------------------------------------
+// Create a "tree-view" design on a set of vertically nested elements
+// ------------------------------------------------------------------
+@mixin o-tree-lines($-selector, $-padding-h: map-get($spacers, 4), $-padding-v: map-get($spacers, 1), $-line-color: $border-color) {
+    #{$-selector} #{$-selector} {
+        padding-left: $-padding-h;
+        position: relative;
+
+        &:before, &:after {
+            @include o-position-absolute(0, $left: $-padding-h * 0.5);
+            width: 1px;
+            height: 100%;
+            background: $-line-color;
+            content: '';
+        }
+
+        &:after {
+            top: calc(.5em + #{$-padding-v * 2});
+            width: $-padding-h * 0.5;
+            height: 1px;
+        }
+
+        &:last-child:before {
+            height: calc(.5em + #{$-padding-v * 2});
+        }
+    }
+}
+
 // Odoo defines a limited Noto font-family for a small variety of unicode
 // characters that are not necessary defined in the user system or even defined
 // but not properly readable. This function allows to add this font family in a
