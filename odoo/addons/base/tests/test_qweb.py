@@ -849,6 +849,23 @@ class TestQWebBasic(TransactionCase):
         rendered = self.env['ir.qweb']._render(t.id, values)
         self.assertEqual(rendered.strip(), result.strip())
 
+    def test_att_no_propagation(self):
+        t = self.env['ir.ui.view'].create({
+            'name': 'test',
+            'type': 'qweb',
+            'arch_db': '''<t t-name="bibi">
+                <div t-foreach="[1, 2]" t-as="v" class="toto"/>
+                <t class="remove_me" t-set="data">a</t>
+                <div t-out="data"/>
+            </t>'''
+        })
+        result = """
+                <div class="toto"></div><div class="toto"></div>
+                <div>a</div>
+            """
+        rendered = self.env['ir.qweb']._render(t.id)
+        self.assertEqual(rendered.strip(), result.strip())
+
     def test_set_1(self):
         t = self.env['ir.ui.view'].create({
             'name': 'test',

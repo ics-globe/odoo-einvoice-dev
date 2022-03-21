@@ -1088,6 +1088,9 @@ class IrQWeb(models.AbstractModel):
         else:
             body = []
 
+        # initialise the attributes dictionary
+        body.append(indent_code("values['__qweb_attrs__'] = {}", level))
+
         # create an iterator on directives to compile in order
         options['iter_directives'] = iter(self._directives_eval_order())
 
@@ -1300,7 +1303,7 @@ class IrQWeb(models.AbstractModel):
         - value from keys that start with ``t-attf-``: format string
             expression.
         """
-        code = [indent_code("attrs = values['__qweb_attrs__'] = {}", level)]
+        code = [indent_code("attrs = values['__qweb_attrs__']", level)]
 
         # Compile the introduced new namespaces of the given element.
         #
@@ -1387,7 +1390,7 @@ class IrQWeb(models.AbstractModel):
         # Use str(value) to change Markup into str and escape it, then use str
         # to avoid the escaping of the other html content.
         code.append(indent_code(f"""
-            attrs = values.pop('__qweb_attrs__', None)
+            attrs = values['__qweb_attrs__']
             if attrs:
                 tagName = {el.tag!r}
                 attrs = self._post_processing_att(tagName, attrs, compile_options)
@@ -1778,10 +1781,7 @@ class IrQWeb(models.AbstractModel):
             record, field_name = expr.rsplit('.', 1)
             code.append(indent_code(f"""
                 field_attrs, content, force_display = self._get_field({self._compile_expr(record, raise_on_missing=True)}, {field_name!r}, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), compile_options, values)
-                if values.get('__qweb_attrs__') is None:
-                    values['__qweb_attrs__'] = field_attrs
-                else:
-                    values['__qweb_attrs__'].update(field_attrs)
+                values['__qweb_attrs__'].update(field_attrs)
                 content = self._compile_to_str(content)
                 """, level))
 
@@ -1796,10 +1796,7 @@ class IrQWeb(models.AbstractModel):
             if code_options == 'True':
                 code.append(indent_code(f"""
                     widget_attrs, content, force_display = self._get_widget(content, {expr!r}, {el.tag!r}, values.pop('__qweb_options__', {{}}), compile_options, values)
-                    if values.get('__qweb_attrs__') is None:
-                        values['__qweb_attrs__'] = widget_attrs
-                    else:
-                        values['__qweb_attrs__'].update(widget_attrs)
+                    values['__qweb_attrs__'].update(widget_attrs)
                     content = self._compile_to_str(content)
                     """, level))
                 force_display_dependent = True
@@ -1847,8 +1844,6 @@ class IrQWeb(models.AbstractModel):
             if tag_open + tag_close:
                 code.append(indent_code("elif force_display:", level))
                 code.extend(tag_open + tag_close)
-
-            code.append(indent_code("""else: values.pop('__qweb_attrs__', None)""", level))
 
         return code
 
