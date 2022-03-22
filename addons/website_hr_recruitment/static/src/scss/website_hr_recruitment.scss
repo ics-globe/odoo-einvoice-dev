@@ -6,25 +6,22 @@
                 margin-right: .5rem;
             }
         }
+
         .card {
-            padding: $card-spacer-x;
             &, * {
                 transition: all .1s;
             }
+
             &:hover {
                 box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 2px 0 rgba(0, 0, 0, 0.05);
             }
         }
+
         .o_jobs_unpublished {
             opacity: .6;
         }
     }
-    #jobs_grid_right {
-        ul.flex-column > li.nav-item > a {
-            padding: .5rem 1rem;
-            border-radius: 0.125rem;
-        }
-    }
+
     .o_website_hr_recruitment_job_description {
         //The ellipsis may not be supported on all platforms, the text will just break for them
         max-height: 60px; //Limit to 3 lines
@@ -45,26 +42,20 @@
 
 .o_jobs_topbar_filters {
     .dropdown-toggle {
-        border: $border-width solid gray('400');
-        @include o-bg-color(gray('white'), $with-extras: false);
-        @include border-radius($dropdown-border-radius);
-        @include hover-focus {
-            border-color: theme-color('primary');
-            color: theme-color('primary');
-            text-decoration: none;
+        .fa {
+            margin-right: .4em;
         }
+
         &:after {
             margin-left: 1.2em;
         }
-        .fa {
-            margin-right: .4em;
-            color: theme-color('primary');
-        }
     }
+
     .dropdown-menu {
         margin-top: $navbar-padding-y;
         min-width: 12rem;
     }
+
     .dropdown-item {
         &.active .badge { // Invert badge display when the item is active
             background-color: color-yiq(theme-color('primary'));
@@ -73,13 +64,16 @@
     }
 }
 
-.s_image_gallery {
-    img {
-        transition: .5s;
-        &:hover {
-            transform: scale(1.01, 1.01);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
+.o_jobs_image_gallery {
+    &.s_image_gallery {
+        img {
+            transition: .5s;
 
+            &:hover {
+                transform: scale(1.01, 1.01);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.25) !important;
+
+            }
         }
     }
 }
