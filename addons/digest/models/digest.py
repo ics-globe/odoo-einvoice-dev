@@ -7,6 +7,7 @@ import pytz
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from markupsafe import Markup
+from werkzeug.urls import url_join
 
 from odoo import api, fields, models, tools, _
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
@@ -112,8 +113,11 @@ class Digest(models.Model):
     def action_set_periodicity(self, periodicity):
         self.periodicity = periodicity
 
-    def action_send(self):
-        to_slowdown = self._check_daily_logs()
+    def action_send(self, manual=False):
+        """ Send digests email to all the registered users.
+        :param bool manual: set to True if manually triggerred. In that case the periodicity is not updated based on
+        recipients being away. """
+        to_slowdown = self.env['digest.digest'] if manual else self._check_daily_logs()
         for digest in self:
             for user in digest.user_ids:
                 digest.with_context(
@@ -124,7 +128,11 @@ class Digest(models.Model):
                 digest.write({'periodicity': self._get_next_periodicity()[0]})
             digest.next_run_date = digest._get_next_run_date()
 
+    def action_send_manual(self):
+        self.action_send(manual=True)
+
     def _action_send_to_user(self, user, tips_count=1, consum_tips=True):
+        unsubscribe_token = self._get_unsubscribe_token(user.id)
         rendered_body = self.env['mail.render.mixin']._render_template(
             'digest.digest_mail_main',
             'digest.digest',
@@ -136,7 +144,7 @@ class Digest(models.Model):
                 'top_button_url': self.get_base_url(),
                 'company': user.company_id,
                 'user': user,
-                'unsubscribe_token': self._get_unsubscribe_token(user.id),
+                'unsubscribe_token': unsubscribe_token,
                 'tips_count': tips_count,
                 'formatted_date': datetime.today().strftime('%B %d, %Y'),
                 'display_mobile_banner': True,
@@ -156,6 +164,8 @@ class Digest(models.Model):
             },
         )
         # create a mail_mail based on values, without attachments
+        unsub_url = url_join(self.get_base_url(),
+                             f'/digest/{self.id}/unsubscribe?token={unsubscribe_token}&user_id={user.id}&one_click=1')
         mail_values = {
             'auto_delete': True,
             'author_id': self.env.user.partner_id.id,
@@ -168,6 +178,9 @@ class Digest(models.Model):
             'body_html': full_mail,
             'state': 'outgoing',
             'subject': '%s: %s' % (user.company_id.name, self.name),
+            # Add headers that allow the MUA to offer a one click button to unsubscribe (requires DKIM to work)
+            'headers': {'List-Unsubscribe': f'<{unsub_url}>',
+                        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'},
         }
         self.env['mail.mail'].sudo().create(mail_values)
         return True
