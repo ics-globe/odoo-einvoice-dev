@@ -523,6 +523,11 @@ $o-cw-filter-avatar-size: 20px;
                     }
                 }
             }
+            .o_cw_popover_close_container {
+                position: absolute;
+                top: 0;
+                right: 0.5rem;
+            }
         }
         // ====== RTL layout(s)
         &.fc-rtl {
