@@ -946,21 +946,18 @@
                                     <field name="legend_normal" invisible="1"/>
                                     <field name="legend_done" invisible="1"/>
                                     <field name="legend_blocked" invisible="1"/>
-                                    <field name="message_needaction" invisible="1" readonly="1"/>
                                     <field name="project_id" invisible="1"/>
-                                    <field name="is_closed" invisible="1" />
+                                    <field name="is_closed" invisible="1"/>
                                     <field name="allow_subtasks" invisible="1" />
-                                    <field name="sequence" invisible="1" readonly="1"/>
                                     <field name="priority" widget="priority" optional="show" nolabel="1"/>
                                     <field name="name" widget="name_with_subtask_count"/>
                                     <field name="display_project_id" string="Project" optional="hide"/>
                                     <field name="child_text" invisible="1"/>
                                     <field name="partner_id" optional="hide"/>
-                                    <field name="parent_id" optional="hide" attrs="{'invisible': [('allow_subtasks', '=', False)]}" groups="base.group_no_one"/>
                                     <field name="user_ids" widget="many2many_avatar_user" optional="show" domain="[('share', '=', False), ('active', '=', True)]"/>
                                     <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                                     <field name="activity_ids" widget="list_activity" optional="hide"/>
-                                    <field name="date_deadline" attrs="{'invisible': [('is_closed', '=', True)]}" optional="show" />
+                                    <field name="date_deadline" attrs="{'invisible': [('is_closed', '=', True)]}" optional="show"/>
                                     <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
                                     <field name="rating_last_text" string="Rating" decoration-danger="rating_last_text == 'ko'"
                                         decoration-warning="rating_last_text == 'ok'" decoration-success="rating_last_text == 'top'"
@@ -978,10 +975,8 @@
                                     <field name="legend_normal" invisible="1"/>
                                     <field name="legend_done" invisible="1"/>
                                     <field name="legend_blocked" invisible="1"/>
-                                    <field name="message_needaction" invisible="1" readonly="1"/>
-                                    <field name="is_closed" invisible="1" />
+                                    <field name="is_closed" invisible="1"/>
                                     <field name="allow_subtasks" invisible="1" />
-                                    <field name="sequence" invisible="1" readonly="1"/>
                                     <field name="priority" widget="priority" optional="show" nolabel="1"/>
                                     <field name="name" widget="name_with_subtask_count"/>
                                     <field name="child_text" invisible="1"/>
@@ -998,8 +993,7 @@
                                         attrs="{'invisible': [('rating_last_text', '=', 'none')]}"
                                         class="font-weight-bold" widget="badge" optional="hide"/>
                                     <field name="kanban_state" widget="state_selection" optional="show" options="{'hide_label': True}" nolabel="1"/>
-                                    <field name="stage_id" optional="show"/>
-                                    <field name="recurrence_id" invisible="1" />
+                                    <field name="stage_id" optional="show" />
                                     <button class="oe_link float-right" string="View Task" name="action_open_task" type="object"/>
                                 </tree>
                             </field>
@@ -1297,6 +1291,7 @@
             <field name="model">project.task</field>
             <field name="arch" type="xml">
                 <pivot string="Tasks" sample="1" js_class="project_pivot">
+                    <field name="project_id" type="row"/>
                     <field name="stage_id" type="col"/>
                     <field name="color" invisible="1"/>
                     <field name="sequence" invisible="1"/>
@@ -1304,18 +1299,6 @@
                     <field name="working_hours_close" widget="float_time"/>
                     <field name="working_hours_open" widget="float_time"/>
                 </pivot>
-            </field>
-        </record>
-
-        <record id="view_project_task_pivot_inherit" model="ir.ui.view">
-            <field name="name">project.task.pivot.group.by.stage</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="view_project_task_pivot"/>
-            <field name="mode">primary</field>
-            <field name="arch" type="xml">
-                <xpath expr="//pivot" position="inside">
-                    <field name="project_id" type="row"/>
-                </xpath>
             </field>
         </record>
 
