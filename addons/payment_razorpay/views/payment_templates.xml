@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="razorpay_form">
+        <!-- Razorpay generates a unique URL for each payment request -->
+        <form t-att-action="api_url" method="get"></form>
+    </template>
+
+</odoo>

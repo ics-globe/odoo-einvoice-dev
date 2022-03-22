@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-import logging
 import requests
+import json
+import logging
+import pprint
 
-from odoo import api, fields, models, _
-from odoo.tools.float_utils import float_compare
-from odoo.addons.payment.models.payment_acquirer import ValidationError
+from odoo import  api, models, _
+from odoo.exceptions import ValidationError
+from odoo.addons.payment import utils as payment_utils
 
 _logger = logging.getLogger(__name__)
 
@@ -14,69 +15,125 @@ _logger = logging.getLogger(__name__)
 class PaymentTransaction(models.Model):
     _inherit = 'payment.transaction'
 
-    @api.model
-    def _create_razorpay_capture(self, data):
-        payment_acquirer = self.env['payment.acquirer'].search([('provider', '=', 'razorpay')], limit=1)
-        payment_url = "https://%s:%s@api.razorpay.com/v1/payments/%s" % (payment_acquirer.razorpay_key_id, payment_acquirer.razorpay_key_secret, data.get('payment_id'))
+    def _get_specific_processing_values(self, processing_values):
+        """ Override of payment to return Adyen-specific processing values.
+
+        Note: self.ensure_one() from `_get_processing_values`
+
+        :param dict processing_values: The generic processing values of the transaction
+        :return: The dict of acquirer-specific processing values
+        :rtype: dict
+        """
+        res = super()._get_specific_processing_values(processing_values)
+        if self.provider != 'razorpay':
+            return res
+        converted_amount = payment_utils.to_minor_currency_units(processing_values.get('amount'), self.currency_id)
+        data = {
+            'currency': self.currency_id.name,
+            'amount': converted_amount,
+        }
+        response = self._razorpay_send_request(path='/orders', data=data, method="post")
+        _logger.info('Razorpay: entering form_feedback with post data %s', pprint.pformat(response))
+
+        processing_values.update({
+            "currency": self.currency_id.name,
+            'amount': converted_amount,
+            'key': self.acquirer_id._get_razorpay_key(),
+            'order_id': response.get('id'),
+            'prefill': {
+                'name': self.partner_name,
+                'contact': self.partner_phone,
+                'email': self.partner_email,
+            },
+            'notes': {
+                'order_id': processing_values.get('reference'),
+            },
+            "theme": {
+                "color": 'orange' if self.acquirer_id.state == 'test' else 'green'
+            },
+        })
+        return processing_values
+
+    def _get_tx_from_notification_data(self, provider, notification_data):
+        """ Override of payment to find the transaction based on Buckaroo data.
+
+        :param str provider: The provider of the acquirer that handled the transaction
+        :param dict notification_data: The normalized notification data sent by the provider
+        :return: The transaction if found
+        :rtype: recordset of `payment.transaction`
+        :raise: ValidationError if the data match no transaction
+        """
+        tx = super()._get_tx_from_notification_data(provider, notification_data)
+        if provider != 'razorpay' or len(tx) == 1:
+            return tx
+        reference = notification_data.get('notes', {}).get('order_id')
+
+        tx = self.search([('reference', '=', reference), ('provider', '=', 'razorpay')])
+        if not tx:
+            raise ValidationError(
+                "razorpay: " + _("No transaction found matching reference %s.", reference)
+            )
+
+        return tx
+
+    def _process_notification_data(self, notification_data):
+        """ Override of payment to process the transaction based on Razorpay data.
+
+        Note: self.ensure_one()
+
+        :param dict notification_data: The notification data sent by the provider
+        :return: None
+        """
+        super()._process_notification_data(notification_data)
+        if self.provider != 'razorpay':
+            return
+
+        status = notification_data.get('status')
+        self.write({'acquirer_reference': notification_data.get('id')})
+
+        if status == 'captured':
+            self._set_done()
+        elif status == 'authorized':
+            self._set_authorized()
+        elif status in notification_data.get('reason'):
+            self._set_canceled()
+            self._set_error(_(
+                "An error occurred during processing of your payment (code %s). Please try again.",
+                notification_data.get('error'),
+            ))
+
+    def _razorpay_send_request(self, path, method, data=None,):
+        headers = {'Content-type': 'application/json'}
+        base_url = "https://api.razorpay.com/v1"
+        request_url = "%s%s" % (base_url, path)
+        payment_response = {}
+
+        acquirer = self.acquirer_id
+        if not acquirer:
+            acquirer = self.env['payment.acquirer'].search([('provider', '=', 'razorpay')], limit=1)
         try:
-            payment_response = requests.get(payment_url)
+            payment_response = getattr(requests, method)(
+                request_url,
+                auth=(acquirer._get_razorpay_key(), acquirer._get_razorpay_secret_key()),
+                data=json.dumps(data),
+                headers=headers)
             payment_response = payment_response.json()
         except Exception as e:
+            _logger.warning(
+                "received invalid plan or subscription status (%s)", e
+            )
             raise e
-        reference = payment_response.get('notes', {}).get('order_id', False)
-        if reference:
-            transaction = self.search([('reference', '=', reference)])
-            capture_url = "https://%s:%s@api.razorpay.com/v1/payments/%s/capture" % (payment_acquirer.razorpay_key_id, payment_acquirer.razorpay_key_secret, data.get('payment_id'))
-            charge_data = {'amount': int(transaction.amount * 100)}
-            try:
-                payment_response = requests.post(capture_url, data=charge_data)
-                payment_response = payment_response.json()
-            except Exception as e:
-                raise e
+
         return payment_response
 
     @api.model
-    def _razorpay_form_get_tx_from_data(self, data):
-        reference, txn_id = data.get('notes', {}).get('order_id'), data.get('id')
-        if not reference or not txn_id:
-            error_msg = _('Razorpay: received data with missing reference (%s) or txn_id (%s)') % (reference, txn_id)
-            _logger.info(error_msg)
-            raise ValidationError(error_msg)
-
-        txs = self.env['payment.transaction'].search([('reference', '=', reference)])
-        if not txs or len(txs) > 1:
-            error_msg = _('Razorpay: received data for reference %s') % (reference)
-            if not txs:
-                error_msg += '; no order found'
-            else:
-                error_msg += '; multiple order found'
-            _logger.info(error_msg)
-            raise ValidationError(error_msg)
-        return txs[0]
-
-    @api.multi
-    def _razorpay_form_get_invalid_parameters(self, data):
-        invalid_parameters = []
-        if float_compare(data.get('amount', '0.0') / 100, self.amount, precision_digits=2) != 0:
-            invalid_parameters.append(('amount', data.get('amount'), '%.2f' % self.amount))
-        return invalid_parameters
-
-    @api.multi
-    def _razorpay_form_validate(self, data):
-        status = data.get('status')
-        if status == 'captured':
-            _logger.info('Validated Razorpay payment for tx %s: set as done' % (self.reference))
-            self.write({'acquirer_reference': data.get('id')})
-            self._set_transaction_done()
-            return True
-        if status == 'authorized':
-            _logger.info('Validated Razorpay payment for tx %s: set as authorized' % (self.reference))
-            self.write({'acquirer_reference': data.get('id')})
-            self._set_transaction_authorized()
-            return True
-        else:
-            error = 'Received unrecognized status for Razorpay payment %s: %s, set as error' % (self.reference, status)
-            _logger.info(error)
-            self.write({'acquirer_reference': data.get('id'), 'state_message': data.get('error')})
-            self._set_transaction_cancel()
-            return False
+    def _create_razorpay_capture(self, reference, payment_id):
+        transaction = self.search([('reference', '=', reference)])
+        amount = payment_utils.to_minor_currency_units(transaction.amount, transaction.currency_id)
+        charge_data = {'amount': amount}
+        path = "/payments/%s/capture" % payment_id
+        try:
+            response = self._razorpay_send_request(path=path, data=charge_data, method="post")
+        except Exception as e:
+            raise e
+        return response

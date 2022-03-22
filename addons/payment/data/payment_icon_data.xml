@@ -126,4 +126,9 @@
         <field name="image" type="base64" file="payment/static/img/kbc.png"/>
     </record>
 
+    <record id="payment_icon_cc_rupay" model="payment.icon">
+        <field name="sequence">220</field>
+        <field name="name">Repay</field>
+        <field name="image" type="base64" file="payment/static/img/rupay.png"/>
+    </record>
 </odoo>
