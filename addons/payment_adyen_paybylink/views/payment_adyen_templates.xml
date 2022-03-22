@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="adyen_paybylink" inherit_id="payment_adyen.adyen_form">
+        <xpath expr='//input[@name="merchantReference"]' position='after'>
+            <input type="hidden" name="adyen_link" t-att-value="adyen_link"/>
+            <script type="text/javascript">
+                odoo.define(function (require) {
+                    var ajax = require('web.ajax');
+                    ajax.loadJS("/payment_adyen_paybylink/static/src/js/adyen.js");
+                });
+            </script>
+        </xpath>
+    </template>
+</odoo>
