@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import ast
 import json
 import random
 import uuid
@@ -990,6 +991,15 @@ class Survey(models.Model):
         self.sudo().write({'session_state': False})
         self.user_input_ids.sudo().write({'state': 'done'})
         self.env['bus.bus']._sendone(self.access_token, 'end_session', {})
+
+    def action_survey_certified_user_input(self):
+        action = self.env['ir.actions.actions']._for_xml_id('survey.action_survey_user_input')
+        ctx = ast.literal_eval(action.get('context', '{}'))
+        ctx.update({
+            'search_default_scoring_success': True
+        })
+        action['context'] = str(ctx)
+        return action
 
     def get_start_url(self):
         return '/survey/start/%s' % self.access_token
