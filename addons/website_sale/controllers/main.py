@@ -1240,6 +1240,13 @@ class WebsiteSale(http.Controller):
 
 class PaymentPortal(payment_portal.PaymentPortal):
 
+    def _validate_transaction_for_order(self, transaction, sale_order_id):
+        """
+        Perform final checks against the transaction & sale_order.
+        Override me to apply payment unrelated checks & processing
+        """
+        return
+
     @http.route(
         '/shop/payment/transaction/<int:order_id>', type='json', auth='public', website=True
     )
@@ -1277,5 +1284,7 @@ class PaymentPortal(payment_portal.PaymentPortal):
         if last_tx:
             PaymentPostProcessing.remove_transactions(last_tx)
         request.session['__website_sale_last_tx_id'] = tx_sudo.id
+
+        self._validate_transaction_for_order(tx_sudo, order_id)
 
         return tx_sudo._get_processing_values()
