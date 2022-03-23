@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, _, Command
 from odoo.exceptions import UserError, ValidationError
 from odoo.osv.expression import AND, NEGATIVE_TERM_OPERATORS
 from odoo.tools import float_round
@@ -80,6 +80,7 @@ class MrpBom(models.Model):
     possible_product_template_attribute_value_ids = fields.Many2many(
         'product.template.attribute.value',
         compute='_compute_possible_product_template_attribute_value_ids')
+    allow_operation_dependencies = fields.Boolean('Operation Dependencies')
 
     _sql_constraints = [
         ('qty_positive', 'check (product_qty > 0)', 'The quantity to produce must be positive!'),
@@ -181,6 +182,13 @@ class MrpBom(models.Model):
             if bom_line.operation_id:
                 operation = res.operation_ids.filtered(lambda op: op.name == bom_line.operation_id.name and op.workcenter_id == bom_line.operation_id.workcenter_id)
                 bom_line.operation_id = operation
+        for operation in self.operation_ids:
+            if operation.blocked_by_operation_ids:
+                copied_operation = res.operation_ids.filtered(lambda op: op.name == operation.name and op.workcenter_id == operation.workcenter_id)
+                dependencies = []
+                for dependency in operation.blocked_by_operation_ids:
+                    dependencies.append(Command.link(res.operation_ids.filtered(lambda op: op.name == dependency.name and op.workcenter_id == dependency.workcenter_id).id))
+                copied_operation.blocked_by_operation_ids = dependencies
         return res
 
     @api.model

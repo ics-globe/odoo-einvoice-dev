@@ -135,6 +135,9 @@
                                 <group>
                                     <field name="ready_to_produce" attrs="{'invisible': [('type','=','phantom')]}" string="Manufacturing Readiness" widget="radio" groups="mrp.group_mrp_routings"/>
                                     <field name="consumption" attrs="{'invisible': [('type','=','phantom')]}" widget="radio"/>
+                                    <field name="allow_operation_dependencies" groups="mrp.group_mrp_workorder_dependencies"
+                                        help="Create operation level dependencies that will influence both planning and the status of work orders upon MO confirmation. If this feature is ticked, and nothing is specified, Odoo will assume that all operations can be started simultaneously."
+                                    />
                                 </group>
                                 <group>
                                     <field name="picking_type_id" attrs="{'invisible': [('type','=','phantom')]}" string="Operation" groups="stock.group_adv_location"/>

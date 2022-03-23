@@ -8,7 +8,7 @@ import datetime
 from pytz import timezone
 from random import randint
 
-from odoo import api, exceptions, fields, models, _
+from odoo import api, exceptions, fields, models, _, Command
 from odoo.exceptions import ValidationError
 from odoo.addons.resource.models.resource import make_aware, Intervals
 from odoo.tools.float_utils import float_compare
@@ -196,6 +196,11 @@ class MrpWorkcenter(models.Model):
         if 'company_id' in vals:
             self.resource_id.company_id = vals['company_id']
         return super(MrpWorkcenter, self).write(vals)
+
+    def copy(self, default=None):
+        res = super().copy(default)
+        res.capacity_ids = [Command.create(capacity.copy_data({'workcenter_id': res.id})[0]) for capacity in self.capacity_ids]
+        return res
 
     def action_show_operations(self):
         self.ensure_one()
