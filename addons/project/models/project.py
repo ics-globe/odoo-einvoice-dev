@@ -7,14 +7,12 @@ from pytz import UTC
 from collections import defaultdict
 from datetime import timedelta, datetime, time
 from random import randint
-from dateutil.relativedelta import relativedelta
 
 from odoo import api, Command, fields, models, tools, SUPERUSER_ID, _, _lt
 from odoo.addons.rating.models import rating_data
 from odoo.exceptions import UserError, ValidationError, AccessError
 from odoo.osv.expression import OR, AND
 from odoo.tools.misc import get_lang
-from odoo.osv import expression
 
 from .project_task_recurrence import DAYS, WEEKS
 from .project_update import STATUS_COLOR
@@ -823,7 +821,7 @@ class Project(models.Model):
                 'number': f'{round(100 * self.rating_avg_percentage, 2)} %',
                 'action_type': 'object',
                 'action': 'action_view_all_rating',
-                'show': self.rating_active and self.rating_count > 0,
+                'show': self.rating_active,
                 'sequence': 15,
             })
         if self.user_has_groups('project.group_project_user'):
@@ -1009,7 +1007,6 @@ class Task(models.Model):
         index=True,
         copy=False,
         readonly=True)
-    days_from_last_stage_update = fields.Integer(compute='_compute_days_from_last_stage_update', search='_search_days_from_last_stage_update')
     project_id = fields.Many2one('project.project', string='Project', recursive=True,
         compute='_compute_project_id', store=True, readonly=False,
         index=True, tracking=True, check_company=True, change_default=True)
@@ -1100,7 +1097,6 @@ class Task(models.Model):
     display_parent_task_button = fields.Boolean(compute='_compute_display_parent_task_button', compute_sudo=True)
     # Filter fields
     is_blocked = fields.Boolean(compute='_compute_is_blocked', store=True, recursive=True)
-    is_blocking = fields.Boolean(compute='_compute_is_blocking', store='_search_is_blocking')
 
     # recurrence fields
     allow_recurring_tasks = fields.Boolean(related='project_id.allow_recurring_tasks')
@@ -1235,15 +1231,6 @@ class Task(models.Model):
     @api.model
     def _search_personal_stage_type_id(self, operator, value):
         return [('personal_stage_type_ids', operator, value)]
-
-    @api.depends('date_last_stage_update')
-    def _compute_days_from_last_stage_update(self):
-        for task in self:
-            task.days_from_last_stage_update = task.days_from_last_stage_update and (fields.Datetime.now() - task.date_last_stage_update).days
-
-    @api.model
-    def _search_days_from_last_stage_update(self, operator, value):
-        return [('days_last_stage_update', expression.TERM_OPERATORS_NEGATION[operator], fields.Datetime.now() - relativedelta(days=value))]
 
     @api.model
     def _get_default_personal_stage_create_vals(self, user_id):
@@ -1400,21 +1387,6 @@ class Task(models.Model):
     def _compute_is_blocked(self):
         for task in self:
             task.is_blocked = any(not blocking_task.is_closed or blocking_task.is_blocked for blocking_task in task.depend_on_ids)
-
-    @api.depends('dependent_tasks_count', 'is_closed')
-    def _compute_is_blocking(self):
-        for task in self:
-            task.is_blocking = not task.is_closed and task.dependent_tasks_count > 0
-
-    def _search_is_blocking(self, operator, value):
-        if operator not in ['=', '!=']:
-            raise NotImplementedError(f'The operator {operator} is not supported in this search method.')
-        domain = ['&', ('is_closed', '=', False), ('dependent_ids', '!=', [])]
-        if operator == '!=' and value is True or operator == '=' and value is False:
-            domain.insert(0, expression.NOT_OPERATOR)
-        
-        domain = expression.distribute_not(domain)
-        return domain
 
     @api.depends('partner_id.email')
     def _compute_partner_email(self):

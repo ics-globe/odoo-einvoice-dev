@@ -38,14 +38,14 @@
                     <filter string="Blocked" name="blocked" domain="[('is_blocked', '=', True)]" groups="project.group_project_task_dependencies"/>
                     <filter string="Not Blocked" name="not_blocked" domain="[('is_blocked', '=', False)]" groups="project.group_project_task_dependencies"/>
                     <separator groups="project.group_project_task_dependencies"/>
-                    <filter string="Blocking" name="blocking" domain="[('is_blocking', '=', True)]" groups="project.group_project_task_dependencies"/>
-                    <filter string="Not Blocking" name="not_blocking" domain="[('is_blocking', '=', False)]" groups="project.group_project_task_dependencies"/>
+                    <filter string="Blocking" name="blocking" domain="[('is_closed', '=', False), ('dependent_ids', '!=', False)]" groups="project.group_project_task_dependencies"/>
+                    <filter string="Not Blocking" name="not_blocking" domain="['|', ('is_closed', '=', True), ('dependent_ids', '=', False)]" groups="project.group_project_task_dependencies"/>
                     <separator groups="project.group_project_task_dependencies"/>
                     <filter string="Late Tasks" name="late" domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
                     <separator/>
                     <filter string="Open Tasks" name="open_tasks" domain="[('is_closed', '=', False)]"/>
-                    <filter string="Closed Last 7 Days" name="closed_last_7_days" domain="[('stage_id.fold', '=', True), ('days_from_last_stage_update','&lt;', 8)]"/>
-                    <filter string="Closed Last 30 Days" name="closed_last_30_days" domain="[('stage_id.fold', '=', True), ('days_from_last_stage_update','&lt;', 31)]"/>
+                    <filter string="Closed Last 7 Days" name="closed_last_7_days" domain="[('is_closed', '=', True), ('date_last_stage_update', '&gt;', datetime.datetime.now() - relativedelta(days=7))]"/>
+                    <filter string="Closed Last 30 Days" name="closed_last_30_days" domain="[('is_closed', '=', True), ('date_last_stage_update', '&gt;', datetime.datetime.now() - relativedelta(days=30))]"/>
                     <separator/>
                     <filter name="rating_satisfied" string="Satisfied" domain="[('rating_avg', '&gt;=', 3.66)]" groups="project.group_project_rating"/>
                     <filter name="rating_okay" string="Okay" domain="[('rating_avg', '&lt;', 3.66), ('rating_avg', '&gt;=', 2.33)]" groups="project.group_project_rating"/>
@@ -811,7 +811,7 @@
                 (0, 0, {'view_mode': 'tree', 'view_id': ref('view_project')}),
                 (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_project_kanban')})]"/>
             <field name="search_view_id" ref="view_project_project_filter"/>
-            <field name="context">{'default_allow_billable': True}</field>
+            <field name="context">{}</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
                    No projects found. Let's create one!
@@ -975,7 +975,7 @@
                                     <field name="legend_normal" invisible="1"/>
                                     <field name="legend_done" invisible="1"/>
                                     <field name="legend_blocked" invisible="1"/>
-                                    <field name="is_closed" invisible="1"/>
+                                    <field name="is_closed" invisible="1" />
                                     <field name="allow_subtasks" invisible="1" />
                                     <field name="priority" widget="priority" optional="show" nolabel="1"/>
                                     <field name="name" widget="name_with_subtask_count"/>

@@ -108,7 +108,7 @@
         <record model="ir.ui.view" id="view_task_form2_inherited">
             <field name="name">project.task.form.inherited</field>
             <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="inherit_id" ref="project.view_task_form2" />
             <field name="groups_id" eval="[(6,0, (ref('hr_timesheet.group_hr_timesheet_user'),))]"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='child_ids']/tree/field[@name='company_id']" position="after">
@@ -351,7 +351,7 @@
                 </xpath>
                 <xpath expr="//filter[@name='late']" position='after'>
                     <filter string="Tasks in Overtime" name="overtime" domain="[('overtime', '&gt;', 0)]"/>
-                    <filter string="Tasks Soon in Overtime" name="remaining_hours_percentage" domain="[('remaining_hours', '&gt;', 0.0), ('remaining_hours_percentage', '&lt;=', 0.2)]"/>
+                    <filter string="Tasks Soon in Overtime" name="remaining_hours_percentage" domain="[('remaining_hours_percentage', '&lt;=', 0.2)]"/>
                 </xpath>
             </field>
         </record>
