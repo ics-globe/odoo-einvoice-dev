@@ -596,7 +596,7 @@ class Website(models.Model):
 
         images = custom_resources.get('images', {})
         set_images(images)
-        return url
+        return {'url': url, 'website_id': website.id}
 
     # ----------------------------------------------------------
     # Page Management
