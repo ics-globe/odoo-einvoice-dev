@@ -50,9 +50,9 @@ class ProductTemplate(models.Model):
     base_unit_price = fields.Monetary("Price Per Unit", currency_field="currency_id", compute="_compute_base_unit_price")
     base_unit_name = fields.Char(compute='_compute_base_unit_name', help='Displays the custom unit for the products if defined or the selected unit of measure otherwise.')
 
-    compare_list_price = fields.Float(
+    compare_list_price = fields.Monetary(
         'Compare to Price',
-        digits='Product Price',
+        currency_field="currency_id",
         help="The amount will be displayed strikethroughed on the eCommerce product page")
 
     @api.depends('product_variant_ids', 'product_variant_ids.base_unit_count')
@@ -249,6 +249,11 @@ class ProductTemplate(models.Model):
             )
             has_discounted_price = pricelist.currency_id.compare_amounts(list_price, price) == 1
 
+            compare_list_price = self.compare_list_price
+            if self.currency_id != pricelist.currency_id:
+                compare_list_price = self.currency_id._convert(self.compare_list_price, pricelist.currency_id, self.env.company,
+                                                  fields.Datetime.now(), round=False)
+
             combination_info.update(
                 base_unit_name=product.base_unit_name,
                 base_unit_price=product.base_unit_price,
@@ -256,6 +261,7 @@ class ProductTemplate(models.Model):
                 list_price=list_price,
                 price_extra=price_extra,
                 has_discounted_price=has_discounted_price,
+                compare_list_price=compare_list_price,
             )
 
         return combination_info
