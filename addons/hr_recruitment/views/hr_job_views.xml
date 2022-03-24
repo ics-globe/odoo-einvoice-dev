@@ -27,6 +27,7 @@
                 <field name="application_count"/>
                 <templates>
                     <t t-name="kanban-box">
+                        <div>Parent</div>
                         <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''}">
                             <div class="o_kanban_card_header">
                                 <div class="o_kanban_card_header_title">
