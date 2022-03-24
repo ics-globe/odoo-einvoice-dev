@@ -18,7 +18,6 @@ odoo.define('point_of_sale.CashOpeningPopup', function(require) {
         }
         openDetailsPopup() {
             this.state.openingCash = 0;
-            this.state.notes = "";
             this.state.displayMoneyDetailsPopup = true;
         }
         closeDetailsPopup() {
@@ -37,14 +36,14 @@ odoo.define('point_of_sale.CashOpeningPopup', function(require) {
         updateCashOpening({ total, moneyDetailsNotes }) {
             this.state.openingCash = total;
             if (moneyDetailsNotes) {
-                this.state.notes = moneyDetailsNotes;
+                if (this.state.notes) this.state.notes += '\n';
+                this.state.notes += _.str.sprintf(this.env._t('Opening %s'), moneyDetailsNotes);
             }
             this.manualInputCashCount = false;
             this.closeDetailsPopup();
         }
         handleInputChange() {
             this.manualInputCashCount = true;
-            this.state.notes = "";
         }
     }
 

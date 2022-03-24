@@ -74,7 +74,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <textarea placeholder="Notes" class="closing-notes" t-model="state.notes"/>
+                    <textarea placeholder="Add a closing note..." class="closing-notes" t-model="state.notes"/>
                 </main>
                 <footer class="footer">
                     <div class="button highlight" t-on-click="onCloseSession">Close Session</div>
