@@ -12,7 +12,14 @@ from odoo import api, fields, models, Command
 from odoo.osv.expression import AND
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.calendar.models.calendar_attendee import Attendee
-from odoo.addons.calendar.models.calendar_recurrence import weekday_to_field, RRULE_TYPE_SELECTION, END_TYPE_SELECTION, MONTH_BY_SELECTION, WEEKDAY_SELECTION, BYDAY_SELECTION
+from odoo.addons.calendar.models.calendar_recurrence import (
+    weekday_to_field,
+    RRULE_TYPE_SELECTION,
+    END_TYPE_SELECTION,
+    MONTH_BY_SELECTION,
+    WEEKDAY_SELECTION,
+    BYDAY_SELECTION
+)
 from odoo.tools.translate import _
 from odoo.tools.misc import get_lang
 from odoo.tools import pycompat, html2plaintext, is_html_empty
@@ -359,7 +366,7 @@ class Meeting(models.Model):
         defaults = self.default_get(['activity_ids', 'res_model_id', 'res_id', 'user_id', 'res_model', 'partner_ids'])
         meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
         # get list of models ids and filter out None values directly
-        model_ids = list(filter(bool, {values.get('res_model_id', defaults.get('res_model_id')) for values in vals_list}))
+        model_ids = list(filter(None, {values.get('res_model_id', defaults.get('res_model_id')) for values in vals_list}))
         model_name = defaults.get('res_model')
         valid_activity_model_ids = model_name and self.env[model_name].sudo().browse(model_ids).filtered(lambda m: 'activity_ids' in m).ids or []
         if meeting_activity_type and not defaults.get('activity_ids'):
@@ -388,8 +395,8 @@ class Meeting(models.Model):
         # Automatically add the current partner when creating an event if there is none (happens when we quickcreate an event)
         default_partners_ids = defaults.get('partner_ids') or ([(4, self.env.user.partner_id.id)])
         vals_list = [
-            dict(vals, attendee_ids=self._attendees_values(vals.get('partner_ids', default_partners_ids)))
-            if not vals.get('attendee_ids')
+            dict(vals, attendee_ids=self._attendees_values(vals['partner_ids']))
+            if 'partner_ids' in vals and not vals.get('attendee_ids')
             else vals
             for vals in vals_list
         ]
@@ -476,15 +483,12 @@ class Meeting(models.Model):
                 # Update this event
                 detached_events |= self._break_recurrence(future=recurrence_update_setting == 'future_events')
             else:
-                future_update_start = self.start if recurrence_update_setting == 'future_events' else None
+                update_start = self.start if recurrence_update_setting == 'future_events' else None
                 time_values = {field: values.pop(field) for field in time_fields if field in values}
-                if recurrence_update_setting == 'all_events':
-                    # Update all events: we create a new reccurrence and dismiss the existing events
-                    self._rewrite_recurrence(values, time_values, recurrence_values)
-                else:
-                    # Update future events
-                    detached_events |= self._split_recurrence(time_values)
-                    self.recurrence_id._write_events(values, dtstart=future_update_start)
+                if not update_start and (time_values or recurrence_values):
+                    raise UserError(_("Updating All Events is not allowed when dates or time is modified. You can only update one particular event and following events."))
+                detached_events |= self._split_recurrence(time_values)
+                self.recurrence_id._write_events(values, dtstart=update_start)
         else:
             super().write(values)
             self._sync_activities(fields=values.keys())
@@ -495,6 +499,9 @@ class Meeting(models.Model):
 
         (detached_events & self).active = False
         (detached_events - self).with_context(archive_on_error=True).unlink()
+
+        # Notify attendees if there is an alarm on the modified event, or if there was an alarm
+        # that has just been removed, as it might have changed their next event notification
         if not self.env.context.get('dont_notify') and update_alarms:
             self._setup_alarms()
         attendee_update_events = self.filtered(lambda ev: ev.user_id != self.env.user)
@@ -558,7 +565,20 @@ class Meeting(models.Model):
         events = self.filtered_domain([('alarm_ids', '!=', False)])
         partner_ids = events.mapped('partner_ids').ids
 
+        # don't forget to update recurrences if there are some base events in the set to unlink,
+        # but after having removed the events ;-)
+        recurrences = self.env["calendar.recurrence"].search([
+            ('base_event_id.id', 'in', [e.id for e in self])
+        ])
+
         result = super().unlink()
+
+        if recurrences:
+            recurrences._select_new_base_event()
+
+        # Notify the concerned attendees (must be done after removing the events)
+        self.env['calendar.alarm_manager']._notify_next_alarm(partner_ids)
+        return result
 
         # Notify the concerned attendees (must be done after removing the events)
         self.env['calendar.alarm_manager']._notify_next_alarm(partner_ids)
@@ -803,7 +823,7 @@ class Meeting(models.Model):
             # When we try to change recurrence values of an event not following the recurrence, we get the parameters from
             # the base_event
             previous_week_day_field = weekday_to_field(self.recurrence_id.base_event_id._get_start_date().weekday())
-        self.write({**time_values})
+        self.write(time_values)
         return self._apply_recurrence_values({
             previous_week_day_field: False,
             **self._get_recurrence_params(),
