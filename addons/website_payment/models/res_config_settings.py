@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
+from odoo.addons.website_payment.const import STRIPE_SUPPORTED_COUNTRIES
 
 
 class ResConfigSettings(models.TransientModel):
@@ -18,6 +19,8 @@ class ResConfigSettings(models.TransientModel):
         compute='_compute_acquirers_state')
     module_payment_paypal = fields.Boolean(
         string='Paypal - Express Checkout')
+    is_stripe_supported_country = fields.Boolean(
+        compute='_compute_is_stripe_supported_country')
 
     def _get_activated_acquirers(self):
         self.ensure_one()
@@ -45,15 +48,31 @@ class ResConfigSettings(models.TransientModel):
             else:
                 config.acquirers_state = 'none'
 
+    @api.depends('company_id')
+    def _compute_is_stripe_supported_country(self):
+        for config in self:
+            code = config.company_id.country_id.code
+            config.is_stripe_supported_country = code in STRIPE_SUPPORTED_COUNTRIES
+
     def action_activate_stripe(self):
+        self.ensure_one()
+        if not self.is_stripe_supported_country:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'type': 'info',
+                    'message': _("Stripe Connect is not available in your country, please use another payment provider."),
+                }
+            }
         stripe = self.env.ref('payment.payment_acquirer_stripe')
         stripe.button_immediate_install()
-        if stripe.state == 'disabled':
-            stripe.state = 'test'
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
+        # Create a new env including the freshly installed module
+        new_env = api.Environment(self.env.cr, self.env.uid, self.env.context)
+        # Configure Stripe
+        new_stripe = new_env.ref('payment.payment_acquirer_stripe')
+        menu_id = new_env.ref('website.menu_website_website_settings').id
+        return new_stripe.action_stripe_connect_account(menu_id=menu_id)
 
     def action_configure_first_provider(self):
         self.ensure_one()
