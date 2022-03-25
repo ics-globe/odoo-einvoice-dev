@@ -178,25 +178,6 @@ var TranslatePageMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
             devicePreview: false,
         };
 
-        $('.o_not_editable [data-oe-translation-id]').on('click', ev => {
-            const $target = $(ev.target);
-            let message = _t('This translation is not editable.');
-            if (ev.target.closest('.s_table_of_content_navbar_wrap')) {
-                message = _t(
-                    'The table of contents menu is automatically generated. ' +
-                    'The entries can be translated by translating their respective titles.'
-                );
-            }
-            $target.tooltip({
-                title: message,
-                trigger: 'hover',
-                container: 'body',
-                delay: {'hide': 800},
-            }).tooltip('show').on('hidden.bs.tooltip', ev => {
-                $target.tooltip('dispose');
-            });
-        });
-
         this.translator = new EditorMenu(this, {
             wysiwygOptions: params,
             savableSelector: savableSelector,
