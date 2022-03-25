@@ -5680,7 +5680,6 @@ Fields:
             updates = defaultdict(list)
             for rid, vals in id_vals.items():
                 updates[frozendict(vals)].append(rid)
-
             for vals, ids in updates.items():
                 model.browse(ids)._write(vals)
 
@@ -6151,6 +6150,7 @@ Fields:
             recs = self.env.records_to_compute(field)
             if not recs:
                 return
+
             if field.compute and field.store:
                 # do not force recomputation on new records; those will be
                 # recomputed by accessing the field on the records
