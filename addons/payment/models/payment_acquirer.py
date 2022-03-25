@@ -99,7 +99,10 @@ class PaymentAcquirer(models.Model):
         default=lambda self: _("Your payment has been cancelled."), translate=True)
 
     # Feature support fields
-    support_authorization = fields.Boolean(string="Authorize Mechanism Supported")
+    support_capture = fields.Selection(
+        string="Type of Capture Supported",
+        selection=[('full_only', "Full Only"), ('partial', "Partial")],
+    )
     support_fees_computation = fields.Boolean(string="Fees Computation Supported")
     support_tokenization = fields.Boolean(string="Tokenization Supported")
     support_refund = fields.Selection(

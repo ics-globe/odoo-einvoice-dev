@@ -1200,7 +1200,25 @@ class SaleOrder(models.Model):
                 line.qty_to_invoice = 0
 
     def payment_action_capture(self):
-        self.authorized_transaction_ids.action_capture()
+        if not any(tx.acquirer_id.support_capture for tx in self.authorized_transaction_ids):
+            self.authorized_transaction_ids.action_capture()
+        else:
+            self.ensure_one()
+
+            operations = ['online_redirect', 'online_direct', 'online_token', 'offline']
+            return {
+                'name': _("Capture"),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'payment.capture.wizard',
+                'target': 'new',
+                'context': {
+                    'active_ids': self.transaction_ids.filtered(
+                        lambda tx: tx.state in ['authorized', 'done'] and tx.operation in operations
+                    ).ids,  # In case of multiple partial captures, some tx may already be done
+                    'active_model': 'payment.transaction'
+                },
+            }
 
     def payment_action_void(self):
         self.authorized_transaction_ids.action_void()

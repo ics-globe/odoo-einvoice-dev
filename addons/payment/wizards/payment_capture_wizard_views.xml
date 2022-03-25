@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="payment_capture_wizard_view_form" model="ir.ui.view">
+        <field name="name">payment.capture.wizard.form</field>
+        <field name="model">payment.capture.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Capture">
+                <field name="has_draft_children" invisible="1"/>
+                <field name="support_partial_capture" invisible="1"/>
+                <div class="alert alert-warning"
+                     id="alert_draft_capture_tx"
+                     role="alert"
+                     attrs="{'invisible': [('has_draft_children', '=', False)]}">
+                    <p>
+                        <strong>Warning!</strong> There is a partial capture pending. Wait a moment
+                        for it to be processed. If the capture is still pending in a few minutes,
+                        please check your payment provider configuration.
+                    </p>
+                </div>
+                <group>
+                    <group>
+                        <field name="transaction_ids" invisible="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="authorized_amount"/>
+                        <field name="amount_available_for_capture"/>
+                    </group>
+                    <group>
+                        <field name="captured_amount"
+                               attrs="{'invisible': [('captured_amount', '&lt;=', 0)]}"/>
+                        <field name="voided_amount"
+                               attrs="{'invisible': [('voided_amount', '&lt;=', 0)]}"/>
+                    </group>
+                    <group>
+                        <field name="amount_to_capture"
+                               attrs="{'readonly': [('support_partial_capture', '=', 'full_only')]}"
+                               help="To change the amount you want to capture, all the transactions
+                                    must come from providers which supports the partial transaction.
+                                    If that's not the case but you intended to do a partial capture,
+                                    manage it directly from the transaction which allows it."/>
+                        <!-- TODO edm => ? after readonly help/widget to explain why the amount can't be changed, reformulate, need to find how to info bubble-->
+                        <field name="void_remaining_amount"
+                               attrs="{'invisible': [('support_partial_capture', '=', 'full_only')]}"/>
+                        <!-- TODO edm: not working, see how to compare 2 different fields here, or need to create one 'has_remaining_amount' instead -->
+                    </group>
+                </group>
+                <footer>
+                    <button string="Capture" type="object" name="action_capture" class="btn-primary"/>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

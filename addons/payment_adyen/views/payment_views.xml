@@ -24,7 +24,13 @@
                     the Capture Delay to manual on your Adyen account settings.
                     <a href="https://www.odoo.com/documentation/master/applications/finance/payment_acquirers/adyen.html#place-a-hold-on-a-card"
                        title="Learn More"
+                       target="_blank">Learn More</a><br/>
+                    <strong>Warning:</strong> For multiple partial captures, reach out to Adyen
+                    Support to activate it on your settings.
+                    <a href="https://www.odoo.com/documentation/master/applications/finance/payment_acquirers/adyen.html#todo-or-adyen-documentation"
+                       title="Learn More"
                        target="_blank">Learn More</a>
+<!--                TODO edm change link-->
                 </div>
             </xpath>
         </field>

@@ -195,16 +195,18 @@ class PaymentTransaction(models.Model):
         )
         self._handle_notification_data('stripe', notification_data)
 
-    def _send_capture_request(self):
+    def _send_capture_request(self, amount_to_capture=None):
         """ Override of payment to send a capture request to Stripe.
 
         Note: self.ensure_one()
 
-        :return: None
+        :param float amount_to_capture: The amount to be captured
+        :return: The capture child transaction if any
+        :rtype: recordset of `payment.transaction`
         """
-        super()._send_capture_request()
+        child_capture_tx = super()._send_capture_request(amount_to_capture=amount_to_capture)
         if self.provider != 'stripe':
-            return
+            return child_capture_tx
 
         # Make the capture request to Stripe
         payment_intent = self.acquirer_id._stripe_make_request(
@@ -222,16 +224,18 @@ class PaymentTransaction(models.Model):
         )
         self._handle_notification_data('stripe', notification_data)
 
-    def _send_void_request(self):
+    def _send_void_request(self, amount_to_void=None):
         """ Override of payment to send a void request to Stripe.
 
         Note: self.ensure_one()
 
-        :return: None
+        :param float amount_to_void: The amount to be voided
+        :return: The void child transaction if any
+        :rtype: recordset of `payment.transaction`
         """
-        super()._send_void_request()
+        child_void_tx = super()._send_void_request(amount_to_void=amount_to_void)
         if self.provider != 'stripe':
-            return
+            return child_void_tx
 
         # Make the void request to Stripe
         payment_intent = self.acquirer_id._stripe_make_request(
