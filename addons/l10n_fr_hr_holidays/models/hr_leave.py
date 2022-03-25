@@ -5,12 +5,49 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
 
-from odoo import fields, models
+from odoo import fields, models, api
 
 class HrLeave(models.Model):
     _inherit = 'hr.leave'
 
     l10n_fr_date_to = fields.Datetime('End Date For French Rules', readonly=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            employee = self.env['hr.employee'].browse(vals['employee_id']).sudo()
+            employee_calendar = employee.resource_calendar_id
+            company_calendar = employee.company_id.resource_calendar_id
+            vals['date_to'] = self._get_fr_new_date_to(vals, employee_calendar, company_calendar)
+        return super().create(vals_list)
+
+    def _calendar_works_on_date(self, CalendarAttendance, calendar, working_days, date):
+        dayofweek = str(date.weekday())
+        if calendar.two_weeks_calendar:
+            weektype = str(CalendarAttendance.get_week_type(date))
+            return working_days[weektype][dayofweek]
+        return working_days[False][dayofweek]
+
+    def _get_working_hours(self, calendar):
+        working_days = defaultdict(lambda: defaultdict(lambda: False))
+        for attendance in calendar.attendance_ids:
+            working_days[attendance.week_type][attendance.dayofweek] = True
+        return working_days
+
+    def _get_fr_new_date_to(self, vals, employee_calendar, company_calendar):
+        employee_working_days = self._get_working_hours(employee_calendar)
+        company_working_days = self._get_working_hours(company_calendar)
+
+        CalendarAttendance = self.env['resource.calendar.attendance']
+        date_target = datetime.fromisoformat(vals['date_to'])
+        new_date_to = date_target
+        date_target += relativedelta(days=1)
+        while not self._calendar_works_on_date(CalendarAttendance, employee_calendar, employee_working_days, date_target):
+            if self._calendar_works_on_date(CalendarAttendance, company_calendar, company_working_days, date_target):
+                new_date_to = date_target
+            date_target += relativedelta(days=1)
+
+        return new_date_to
 
     def _get_fr_number_of_days(self, employee, date_from, date_to, employee_calendar, company_calendar):
         self.ensure_one()
@@ -19,16 +56,8 @@ class HrLeave(models.Model):
         # We can fill the holes using the company calendar as default
         # What we need to compute is how much we will need to push date_to in order to account for the lost days
         # This gets even more complicated in two_weeks_calendars
-        working_days = defaultdict(lambda: defaultdict(lambda: False))
-        for attendance in employee_calendar.attendance_ids:
-            working_days[attendance.week_type][attendance.dayofweek] = True
-
-        def calendar_works_on_date(CalendarAttendance, calendar, date):
-            dayofweek = str(date.weekday())
-            if calendar.two_weeks_calendar:
-                weektype = str(CalendarAttendance.get_week_type(date))
-                return working_days[weektype][dayofweek]
-            return working_days[False][dayofweek]
+        employee_working_days = self._get_working_hours(employee_calendar)
+        company_working_days = self._get_working_hours(company_calendar)
 
         CalendarAttendance = self.env['resource.calendar.attendance']
         if self.request_unit_half:
@@ -51,9 +80,9 @@ class HrLeave(models.Model):
         date_start = date_from
         date_target = date_to + relativedelta(days=1)
         counter = 0
-        while not calendar_works_on_date(CalendarAttendance, employee_calendar, date_start):
+        while not self._calendar_works_on_date(CalendarAttendance, employee_calendar, employee_working_days, date_start):
             date_start += relativedelta(days=1)
-        while not calendar_works_on_date(CalendarAttendance, employee_calendar, date_target):
+        while not self._calendar_works_on_date(CalendarAttendance, employee_calendar, employee_working_days, date_target):
             date_target += relativedelta(days=1)
             counter += 1
             # Check that we aren't running an infinite loop (it would mean that employee_calendar is empty and
