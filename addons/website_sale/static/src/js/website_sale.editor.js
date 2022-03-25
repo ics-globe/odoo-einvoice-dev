@@ -756,6 +756,8 @@ options.registry.WebsiteSaleProduct = options.Class.extend({
                             class: 'w-100 o_image_64_cover'
                         }))).appendTo(this.carouselIndicators);
                     });
+                /* Retrieve carousel view from rpc and ecrabouille current carousel*/
+                /* aka remove all the .then()*/
 
                 // Informs the user to save the page before editing new pictures.
                 // This lets him also save other unrelated modifications aswell.

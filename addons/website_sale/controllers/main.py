@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from base64 import b64encode
 import json
 import logging
-import requests
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.urls import url_decode, url_encode, url_parse
 
@@ -397,21 +395,39 @@ class WebsiteSale(http.Controller):
         links all of them to product.
         :raises AccessError : If te user is not allowed to access Attachmet model or Product Model.
         """
+        if not request.env.user.has_group('website.group_website_designer'):
+            raise NotFound()
+
         image_ids = request.env["ir.attachment"].browse(i['id'] for i in images)
 
         product.write({
             'product_variant_image_ids': [(0, 0, {
-                'name': image.name,                          # Images uploaded from url do not have any data. This recovers them manually
-                'image_1920': image.datas if image.datas else b64encode(requests.get(image.url, stream=True).content),
+                'name': image.name,                          # Images uploaded from url do not have any datas. This recovers them manually
+                'image_1920': image.datas if image.datas else request.env['ir.qweb.field.image'].load_remote_url(image.url),
             }) for image in image_ids],
         })
+
+        carousel_view = request.env['ir.ui.view']._render_template('website_sale.shop_product_carousel', values={
+            'product': request.env['product.template'].browse(product.product_tmpl_id),
+            'product_variant': request.env['product.product'].browse(product.id),
+        })
+        return {'carousel_view': carousel_view}
 
     @http.route(['/shop/product/<model("product.product"):product>/clear-images'], type='json', auth='user', website=True)
     def clear_product_images(self, product):
         """
         Unlinks all images from the product.
         """
+        if not request.env.user.has_group('website.group_website_designer'):
+            raise NotFound()
+
         product.product_variant_image_ids.unlink()
+
+        carousel_view = request.env['ir.ui.view']._render_template('website_sale.shop_product_carousel', values={
+            'product': request.env['product.template'].browse(product.product_tmpl_id),
+            'product_variant': request.env['product.product'].browse(product.id),
+        })
+        return {'carousel_view': carousel_view}
 
     def _prepare_product_values(self, product, category, search, **kwargs):
         ProductCategory = request.env['product.public.category']
