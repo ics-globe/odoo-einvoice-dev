@@ -202,6 +202,10 @@
     }
 }
 
+.o-message-squashed .o_Message_date {
+    margin-bottom: 0.12rem !important;
+}
+
 .o_Message_highlightIndicator.o-active {
     background-color: $o-brand-primary;
 }
