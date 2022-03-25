@@ -21,6 +21,7 @@ class ChannelUsersRelation(models.Model):
     _description = 'Channel / Partners (Members)'
     _table = 'slide_channel_partner'
 
+    active = fields.Boolean(default=True)
     channel_id = fields.Many2one('slide.channel', index=True, required=True, ondelete='cascade')
     completed = fields.Boolean('Is Completed', help='Channel validated, even if slides / lessons are added once done.')
     completion = fields.Integer('% Completed Slides')
@@ -33,6 +34,7 @@ class ChannelUsersRelation(models.Model):
     channel_visibility = fields.Selection(related='channel_id.visibility')
     channel_enroll = fields.Selection(related='channel_id.enroll')
     channel_website_id = fields.Many2one('website', string='Website', related='channel_id.website_id')
+    next_slide_id = fields.Many2one('slide.slide', string="Next Lesson")
 
     _sql_constraints = [
         ('channel_partner_uniq',
@@ -52,17 +54,22 @@ class ChannelUsersRelation(models.Model):
              ('completed', '=', True),
              ('slide_id.is_published', '=', True),
              ('slide_id.active', '=', True)],
-            ['channel_id', 'partner_id'],
+            ['channel_id', 'partner_id', 'slide_id:array_agg'],
             groupby=['channel_id', 'partner_id'], lazy=False)
         mapped_data = dict()
         for item in read_group_res:
             mapped_data.setdefault(item['channel_id'][0], dict())
-            mapped_data[item['channel_id'][0]][item['partner_id'][0]] = item['__count']
+            # Get all the Completed slides By the Partner
+            mapped_data[item['channel_id'][0]][item['partner_id'][0]] = item['slide_id']
 
         completed_records = self.env['slide.channel.partner']
         uncompleted_records = self.env['slide.channel.partner']
         for record in self:
-            record.completed_slides_count = mapped_data.get(record.channel_id.id, dict()).get(record.partner_id.id, 0)
+            completed_slide_ids = mapped_data.get(record.channel_id.id, dict()).get(record.partner_id.id, [])
+            record.completed_slides_count = len(completed_slide_ids)
+            # Filter out the uncompleted Slide from the Completed ones
+            slides_remaining = record.channel_id.slide_content_ids.filtered(lambda slide: slide.id not in completed_slide_ids)
+            record.next_slide_id = slides_remaining[0] if slides_remaining else False
             record.completion = 100.0 if record.completed else round(100.0 * record.completed_slides_count / (record.channel_id.total_slides or 1))
 
             if not record.channel_id.active:
@@ -586,7 +593,7 @@ class Channel(models.Model):
         """ Redirects to attendees of the course. If completed is True, a filter
         will be added in action that will display only attendees who have completed
         the course. """
-        action_ctx = {'active_test': False}
+        action_ctx = {}
         action = self.env["ir.actions.actions"]._for_xml_id("website_slides.slide_channel_partner_action")
         if completed:
             action_ctx['search_default_filter_completed'] = 1
@@ -643,7 +650,7 @@ class Channel(models.Model):
         """
         to_join = self._filter_add_members(target_partners, **member_values)
         if to_join:
-            existing = self.env['slide.channel.partner'].sudo().search([
+            existing = self.env['slide.channel.partner'].with_context(active_test=False).sudo().search([
                 ('channel_id', 'in', self.ids),
                 ('partner_id', 'in', target_partners.ids)
             ])
@@ -651,14 +658,18 @@ class Channel(models.Model):
             for item in existing:
                 existing_map[item.channel_id.id].append(item.partner_id.id)
 
+            archived_members = existing.filtered(lambda channel_partner: not channel_partner.active)
+            archived_members.action_unarchive()
+
             to_create_values = [
-                dict(channel_id=channel.id, partner_id=partner.id, **member_values)
+                dict(channel_id=channel.id, partner_id=partner.id, next_slide_id=channel.slide_content_ids[0].id if channel.slide_content_ids else False, **member_values)
                 for channel in to_join
                 for partner in target_partners if partner.id not in existing_map[channel.id]
             ]
             slide_partners_sudo = self.env['slide.channel.partner'].sudo().create(to_create_values)
             to_join.message_subscribe(partner_ids=target_partners.ids, subtype_ids=[self.env.ref('website_slides.mt_channel_slide_published').id])
-            return slide_partners_sudo
+            # Also consider re-joined members along with newly joined ones
+            return slide_partners_sudo | archived_members
         return self.env['slide.channel.partner'].sudo()
 
     def _filter_add_members(self, target_partners, **member_values):
@@ -714,9 +725,8 @@ class Channel(models.Model):
         return total_karma
 
     def _remove_membership(self, partner_ids):
-        """ Unlink (!!!) the relationships between the passed partner_ids
-        and the channels and their slides (done in the unlink of slide.channel.partner model).
-        Remove earned karma when completed quizz """
+        """ Archive (!!!) the passed partner_ids and keep earned karma
+        so that it can be restored in case of re-joining the course """
         if not partner_ids:
             raise ValueError("Do not use this method with an empty partner_id recordset")
 
@@ -738,7 +748,10 @@ class Channel(models.Model):
         self.message_unsubscribe(partner_ids=partner_ids)
 
         if removed_channel_partner_domain:
-            self.env['slide.channel.partner'].sudo().search(removed_channel_partner_domain).unlink()
+            self.env['slide.channel.partner'].sudo().search(removed_channel_partner_domain).write({
+                'active': False,
+                'completed': False
+            })
 
     def action_view_slides(self):
         action = self.env["ir.actions.actions"]._for_xml_id("website_slides.slide_slide_action")

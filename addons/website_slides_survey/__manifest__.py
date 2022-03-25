@@ -15,6 +15,7 @@
         'views/slide_slide_partner_views.xml',
         'views/slide_slide_views.xml',
         'views/survey_survey_views.xml',
+        'views/survey_user_views.xml',
         'views/website_slides_menu_views.xml',
         'views/website_slides_templates_course.xml',
         'views/website_slides_templates_lesson.xml',

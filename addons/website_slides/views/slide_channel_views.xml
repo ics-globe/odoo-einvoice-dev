@@ -237,13 +237,23 @@
             <field name="name">slide.channel.view.kanban</field>
             <field name="model">slide.channel</field>
             <field name="arch" type="xml">
-                <kanban string="eLearning Overview" class="o_emphasize_colors o_kanban_dashboard o_slide_kanban breadcrumb_item active" edit="false" sample="1">
+                <kanban string="eLearning Overview" class="o_emphasize_colors o_kanban_dashboard o_slide_kanban o_slide_channel_kanban breadcrumb_item active" edit="false" sample="1">
                     <field name="color"/>
                     <field name="enroll"/>
                     <field name="website_published"/>
                     <templates>
                         <t t-name="kanban-box">
                             <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                                <div class="ribbon ribbon-top-right"
+                                    attrs="{'invisible': [('active', '=', True)]}">
+                                    <field name="active" invisible="1"/>
+                                    <span class="bg-danger">Archived</span>
+                                </div>
+                                <div class="ribbon ribbon-top-right"
+                                    attrs="{'invisible': [('website_published', '!=', True)]}">
+                                    <field name="website_published" invisible="1"/>
+                                    <span class="bg-success">Published</span>
+                                </div>
                                 <div class="o_dropdown_kanban dropdown">
                                     <a role="button" class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
                                         <span class="fa fa-ellipsis-v" aria-hidden="false"/>

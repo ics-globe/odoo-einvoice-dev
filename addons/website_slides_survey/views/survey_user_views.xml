@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="survey_user_input_view_search_inherit_website_slides_survey" model="ir.ui.view">
+        <field name="name">survey.user_input.view.search.inherit.website.slides.survey</field>
+        <field name="model">survey.user_input</field>
+        <field name="inherit_id" ref="survey.survey_user_input_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='scoring_success']" position="after">
+                <separator/>
+                <filter string="Archived" name="active" domain="[('active', '=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

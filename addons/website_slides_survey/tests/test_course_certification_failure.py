@@ -85,23 +85,27 @@ class TestCourseCertificationFailureFlow(TestSurveyCommon):
         self.fill_in_answer(retry_user_input, certification.question_ids)
         # forces recompute of partner_ids as we delete directly in relation
         self.channel.invalidate_cache()
-        self.assertNotIn(self.user_public.partner_id, self.channel.partner_ids, 'Public user should have been kicked out of the course because they failed their last attempt')
 
+        channel_partner = self.env['slide.channel.partner'].with_context(active_test=False).search([
+            ('channel_id', 'in', self.channel.ids),
+            ('partner_id', 'in', slide_partner.partner_id.ids)
+        ])
+
+        self.assertFalse(channel_partner.active, 'Public user should have been archived from the course attendee because he failed his last attempt')
         # Step 7: add public user as member of the channel once again
         self.channel._action_add_members(self.user_public.partner_id)
         # forces recompute of partner_ids as we create directly in relation
         self.channel.invalidate_cache()
-
-        self.assertIn(self.user_public.partner_id, self.channel.partner_ids, 'Public user should be a member of the course once again')
-        new_slide_partner = self.slide_certification._action_set_viewed(self.user_public.partner_id)
         self.slide_certification.with_user(self.user_public)._generate_certification_url()
-        self.assertEqual(1, len(new_slide_partner.user_input_ids.filtered(lambda user_input: user_input.state != 'done')), 'A new user input should have been automatically created upon slide view')
+        self.assertTrue(channel_partner.active, 'Public user should be a unarchived upon joining the course once again')
+        self.assertEqual(1, len(slide_partner.user_input_ids.filtered(lambda user_input: user_input.state != 'done')), 'A new user input should have been automatically unarchived upon joining course again')
 
         # Step 8: fill in the created user_input with correct answers this time
-        self.fill_in_answer(new_slide_partner.user_input_ids.filtered(lambda user_input: user_input.state != 'done')[0], certification.question_ids, good_answers=True)
-        self.assertTrue(new_slide_partner.survey_scoring_success, 'Quizz should be marked as passed with correct answers')
+        self.fill_in_answer(slide_partner.user_input_ids.filtered(lambda user_input: user_input.state != 'done')[0], certification.question_ids, good_answers=True)
+        self.assertTrue(slide_partner.survey_scoring_success, 'Quizz should be marked as passed with correct answers')
         # forces recompute of partner_ids as we delete directly in relation
         self.channel.invalidate_cache()
+        self.assertTrue(channel_partner.active, 'Public user should be active')
         self.assertIn(self.user_public.partner_id, self.channel.partner_ids, 'Public user should still be a member of the course')
 
     def fill_in_answer(self, answer, questions, good_answers=False):
