@@ -116,6 +116,13 @@ Wysiwyg.include({
                 callback: () => {
                     this._insertTemplate();
                 },
+            }, {
+                groupName: 'Knowledge',
+                title: "Kanban view",
+                description: "Add a kanban view",
+                callback: () => {
+                    this._insertKanban();
+                }
             });
         }
         return commands;
@@ -190,6 +197,16 @@ Wysiwyg.include({
             restoreSelection();
         });
         dialog.open();
+    },
+    _insertKanban: async function () {
+        const [container] = this.odooEditor.execCommand('insertHTML', '<div></div>');
+        await this.do_action({
+            type: 'ir.actions.act_window',
+            res_model: 'crm.lead',
+            views: [[false, 'kanban']],
+            target: 'new',
+            container: container
+        });
     },
     /**
      * Notify the @see FieldHtmlInjector when a /file block is inserted

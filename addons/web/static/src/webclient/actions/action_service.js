@@ -13,6 +13,7 @@ import { cleanDomFromBootstrap } from "@web/legacy/utils";
 import { View } from "@web/views/view";
 import { ActionDialog } from "./action_dialog";
 import { CallbackRecorder } from "./action_hook";
+import { EmbededView } from "./embeded_view";
 
 const { Component, markup, onMounted, onWillUnmount, onError, useChildSubEnv, xml } = owl;
 
@@ -682,6 +683,16 @@ function makeActionManager(env) {
         ControllerComponent.Component = controller.Component;
 
         let nextDialog = null;
+        if (action.target === "new" && action.container) {
+            await owl.mount(EmbededView, action.container, {
+                env: env,
+                props: {
+                    ActionComponent: ControllerComponent,
+                    actionProps: controller.props
+                }
+            });
+            return currentActionProm;
+        }
         if (action.target === "new") {
             cleanDomFromBootstrap();
             const actionDialogProps = {
