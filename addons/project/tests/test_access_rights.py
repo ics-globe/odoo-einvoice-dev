@@ -118,12 +118,10 @@ class TestCRUDVisibilityPortal(TestAccessRights):
     def setUp(self):
         super().setUp()
         self.project_pigs.privacy_visibility = 'portal'
-        # self.env.cr.flush()
+        self.env['base'].flush()
 
     @users('Portal user')
     def test_task_portal_no_read(self):
-        _logger.info(' test_task_portal_no_read '.center(50, '^'))
-        self.addCleanup(_logger.info, ' test_task_portal_no_read '.center(50, 'v'))
         with self.assertRaises(AccessError, msg="%s should not be able to read the task" % self.env.user.name):
             self.task.with_user(self.env.user).name
 
