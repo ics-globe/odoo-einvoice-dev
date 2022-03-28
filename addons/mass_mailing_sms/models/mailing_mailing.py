@@ -48,6 +48,8 @@ class Mailing(models.Model):
     sms_allow_unsubscribe = fields.Boolean('Include opt-out link', default=False)
     # A/B Testing
     ab_testing_sms_winner_selection = fields.Selection(related="campaign_id.ab_testing_sms_winner_selection", default="clicks_ratio", readonly=False, copy=True)
+    # sms statistics
+    processing = fields.Integer(compute="_compute_statistics")
 
     @api.depends('mailing_type')
     def _compute_medium_id(self):
@@ -142,6 +144,9 @@ class Mailing(models.Model):
             'type': 'ir.actions.act_url',
             'url': url,
         }
+
+    def action_view_traces_processing(self):
+        return self._action_view_traces_filtered('processing')
 
     # --------------------------------------------------
     # SMS SEND
@@ -301,6 +306,32 @@ class Mailing(models.Model):
         if self.mailing_type == 'sms':
             return _('SMS Text Message')
         return super(Mailing, self)._get_pretty_mailing_type()
+
+    def _compute_statistics(self):
+        self.processing = False
+
+        if not self.ids:
+            return
+        # ensure traces are sent to db
+        self.flush()
+        self.env.cr.execute("""
+            SELECT
+                m.id as mailing_id,
+                COUNT(s.trace_status) FILTER (WHERE s.trace_status = 'processing') AS processing
+            FROM
+                mailing_trace s
+            RIGHT JOIN
+                mailing_mailing m
+                ON (m.id = s.mass_mailing_id)
+            WHERE
+                m.id IN %s
+            GROUP BY
+                m.id
+        """, (tuple(self.ids), ))
+        for row in self.env.cr.dictfetchall():
+            self.browse(row.pop('mailing_id')).update(row)
+
+        return super()._compute_statistics()
 
     # --------------------------------------------------
     # TOOLS

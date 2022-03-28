@@ -109,7 +109,7 @@ class TestSMSPost(TestMailFullCommon, MockLinkTracker):
     def test_sms_send_batch_size(self):
         self.count = 0
 
-        def _send(sms_self, unlink_failed=False, unlink_sent=True, raise_exception=False):
+        def _send(sms_self, unlink_failed=False, unlink_sent=False, raise_exception=False):
             self.count += 1
             return DEFAULT
 
@@ -138,7 +138,7 @@ class TestSMSPost(TestMailFullCommon, MockLinkTracker):
             }):
             self.env['sms.sms'].browse(self.sms_all.ids).send(raise_exception=False)
         remaining = self.sms_all.exists()
-        self.assertEqual(len(remaining), 4)
+        self.assertEqual(len(remaining), 10)
         self.assertTrue(all(sms.state == 'error') for sms in remaining)
 
     def test_sms_send_delete_failed(self):

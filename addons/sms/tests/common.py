@@ -56,13 +56,39 @@ class MockSMS(common.BaseCase):
                             'body': to_send['content'],
                         })
                 return result
+            elif local_endpoint == '/iap/sms/3/send':
+                result = []
+                for message in params['messages']:
+                    error = sim_error or (nbr_t_error and nbr_t_error.get(message['number']))
+                    if error == 'jsonrpc_exception':
+                        raise exceptions.AccessError(
+                            'The url that this service requested returned an error. '
+                            'Please contact the author of the app. '
+                            'The url it tried to contact was ' + local_endpoint
+                        )
+                    elif error == 'credit':
+                        error = 'insufficient_credit'
+                    res = {
+                        'request_uuid': message['request_uuid'],
+                        'state': error if error else 'success',
+                    }
+                    if error:
+                        # credit is only given if the amount is known
+                        res.update(credit=0)
+                    else:
+                        self._sms.append({
+                            'number': message['number'],
+                            'body': message['content'],
+                        })
+                    result.append(res)
+                return result
 
         def _sms_sms_create(model, *args, **kwargs):
             res = sms_create_origin(model, *args, **kwargs)
             self._new_sms += res.sudo()
             return res
 
-        def _sms_sms_send(records, unlink_failed=False, unlink_sent=True, raise_exception=False):
+        def _sms_sms_send(records, unlink_failed=False, unlink_sent=False, raise_exception=False):
             if sms_allow_unlink:
                 return sms_send_origin(records, unlink_failed=unlink_failed, unlink_sent=unlink_sent, raise_exception=raise_exception)
             else:
