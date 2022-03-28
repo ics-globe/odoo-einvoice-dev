@@ -209,6 +209,7 @@ export class OdooEditor extends EventTarget {
                 onChange: () => {},
                 isHintBlacklisted: () => false,
                 filterMutationRecords: (records) => records,
+                onPostSanitize: () => {},
                 direction: 'ltr',
                 _t: string => string,
                 allowCommandVideo: true,
@@ -271,7 +272,11 @@ export class OdooEditor extends EventTarget {
         // Convention: root node is ID root.
         editable.oid = 'root';
         this._idToNodeMap.set(1, editable);
-        this.editable = this.options.toSanitize ? sanitize(editable) : editable;
+        if (this.options.toSanitize) {
+            sanitize(editable);
+            this.options.onPostSanitize(editable);
+        }
+        this.editable = editable;
         this.editable.classList.add("odoo-editor-editable");
         this.editable.setAttribute('dir', this.options.direction);
 
@@ -413,6 +418,7 @@ export class OdooEditor extends EventTarget {
         // sanitize and mark current position as sanitized
         sanitize(commonAncestor);
         this._pluginCall('sanitizeElement', [commonAncestor]);
+        this.options.onPostSanitize(commonAncestor);
     }
 
     addDomListener(element, eventName, callback) {
@@ -501,6 +507,7 @@ export class OdooEditor extends EventTarget {
                 this.observerApply(records);
             });
         }
+        this.dispatchEvent(new Event('preObserverActive'));
         this.observer.observe(this.editable, {
             childList: true,
             subtree: true,
@@ -695,7 +702,7 @@ export class OdooEditor extends EventTarget {
         if (!this._historyStepsActive) {
             return;
         }
-        this.observerFlush();
+        this.sanitize();
         // check that not two unBreakables modified
         if (this._toRollback) {
             if (!skipRollback) this.historyRollback();
