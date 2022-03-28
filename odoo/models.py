@@ -6171,7 +6171,9 @@ Fields:
 
         if fnames is None:
             # recompute everything
-            for field in list(self.env.fields_to_compute()):
+            fields_to_compute = list(self.env.fields_to_compute())
+            _logger.info('fields_to_compute', fields_to_compute)
+            for field in fields_to_compute:
                 process(field)
         else:
             fields = [self._fields[fname] for fname in fnames]

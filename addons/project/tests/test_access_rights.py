@@ -111,6 +111,8 @@ class TestCRUDVisibilityFollowers(TestAccessRights):
         with self.assertRaises(AccessError, msg="%s should not be able to unlink the task" % self.env.user.name):
             self.task.with_user(self.env.user).unlink()
 
+import logging
+_logger = logging.getLogger(__name__)
 class TestCRUDVisibilityPortal(TestAccessRights):
 
     def setUp(self):
@@ -120,6 +122,8 @@ class TestCRUDVisibilityPortal(TestAccessRights):
 
     @users('Portal user')
     def test_task_portal_no_read(self):
+        _logger.info(' test_task_portal_no_read '.center(50, '^'))
+        self.addCleanup(_logger.info, ' test_task_portal_no_read '.center(50, 'v'))
         with self.assertRaises(AccessError, msg="%s should not be able to read the task" % self.env.user.name):
             self.task.with_user(self.env.user).name
 
