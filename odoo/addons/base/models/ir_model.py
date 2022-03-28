@@ -289,7 +289,7 @@ class IrModel(models.Model):
         # reload is done independently in odoo.modules.loading.
         if not self._context.get(MODULE_UNINSTALL_FLAG):
             # setup models; this automatically removes model from registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
 
         return res
@@ -310,7 +310,7 @@ class IrModel(models.Model):
         res = super(IrModel, self).write(vals)
         # ordering has been changed, reload registry to reflect update + signaling
         if 'order' in vals:
-            self.flush()  # setup_models need to fetch the updated values from the db
+            self.env.flush_all()  # setup_models need to fetch the updated values from the db
             self.pool.setup_models(self._cr)
         return res
 
@@ -322,7 +322,7 @@ class IrModel(models.Model):
         ]
         if manual_models:
             # setup models; this automatically adds model in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
             # update database schema
             self.pool.init_models(self._cr, manual_models, dict(self._context, update_custom_fields=True))
@@ -851,7 +851,7 @@ class IrModelFields(models.Model):
         # inconsistent in this case; therefore we reload the registry.
         if not self._context.get(MODULE_UNINSTALL_FLAG):
             # setup models; this re-initializes models in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
             # update database schema of model and its descendant models
             models = self.pool.descendants(model_names, '_inherits')
@@ -889,7 +889,7 @@ class IrModelFields(models.Model):
 
         if any(model in self.pool for model in models):
             # setup models; this re-initializes model in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
             # update database schema of models and their descendants
             models = self.pool.descendants(models, '_inherits')
@@ -944,7 +944,7 @@ class IrModelFields(models.Model):
 
         res = super(IrModelFields, self).write(vals)
 
-        self.flush()
+        self.env.flush_all()
 
         if column_rename:
             # rename column in database, and its corresponding index if present
@@ -965,7 +965,7 @@ class IrModelFields(models.Model):
 
         if column_rename or patched_models:
             # setup models, this will reload all manual fields in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
 
         if patched_models:
@@ -1180,7 +1180,7 @@ class IrModelSelection(models.Model):
 
     def _get_selection(self, field_id):
         """ Return the given field's selection as a list of pairs (value, string). """
-        self.flush(['value', 'name', 'field_id', 'sequence'])
+        self.flush_model(['value', 'name', 'field_id', 'sequence'])
         return self._get_selection_data(field_id)
 
     def _get_selection_data(self, field_id):
@@ -1325,7 +1325,7 @@ class IrModelSelection(models.Model):
             for model, name in field_names
         ):
             # setup models; this re-initializes model in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
 
         return recs
@@ -1354,7 +1354,7 @@ class IrModelSelection(models.Model):
         result = super().write(vals)
 
         # setup models; this re-initializes model in registry
-        self.flush()
+        self.env.flush_all()
         self.pool.setup_models(self._cr)
 
         return result
@@ -1378,7 +1378,7 @@ class IrModelSelection(models.Model):
         # reload is done independently in odoo.modules.loading.
         if not self._context.get(MODULE_UNINSTALL_FLAG):
             # setup models; this re-initializes model in registry
-            self.flush()
+            self.env.flush_all()
             self.pool.setup_models(self._cr)
 
         return result
@@ -1406,7 +1406,7 @@ class IrModelSelection(models.Model):
                 # we can do except fix on a case-by-case basis
                 value = field.convert_to_column(value, records)
                 self.env.cr.execute(query, [value, records._ids])
-                records.invalidate_cache([fname])
+                records.invalidate_recordset([fname])
 
         for selection in self:
             Model = self.env[selection.field_id.model]
@@ -1448,6 +1448,7 @@ class IrModelSelection(models.Model):
         """ Return the records having 'self' as a value. """
         self.ensure_one()
         Model = self.env[self.field_id.model]
+        Model.flush_model([self.field_id.name])
         query = 'SELECT id FROM "{table}" WHERE "{field}"=%s'.format(
             table=Model._table, field=self.field_id.name,
         )
@@ -1666,7 +1667,7 @@ class IrModelRelation(models.Model):
                                 (SELECT id FROM ir_module_module WHERE name=%s),
                                 (SELECT id FROM ir_model WHERE model=%s)) """
             cr.execute(query, (table, self.env.uid, self.env.uid, module, model._name))
-            self.invalidate_cache()
+            self.env.invalidate_all()
 
 
 class IrModelAccess(models.Model):
@@ -1755,7 +1756,7 @@ class IrModelAccess(models.Model):
         if model not in self.env:
             _logger.error('Missing model %s', model)
 
-        self.flush(self._fields)
+        self.flush_model()
 
         # We check if a specific or generic rule exists
         self._cr.execute("""SELECT BOOL_OR(perm_{mode})
@@ -1813,7 +1814,7 @@ class IrModelAccess(models.Model):
 
     @api.model
     def call_cache_clearing_methods(self):
-        self.invalidate_cache()
+        self.env.invalidate_all()
         self.check.clear_cache(self)    # clear the cache of check function
         for model, method in self.__cache_clearing_methods:
             if model in self.env:
