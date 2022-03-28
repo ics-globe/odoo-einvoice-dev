@@ -575,7 +575,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
     def test_message_post_one_email_notification(self):
         record = self.env['mail.test.simple'].create({'name': 'Test'})
 
-        with self.assertQueryCount(__system__=30, employee=33):
+        with self.assertQueryCount(__system__=29, employee=32):
             record.message_post(
                 body='<p>Test Post Performances with an email ping</p>',
                 partner_ids=self.customer.ids,
@@ -701,26 +701,65 @@ class TestMailComplexPerformance(BaseMailPerformance):
     @warmup
     def test_complex_mail_mail_send(self):
         message = self.env['mail.message'].sudo().create({
-            'subject': 'Test',
-            'body': '<p>Test</p>',
             'author_id': self.env.user.partner_id.id,
+            'body': '<p>Test</p>',
             'email_from': self.env.user.partner_id.email,
+            'message_type': 'comment',
             'model': 'mail.test.container',
             'res_id': self.container.id,
+            'subject': 'Test',
         })
+        attachments = self.env['ir.attachment'].create([
+            dict(attachment, res_id=self.container.id, res_model='mail.test.container')
+            for attachment in self.test_attachments_vals
+        ])
         mail = self.env['mail.mail'].sudo().create({
+            'attachment_ids': [(4, att.id) for att in attachments],
+            'auto_delete': False,
             'body_html': '<p>Test</p>',
             'mail_message_id': message.id,
             'recipient_ids': [(4, pid) for pid in self.partners.ids],
         })
-        mail_ids = mail.ids
         with self.assertQueryCount(__system__=9, employee=9):
-            self.env['mail.mail'].sudo().browse(mail_ids).send()
+            self.env['mail.mail'].sudo().browse(mail.ids).send()
 
-        self.assertEqual(mail.body_html, '<p>Test</p>')
-        self.assertEqual(mail.reply_to, formataddr(
-            ('%s %s' % (self.env.company.name, self.container.name), 'test-alias@%s' % self.alias_domain)
-        ))
+    @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    @users('__system__', 'employee')
+    @warmup
+    def test_complex_mail_mail_send_batch_complete(self):
+        """ A more complete use case: 10 mails, attachments, servers, ... And
+        2 failing emails. """
+        message = self.env['mail.message'].sudo().create({
+            'author_id': self.env.user.partner_id.id,
+            'email_from': self.env.user.partner_id.email,
+            'message_type': 'comment',
+            'model': 'mail.test.container',
+            'res_id': self.container.id,
+            'subject': 'Test',
+        })
+        attachments = self.env['ir.attachment'].create([
+            dict(attachment, res_id=self.container.id, res_model='mail.test.container')
+            for attachment in self.test_attachments_vals
+        ])
+        mails = self.env['mail.mail'].sudo().create([{
+            'attachment_ids': [(4, att.id) for att in attachments],
+            'auto_delete': True,
+            'body_html': '<p>Test %s</p>' % idx,
+            'email_cc': 'cc.1@test.example.com, cc.2@test.example.com',
+            'email_to': 'customer.1@example.com, customer.2@example.com',
+            'mail_message_id': message.id,
+            'mail_server_id': self.mail_servers.ids[idx % len(self.mail_servers.ids)],
+            'recipient_ids': [(4, pid) for pid in self.partners.ids],
+        } for idx in range(12)])
+        mails[-2].write({'email_cc': False, 'email_to': 'strange@example¢¡.com'})
+        mails[-1].write({'email_cc': False, 'email_to': 'void', 'recipient_ids': [(5, 0)]})
+        # note: with auto_delete=False: 44 / 44
+        with self.assertQueryCount(__system__=190, employee=190):
+            self.env['mail.mail'].sudo().browse(mails.ids).send()
+
+        left_mails = mails.exists()
+        self.assertEqual(len(left_mails), 1, 'Mail: should keep only "exception" mail (1 canceled-unlinked, other sent-unlinked)')
+        self.assertEqual(left_mails.state, 'exception')
 
     @mute_logger('odoo.tests', 'odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     @users('__system__', 'employee')

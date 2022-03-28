@@ -658,7 +658,7 @@ class TestMessagePost(TestMessagePostCommon):
         # check notification emails: references
         self.assertSentEmail(
             self.user_employee.partner_id, [self.partner_1],
-            ref_content='openerp-%d-mail.test.simple' % self.test_record.id
+            references_content='openerp-%d-mail.test.simple' % self.test_record.id
         )
 
         with self.mock_mail_gateway():

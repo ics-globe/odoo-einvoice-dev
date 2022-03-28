@@ -106,6 +106,7 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
              'smtp_host': 'smtp_host',
             }
         ])
+        cls.mail_servers = cls.mail_server_domain + cls.mail_server_global
 
     # ------------------------------------------------------------
     # GATEWAY TOOLS
@@ -443,20 +444,20 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
           either a partner record;
         :param values: dictionary of additional values to check email content;
         """
-        base_expected = {}
-        for fname in ['author_id', 'reply_to',
-                      'subject', 'body', 'body_content', 'body_alternative_content',
-                      'references', 'references_content',
-                      'attachments']:
-            if fname in values:
-                base_expected[fname] = values[fname]
+        supported = ['author_id', 'reply_to', 'email_cc', 'email_from', 'email_to',
+                     'subject', 'body', 'body_alternative', 'body_content', 'body_alternative_content',
+                     'references', 'references_content',
+                     'attachments', 'attachments_info'
+                    ]
+        if any(fname not in supported for fname in values):
+            raise NotImplementedError()
 
-        expected = dict(base_expected)
+        expected = dict(values)
+        # specific update for email_from / email_to
         if isinstance(author, self.env['res.partner'].__class__):
             expected['email_from'] = formataddr((author.name, author.email))
         else:
             expected['email_from'] = author
-
         email_to_list = []
         for email_to in recipients:
             if isinstance(email_to, self.env['res.partner'].__class__):
@@ -465,6 +466,7 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
                 email_to_list.append(email_to)
         expected['email_to'] = email_to_list
 
+        # fetch mail
         sent_mail = next(
             (mail for mail in self._mails
              if set(mail['email_to']) == set(expected['email_to']) and mail['email_from'] == expected['email_from']
@@ -472,6 +474,7 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
         debug_info = '-'.join('From: %s-To: %s' % (mail['email_from'], mail['email_to']) for mail in self._mails) if not bool(sent_mail) else ''
         self.assertTrue(bool(sent_mail), 'Expected mail from %s to %s not found in %s' % (expected['email_from'], expected['email_to'], debug_info))
 
+        # assert values
         for val in ['reply_to', 'subject', 'references']:
             if val in expected:
                 self.assertEqual(expected[val], sent_mail[val], 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
@@ -501,6 +504,18 @@ class MockEmail(common.BaseCase, MockSmtplibCase):
                     expected[val], sent_mail[val[:-8]],
                     'Value for %s: %s does not contain %s' % (val, sent_mail[val[:-8]], expected[val])
                 )
+        for val in (v for v in expected
+                    if v not in ['author_id', 'attachments', 'attachments_info',
+                                 'body', 'body_alternative',
+                                 'body_content', 'body_alternative_content', 'references_content',
+                                ]):
+            # beware to avoid list ordering differences (but Falsy values -> compare directly)
+            if val in ['email_to', 'email_cc'] and expected[val]:
+                self.assertEqual(sorted(expected[val]), sorted(sent_mail[val]),
+                                 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
+            else:
+                self.assertEqual(expected[val], sent_mail[val],
+                                 'Value for %s: expected %s, received %s' % (val, expected[val], sent_mail[val]))
 
 
 class MailCase(MockEmail):
@@ -806,7 +821,8 @@ class MailCase(MockEmail):
                     else:
                         for recipient in partners:
                             self.assertSentEmail(message.author_id if message.author_id else message.email_from, [recipient],
-                                                 email_values={'body_content': mbody})
+                                                 body_content=mbody
+                                                )
             if not any(p for recipients in email_groups.values() for p in recipients):
                 self.assertNoMail(partners, mail_message=message, author=message.author_id)
 
