@@ -327,6 +327,13 @@
     </we-select>
 </template>
 
+<template id="snippet_options_with_image_tools" inherit_id="web_editor.snippet_options">
+    <xpath expr="//div[@data-js='ImageTools']//we-button[@data-transform]" position="attributes">
+        <attribute name="data-name">image_transform_opt</attribute>
+        <attribute name="data-dependencies">no_animation_opt</attribute>
+    </xpath>
+</template>
+
 <template id="snippet_options">
     <t t-call="web_editor.snippet_options"/>
 
@@ -1211,7 +1218,8 @@
     <div data-js="WebsiteAnimate"
          data-selector=".o_animable, section .row > div, img, .fa, .btn, .o_animated_text"
          data-exclude=".o_not-animable, .s_col_no_resize.row > div, .s_col_no_resize">
-        <we-select string="Animate" data-is-animation-type-selection="true">
+        <we-select string="Animate" data-is-animation-type-selection="true"
+            data-dependencies="!image_transform_opt">
             <we-button data-select-class="" data-name="no_animation_opt">No Animation</we-button>
             <we-divider/>
             <we-button data-select-class="o_anim_fade_in">Fade In</we-button>
