@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import json
 import hmac
 import logging
 import pprint
@@ -10,12 +11,16 @@ from odoo import http
 from odoo.http import request
 
 from werkzeug.exceptions import Forbidden
+from odoo.exceptions import ValidationError
+
+from odoo.addons.payment_razorpay.const import HANDLED_WEBHOOK_EVENTS
 
 _logger = logging.getLogger(__name__)
 
 
 class RazorpayController(http.Controller):
     _return_url = '/payment/razorpay/capture'
+    _webhook_url = '/payment/razorpay/webhook'
 
     @http.route(_return_url, type='http', auth='public', methods=['POST'], csrf=False)
     def razorpay_capture(self, **data):
@@ -75,3 +80,20 @@ class RazorpayController(http.Controller):
             _logger.warning("received data with invalid signature")
             raise Forbidden()
         return result
+
+    @http.route(_webhook_url, type='json', auth='public')
+    def razorpay_webhook(self):
+        """ Process the notification data sent by Razorpay to the webhook.
+
+        :return: An empty string to acknowledge the notification
+        :rtype: str
+        """
+        event = json.loads(request.httprequest.data)
+        _logger.info("notification received from Razorpay with data:\n%s", pprint.pformat(event))
+        try:
+            if event['event'] in HANDLED_WEBHOOK_EVENTS:
+                intent = event['event'] # subscription.charged, depending on the flow
+                # TO DO - PPR
+        except ValidationError:  # Acknowledge the notification to avoid getting spammed
+            _logger.exception("unable to handle the notification data; skipping to acknowledge")
+        return ''

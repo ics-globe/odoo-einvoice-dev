@@ -28,3 +28,8 @@ SUPPORTED_CURRENCIES = [
     'USD', 'UYU', 'UZS', 'YER',
     'ZAR',
 ]
+
+# Events which are handled by the webhook
+HANDLED_WEBHOOK_EVENTS = [
+    'subscription.charged',
+]
