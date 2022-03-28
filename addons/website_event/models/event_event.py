@@ -479,6 +479,9 @@ class Event(models.Model):
         tags = options.get('tags')
         event_type = options.get('type', 'all')
 
+        # We want to let users search events by address (accessible with `addres_id`
+        # m2o field) but read access on `res.partner` requires sudo for public users.
+        requires_sudo = True
         domain = [website.website_domain()]
         if event_type != 'all':
             domain.append([("event_type_id", "=", int(event_type))])
@@ -519,10 +522,11 @@ class Event(models.Model):
                 if date_details[0] != 'upcoming':
                     current_date = date_details[1]
 
-        search_fields = ['name']
+        search_fields = ['name', 'address_id.city']
         fetch_fields = ['name', 'website_url']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
+            'address_id.city': {'name': 'address_id.city', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
         }
         if with_description:
@@ -537,6 +541,7 @@ class Event(models.Model):
             'search_fields': search_fields,
             'fetch_fields': fetch_fields,
             'mapping': mapping,
+            'requires_sudo': requires_sudo,
             'icon': 'fa-ticket',
             # for website_event main controller:
             'dates': dates,
