@@ -388,46 +388,75 @@ class WebsiteSale(http.Controller):
         # Compatibility pre-v14
         return request.redirect(_build_url_w_params("/shop/%s" % slug(product), request.params), code=301)
 
-    @http.route(['/shop/product/<model("product.product"):product>/extra-images'], type='json', auth='user', website=True)
-    def add_product_images(self, product, images, **kwargs):
+    def _get_product_carousel_view(self, product_product=None, product_template=None):
+        values = {
+            'product': request.env['product.template'].browse(product_template)
+        }
+        if product_product:
+            values['product_variant'] = product_product
+        return request.env['ir.ui.view']._render_template('website_sale.shop_product_carousel', values=values)
+
+    @http.route(['/shop/product/extra-images'], type='json', auth='user', website=True)
+    def add_product_images(self, images, product_product_id, product_template_id, combination_ids=None):
         """
         Turns a list of image ids refering to ir.attachments to product.images,
         links all of them to product.
-        :raises AccessError : If te user is not allowed to access Attachmet model or Product Model.
+        :raises NotFound : If the user is not allowed to access Attachment model
         """
-        if not request.env.user.has_group('website.group_website_designer'):
+
+        if not (request.env.user.has_group('website.group_website_designer') or request.env.user.has_group(
+                'website.group_website_publisher')):
             raise NotFound()
 
         image_ids = request.env["ir.attachment"].browse(i['id'] for i in images)
+        image_create_data = [Command.create({
+                    'name': image.name,                          # Images uploaded from url do not have any datas. This recovers them manually
+                    'image_1920': image.datas if image.datas else request.env['ir.qweb.field.image'].load_remote_url(image.url),
+                }) for image in image_ids]
 
-        product.write({
-            'product_variant_image_ids': [(0, 0, {
-                'name': image.name,                          # Images uploaded from url do not have any datas. This recovers them manually
-                'image_1920': image.datas if image.datas else request.env['ir.qweb.field.image'].load_remote_url(image.url),
-            }) for image in image_ids],
-        })
+        product_product = request.env['product.product'].browse(int(product_product_id)) if product_product_id else False
+        product_template = request.env['product.template'].browse(int(product_template_id)) if product_template_id else False
 
-        carousel_view = request.env['ir.ui.view']._render_template('website_sale.shop_product_carousel', values={
-            'product': request.env['product.template'].browse(product.product_tmpl_id),
-            'product_variant': request.env['product.product'].browse(product.id),
-        })
-        return {'carousel_view': carousel_view}
+        if product_product and not product_template:
+            product_template = product_product.product_tmpl_id
 
-    @http.route(['/shop/product/<model("product.product"):product>/clear-images'], type='json', auth='user', website=True)
-    def clear_product_images(self, product):
+        if not product_product and product_template and product_template.has_dynamic_attributes():
+            combination = request.env['product.template.attribute.value'].browse(combination_ids)
+            product_product = product_template._get_variant_for_combination(combination)
+            if not product_product:
+                product_product = request.env['product.product'].browse(
+                    product_template.create_product_variant(combination_ids))
+        if product_template.has_configurable_attributes and product_product:
+            product_product.write({
+                'product_variant_image_ids': image_create_data
+            })
+        else:
+            product_template.write({
+                'product_template_image_ids': image_create_data
+            })
+
+        return {'carousel_view': self._get_product_carousel_view(product_product, product_template)}
+
+    @http.route(['/shop/product/clear-images'], type='json', auth='user', website=True)
+    def clear_product_images(self, product_product_id, product_template_id):
         """
         Unlinks all images from the product.
         """
-        if not request.env.user.has_group('website.group_website_designer'):
+        if not (request.env.user.has_group('website.group_website_designer') or request.env.user.has_group('website.group_website_publisher')):
             raise NotFound()
 
-        product.product_variant_image_ids.unlink()
+        product_product = request.env['product.product'].browse(int(product_product_id)) if product_product_id else False
+        product_template = request.env['product.template'].browse(int(product_template_id)) if product_template_id else False
 
-        carousel_view = request.env['ir.ui.view']._render_template('website_sale.shop_product_carousel', values={
-            'product': request.env['product.template'].browse(product.product_tmpl_id),
-            'product_variant': request.env['product.product'].browse(product.id),
-        })
-        return {'carousel_view': carousel_view}
+        if product_product and not product_template:
+            product_template = product_product.product_tmpl_id
+
+        if product_product and product_product.product_variant_image_ids:
+            product_product.product_variant_image_ids.unlink()
+        else:
+            product_template.product_template_image_ids.unlink()
+
+        return {'carousel_view': self._get_product_carousel_view(product_product, product_template)}
 
     def _prepare_product_values(self, product, category, search, **kwargs):
         ProductCategory = request.env['product.public.category']

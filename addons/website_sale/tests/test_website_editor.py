@@ -3,6 +3,7 @@ from json.decoder import JSONDecodeError
 GIF = b"R0lGODdhAQABAIAAAP///////ywAAAAAAQABAAACAkQBADs="  # Tiny blank base64 image data.
 ATTACHMENT_COUNT = 5
 
+
 @tagged('post_install', '-at_install')
 class TestProductPictureController(HttpCase):
     @classmethod
@@ -29,12 +30,14 @@ class TestProductPictureController(HttpCase):
     def create_product_images_from_route(self):
         try:
             self.opener.post(
-                url=f'{self.base_url()}/shop/product/{self.product.id}/extra-images',
+                url=f'{self.base_url()}/shop/product/extra-images',
                 json={
                     'params': {
                         'images': [{
                             'id': i
-                        } for i in self.attachments.mapped('id')]
+                        } for i in self.attachments.mapped('id')],
+                        'product_product_id': self.product.id,
+                        'product_template_id': self.product.product_tmpl_id.id
                     }
                 }
             ).json()
@@ -48,27 +51,32 @@ class TestProductPictureController(HttpCase):
         self.assertTrue(self.create_product_images_from_route())
 
         # Check if the media now exists on the product :
-        for i in self.product.product_variant_image_ids:
+        for i in self.product.product_template_image_ids:
             # Check if all names are now in the product
             self.assertIn(i.name, self.attachments.mapped('name'))
             # Check if image datas are the same
             self.assertEqual(i.image_1920, GIF)
         # Check if exactly ATTACHMENT_COUNT images were saved (no dupes/misses?)
-        self.assertEqual(ATTACHMENT_COUNT, len(self.product.product_variant_image_ids))
+        self.assertEqual(ATTACHMENT_COUNT, len(self.product.product_template_image_ids))
 
     def test_authenticated_image_clear(self):
         self.authenticate("test_user", "Password_test")
 
         # First create some images
         self.assertTrue(self.create_product_images_from_route())
-        self.assertEqual(ATTACHMENT_COUNT, len(self.product.product_variant_image_ids))
+        self.assertEqual(ATTACHMENT_COUNT, len(self.product.product_template_image_ids))
 
         # Remove all images
         # (Exception raised if error)
         self.opener.post(
-            url=f'{self.base_url()}/shop/product/{self.product.id}/clear-images',
-            json={}  # Required to make this a json request.
+            url=f'{self.base_url()}/shop/product/clear-images',
+            json={
+                'params': {
+                    'product_product_id': self.product.id,
+                    'product_template_id': self.product.product_tmpl_id.id
+                }
+            }  # Required to make this a json request.
         )
 
         # According to the product, there are no variants images.
-        self.assertEqual(0, len(self.product.product_variant_image_ids))
+        self.assertEqual(0, len(self.product.product_template_image_ids))

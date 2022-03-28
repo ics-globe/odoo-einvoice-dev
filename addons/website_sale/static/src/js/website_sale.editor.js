@@ -58,6 +58,7 @@ const weWidgets = require('wysiwyg.widgets');
 const {qweb, _t} = require('web.core');
 const {Markup} = require('web.utils');
 const Dialog = require('web.Dialog');
+const Variant = require('website_sale.VariantMixin');
 
 Wysiwyg.include({
     custom_events: Object.assign(Wysiwyg.prototype.custom_events, {
@@ -720,64 +721,110 @@ options.registry.WebsiteSaleProductAttribute = options.Class.extend({
 options.registry.WebsiteSaleProduct = options.Class.extend({
     willStart: async function () {
         const _super = this._super.bind(this);
-        this.productID = parseInt(this.$target.find('[data-oe-model="product.product"]').data('oe-id'));
-        this.productIndicators = $(".o_carousel_product_indicators");
-        this.carouselIndicators = $(".carousel-indicators");
+        let productProduct = this.$target[0].querySelector('[data-oe-model="product.product"]');
+        let productTemplate = this.$target[0].querySelector('[data-oe-model="product.template"]');
+        this.productProductID = productProduct ? productProduct.dataset.oeId : null;
+        this.productTemplateID = productTemplate ? productTemplate.dataset.oeId : null;
+
+        this.carousel = this.$target[0];
+        this.initialCarousel = this.carousel;
+        this.cachedImage = null;
+
+
+        this.mode = "product.template";
+        if(this.productProductID){
+            this.mode = "product.product"
+        }
+
         return _super(...arguments);
     },
 
-    replaceMainImage: function () {
-        // Based on the default behaviour of the image button : /addons/web_editor/static/src/js/editor/snippets.options.js#L4771
-        $(this.$target.find('[data-oe-model="product.product"][data-oe-field=image_1920]')).find('img').dblclick();
+    /**
+     * @private
+     * Replaces this.carousel with newCarousel.
+     * {HTMLString} newCarousel - The new carousel HTML string.
+     * The newCarousel is clicked to remove editor focus on the old element (Which would be recreated)
+     * If newCarousel is not a valid HTML string, then the old element is kept.
+     */
+    _replaceCarousel: function(newCarousel) {
+        // The editor will try to rollback any changes made to the carousel. Prevent him to record them
+        this.options.wysiwyg.odooEditor.observerUnactive('_replaceCarousel');
+        const newCarouselElement = document.createElement('div');
+        newCarouselElement.innerHTML = newCarousel;
+
+        if(this.carousel !== this.initialCarousel){
+            this.carousel.remove(); // Temporary carousel => Destroy it
+        }else{
+            this.initialCarousel.classList.add('d-none'); // Origin carousel => keep it
+        }
+
+        this.carousel = newCarouselElement;
+
+        if(this.cachedImageSrc){
+            this.carousel.querySelector(`[data-oe-model="${this.mode}"][data-oe-field=image_1920] img`).src = this.cachedImageSrc;
+        }
+
+        this.initialCarousel.parentNode.appendChild(this.carousel);
+        this.options.wysiwyg.odooEditor.observerActive('_replaceCarousel');
+        this.carousel.dispatchEvent(new Event('click', {bubbles: true}));
     },
 
-    addImages: function () {
-        let images = [];
+    /**
+     * Emulate click on the main image of the carousel.
+     */
+    replaceMainImage: function () {
+        const image = this.initialCarousel.querySelector(`[data-oe-model="${this.mode}"][data-oe-field=image_1920] img`);
+        this.cachedImageSrc = image.src;
+        image.dispatchEvent(new Event('dblclick', {bubbles: true}));
+    },
+
+
+    _sendExtraImages: function () {
         const dialog = new weWidgets.MediaDialog(this, {multiImages: true, onlyImages: true}).open();
         dialog.on('save', this, (attachments) => {
-            images = attachments;
             this._rpc({
-                route: `/shop/product/${this.productID}/extra-images`,
+                route: `/shop/product/extra-images`,
                 params: {
                     images: attachments,
+                    product_product_id: this.productProductID,
+                    product_template_id: this.productTemplateID,
+                    combination_ids: Variant.getSelectedVariantValues($('.js_add_cart_variants'))
                 }
-            }).then(() => {
-                // Shows product Indicators (thumbnails)
-                this.carouselIndicators.removeClass("d-none");
-
-                // Adds all uploaded images to the list. Purely cosmetic as the images are not yet linked to the backend
-                images.forEach(i => {
-                    $('<li></li>', {
-                        class: 'align-top position-relative active overflow-hidden'
-                        }).append($("<div></div>", {
-                            'data-oe-model': 'product.image'
-                        }).append($("<img/>", {
-                            src: i.image_src,
-                            class: 'w-100 o_image_64_cover'
-                        }))).appendTo(this.carouselIndicators);
-                    });
-                /* Retrieve carousel view from rpc and ecrabouille current carousel*/
-                /* aka remove all the .then()*/
-
-                // Informs the user to save the page before editing new pictures.
-                // This lets him also save other unrelated modifications aswell.
-
-                this.displayNotification({
-                    message: _t("Save your modifications to edit newly added pictures"),
-                    type: 'info'
-                });
+            }).then((response) => {
+                this._replaceCarousel(response.carousel_view);
             });
         });
     },
 
+    /**
+     * Prompts the user for images, then replaces the carousel with the new images.
+     */
+    addImages: function () {
+        if(this.mode === 'product.template'){
+            this.displayNotification({
+                type: 'info',
+                message: 'Pictures will be added to the main image. Use "Instant" attributes to set pictures on each variants'
+            });
+        }
+        this._sendExtraImages()
+    },
+
+    /**
+     * Removes all images from the carousel.
+     */
     clearImages: function () {
-        this.productIndicators.find("[data-oe-model='product.product']").click();
         this._rpc({
-            route: `/shop/product/${this.productID}/clear-images`,
-        }).then(() => {
-            // Remove extra images from the thumbnails
-            this.carouselIndicators.find("[data-oe-model='product.image']").parent().remove();
+            route: `/shop/product/clear-images`,
+            params: {
+                model: this.mode,
+                product_product_id: this.productProductID,
+                product_template_id: this.productTemplateID,
+                combination_ids: Variant.getSelectedVariantValues($('.js_add_cart_variants'))
+            }
+        }).then((response) => {
+            this._replaceCarousel(response.carousel_view);
         });
     }
 });
 });
+
