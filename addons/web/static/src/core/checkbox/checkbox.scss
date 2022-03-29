@@ -5,10 +5,6 @@
   &:disabled {
     ~ .custom-control-label {
       cursor: not-allowed;
-
-      &:before {
-        border-color: $custom-control-indicator-checked-disabled-bg;
-      }
     }
 
     &:checked ~ .custom-control-label:after {
