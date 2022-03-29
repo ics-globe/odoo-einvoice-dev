@@ -2,8 +2,6 @@
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 
-import json
-
 
 @tagged('post_install', '-at_install')
 class TestTaxTotals(AccountTestInvoicingCommon):
@@ -41,7 +39,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         group_keys_to_ignore = {'group_key', 'formatted_tax_group_amount', 'formatted_tax_group_base_amount'}
         subtotals_keys_to_ignore = {'formatted_amount'}
 
-        to_compare = json.loads(document.tax_totals_json)
+        to_compare = document.tax_totals
 
         for key in main_keys_to_ignore:
             del to_compare[key]
@@ -58,7 +56,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         self.assertEqual(to_compare, expected_values)
 
     def _create_document_for_tax_totals_test(self, lines_data):
-        """ Creates and returns a new record of a model defining a tax_totals_json
+        """ Creates and returns a new record of a model defining a tax_totals
         field and using the related widget.
 
         By default, this function creates an invoice, but it is overridden in sale
@@ -140,7 +138,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         # Same but both are sharing the same tax group.
 
         tax_20.tax_group_id = self.tax_group1
-        document.invalidate_cache(['tax_totals_json'])
+        document.invalidate_cache(['tax_totals'])
 
         self.assertTaxTotals(document, {
             'amount_total': 3600,
@@ -252,7 +250,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         # Same but both are sharing the same tax group.
 
         tax_20.tax_group_id = self.tax_group1
-        document.invalidate_cache(['tax_totals_json'])
+        document.invalidate_cache(['tax_totals'])
 
         self.assertTaxTotals(document, {
             'amount_total': 3620,
@@ -337,7 +335,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         # Same but both are sharing the same tax group.
 
         tax_30.tax_group_id = self.tax_group1
-        document.invalidate_cache(['tax_totals_json'])
+        document.invalidate_cache(['tax_totals'])
 
         self.assertTaxTotals(document, {
             'amount_total': 2750,

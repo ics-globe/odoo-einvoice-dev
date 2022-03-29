@@ -5,8 +5,6 @@ from datetime import timedelta
 from itertools import groupby
 from markupsafe import Markup
 
-import json
-
 from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.osv import expression
@@ -231,7 +229,7 @@ class SaleOrder(models.Model):
     terms_type = fields.Selection(related='company_id.terms_type')
 
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, compute='_amount_all', tracking=5)
-    tax_totals_json = fields.Char(compute='_compute_tax_totals_json')
+    tax_totals = fields.Binary(compute='_compute_tax_totals')
     amount_tax = fields.Monetary(string='Taxes', store=True, compute='_amount_all')
     amount_total = fields.Monetary(string='Total', store=True, compute='_amount_all', tracking=4)
     currency_rate = fields.Float(
@@ -384,7 +382,7 @@ class SaleOrder(models.Model):
                 order.expected_date = False
 
     @api.depends('order_line.tax_id', 'order_line.price_unit', 'amount_total', 'amount_untaxed')
-    def _compute_tax_totals_json(self):
+    def _compute_tax_totals(self):
         def compute_taxes(order_line):
             price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0)
             order = order_line.order_id
@@ -394,7 +392,7 @@ class SaleOrder(models.Model):
         for order in self:
             tax_lines_data = account_move._prepare_tax_lines_data_for_totals_from_object(order.order_line, compute_taxes)
             tax_totals = account_move._get_tax_totals(order.partner_id, tax_lines_data, order.amount_total, order.amount_untaxed, order.currency_id)
-            order.tax_totals_json = json.dumps(tax_totals)
+            order.tax_totals = tax_totals
 
     # YTI TODO: Convert into compute method, however this introduces
     # a behavior change that breaks the test test_reservation_method_w_sale

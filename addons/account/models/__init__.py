@@ -12,6 +12,9 @@ from . import account_tax_report
 from . import account_reconcile_model
 from . import account_payment_term
 from . import account_move
+from . import account_invoice
+from . import account_move_line
+from . import account_invoice_line
 from . import account_move_line_tax_details
 from . import account_analytic_default
 from . import account_partial_reconcile

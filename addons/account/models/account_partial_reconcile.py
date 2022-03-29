@@ -231,7 +231,7 @@ class AccountPartialReconcile(models.Model):
         '''
         account = base_line.company_id.account_cash_basis_base_account_id or base_line.account_id
         tax_ids = base_line.tax_ids.filtered(lambda x: x.tax_exigibility == 'on_payment')
-        is_refund = base_line.belongs_to_refund()
+        is_refund = base_line._belongs_to_refund()
         tax_tags = tax_ids.get_tax_tags(is_refund, 'base')
         product_tags = base_line.tax_tag_ids.filtered(lambda x: x.applicability == 'products')
         all_tags = tax_tags + product_tags

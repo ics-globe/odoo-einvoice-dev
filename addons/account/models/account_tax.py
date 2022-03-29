@@ -716,6 +716,13 @@ class AccountTaxRepartitionLine(models.Model):
         check_company=True,
         help="The tax set to apply this distribution on refund invoices. Mutually exclusive with invoice_tax_id")
     tax_id = fields.Many2one(comodel_name='account.tax', compute='_compute_tax_id')
+    document_type = fields.Selection(
+        selection=[
+            ('invoice', 'Invoice'),
+            ('refund', 'Refund'),
+        ],
+        compute='_compute_document_type',
+    )
     company_id = fields.Many2one(string="Company", comodel_name='res.company', compute="_compute_company", store=True, help="The company this distribution line belongs to.")
     sequence = fields.Integer(string="Sequence", default=1,
         help="The order in which distribution lines are displayed and matched. For refunds to work properly, invoice distribution lines should be arranged in the same order as the credit note distribution lines they correspond to.")
@@ -754,6 +761,11 @@ class AccountTaxRepartitionLine(models.Model):
     def _compute_tax_id(self):
         for record in self:
             record.tax_id = record.invoice_tax_id or record.refund_tax_id
+
+    @api.depends('invoice_tax_id', 'refund_tax_id')
+    def _compute_document_type(self):
+        for record in self:
+            record.document_type = 'invoice' if record.invoice_tax_id else 'refund'
 
     @api.onchange('repartition_type')
     def _onchange_repartition_type(self):

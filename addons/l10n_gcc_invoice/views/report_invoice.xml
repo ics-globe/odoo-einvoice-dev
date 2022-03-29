@@ -338,7 +338,7 @@
                                         <span t-field="o.amount_untaxed"/>
                                     </td>
                                 </tr>
-                                <t t-set="tax_totals" t-value="json.loads(o.tax_totals_json)"/>
+                                <t t-set="tax_totals" t-value="o.tax_totals"/>
                                 <t t-foreach="tax_totals['subtotals']" t-as="subtotal">
                                     <t t-set="subtotal_to_show" t-value="subtotal['name']"/>
                                     <t t-call="account.tax_groups_totals"/>

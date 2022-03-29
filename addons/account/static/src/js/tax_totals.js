@@ -138,7 +138,7 @@ class TaxTotalsComponent extends AbstractFieldOwl {
     _onChangeTaxValueByTaxGroup(ev) {
         this.trigger('field-changed', {
             dataPointID: this.record.id,
-            changes: { tax_totals_json: JSON.stringify(this.totals.value) }
+            changes: { tax_totals_json: this.totals.value }
         })
     }
 }
