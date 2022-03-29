@@ -11,11 +11,11 @@
 // ------------------------------------------------------------------
 
 .o_FollowButton_follow {
-    color: gray('600');
+    color: map-get($grays, '600');
 }
 
 .o_FollowButton_unfollow {
-    color: gray('600');
+    color: map-get($grays, '600');
 
     &.o-following {
         color: o-text-color('success');
@@ -26,6 +26,6 @@
     }
 
     &:focus {
-        background-color: gray('200');
+        background-color: map-get($grays, '200');
     }
 }

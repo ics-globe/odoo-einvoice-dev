@@ -52,8 +52,8 @@
 }
 
 @mixin o-mail-notification-list-item-image-layout {
-    width: map-get($sizes, 100);
-    height: map-get($sizes, 100);
+    width: 100%;
+    height: 100%;
 }
 
 @mixin o-mail-notification-list-item-image-container-layout {
@@ -98,7 +98,7 @@ $o-mail-notification-list-item-background-color: $white !default;
 $o-mail-notification-list-item-hover-background-color:
     darken($o-mail-notification-list-item-background-color, 7%) !default;
 
-$o-mail-notification-list-item-muted-background-color: gray('100') !default;
+$o-mail-notification-list-item-muted-background-color: map-get($grays, '100') !default;
 $o-mail-notification-list-item-muted-hover-background-color:
     darken($o-mail-notification-list-item-muted-background-color, 7%) !default;
 
@@ -129,13 +129,13 @@ $o-mail-notification-list-item-muted-hover-background-color:
 }
 
 @mixin o-mail-notification-list-item-core-style {
-    color: gray('500');
+    color: map-get($grays, '500');
 }
 
 @mixin o-mail-notification-list-item-date-style() {
     @include o-mail-notification-list-item-bold-style();
     font-size: x-small;
-    color: gray('500');
+    color: map-get($grays, '500');
 }
 
 @mixin o-mail-notification-list-item-image-style {
@@ -146,7 +146,7 @@ $o-mail-notification-list-item-muted-hover-background-color:
     opacity: 0;
 
     &:hover {
-        color: gray('600');
+        color: map-get($grays, '600');
     }
 }
 

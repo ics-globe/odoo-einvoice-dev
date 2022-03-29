@@ -17,11 +17,11 @@
                 <div class="carousel-item active oe_img_bg o_bg_img_center pt80 pb80" style="background-image: url('/web/image/website.s_quotes_carousel_demo_image_0'); background-position: 50% 50%;" data-name="Slide">
                     <div class="container">
                         <blockquote class="s_blockquote s_blockquote_classic blockquote mx-auto w-50" data-name="Blockquote">
-                            <i class="fa fa-1x fa-quote-left rounded float-left bg-o-color-2 s_blockquote_icon"/>
+                            <i class="fa fa-1x fa-quote-left rounded float-start bg-o-color-2 s_blockquote_icon"/>
                             <div class="s_blockquote_content o_cc1">
                                 <p>Write a quote here from one of your customers. Quotes are a great way to build confidence in your products or services.</p>
                                 <footer class="blockquote-footer">
-                                    <img src="/web/image/website.s_quotes_carousel_demo_image_3" class="s_blockquote_avatar img rounded-circle mr-2" alt=""/>
+                                    <img src="/web/image/website.s_quotes_carousel_demo_image_3" class="s_blockquote_avatar img rounded-circle me-2" alt=""/>
                                     <span class="s_blockquote_author"><b>Jane DOE</b> &#8226; CEO of MyCompany</span>
                                 </footer>
                             </div>
@@ -31,12 +31,12 @@
                 <!-- #02 -->
                 <div class="carousel-item oe_img_bg o_bg_img_center pt80 pb80" style="background-image: url('/web/image/website.s_quotes_carousel_demo_image_1'); background-position: 50% 50%;" data-name="Slide">
                     <div class="container">
-                        <blockquote class="s_blockquote s_blockquote_classic blockquote mr-auto w-50" data-name="Blockquote">
-                            <i class="fa fa-1x fa-quote-left rounded float-left bg-o-color-2 s_blockquote_icon"/>
+                        <blockquote class="s_blockquote s_blockquote_classic blockquote me-auto w-50" data-name="Blockquote">
+                            <i class="fa fa-1x fa-quote-left rounded float-start bg-o-color-2 s_blockquote_icon"/>
                             <div class="s_blockquote_content o_cc1">
                                 <p>Write a quote here from one of your customers. Quotes are a great way to build confidence in your products or services.</p>
                                 <footer class="blockquote-footer">
-                                    <img src="/web/image/website.s_quotes_carousel_demo_image_4" class="s_blockquote_avatar img rounded-circle mr-2" alt=""/>
+                                    <img src="/web/image/website.s_quotes_carousel_demo_image_4" class="s_blockquote_avatar img rounded-circle me-2" alt=""/>
                                     <span class="s_blockquote_author"><b>John DOE</b> &#8226; CEO of MyCompany</span>
                                 </footer>
                             </div>
@@ -46,12 +46,12 @@
                 <!-- #03 -->
                 <div class="carousel-item oe_img_bg o_bg_img_center pt80 pb80" style="background-image: url('/web/image/website.s_quotes_carousel_demo_image_2'); background-position: 50% 50%;" data-name="Slide">
                     <div class="container">
-                        <blockquote class="s_blockquote s_blockquote_classic blockquote ml-auto w-50" data-name="Blockquote">
-                            <i class="fa fa-1x fa-quote-left rounded float-left bg-o-color-2 s_blockquote_icon"/>
+                        <blockquote class="s_blockquote s_blockquote_classic blockquote ms-auto w-50" data-name="Blockquote">
+                            <i class="fa fa-1x fa-quote-left rounded float-start bg-o-color-2 s_blockquote_icon"/>
                             <div class="s_blockquote_content o_cc1">
                                 <p>Write a quote here from one of your customers. Quotes are a great way to build confidence in your products or services.</p>
                                 <footer class="blockquote-footer">
-                                    <img src="/web/image/website.s_quotes_carousel_demo_image_5" class="s_blockquote_avatar img rounded-circle mr-2" alt=""/>
+                                    <img src="/web/image/website.s_quotes_carousel_demo_image_5" class="s_blockquote_avatar img rounded-circle me-2" alt=""/>
                                     <span class="s_blockquote_author"><b>Iris DOE</b> &#8226; CEO of MyCompany</span>
                                 </footer>
                             </div>

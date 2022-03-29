@@ -22,7 +22,7 @@ QUnit.module("Components", (hooks) => {
     QUnit.test("can be rendered", async (assert) => {
         const env = await makeTestEnv();
         await mount(CheckBox, target, { env, props: {} });
-        assert.containsOnce(target, "div.custom-checkbox");
+        assert.containsOnce(target, "div.form-check");
     });
 
     QUnit.test("has a slot for translatable text", async (assert) => {
@@ -35,11 +35,8 @@ QUnit.module("Components", (hooks) => {
         Parent.components = { CheckBox };
 
         await mount(Parent, target, { env });
-        assert.containsOnce(target, "div.custom-checkbox");
-        assert.strictEqual(
-            target.querySelector("div.custom-checkbox").textContent,
-            "rugubudubudubu"
-        );
+        assert.containsOnce(target, "div.form-check");
+        assert.strictEqual(target.querySelector("div.form-check").textContent, "rugubudubudubu");
     });
 
     QUnit.test("call onChange prop when some change occurs", async (assert) => {
@@ -55,7 +52,7 @@ QUnit.module("Components", (hooks) => {
         Parent.components = { CheckBox };
 
         await mount(Parent, target, { env });
-        assert.containsOnce(target, "div.custom-checkbox");
+        assert.containsOnce(target, "div.form-check");
         await click(target.querySelector("input"));
         assert.strictEqual(value, true);
         await click(target.querySelector("input"));

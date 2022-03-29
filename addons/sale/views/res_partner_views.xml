@@ -27,7 +27,7 @@
                 <field name="sale_order_count"/>
             </field>
             <xpath expr="//span[hasclass('oe_kanban_partner_links')]" position="inside">
-                <span t-if="record.sale_order_count.value>0" class="badge badge-pill">
+                <span t-if="record.sale_order_count.value>0" class="badge rounded-pill">
                     <i class="fa fa-fw fa-usd" role="img" aria-label="Sale orders" title="Sales orders"/>
                     <t t-esc="record.sale_order_count.value"/>
                 </span>

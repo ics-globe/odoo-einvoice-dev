@@ -175,12 +175,12 @@
 // define a modifier on .o_Composer_button due to not being aware of Popover's
 // state in context of template. https://github.com/odoo/owl/issues/693
 .o_is_open .o_Composer_toolButton {
-    background-color: gray('200');
+    background-color: map-get($grays, '200');
 }
 
 .o_Composer {
     &:not(.o-messaging-in-editing) {
-        background-color: gray('100');
+        background-color: map-get($grays, '100');
     }
 
     &.o-is-in-thread-view {
@@ -201,7 +201,7 @@
 }
 
 .o_Composer_buttonDiscard {
-    border: $border-width solid lighten(gray('400'), 5%);
+    border: $border-width solid lighten(map-get($grays, '400'), 5%);
 }
 
 .o_Composer_buttons {
@@ -242,11 +242,11 @@
 .o_Composer_toolButton {
     border: 0; // overrides bootstrap btn
     background-color: $white; // overrides bootstrap btn-light
-    color: gray('600'); // overrides bootstrap btn-light
+    color: map-get($grays, '600'); // overrides bootstrap btn-light
     border-radius: 50%;
 
     &.o-open {
-        background-color: gray('200');
+        background-color: map-get($grays, '200');
     }
 }
 
@@ -261,7 +261,7 @@
     }
 
     &:last-child:not(.o-composer-has-current-partner-avatar) {
-        border-right: $border-width solid lighten(gray('400'), 5%);
+        border-right: $border-width solid lighten(map-get($grays, '400'), 5%);
     }
 }
 

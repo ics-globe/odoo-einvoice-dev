@@ -320,7 +320,7 @@
                     <div t-name="gantt-popover" class="container-fluid">
                         <div class="row no-gutters">
                             <div class="col">
-                                <ul class="pl-1 mb-0 list-unstyled">
+                                <ul class="ps-1 mb-0 list-unstyled">
                                     <li><strong>Start Date: </strong> <t t-esc="userTimezoneStartDate.format('L LTS')"/></li>
                                     <li><strong>Stop Date: </strong> <t t-esc="userTimezoneStopDate.format('L LTS')"/></li>
                                     <li><strong>Workcenter: </strong> <t t-esc="workcenter_id[1]"/></li>
@@ -356,7 +356,7 @@
                     <div t-name="gantt-popover" class="container-fluid">
                         <div class="row no-gutters">
                             <div class="col">
-                                <ul class="pl-1 mb-0 list-unstyled">
+                                <ul class="ps-1 mb-0 list-unstyled">
                                     <li><strong>Start Date: </strong> <t t-esc="userTimezoneStartDate.format('L LTS')"/></li>
                                     <li><strong>Stop Date: </strong> <t t-esc="userTimezoneStopDate.format('L LTS')"/></li>
                                     <li><strong>Workcenter: </strong> <t t-esc="workcenter_id[1]"/></li>
@@ -396,7 +396,7 @@
                                 </div>
                                 <div class="o_kanban_manage_button_section">
                                     <h2 class="ml8">
-                                        <span t-attf-class="badge #{['progress'].indexOf(record.state.raw_value) > -1 ? 'badge-warning' : ['ready', 'waiting', 'pending'].indexOf(record.state.raw_value) > -1 ? 'badge-primary' : ['done'].indexOf(record.state.raw_value) > -1 ? 'badge-success' : ['cancel'].indexOf(record.state.raw_value) > -1 ? 'badge-muted' : 'badge-danger'}">
+                                        <span t-attf-class="badge #{['progress'].indexOf(record.state.raw_value) > -1 ? 'bg-warning text-dark' : ['ready', 'waiting', 'pending'].indexOf(record.state.raw_value) > -1 ? 'bg-primary' : ['done'].indexOf(record.state.raw_value) > -1 ? 'bg-success' : ['cancel'].indexOf(record.state.raw_value) > -1 ? 'badge-muted' : 'bg-danger'}">
                                             <t t-esc="record.state.value"/>
                                         </span>
                                     </h2>

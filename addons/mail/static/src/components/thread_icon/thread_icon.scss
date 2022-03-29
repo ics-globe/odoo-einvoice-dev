@@ -18,7 +18,7 @@
 // ------------------------------------------------------------------
 
 .o_ThreadIcon_away {
-    color: theme-color('warning');
+    color: map-get($theme-colors, 'warning');
 }
 
 .o_ThreadIcon_online {

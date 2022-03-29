@@ -1756,7 +1756,7 @@ const DatetimePickerUserValueWidget = InputUserValueWidget.extend({
         this.el.classList.add('o_we_large');
         this.inputEl.classList.add('datetimepicker-input', 'mx-0', 'text-left');
         this.inputEl.setAttribute('id', datetimePickerId);
-        this.inputEl.setAttribute('data-target', '#' + datetimePickerId);
+        this.inputEl.setAttribute('data-bs-target', '#' + datetimePickerId);
 
         const datepickersOptions = {
             minDate: moment({ y: 1000 }),

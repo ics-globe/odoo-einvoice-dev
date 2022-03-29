@@ -29,7 +29,7 @@
                     </div>
                     <!-- Attachment aside -->
                     <t t-if="(!attachmentCard.attachmentList.composerViewOwner or attachmentCard.attachment.isEditable)">
-                        <div class="o_AttachmentCard_aside position-relative rounded-right overflow-hidden" t-att-class="{ 'o-has-multiple-action d-flex flex-column': !attachmentCard.attachmentList.composerViewOwner and attachmentCard.attachment.isEditable }">
+                        <div class="o_AttachmentCard_aside position-relative rounded-end overflow-hidden" t-att-class="{ 'o-has-multiple-action d-flex flex-column': !attachmentCard.attachmentList.composerViewOwner and attachmentCard.attachment.isEditable }">
                             <!-- Uploading icon -->
                             <t t-if="attachmentCard.attachment.isUploading and attachmentCard.attachmentList.composerViewOwner">
                                 <div class="o_AttachmentCard_asideItem o_AttachmentCard_asideItemUploading d-flex justify-content-center align-items-center w-100 h-100" title="Uploading">

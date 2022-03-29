@@ -89,7 +89,7 @@
 
 .o_ChatWindow_newMessageFormInput {
     outline: none;
-    border: $border-width solid gray('300'); // cancel firefox border on input focus
+    border: $border-width solid map-get($grays, '300'); // cancel firefox border on input focus
 }
 
 .o_ChatWindow_thread .o_ThreadView_messageList {

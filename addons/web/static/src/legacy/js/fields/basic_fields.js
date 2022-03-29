@@ -2724,7 +2724,7 @@ var StateSelectionWidget = AbstractField.extend({
      * @override
      */
     getFocusableElement: function () {
-        return this.$("a[data-toggle='dropdown']");
+        return this.$("a[data-bs-toggle='dropdown']");
     },
 
     on_attach_callback() {
@@ -2825,7 +2825,7 @@ var StateSelectionWidget = AbstractField.extend({
 
         // Disable edition if the field is readonly
         var isReadonly = this.record.evalModifiers(this.attrs.modifiers).readonly;
-        this.$('a[data-toggle=dropdown]').toggleClass('disabled', isReadonly || false);
+        this.$('a[data-bs-toggle=dropdown]').toggleClass('disabled', isReadonly || false);
     },
 
     //--------------------------------------------------------------------------

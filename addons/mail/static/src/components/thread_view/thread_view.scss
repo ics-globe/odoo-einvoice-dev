@@ -49,7 +49,7 @@
 // ------------------------------------------------------------------
 
 .o_ThreadView {
-    background-color: gray('100');
+    background-color: map-get($grays, '100');
 }
 
 .o_ThreadView_loadingIcon {

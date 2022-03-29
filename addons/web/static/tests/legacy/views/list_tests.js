@@ -4648,7 +4648,7 @@ QUnit.module('Views', {
         assert.strictEqual(cells[0].innerText.trim(), "",
             "Char field should yield an empty element"
         );
-        assert.containsOnce(cells[1], '.custom-checkbox',
+        assert.containsOnce(cells[1], '.form-check',
             "Boolean field has been instantiated"
         );
         assert.notOk(isNaN(cells[2].innerText.trim()), "Intger value is a number");
@@ -9785,7 +9785,7 @@ QUnit.module('Views', {
         var $disabledCell = list.$('.o_data_row:eq(1) .o_data_cell:last-child');
         await testUtils.dom.click($disabledCell.prev());
         assert.containsOnce($disabledCell, ':disabled:checked');
-        var $disabledLabel = $disabledCell.find('.custom-control-label');
+        var $disabledLabel = $disabledCell.find('.form-check-label');
         await testUtils.dom.click($disabledLabel);
         assert.containsOnce($disabledCell, ':checked',
             "clicking disabled checkbox did not work"
@@ -9799,7 +9799,7 @@ QUnit.module('Views', {
         var $enabledCell = list.$('.o_data_row:eq(0) .o_data_cell:last-child');
         await testUtils.dom.click($enabledCell.prev());
         assert.containsOnce($enabledCell, ':checked:not(:disabled)');
-        var $enabledLabel = $enabledCell.find('.custom-control-label');
+        var $enabledLabel = $enabledCell.find('.form-check-label');
         await testUtils.dom.click($enabledLabel);
         assert.containsNone($enabledCell, ':checked',
             "clicking enabled checkbox worked and unchecked it"
@@ -12169,7 +12169,7 @@ QUnit.module('Views', {
         });
 
         assert.containsN(list, '.o_data_row', 4);
-        assert.containsN(list, '.o_data_cell .custom-checkbox input:checked', 3);
+        assert.containsN(list, '.o_data_cell .form-check input:checked', 3);
 
         // select all records and edit the boolean field
         await testUtils.dom.click(list.$('thead .o_list_record_selector input'));
@@ -12180,7 +12180,7 @@ QUnit.module('Views', {
         assert.containsOnce(document.body, '.modal');
         await testUtils.dom.click($('.modal .modal-footer .btn-primary'));
 
-        assert.containsNone(list, '.o_data_cell .custom-checkbox input:checked');
+        assert.containsNone(list, '.o_data_cell .form-check input:checked');
 
         list.destroy();
     });

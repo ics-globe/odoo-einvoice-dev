@@ -75,9 +75,9 @@ const Wysiwyg = Widget.extend({
         this._onDocumentMousedown = this._onDocumentMousedown.bind(this);
         this._onBlur = this._onBlur.bind(this);
         this.customizableLinksSelector = 'a'
-            + ':not([data-toggle="tab"])'
-            + ':not([data-toggle="collapse"])'
-            + ':not([data-toggle="dropdown"])'
+            + ':not([data-bs-toggle="tab"])'
+            + ':not([data-bs-toggle="collapse"])'
+            + ':not([data-bs-toggle="dropdown"])'
             + ':not(.dropdown-item)';
         // navigator.onLine is sometimes a false positive, this._isOnline use
         // more heuristics to bypass the limitation.
@@ -144,7 +144,7 @@ const Wysiwyg = Widget.extend({
             isHintBlacklisted: node => {
                 return (node.classList && node.classList.contains('nav-item')) || (
                     node.hasAttribute && (
-                        node.hasAttribute('data-target') ||
+                        node.hasAttribute('data-bs-target') ||
                         node.hasAttribute('data-oe-model')
                     )
                 );

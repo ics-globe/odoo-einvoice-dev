@@ -12,7 +12,7 @@
                     <field name="parent_res_name" optional="show"/>
                     <field name="res_name" optional="show"/>
                     <field name="feedback" optional="hide"/>
-                    <field name="rating_text" decoration-danger="rating_text == 'ko'" decoration-warning="rating_text == 'ok'" decoration-success="rating_text == 'top'" class="font-weight-bold" widget="badge"/>
+                    <field name="rating_text" decoration-danger="rating_text == 'ko'" decoration-warning="rating_text == 'ok'" decoration-success="rating_text == 'top'" class="fw-bold" widget="badge"/>
                 </tree>
             </field>
         </record>
@@ -66,7 +66,7 @@
                                     <div class="col-4 o_kanban_image my-auto">
                                         <field name="rating_image" widget="image"/>
                                     </div>
-                                    <div class="col-8 pl-1">
+                                    <div class="col-8 ps-1">
                                         <strong>
                                             <field name="rated_partner_name"/>
                                         </strong>

@@ -43,7 +43,7 @@
                                 <span class="o_RtcCallParticipantCard_name" t-esc="callParticipantCard.name"/>
                             </t>
                             <t t-if="callParticipantCard.rtcSession.isScreenSharingOn and callParticipantCard.isMinimized and !callParticipantCard.rtcSession.channel.rtc">
-                                <span class="o_RtcCallParticipantCard_liveIndicator badge-pill o-isMinimized" title="live" aria-label="live">
+                                <span class="o_RtcCallParticipantCard_liveIndicator rounded-pill o-isMinimized" title="live" aria-label="live">
                                     LIVE
                                 </span>
                             </t>
@@ -70,7 +70,7 @@
                                 </span>
                             </t>
                             <t t-if="callParticipantCard.rtcSession.isScreenSharingOn and !callParticipantCard.isMinimized and !callParticipantCard.rtcSession.channel.rtc">
-                                <span class="o_RtcCallParticipantCard_liveIndicator badge-pill" title="live" aria-label="live">
+                                <span class="o_RtcCallParticipantCard_liveIndicator rounded-pill" title="live" aria-label="live">
                                     LIVE
                                 </span>
                             </t>

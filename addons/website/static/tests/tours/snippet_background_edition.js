@@ -23,7 +23,7 @@ function switchTo(type, _name) {
     const target = type === 'cc' ? 'color-combinations' : type === 'bg' ? 'custom-colors' : 'gradients';
     const name = _name || typeToName(type);
     return {
-        trigger: `.o_we_colorpicker_switch_pane_btn[data-target="${target}"]`,
+        trigger: `.o_we_colorpicker_switch_pane_btn[data-bs-target="${target}"]`,
         content: `Switch to ${name}`,
     };
 }

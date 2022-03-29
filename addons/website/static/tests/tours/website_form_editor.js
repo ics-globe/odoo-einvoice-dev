@@ -403,7 +403,7 @@ odoo.define('website.tour.form_editor', function (require) {
         },
         {
             content:  "Complete Date field",
-            trigger:  ".s_website_form_datetime [data-toggle='datetimepicker']",
+            trigger:  ".s_website_form_datetime [data-bs-toggle='datetimepicker']",
         },
         {
             content:  "Check another product",

@@ -40,7 +40,7 @@
 
      <t t-name="web.ErrorDialogBody" owl="1">
       <div class="alert alert-warning clearfix" role="alert">
-          <div class="float-right ml8 btn-group-vertical">
+          <div class="float-end ml8 btn-group-vertical">
               <button class="btn btn-primary" t-on-click="onClickClipboard">
                   <i class="fa fa-clipboard mr8"/><t>Copy the full error to clipboard</t>
               </button>

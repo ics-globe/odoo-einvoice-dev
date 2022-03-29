@@ -464,7 +464,7 @@
                                     Set a maximum difference allowed between the expected and counted money during the closing of the session
                                 </div>
                                 <div class="content-group mt16" attrs="{'invisible': [('set_maximum_difference', '=', False)]}">
-                                    <label for="amount_authorized_diff" string="Authorized Difference" class="font-weight-normal"/>
+                                    <label for="amount_authorized_diff" string="Authorized Difference" class="fw-normal"/>
                                     <field name="amount_authorized_diff"/>
                                 </div>
                             </div>
@@ -596,15 +596,15 @@
                                 </div>
                                 <div attrs="{'invisible' : [('ship_later', '=', False)]}">
                                     <div>
-                                        <label for="warehouse_id" string="Warehouse" class="font-weight-normal"/>
+                                        <label for="warehouse_id" string="Warehouse" class="fw-normal"/>
                                         <field name="warehouse_id" attrs="{'required': [('ship_later', '=', True)]}"/>
                                     </div>
                                     <div groups="stock.group_adv_location">
-                                        <label for="route_id" string="Specific route" class="font-weight-normal"/>
+                                        <label for="route_id" string="Specific route" class="fw-normal"/>
                                         <field name="route_id"/>
                                     </div>
                                     <div>
-                                        <label for="picking_policy" class="font-weight-normal"/>
+                                        <label for="picking_policy" class="fw-normal"/>
                                         <field name="picking_policy" attrs="{'required': [('ship_later', '=', True)]}"/>
                                     </div>
                                 </div>

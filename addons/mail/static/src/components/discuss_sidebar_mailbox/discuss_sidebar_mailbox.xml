@@ -15,7 +15,7 @@
                 </div>
                 <div class="o-autogrow o_DiscussSidebarMailbox_item"/>
                 <t t-if="mailbox.counter > 0">
-                    <div class="o_DiscussSidebarMailbox_counter o_DiscussSidebarMailbox_item badge badge-pill">
+                    <div class="o_DiscussSidebarMailbox_counter o_DiscussSidebarMailbox_item badge rounded-pill">
                         <t t-esc="mailbox.counter"/>
                     </div>
                 </t>

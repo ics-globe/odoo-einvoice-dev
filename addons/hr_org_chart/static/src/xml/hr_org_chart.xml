@@ -22,14 +22,14 @@
         <div class="media-body flex-grow-1">
             <span
                     t-if="employee.indirect_sub_count &gt; 0"
-                    class="badge badge-pill"
+                    class="badge rounded-pill"
                     tabindex="0"
                     data-trigger="focus"
                     t-att-data-emp-name="employee.name"
                     t-att-data-emp-id="employee.id"
                     t-att-data-emp-dir-subs="employee.direct_sub_count"
                     t-att-data-emp-ind-subs="employee.indirect_sub_count"
-                    data-toggle="popover">
+                    data-bs-toggle="popover">
                 <t t-esc="employee.indirect_sub_count"/>
             </span>
 
@@ -119,7 +119,7 @@
 <t t-name="hr_orgchart_emp_popover_content">
     <table class="table table-sm">
         <thead>
-            <td class="text-right"><t t-esc="employee.direct_sub_count"/></td>
+            <td class="text-end"><t t-esc="employee.direct_sub_count"/></td>
             <td>
                 <a href="#" class="o_employee_sub_redirect" data-type='direct'
                         t-att-data-employee-name="employee.name" t-att-data-employee-id="employee.id">
@@ -128,7 +128,7 @@
         </thead>
         <tbody>
             <tr>
-                <td class="text-right">
+                <td class="text-end">
                     <t t-esc="employee.indirect_sub_count - employee.direct_sub_count"/>
                 </td>
                 <td>
@@ -138,7 +138,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="text-right"><t t-esc="employee.indirect_sub_count"/></td>
+                <td class="text-end"><t t-esc="employee.indirect_sub_count"/></td>
                 <td>
                     <a href="#" class="o_employee_sub_redirect" data-type='total'
                             t-att-data-employee-name="employee.name" t-att-data-employee-id="employee.id">
@@ -152,7 +152,7 @@
 <t t-name="hr_orgchart_emp_popover_title">
     <div>
         <span t-att-style='"background-image:url(\"/web/image/hr.employee.public/" + employee.id + "/avatar_1024/\")"'/>
-        <a href="#" class="float-right o_employee_redirect" t-att-data-employee-id="employee.id"><i class="fa fa-external-link" role="img" aria-label='Redirect' title="Redirect"></i></a>
+        <a href="#" class="float-end o_employee_redirect" t-att-data-employee-id="employee.id"><i class="fa fa-external-link" role="img" aria-label='Redirect' title="Redirect"></i></a>
         <b><t t-esc="employee.name"/></b>
     </div>
 </t>

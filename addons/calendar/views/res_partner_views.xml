@@ -12,7 +12,7 @@
                     <field name="meeting_count"/>
                 </field>
                 <xpath expr="//span[hasclass('oe_kanban_partner_links')]" position="inside">
-                    <span class="badge badge-pill" t-if="record.meeting_count.value>0">
+                    <span class="badge rounded-pill" t-if="record.meeting_count.value>0">
                         <i class="fa fa-fw fa-calendar" aria-label="Meetings" role="img" title="Meetings"/>
                         <t t-esc="record.meeting_count.value"/>
                     </span>

@@ -35,7 +35,7 @@
                                 Time Off Requests
                             </a>
                         </div>
-                        <div class="col-3 text-right">
+                        <div class="col-3 text-end">
                             <field name="leave_to_approve_count"/>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
                                 Allocation Requests
                             </a>
                         </div>
-                        <div class="col-3 text-right">
+                        <div class="col-3 text-end">
                             <field name="allocation_to_approve_count"/>
                         </div>
                     </div>
@@ -94,14 +94,14 @@
             </xpath>
             <xpath expr="//strong[hasclass('o_kanban_record_title')]" position="inside">
                  <!-- Employee is absent, in holiday but he is connected -->
-                <div class="float-right"
+                <div class="float-end"
                      t-if="record.hr_icon_display.raw_value == 'presence_holiday_present'">
                     <span class="fa fa-plane text-success" role="img" aria-label="Present but on leave"
                           title="Present but on leave" name="presence_absent_active">
                     </span>
                 </div>
                 <!-- Employee is on holiday, not present and not connected -->
-                <div class="float-right"
+                <div class="float-end"
                      t-if="record.hr_icon_display.raw_value == 'presence_holiday_absent'"
                      name="presence_absent">
                     <span class="fa fa-plane text-warning" role="img" aria-label="To define" title="On Leave"/>
@@ -125,7 +125,7 @@
             <xpath expr="//div[@name='presence_absent_active']" position="after">
                 <!-- Employee is absent, in holiday but he is connected -->
                 <!-- green plane -->
-                <div class="float-right"
+                <div class="float-end"
                      t-if="record.hr_icon_display.raw_value == 'presence_holiday_present'">
                     <span class="fa fa-plane text-success" role="img" aria-label="Present but on leave"
                           title="Present but on leave" name="presence_absent_active">
@@ -133,7 +133,7 @@
                 </div>
                 <!-- Employee is on holiday, not present and not connected -->
                 <!-- orange plane -->
-                <div class="float-right"
+                <div class="float-end"
                      t-if="record.hr_icon_display.raw_value == 'presence_holiday_absent'"
                      name="presence_absent">
                     <span class="fa fa-plane text-warning" role="img" aria-label="To define" title="On Leave"/>

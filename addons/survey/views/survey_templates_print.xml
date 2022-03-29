@@ -32,7 +32,7 @@
                                         <h2>
                                             <span t-field='question.title'/>
                                             <span t-if="question.constr_mandatory" class="text-danger">*</span>
-                                            <span t-if="scoring_display_correction" class="badge badge-pill" t-att-data-score-question="question.id"></span>
+                                            <span t-if="scoring_display_correction" class="badge rounded-pill" t-att-data-score-question="question.id"></span>
                                         </h2>
                                         <t t-if="question.description"><div class="text-muted oe_no_empty" t-field='question.description'/></t>
                                         <t t-if="question.question_type == 'text_box'"><t t-call="survey.question_text_box"/></t>

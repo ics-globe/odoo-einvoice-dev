@@ -21,7 +21,7 @@
                 </t>
             </ul>
             <t t-if="messaging.chatWindowManager.unreadHiddenConversationAmount > 0">
-                <div class="o_ChatWindowHiddenMenu_unreadCounter position-absolute end-0 top-0 badge badge-pill badge-primary">
+                <div class="o_ChatWindowHiddenMenu_unreadCounter position-absolute end-0 top-0 badge rounded-pill bg-primary">
                     <t t-esc="messaging.chatWindowManager.unreadHiddenConversationAmount"/>
                 </div>
             </t>

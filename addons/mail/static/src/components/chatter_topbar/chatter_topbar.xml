@@ -9,9 +9,9 @@
                         <button class="o_ChatterTopbar_button o_ChatterTopbar_buttonSendMessage btn btn-link"
                             type="button"
                             t-att-class="{
-                                'o-active border-right': chatter.composerView and !chatter.composerView.composer.isLog,
+                                'o-active border-end': chatter.composerView and !chatter.composerView.composer.isLog,
                                 'o-bordered': chatter.hasExternalBorder,
-                                'border-top border-left': chatter.composerView and !chatter.composerView.composer.isLog and chatter.hasExternalBorder,
+                                'border-top border-start': chatter.composerView and !chatter.composerView.composer.isLog and chatter.hasExternalBorder,
                             }"
                             t-att-disabled="chatter.isDisabled"
                             title="Send a message"
@@ -23,7 +23,7 @@
                         <button class="o_ChatterTopbar_button o_ChatterTopbar_buttonLogNote btn btn-link"
                             type="button"
                             t-att-class="{
-                                'o-active border-right border-left': chatter.composerView and chatter.composerView.composer.isLog,
+                                'o-active border-end border-start': chatter.composerView and chatter.composerView.composer.isLog,
                                 'o-bordered': chatter.hasExternalBorder,
                                 'border-top': chatter.composerView and chatter.composerView.composer.isLog and chatter.hasExternalBorder,
                             }"
@@ -46,7 +46,7 @@
                             <button class="o_ChatterTopbar_button o_ChatterTopbar_buttonAttachments btn btn-link" type="button" t-att-disabled="chatter.isDisabled" t-on-click="chatter.onClickButtonAttachments">
                                 <i class="fa fa-paperclip"/>
                                 <t t-if="!chatter.isShowingAttachmentsLoading">
-                                    <span class="o_ChatterTopbar_buttonCount o_ChatterTopbar_buttonAttachmentsCount pl-1" t-esc="chatter.thread ? chatter.thread.allAttachments.length : 0"/>
+                                    <span class="o_ChatterTopbar_buttonCount o_ChatterTopbar_buttonAttachmentsCount ps-1" t-esc="chatter.thread ? chatter.thread.allAttachments.length : 0"/>
                                 </t>
                                 <t t-if="chatter.isShowingAttachmentsLoading">
                                     <i class="o_ChatterTopbar_buttonAttachmentsCountLoader fa fa-circle-o-notch fa-spin ms-1" aria-label="Attachment counter loading..."/>

@@ -23,7 +23,7 @@
     max-width: #{"min(100%, 100px)"};
     aspect-ratio: 1;
     object-fit: cover;
-    border: 5px solid gray('700');
+    border: 5px solid map-get($grays, '700');
 
     &.o-isTalking {
         border: 5px solid darken($o-enterprise-primary-color, 5%);
@@ -34,17 +34,17 @@
     }
 
     &.o-isInvitation:hover {
-        border: 5px solid theme-color('danger');
+        border: 5px solid map-get($theme-colors, 'danger');
     }
 }
 
 @keyframes o_RtcCallParticipantCard_avatarImag_borderPulse {
     0% { border: 5px solid white }
-    20% { border: 5px solid gray('600') }
-    35% { border: 5px solid gray('100') }
-    50% { border: 5px solid gray('600') }
-    70% { border: 5px solid gray('100') }
-    85% { border: 5px solid gray('700') }
+    20% { border: 5px solid map-get($grays, '600') }
+    35% { border: 5px solid map-get($grays, '100') }
+    50% { border: 5px solid map-get($grays, '600') }
+    70% { border: 5px solid map-get($grays, '100') }
+    85% { border: 5px solid map-get($grays, '700') }
 }
 
 .o_RtcCallParticipantCard_container {
@@ -137,7 +137,7 @@
 }
 
 .o_RtcCallParticipantCard_connectionState {
-    color: theme-color('warning');
+    color: map-get($theme-colors, 'warning');
 }
 
 .o_RtcCallParticipantCard_container {
@@ -145,7 +145,7 @@
 }
 
 .o_RtcCallParticipantCard_liveIndicator {
-    background-color: theme-color('danger');
+    background-color: map-get($theme-colors, 'danger');
     color: white;
     user-select: none;
     font-weight: bold;
@@ -161,5 +161,5 @@
 .o_RtcCallParticipantCard_overlayTopElement {
     color: white;
     border-radius: 50%;
-    background-color: gray('900');
+    background-color: map-get($grays, '900');
 }

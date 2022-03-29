@@ -36,16 +36,16 @@
     border-radius: 0;
 
     &:hover {
-        background: gray('400');
+        background: map-get($grays, '400');
         color: $black;
     }
 }
 
 .o_Follower_details {
-    color: gray('700');
+    color: map-get($grays, '700');
 
     &:hover {
-        background: gray('400');
+        background: map-get($grays, '400');
         color: $black;
     }
 

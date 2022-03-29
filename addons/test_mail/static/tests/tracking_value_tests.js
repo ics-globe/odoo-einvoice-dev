@@ -204,7 +204,7 @@ QUnit.test('rendering of tracked field of type boolean: from true to false', asy
     this.data['mail.test.track.all'].records.push({ boolean_field: true, id: 1 });
     const { afterNextRender, widget: form } = await this.start({ res_id: 1 });
 
-    form.$('.custom-checkbox input').click();
+    form.$('.form-check input').click();
     await afterNextRender(() => testUtils.form.clickSave(form));
     assert.strictEqual(
         document.querySelector('.o_Message_trackingValue').textContent,
@@ -221,7 +221,7 @@ QUnit.test('rendering of tracked field of type boolean: from false to true', asy
     this.data['mail.test.track.all'].records.push({ id: 1 });
     const { afterNextRender, widget: form } = await this.start({ res_id: 1 });
 
-    form.$('.custom-checkbox input').click();
+    form.$('.form-check input').click();
     await afterNextRender(() => testUtils.form.clickSave(form));
     assert.strictEqual(
         document.querySelector('.o_Message_trackingValue').textContent,

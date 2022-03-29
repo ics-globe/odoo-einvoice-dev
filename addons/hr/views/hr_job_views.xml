@@ -77,7 +77,7 @@
                                 </div>
                                 <div t-if="!selection_mode">
                                     <span>Vacancies : <field name="expected_employees"/></span>
-                                    <span t-att-class="record.state.raw_value == 'recruit'  and 'float-right badge badge-success' or 'float-right badge badge-danger'">
+                                    <span t-att-class="record.state.raw_value == 'recruit'  and 'float-end badge bg-success' or 'float-end badge bg-danger'">
                                         <field name="state"/>
                                     </span>
                                 </div>

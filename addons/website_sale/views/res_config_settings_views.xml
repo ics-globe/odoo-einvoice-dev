@@ -33,7 +33,7 @@
                                 What should be done on "Add to Cart"?
                             </div>
                             <div class="content-group">
-                                <div class="row mt16 ml-4">
+                                <div class="row mt16 ms-4">
                                     <field name="add_to_cart_action" widget="radio"/>
                                 </div>
                             </div>
@@ -45,7 +45,7 @@
                             <div class="text-muted">
                                 Choose if you prompt to create an account on check out
                             </div>
-                            <div class="mt8 ml-4">
+                            <div class="mt8 ms-4">
                                 <field name="account_on_checkout" class="w-75" widget="radio"/>
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                             <div class="text-muted">
                                 Add a customizable form during checkout (after address)
                             </div>
-                            <div class="row mt8 ml-4" attrs="{'invisible': [('enabled_extra_checkout_step', '=', False)]}">
+                            <div class="row mt8 ms-4" attrs="{'invisible': [('enabled_extra_checkout_step', '=', False)]}">
                                 <button type="object" name="action_open_extra_info" string="Configure Form " class="btn-link" icon="fa-arrow-right"/>
                             </div>
                         </div>

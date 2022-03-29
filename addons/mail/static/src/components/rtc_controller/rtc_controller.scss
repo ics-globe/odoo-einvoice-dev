@@ -47,10 +47,10 @@
     border: none;
     outline: none;
     border-radius: 50%;
-    background-color: gray('800');
+    background-color: map-get($grays, '800');
 
     &:hover {
-        background-color: gray('700');
+        background-color: map-get($grays, '700');
     }
 
     &.o-isActive {
@@ -63,21 +63,21 @@
 }
 
 .o_RtcController_callToggle {
-    background-color: theme-color('success');
+    background-color: map-get($theme-colors, 'success');
 
     &:hover {
-        background-color: darken(theme-color('success'), 20%);
+        background-color: darken(map-get($theme-colors, 'success'), 20%);
     }
 
     &.o-isActive {
-        background-color: theme-color('danger');
+        background-color: map-get($theme-colors, 'danger');
 
         &:hover {
-            background-color: darken(theme-color('danger'), 20%);
+            background-color: darken(map-get($theme-colors, 'danger'), 20%);
         }
     }
 }
 
 .o_RtcController_videoButton.o-isActive {
-    color: theme-color('success');
+    color: map-get($theme-colors, 'success');
 }

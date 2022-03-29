@@ -1013,7 +1013,7 @@ var ListRenderer = BasicRenderer.extend({
             'class': "dropdown-toggle text-dark o-no-caret",
             'href': "#",
             'role': "button",
-            'data-toggle': "dropdown",
+            'data-bs-toggle': "dropdown",
             'data-display': "static",
             'aria-expanded': false,
             'aria-label': _t('Optional columns'),

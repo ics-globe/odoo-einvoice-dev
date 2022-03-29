@@ -14,7 +14,7 @@
             <xpath expr="//div[hasclass('o_primary')]" position="replace">
                 <field name="website_url" invisible="1"/>
                 <div class="o_primary col-11">
-                    <span><a t-attf-href="#{record.website_url.raw_value}" class="mr-2">
+                    <span><a t-attf-href="#{record.website_url.raw_value}" class="me-2">
                         <t t-esc="record.name.value"/></a>
                     </span>
                 </div>
@@ -22,7 +22,7 @@
             <xpath expr="//div[@name='kanban_boxes']/div/div[1]" position="inside">
                 <field name="website_url" invisible="1"/>
                 <span><t t-if="record.no_of_recruitment.raw_value != 0">
-                    <span class="mr-2">
+                    <span class="me-2">
                         <t t-if="record.is_published.raw_value">Published</t>
                         <t t-else="">Not published</t>
                     </span>

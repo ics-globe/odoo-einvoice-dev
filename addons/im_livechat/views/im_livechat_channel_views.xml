@@ -37,7 +37,7 @@
                                     <img t-att-src="kanban_image('im_livechat.channel', 'image_128', record.id.raw_value)" class="img-fluid" alt="Channel"/>
                                 </div>
                                 <div class="oe_kanban_details">
-                                    <div class="float-right">
+                                    <div class="float-end">
                                         <button t-if="record.are_you_inside.raw_value" name="action_quit" type="object" class="btn btn-primary">Leave</button>
                                         <button t-if="!record.are_you_inside.raw_value" name="action_join" type="object" class="btn btn-primary">Join</button>
                                     </div>
@@ -49,7 +49,7 @@
                                             <br/>
                                             <i class="fa fa-comments" role="img" aria-label="Comments" title="Comments"></i>
                                             <t t-esc="record.nbr_channel.raw_value"/> Sessions
-                                            <div t-if="record.rating_count.raw_value &gt; 0" class="float-right">
+                                            <div t-if="record.rating_count.raw_value &gt; 0" class="float-end">
                                                 <a name="action_view_rating" type="object" tabindex="10">
                                                     <i class="fa fa-smile-o text-success" title="Percentage of happy ratings" role="img" aria-label="Happy face"/>
                                                     <t t-esc="record.rating_percentage_satisfaction.raw_value"/>%

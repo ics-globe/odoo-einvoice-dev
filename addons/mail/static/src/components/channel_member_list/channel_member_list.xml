@@ -49,7 +49,7 @@
                         />
                     </t>
                 </div>
-                <span class="o_ChannelMemberList_name ml-2 flex-column-1 text-truncate o_cursor_pointer" t-on-click="() => channel.onClickMemberName(member)">
+                <span class="o_ChannelMemberList_name ms-2 flex-column-1 text-truncate o_cursor_pointer" t-on-click="() => channel.onClickMemberName(member)">
                     <t t-esc="member.nameOrDisplayName"/>
                 </span>
             </div>

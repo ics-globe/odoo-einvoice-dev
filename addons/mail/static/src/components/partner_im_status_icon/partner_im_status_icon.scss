@@ -32,7 +32,7 @@
 .o_PartnerImStatusIcon_icon {
 
     &.o-away {
-        color: theme-color('warning');
+        color: map-get($theme-colors, 'warning');
     }
 
     &.o-bot {
@@ -40,7 +40,7 @@
     }
 
     &.o-offline {
-        color: gray('700');
+        color: map-get($grays, '700');
     }
 
     &.o-online {

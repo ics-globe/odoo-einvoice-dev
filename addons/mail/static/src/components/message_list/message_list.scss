@@ -19,8 +19,8 @@
 
 .o_MessageList_empty {
     flex: 1 1 auto;
-    height: map-get($sizes, 100);
-    width: map-get($sizes, 100);
+    height: 100%;
+    width: 100%;
     align-self: center;
     display: flex;
     flex-flow: column;
@@ -84,7 +84,8 @@
 
     &.o-neutral-face-icon:before {
         @extend %o-nocontent-init-image;
-        @include size(120px, 140px);
+        width: 120px;
+        height: 140px;
         background: transparent url(/web/static/img/neutral_face.svg) no-repeat center;
     }
 }

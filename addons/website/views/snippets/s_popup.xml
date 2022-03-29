@@ -60,12 +60,12 @@
         </t>
         <div data-js="SnippetPopup"
              data-selector=".s_popup" data-exclude="#website_cookies_bar"
-             data-target=".modal"
+             data-bs-target=".modal"
              data-drop-in=":not(p).oe_structure:not(.oe_structure_solo):not([data-snippet] *), :not(.o_mega_menu):not(p)[data-oe-type=html]:not([data-snippet] *)">
             <t t-out="base_popup_options"/>
             <t t-out="extra_popup_options"/>
         </div>
-        <div data-js="SnippetPopup" data-selector=".s_popup#website_cookies_bar" data-target=".modal">
+        <div data-js="SnippetPopup" data-selector=".s_popup#website_cookies_bar" data-bs-target=".modal">
             <t t-out="base_popup_options"/>
         </div>
     </xpath>

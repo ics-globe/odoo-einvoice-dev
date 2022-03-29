@@ -11,7 +11,7 @@
             </div>
         </form>
         <t t-if="request.params.get('gift_card_error')">
-            <div class="alert alert-danger text-left mt16" role="alert" t-esc="request.params.get('gift_card_error')"/>
+            <div class="alert alert-danger text-start mt16" role="alert" t-esc="request.params.get('gift_card_error')"/>
         </t>
     </template>
 

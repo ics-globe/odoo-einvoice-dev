@@ -5,7 +5,7 @@
     padding: 1px 25px 3px 5px;
 
     .o_searchview_facet {
-        border: 1px solid gray('600');
+        border: 1px solid map-get($grays, '600');
         background: $o-brand-lightsecondary;
 
         .o_searchview_facet_label {
@@ -13,9 +13,9 @@
         }
 
         .o_facet_remove {
-            color: gray('600');
+            color: map-get($grays, '600');
             &:hover {
-                color: gray('700');
+                color: map-get($grays, '700');
             }
         }
     }

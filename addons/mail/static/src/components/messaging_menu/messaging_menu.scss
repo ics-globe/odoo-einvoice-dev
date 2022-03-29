@@ -41,7 +41,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        width: map-get($sizes, 100);
+        width: 100%;
         margin: 0;
         max-height: none;
     }
@@ -106,13 +106,13 @@
 }
 
 .o_MessagingMenu_dropdownMenuHeader {
-    border-bottom: $border-width solid gray('400');
+    border-bottom: $border-width solid map-get($grays, '400');
     z-index: 1;
 }
 
 .o_MessagingMenu_mobileNewMessageInput {
     appearance: none;
-    border: $border-width solid gray('400');
+    border: $border-width solid map-get($grays, '400');
     border-radius: 5px;
     outline: none;
 }
@@ -126,7 +126,7 @@
     &:not(:hover) {
 
         &:not(.o-active) {
-            color: gray('500');
+            color: map-get($grays, '500');
         }
     }
 }

@@ -17,7 +17,7 @@
                 </t>
                 <t t-if="isPartner">
                     <PartnerImStatusIcon
-                        className="'o_ComposerSuggestion_partnerImStatusIcon mr-1'"
+                        className="'o_ComposerSuggestion_partnerImStatusIcon me-1'"
                         hasBackground="false"
                         partnerLocalId="record.localId"
                     />

@@ -17,7 +17,7 @@
                         </t>
                     </div>
                 </div>
-                <span class="o_DiscussSidebarCategoryItem_item o_DiscussSidebarCategoryItem_name ml-3 text-truncate" t-att-class="{ 'o-item-unread': categoryItem.isUnread }">
+                <span class="o_DiscussSidebarCategoryItem_item o_DiscussSidebarCategoryItem_name ms-3 text-truncate" t-att-class="{ 'o-item-unread': categoryItem.isUnread }">
                     <t t-esc="categoryItem.channel.displayName"/>
                 </span>
                 <div class="o-autogrow o_DiscussSidebarCategoryItem_item"/>
@@ -36,7 +36,7 @@
                     <div class="o_DiscussSidebarCategoryItem_item o_DiscussSidebarCategoryItem_callIndicator fa fa-volume-up" t-att-class="{ 'o-isCalling': categoryItem.channel.rtc }"/>
                 </t>
                 <t t-if="categoryItem.counter > 0">
-                    <div class="o_DiscussSidebarCategoryItem_counter o_DiscussSidebarCategoryItem_item badge badge-pill">
+                    <div class="o_DiscussSidebarCategoryItem_counter o_DiscussSidebarCategoryItem_item badge rounded-pill">
                         <t t-esc="categoryItem.counter"/>
                     </div>
                 </t>

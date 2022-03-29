@@ -51,13 +51,13 @@ const LinkPopoverWidget = Widget.extend({
         });
 
         // init tooltips & popovers
-        this.$('[data-toggle="tooltip"]').tooltip({
+        this.$('[data-bs-toggle="tooltip"]').tooltip({
             delay: 0,
             placement: 'bottom',
             container: this.options.wysiwyg.odooEditor.document.body,
         });
         const tooltips = [];
-        for (const el of this.$('[data-toggle="tooltip"]').toArray()) {
+        for (const el of this.$('[data-bs-toggle="tooltip"]').toArray()) {
             tooltips.push($(el).data('bs.tooltip'));
         }
         let popoverShown = true;

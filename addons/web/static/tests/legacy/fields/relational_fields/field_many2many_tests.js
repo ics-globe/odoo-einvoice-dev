@@ -1088,23 +1088,23 @@ QUnit.module('fields', {}, function () {
                 }
             });
 
-            assert.notOk(form.$('.o_form_view .custom-checkbox input').eq(0).prop('checked'),
+            assert.notOk(form.$('.o_form_view .form-check input').eq(0).prop('checked'),
                 "first checkbox should not be checked");
-            assert.notOk(form.$('.o_form_view .custom-checkbox input').eq(1).prop('checked'),
+            assert.notOk(form.$('.o_form_view .form-check input').eq(1).prop('checked'),
                 "second checkbox should not be checked");
-            assert.ok(form.$('.o_form_view .custom-checkbox input').eq(2).prop('checked'),
+            assert.ok(form.$('.o_form_view .form-check input').eq(2).prop('checked'),
                 "third checkbox should be checked");
 
-            await testUtils.dom.click(form.$('.o_form_view .custom-checkbox input:checked'));
-            await testUtils.dom.click(form.$('.o_form_view .custom-checkbox input').first());
-            await testUtils.dom.click(form.$('.o_form_view .custom-checkbox input').first());
-            await testUtils.dom.click(form.$('.o_form_view .custom-checkbox input').first());
+            await testUtils.dom.click(form.$('.o_form_view .form-check input:checked'));
+            await testUtils.dom.click(form.$('.o_form_view .form-check input').first());
+            await testUtils.dom.click(form.$('.o_form_view .form-check input').first());
+            await testUtils.dom.click(form.$('.o_form_view .form-check input').first());
 
-            assert.ok(form.$('.o_form_view .custom-checkbox input').eq(0).prop('checked'),
+            assert.ok(form.$('.o_form_view .form-check input').eq(0).prop('checked'),
                 "first checkbox should be checked");
-            assert.notOk(form.$('.o_form_view .custom-checkbox input').eq(1).prop('checked'),
+            assert.notOk(form.$('.o_form_view .form-check input').eq(1).prop('checked'),
                 "second checkbox should not be checked");
-            assert.notOk(form.$('.o_form_view .custom-checkbox input').eq(2).prop('checked'),
+            assert.notOk(form.$('.o_form_view .form-check input').eq(2).prop('checked'),
                 "third checkbox should not be checked");
 
             await testUtils.form.clickSave(form);

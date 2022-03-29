@@ -800,7 +800,7 @@ var SnippetEditor = Widget.extend({
 
         this.isTargetMovable = (this.selectorSiblings.length > 0 || this.selectorChildren.length > 0);
 
-        this.$el.find('[data-toggle="dropdown"]').dropdown();
+        this.$el.find('[data-bs-toggle="dropdown"]').dropdown();
 
         return Promise.all(defs).then(() => {
             const options = _.sortBy(this.styles, '__order');

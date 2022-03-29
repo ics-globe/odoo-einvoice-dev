@@ -36,7 +36,7 @@
                         <div class="col-lg-8 s_media_list_body">
                             <h3>Post heading</h3>
                             <p>Use this component for creating a list of featured elements to which you want to bring attention.</p>
-                            <a href="#">Continue reading <i class="fa fa-long-arrow-right align-middle ml-1"/></a>
+                            <a href="#">Continue reading <i class="fa fa-long-arrow-right align-middle ms-1"/></a>
                         </div>
                     </div>
                 </div>
@@ -64,11 +64,11 @@
             <t t-set="with_color_combinations" t-value="True"/>
             <t t-set="with_gradients" t-value="True"/>
         </t>
-        <div data-js="Box" data-selector=".s_media_list_item" data-target="&gt; .row">
+        <div data-js="Box" data-selector=".s_media_list_item" data-bs-target="&gt; .row">
             <t t-call="website.snippet_options_border_widgets"/>
             <t t-call="website.snippet_options_shadow_widgets"/>
         </div>
-        <div data-selector=".s_media_list_item" data-target="&gt; .row">
+        <div data-selector=".s_media_list_item" data-bs-target="&gt; .row">
             <we-button-group string="Layout">
                 <we-button title="Left" data-name="media_left_opt" data-select-class="" data-img="/website/static/src/img/snippets_options/image_left.svg"/>
                 <we-button title="Right" data-select-class="flex-row-reverse" data-img="/website/static/src/img/snippets_options/image_right.svg"/>
@@ -87,7 +87,7 @@
             </we-button-group>
         </div>
 
-        <div data-selector=".s_media_list_item" data-target="&gt; .row">
+        <div data-selector=".s_media_list_item" data-bs-target="&gt; .row">
             <!-- Don't use the standard Vert. Alignement option to not suggest
                  Equal Height, which is useless for this snippet. -->
             <we-button-group string="Text Position" title="Text Position" data-dependencies="media_left_opt">

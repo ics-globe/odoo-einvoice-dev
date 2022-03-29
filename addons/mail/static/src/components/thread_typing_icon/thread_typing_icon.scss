@@ -30,7 +30,7 @@ $o-thread-typing-icon-size-small: 3px;
 
 .o_ThreadTypingIcon_dot {
     border-radius: 50%;
-    background: gray('500');
+    background: map-get($grays, '500');
 
     &.o-sizeMedium {
         width: $o-thread-typing-icon-size-medium;

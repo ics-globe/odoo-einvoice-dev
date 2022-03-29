@@ -92,6 +92,6 @@
     border: 2px solid $o-brand-primary;
 
     &.o-isRegistering {
-        border-color: theme-color('danger');
+        border-color: map-get($theme-colors, 'danger');
     }
 }

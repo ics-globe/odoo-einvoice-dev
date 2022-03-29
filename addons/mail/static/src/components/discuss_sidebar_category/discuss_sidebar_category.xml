@@ -19,7 +19,7 @@
                         </t>
                     </div>
                     <t t-if="!category.isOpen and category.counter > 0">
-                        <div class="o_DiscussSidebarCategory_counter o_DiscussSidebarCategory_headerItem badge badge-pill">
+                        <div class="o_DiscussSidebarCategory_counter o_DiscussSidebarCategory_headerItem badge rounded-pill">
                             <t t-esc="category.counter"/>
                         </div>
                     </t>
