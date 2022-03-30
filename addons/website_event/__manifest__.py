@@ -60,6 +60,7 @@
             'website_event/static/src/js/website_event.js',
             'website_event/static/src/js/website_event_ticket_details.js',
             'website_event/static/src/js/website_event_set_customize_options.js',
+            'website_event/static/src/js/website_event_ticket_quantity_selection.js',
         ],
         'website.assets_editor': [
             'website_event/static/src/js/website_event.editor.js',

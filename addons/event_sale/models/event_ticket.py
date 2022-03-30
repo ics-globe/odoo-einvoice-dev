@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import datetime
 import logging
 
 from odoo import api, fields, models
@@ -43,21 +44,22 @@ class EventTemplateTicket(models.Model):
             if not ticket.description:
                 ticket.description = False
 
-    # TODO clean this feature in master
-    # Feature broken by design, depending on the hacky `_get_contextual_price` field on products
-    # context_dependent, core part of the pricelist mess
-    # This field usage should be restricted to the UX, and any use in effective
-    # price computation should be replaced by clear calls to the pricelist API
-    @api.depends_context('uom', 'qty', 'pricelist') # Cf product.price context dependencies
+    @api.depends_context('pricelist', 'quantity', 'uom')  # Cf product._get_contextual_price context dependencies
     @api.depends('product_id', 'price')
     def _compute_price_reduce(self):
         for ticket in self:
-            product = ticket.product_id
-            # seems strange to not apply pricelist logic but still use pricelist discount...
-            discount = (
-                product.lst_price - product._get_contextual_price()
-            ) / product.lst_price if product.lst_price else 0.0
-            ticket.price_reduce = (1.0 - discount) * ticket.price
+            product_id = ticket.product_id
+            if product_id.product_tmpl_id._get_contextual_pricelist():
+                event_id = ticket.event_id
+                ticket_currency = event_id.company_id.currency_id
+                product_currency = product_id.currency_id
+                ticket_price_in_product_currency = ticket_currency._convert(ticket.price, product_currency,
+                                                                            event_id.company_id, datetime.date.today(),
+                                                                            round=False)
+                ctx = {**self.env.context, 'event_ticket_override_price': ticket_price_in_product_currency}
+                ticket.price_reduce = product_id.with_context(ctx)._get_contextual_price()
+            else:
+                ticket.price_reduce = ticket.price
 
     def _init_column(self, column_name):
         if column_name != "product_id":

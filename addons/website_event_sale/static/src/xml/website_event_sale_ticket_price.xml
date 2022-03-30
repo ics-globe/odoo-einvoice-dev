@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="website_event_sale.event_ticket_price">
+        <t t-if="widget.ready">
+            <del t-if="(widget.data.price-widget.data.price_reduce > 1) and widget.data.discount_policy == 'without_discount'"
+                 class="text-danger mr-1"
+                 t-esc="widget.render_monetary_field(widget.data.price, widget.data.currency)"/>
+            <span t-if="widget.data.display_tax_excluded"
+                  t-esc="widget.render_monetary_field(widget.data.price_reduce, widget.data.currency)"/>
+            <span t-if="widget.data.display_tax_included"
+                  t-esc="widget.render_monetary_field(widget.data.price_reduce_taxinc, widget.data.currency)"/>
+        </t>
+    </t>
+</templates>

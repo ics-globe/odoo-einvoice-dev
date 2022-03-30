@@ -75,6 +75,8 @@ class TestEventSale(TestEventSaleCommon):
         customer_so = self.customer_so.with_user(self.env.user)
         ticket1 = self.event_0.event_ticket_ids[0]
         ticket2 = self.event_0.event_ticket_ids[1]
+        ticket1.price = 10
+        ticket2.price = 50
 
         # PREPARE SO DATA
         # ------------------------------------------------------------
@@ -87,15 +89,17 @@ class TestEventSale(TestEventSaleCommon):
                     'event_ticket_id': ticket1.id,
                     'product_id': ticket1.product_id.id,
                     'product_uom_qty': TICKET1_COUNT,
-                    'price_unit': 10,
+                    'price_unit': ticket1.price,
                 }), (0, 0, {
                     'event_id': self.event_0.id,
                     'event_ticket_id': ticket2.id,
                     'product_id': ticket2.product_id.id,
                     'product_uom_qty': TICKET2_COUNT,
-                    'price_unit': 50,
+                    'price_unit': ticket2.price,
                 })
-            ]
+            ],
+            # Override the default price list with an empty one
+            'pricelist_id': self.env['product.pricelist'].sudo().create({'name': 'empty_pricelist'}).id,
         })
         ticket1_line = customer_so.order_line.filtered(lambda line: line.event_ticket_id == ticket1)
         ticket2_line = customer_so.order_line.filtered(lambda line: line.event_ticket_id == ticket2)
@@ -213,6 +217,7 @@ class TestEventSale(TestEventSaleCommon):
             'date_begin': '2020-02-02',
             'date_end': '2020-04-04',
         })
+        pricelist.currency_id = event.currency_id
         event_ticket = self.env['event.event.ticket'].create({
             'name': 'VIP',
             'price': 1000.0,

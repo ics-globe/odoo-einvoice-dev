@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
+import datetime
 from odoo import _
 from odoo.http import request, route
 
@@ -89,3 +90,39 @@ class WebsiteEventSaleController(WebsiteEventController):
                 }]]
             })
         return values
+
+    @route(['/website_event_sale/ticket-price-info/<int:event_ticket_id>'],
+           type='json', auth="public", website=True, sitemap=False)
+    def get_ticket_price_info(self, event_ticket_id, **kwargs):
+        """
+        :param: int event_ticket_id: id of an event ticket
+        :param: str kwargs: optional int quantity (default 1)
+        :return: a dict containing detailed unit price of the ticket for the given quantity
+        """
+        pricelist = request.website.pricelist_id
+        company_id = request.env['event.event.ticket'].browse(event_ticket_id).event_id.sudo().company_id
+        ticket_currency = company_id.currency_id
+        if pricelist:
+            request.update_context(pricelist=pricelist.id)
+            currency_id = pricelist.currency_id
+            discount_policy = pricelist.discount_policy
+        else:
+            currency_id = ticket_currency
+            discount_policy = None
+        quantity = kwargs.get('quantity')
+        if quantity:
+            request.update_context(quantity=quantity)
+        event_ticket = request.env['event.event.ticket'].browse(event_ticket_id)
+        return {
+            'price': ticket_currency._convert(event_ticket.price, currency_id, company_id, datetime.date.today()),
+            'price_reduce': event_ticket.price_reduce,
+            'price_reduce_taxinc': event_ticket.price_reduce_taxinc,
+            'currency': {
+                'symbol': currency_id.symbol,
+                'position': currency_id.position,
+                'decimal_places': currency_id.decimal_places,
+            },
+            'discount_policy': discount_policy,
+            'display_tax_included': bool(request.env.user.has_group('account.group_show_line_subtotals_tax_included')),
+            'display_tax_excluded': bool(request.env.user.has_group('account.group_show_line_subtotals_tax_excluded')),
+        }

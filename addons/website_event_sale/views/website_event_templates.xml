@@ -1,18 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
+<!--template id="test1123" owl="1">
+    <EventSaleTicketPrice/>
+</template-->
 <template id="registration_template" inherit_id="website_event.registration_template">
     <!-- Add price information on tickets (multi tickets, aka in collapse) -->
     <xpath expr="//div[hasclass('o_wevent_registration_multi_select')]" position="inside">
-        <t t-if="ticket.price">
-            <t t-if="(ticket.price-website.currency_id._convert(ticket.price_reduce, event.company_id.sudo().currency_id, event.company_id, datetime.date.today())) &gt; 1 and website.pricelist_id.discount_policy == 'without_discount'">
-                <del class="text-danger mr-1" t-field="ticket.price" t-options="{'widget': 'monetary', 'from_currency': event.company_id.sudo().currency_id, 'display_currency': website.pricelist_id.currency_id}"/>
-            </t>
-            <span t-field="ticket.price_reduce" t-options="{'widget': 'monetary', 'display_currency': website.pricelist_id.currency_id}" groups="account.group_show_line_subtotals_tax_excluded"/>
-            <span t-field="ticket.price_reduce_taxinc" t-options="{'widget': 'monetary', 'display_currency': website.pricelist_id.currency_id}" groups="account.group_show_line_subtotals_tax_included"/>
-            <span itemprop="price" class="d-none" t-out="ticket.price"/>
-            <span itemprop="priceCurrency" class="d-none" t-out="website.pricelist_id.currency_id.name"/>
-        </t>
+        <div t-if="ticket.price" class="o_event_sale_ticket_price" t-att-data-ticket-id="ticket.id"/>
         <span t-else="" class="font-weight-bold text-uppercase">Free</span>
     </xpath>
     <xpath expr="//div[hasclass('o_wevent_price_range')]" position="inside">

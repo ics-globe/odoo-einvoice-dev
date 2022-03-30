@@ -195,7 +195,8 @@
                             <div class="w-auto ml-auto">
                                 <select t-if="not ticket.is_expired and ticket.sale_available"
                                     t-attf-name="nb_register-#{ticket.id}"
-                                    class="custom-select">
+                                    class="custom-select o_event_ticket_quantity_selection"
+                                    t-att-data-ticket-id="ticket.id">
                                     <t t-set="seats_max_ticket" t-value="(not ticket.seats_limited or ticket.seats_available &gt; 9) and 10 or ticket.seats_available + 1"/>
                                     <t t-set="seats_max_event" t-value="(not event.seats_limited or event.seats_available &gt; 9) and 10 or event.seats_available + 1"/>
                                     <t t-set="seats_max" t-value="min(seats_max_ticket, seats_max_event)"/>
