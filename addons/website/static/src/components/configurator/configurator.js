@@ -9,7 +9,7 @@ import {svgToPNG} from 'website.utils';
 import {useService} from "@web/core/utils/hooks";
 import {renderToString} from "@web/core/utils/render";
 
-const { App, Component, onMounted, reactive, useEnv, useRef, useState, whenReady } = owl;
+const { App, Component, onMounted, onWillDestroy, reactive, useEnv, useRef, useState, whenReady } = owl;
 
 const ROUTES = {
     descriptionScreen: 2,
@@ -417,6 +417,12 @@ ThemeSelectionScreen.template = 'website.Configurator.ThemeSelectionScreen';
 class Configurator extends Component {
     setup() {
         this.router = useRouter();
+        // Using the back button must update the router state.
+        const backListener = ev => {
+            this.router.location = window.location.pathname;
+        };
+        window.addEventListener("popstate", backListener);
+        onWillDestroy(() => window.removeEventListener("popstate", backListener));
     }
 }
 
