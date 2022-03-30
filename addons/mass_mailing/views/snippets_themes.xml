@@ -116,10 +116,8 @@
                          <img border="0" t-att-src="image_data_uri(company_id.logo)" style="height:auto;max-width:200px;max-height:48px;" />
                     </a>
                 </div>
-                <div class="col-lg-4 text-right o_mail_no_resize">
-                    <div class="o_mail_header_social">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
+                <div class="col-lg-4 text-right o_mail_no_resize o_mail_header_social">
+                    <t t-call="mass_mailing.social_links"/>
                 </div>
             </div>
         </div>
@@ -137,10 +135,8 @@
                         </a>
                     </h3>
                 </div>
-                <div class="col-lg-4 text-right o_mail_no_resize">
-                    <div class="o_mail_header_social">
-                        <t t-call="mass_mailing.social_links"/>
-                    </div>
+                <div class="col-lg-4 text-right o_mail_no_resize o_mail_header_social">
+                    <t t-call="mass_mailing.social_links"/>
                 </div>
             </div>
         </div>
