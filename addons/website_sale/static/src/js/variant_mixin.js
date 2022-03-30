@@ -39,7 +39,15 @@ VariantMixin._onChangeCombination = function (ev, $parent, combination) {
         $product.data('product-tracking-info', combination['product_tracking_info']);
         $product.trigger('view_item_event', combination['product_tracking_info']);
     }
-
+    const addToCart = $parent.find('#o_wsale_cta_wrapper');
+    const productPrice = $parent.find('.product_price');
+    if (!combination.price) {
+        productPrice.removeClass('d-inline-block').addClass('d-none');
+        addToCart.removeClass('d-flex').addClass('d-none');
+    } else {
+        productPrice.removeClass('d-none').addClass('d-inline-block');
+        addToCart.removeClass('d-none').addClass('d-flex');
+    }
     originalOnChangeCombination.apply(this, [ev, $parent, combination]);
 };
 
