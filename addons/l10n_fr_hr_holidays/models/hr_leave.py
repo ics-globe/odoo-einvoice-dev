@@ -18,7 +18,8 @@ class HrLeave(models.Model):
             employee = self.env['hr.employee'].browse(vals['employee_id']).sudo()
             employee_calendar = employee.resource_calendar_id
             company_calendar = employee.company_id.resource_calendar_id
-            vals['date_to'] = self._get_fr_new_date_to(vals['date_to'], employee_calendar, company_calendar)
+            if company.country_id.code == 'FR' and employee_calendar != company_calendar:
+                vals['date_to'] = self._get_fr_new_date_to(vals['date_to'], employee_calendar, company_calendar)
         return super().create(vals_list)
 
     def _calendar_works_on_date(self, CalendarAttendance, calendar, working_days, date):
@@ -39,6 +40,7 @@ class HrLeave(models.Model):
         company_working_days = self._get_working_hours(company_calendar)
 
         CalendarAttendance = self.env['resource.calendar.attendance']
+        date_target = date_to
         if isinstance(date_to, str):
             date_target = datetime.fromisoformat(date_to)
         new_date_to = date_target
