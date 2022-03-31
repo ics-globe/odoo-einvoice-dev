@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from unittest.mock import patch
+
 from odoo.addons.base.models.res_users import is_selection_groups, get_selection_groups
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase, Form, tagged
+from odoo.tools import mute_logger
 
 
 class TestUsers(TransactionCase):
@@ -115,6 +119,95 @@ class TestUsers(TransactionCase):
             "On user company change, if its partner_id has already a company_id,"
             "the company_id of the partner_id shall be updated"
         )
+
+    @mute_logger('odoo.sql_db')
+    def test_deactivate_portal_users_access(self):
+        """Test that only a portal users can deactivate his account."""
+        User = self.env['res.users']
+        user_admin = User.create({
+            'name': 'Admin',
+            'login': 'user_admin',
+            'password': 'password',
+            'groups_id': [self.env.ref('base.group_system').id],
+        })
+        with self.assertRaises(UserError, msg='Admin users should not be able to deactivate their account'):
+            user_admin._deactivate_portal_user()
+
+        user_internal = User.create({
+            'name': 'Internal',
+            'login': 'user_internal',
+            'password': 'password',
+            'groups_id': [self.env.ref('base.group_user').id],
+        })
+        with self.assertRaises(UserError, msg='Internal users should not be able to deactivate their account'):
+            user_internal._deactivate_portal_user()
+
+        public_user = self.env.ref('base.public_user')
+        with self.assertRaises(UserError, msg='Non-logged users should not be able to deactivate their account'):
+            public_user._deactivate_portal_user()
+
+    @mute_logger('odoo.sql_db')
+    def test_deactivate_portal_users_archive_and_remove(self):
+        """Test that if the account can not be removed, it's archived instead
+        and sensitive information are removed.
+
+        In this test, the deletion of "portal_user" will succeed,
+        but the deletion of "portal_user_2" will fail.
+        """
+        User = self.env['res.users']
+        portal_user = User.create({
+            'name': 'Portal',
+            'login': 'portal_user',
+            'password': 'password',
+            'groups_id': [self.env.ref('base.group_portal').id],
+        })
+        portal_partner = portal_user.partner_id
+
+        portal_user_2 = User.create({
+            'name': 'Portal',
+            'login': 'portal_user_2',
+            'password': 'password',
+            'groups_id': [self.env.ref('base.group_portal').id],
+        })
+        portal_partner_2 = portal_user_2.partner_id
+
+        (portal_user | portal_user_2)._deactivate_portal_user()
+
+        self.assertTrue(portal_user.exists() and not portal_user.active, 'Should have archived the user 1')
+        self.assertTrue(portal_user_2.exists() and not portal_user_2.active, 'Should have archived the user 2')
+
+        self.assertEqual(portal_user.name, 'Portal', 'Should have kept the user name')
+        self.assertEqual(portal_user.partner_id.name, 'Portal', 'Should have kept the partner name')
+        self.assertNotEqual(portal_user.login, 'portal_user', 'Should have removed the user login')
+        self.assertEqual(portal_user_2.name, 'Portal', 'Should have kept the user name')
+        self.assertEqual(portal_user_2.partner_id.name, 'Portal', 'Should have kept the partner name')
+        self.assertNotEqual(portal_user_2.login, 'portal_user_2', 'Should have removed the user login')
+
+        asked_deletion_1 = self.env['res.users.deletion'].search([('user_id', '=', portal_user.id)])
+        asked_deletion_2 = self.env['res.users.deletion'].search([('user_id', '=', portal_user_2.id)])
+
+        self.assertTrue(asked_deletion_1, 'Should have added the user 1 in the deletion queue')
+        self.assertTrue(asked_deletion_2, 'Should have added the user 2 in the deletion queue')
+
+        # The deletion will fail for "portal_user_2"
+        # (simulate SQL constraints on the user / partner that block the deletion)
+        original_unlink = type(self.env['res.users']).unlink
+        def _patch_unlink(rec):
+            if rec.id == portal_user_2.id:
+                raise Exception()
+            original_unlink(rec)
+
+        with patch.object(type(self.env['res.users']), 'unlink', _patch_unlink):
+            self.env['res.users.deletion']._gc_portal_users()
+
+        self.assertFalse(portal_user.exists(), 'Should have removed the user')
+        self.assertFalse(portal_partner.exists(), 'Should have removed the partner')
+        self.assertEqual(asked_deletion_1.state, 'done', 'Should have marked the deletion as done')
+
+        self.assertTrue(portal_user_2.exists(), 'Should have kept the user')
+        self.assertTrue(portal_partner_2.exists(), 'Should have kept the partner')
+        self.assertEqual(asked_deletion_2.state, 'fail', 'Should have marked the deletion as failed')
+
 
 @tagged('post_install', '-at_install')
 class TestUsers2(TransactionCase):

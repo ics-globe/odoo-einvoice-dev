@@ -811,6 +811,54 @@ class Users(models.Model):
         # use self.env.user here, because it has uid=SUPERUSER_ID
         return self.env.user.write({'password': new_passwd})
 
+    def _deactivate_portal_user(self, **post):
+        """Try to remove the current portal user.
+
+        This is used to give the opportunity to portal users to de-activate their accounts.
+        Indeed, as the portal users can easily create accounts, they will sometimes wish
+        it removed because they don't use this Odoo portal anymore.
+
+        Before this feature, they would have to contact the website or the support to get
+        their account removed, which could be tedious.
+        """
+        if not all(user.has_group('base.group_portal') for user in self):
+            raise UserError(_('Only the portal users can deactivate their accounts.'))
+
+        ip = request.httprequest.environ['REMOTE_ADDR'] if request else 'n/a'
+
+        users_deletion = []
+
+        for user in self:
+            _logger.info(
+                'Account deletion asked for "%s" (#%i) from %s. '
+                'Archive the user and remove login information.',
+                user.login,
+                user.id,
+                ip,
+            )
+
+            user.write({
+                'login': f'__deleted_user_{user.id}_{time.time()}',
+                'password': '',
+            })
+
+            users_deletion.append({
+                'user_id': user.id,
+                'state': 'todo',
+            })
+
+        # A user can not self-deactivate
+        try:
+            self.with_user(SUPERUSER_ID).action_archive()
+        except Exception:
+            pass
+        try:
+            self.partner_id.action_archive()
+        except Exception:
+            pass
+        # Add the user in the deletion queue
+        self.env['res.users.deletion'].create(users_deletion)
+
     def preference_save(self):
         return {
             'type': 'ir.actions.client',

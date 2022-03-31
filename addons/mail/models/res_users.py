@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, api, exceptions, fields, models, modules
+from odoo import _, api, exceptions, fields, models, modules, tools
 from odoo.addons.base.models.res_users import is_selection_groups
 
 
@@ -136,6 +136,28 @@ class Users(models.Model):
         if self.partner_id.email:
             return '%s (%s)' % (body, self.partner_id.email)
         return body
+
+    @api.model
+    def _deactivate_portal_user(self, **post):
+        """Blacklist the email of the user after deleting it.
+
+        Log a note on the related partner so we know why it's archived.
+        """
+        for user in self:
+            user.partner_id._message_log(body=_(
+                'This partner was archived because the related user "%s" has requested to deactivate his account.',
+                user.name))
+
+        if post.get('blacklist'):
+            emails_to_blacklist = filter(bool, [tools.email_normalize(user.email) for user in self])
+        else:
+            emails_to_blacklist = []
+
+        super(Users, self)._deactivate_portal_user(**post)
+
+        for email in emails_to_blacklist:
+            blacklist = self.env['mail.blacklist']._add(email)
+            blacklist._message_log(body=_('The email has been blacklisted because its related portal user has deactivated his account.'))
 
     # ------------------------------------------------------------
     # DISCUSS
