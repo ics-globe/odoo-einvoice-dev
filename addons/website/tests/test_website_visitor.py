@@ -1,10 +1,13 @@
 # coding: utf-8
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import requests
+
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
+from odoo import api
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 from odoo.addons.website.tools import MockRequest
 from odoo.addons.website.models.website_visitor import WebsiteVisitor
@@ -34,7 +37,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.website = self.env['website'].search([
             ('company_id', '=', self.env.user.company_id.id)
         ], limit=1)
-        self.cookies = {}
 
         untracked_view = self.env['ir.ui.view'].create({
             'name': 'UntackedView',
@@ -122,13 +124,8 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
     def assertVisitorDeactivated(self, visitor, main_visitor):
         """ Method that checks that a visitor has been de-activated / merged
         with other visitor, notably in case of login (see User.authenticate() as
-        well as Visitor._link_to_visitor() ). """
-        self.assertTrue(bool(visitor))
-        self.assertFalse(visitor.active)
-        self.assertTrue(main_visitor.active)
-        self.assertEqual(visitor.parent_id, main_visitor)
-
-        # tracks are linked
+        well as Visitor._merge_visitor() ). """
+        self.assertFalse(visitor.exists(), "The anonymous visitor should be deleted")
         self.assertTrue(visitor.website_track_ids < main_visitor.website_track_ids)
 
     def test_visitor_creation_on_tracked_page(self):
@@ -151,8 +148,10 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         # Admin connects
         # ------------------------------------------------------------
 
-        self.cookies = {'visitor_uuid': new_visitor.access_token}
-        with MockRequest(self.env, website=self.website, cookies=self.cookies):
+        # Simulate same device/ip
+        env = api.Environment(self.env.cr, self.website.user_id.id, {})
+        environ_base = {'HTTP_USER_AGENT': requests.utils.default_headers()['User-Agent']}
+        with MockRequest(env, website=self.website, environ_base=environ_base):
             self.authenticate(self.user_admin.login, 'admin')
 
         visitor_admin = new_visitor
@@ -160,6 +159,8 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.url_open(self.tracked_page_2.url)
 
         # check tracking and visitor / user sync
+        new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
+        self.assertEqual(len(new_visitors), 1, "There should still be only one visitor.")
         self.assertVisitorTracking(visitor_admin, self.tracked_page | self.tracked_page_2)
         self.assertEqual(visitor_admin.partner_id, self.partner_admin)
         self.assertEqual(visitor_admin.name, self.partner_admin.name)
@@ -168,7 +169,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         # Portal connects
         # ------------------------------------------------------------
 
-        with MockRequest(self.env, website=self.website, cookies=self.cookies):
+        with MockRequest(env, website=self.website, environ_base=environ_base):
             self.authenticate(self.user_portal.login, 'portal')
 
         self.assertFalse(
@@ -206,7 +207,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
         self.assertEqual(len(new_visitors), 3, "One extra visitor should be created")
         visitor_anonymous = new_visitors[0]
-        self.cookies['visitor_uuid'] = visitor_anonymous.access_token
         self.assertFalse(visitor_anonymous.name)
         self.assertFalse(visitor_anonymous.partner_id)
         self.assertVisitorTracking(visitor_anonymous, self.tracked_page | self.tracked_page_2)
@@ -216,12 +216,9 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         # Admin connects again
         # ------------------------------------------------------------
 
-        with MockRequest(self.env, website=self.website, cookies=self.cookies):
+        with MockRequest(env, website=self.website, environ_base=environ_base):
             self.authenticate(self.user_admin.login, 'admin')
 
-        # one visitor is deleted
-        visitor_anonymous = self.env['website.visitor'].with_context(active_test=False).search([('id', '=', visitor_anonymous.id)])
-        self.assertVisitorDeactivated(visitor_anonymous, visitor_admin)
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
         self.assertEqual(new_visitors, visitor_admin | visitor_portal)
         visitor_admin = self.env['website.visitor'].search([('partner_id', '=', self.partner_admin.id)])
@@ -246,7 +243,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
         self.assertEqual(len(new_visitors), 3, "One extra visitor should be created")
         visitor_anonymous_2 = new_visitors[0]
-        self.cookies['visitor_uuid'] = visitor_anonymous_2.access_token
         self.assertFalse(visitor_anonymous_2.name)
         self.assertFalse(visitor_anonymous_2.partner_id)
         self.assertVisitorTracking(visitor_anonymous_2, self.tracked_page | self.tracked_page_2)
@@ -255,7 +251,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         # ------------------------------------------------------------
         # Portal connects again
         # ------------------------------------------------------------
-        with MockRequest(self.env, website=self.website, cookies=self.cookies):
+        with MockRequest(env, website=self.website, environ_base=environ_base):
             self.authenticate(self.user_portal.login, 'portal')
 
         # one visitor is deleted
@@ -267,7 +263,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
 
         # simulate the portal user comes back 30min later
         for track in visitor_portal.website_track_ids:
-            track.write({'visit_datetime': track.visit_datetime - timedelta(minutes=30)})
+            track.write({'visit_datetime': track.visit_datetime - timedelta(minutes=31)})
 
         # visit a page
         self.url_open(self.tracked_page.url)
@@ -276,7 +272,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.assertEqual(len(visitor_portal.website_track_ids), 5, "There should be 5 tracked page for the portal user")
 
         # simulate the portal user comes back 8hours later
-        visitor_portal.write({'last_connection_datetime': visitor_portal.last_connection_datetime - timedelta(hours=8)})
+        visitor_portal.write({'last_connection_datetime': visitor_portal.last_connection_datetime - timedelta(hours=8, minutes=1)})
         self.url_open(self.tracked_page.url)
         visitor_portal.invalidate_cache(fnames=['visit_count'])
         # check number of visits
@@ -284,32 +280,32 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
 
     def test_clean_inactive_visitors(self):
         inactive_visitors = self.env['website.visitor'].create([{
-            'name': 'Crazy Lazy Bernie',
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
-            'last_connection_datetime': datetime.now() - timedelta(days=8)
+            'last_connection_datetime': datetime.now() - timedelta(days=8),
+            'access_token': 'f9d2b14b21be669d3c4364d518b14a9590cb62ed',
         }, {
-            'name': 'Sleeping Joe',
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
-            'last_connection_datetime': datetime.now() - timedelta(days=15)
+            'last_connection_datetime': datetime.now() - timedelta(days=15),
+            'access_token': 'f9d2d261a725d3e8691a6a7f596574ca84e52f47',
         }])
 
         active_visitors = self.env['website.visitor'].create([{
-            'name': 'Active Donald',
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
-            'last_connection_datetime': datetime.now() - timedelta(days=1)
+            'last_connection_datetime': datetime.now() - timedelta(days=1),
+            'access_token': 'f9d2526d9c15658b8beaa58bdc91d2119e54b554',
         }, {
-            'name': 'Vladimir Customer',
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
             'partner_id': self.partner_demo.id,
-            'last_connection_datetime': datetime.now() - timedelta(days=15)
+            'last_connection_datetime': datetime.now() - timedelta(days=15),
+            'access_token': self.partner_demo.id,
         }])
 
         self._test_unlink_old_visitors(inactive_visitors, active_visitors)
@@ -325,7 +321,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         We use this method as a private tool so that sub-module can also test the cleaning of visitors
         based on their own sets of conditions. """
 
-        WebsiteVisitor = self.env['website.visitor'].with_context(active_test=False)
+        WebsiteVisitor = self.env['website.visitor']
 
         self.env['ir.config_parameter'].sudo().set_param('website.visitor.live.days', 7)
 
@@ -351,7 +347,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         This can happen quite often if the user switches browsers / hardwares.
 
         When 'linking' visitors together, the new visitor is archived and all its relevant data is
-        merged within the main visitor. See 'website.visitor#_link_to_visitor' for more details.
+        merged within the main visitor. See 'website.visitor#_merge_visitor' for more details.
 
         This test ensures that all the relevant data are properly merged.
 
@@ -362,16 +358,17 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
             self._prepare_main_visitor_data(),
             self._prepare_linked_visitor_data()
         ])
-        linked_visitor._link_to_visitor(main_visitor)
+        linked_visitor._merge_visitor(main_visitor)
 
         self.assertVisitorDeactivated(linked_visitor, main_visitor)
 
     def _prepare_main_visitor_data(self):
         return {
-            'name': "Mitchell Main",
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
+            'partner_id': self.partner_admin.id,
+            'access_token': self.partner_admin.id,
             'website_track_ids': [(0, 0, {
                 'page_id': self.tracked_page.id,
                 'url': self.tracked_page.url
@@ -380,10 +377,10 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
 
     def _prepare_linked_visitor_data(self):
         return {
-            'name': "Mitchell Main's Phone",
             'lang_id': self.env.ref('base.lang_en').id,
             'country_id': self.env.ref('base.be').id,
             'website_id': 1,
+            'access_token': 'f9d2ed295274b7814778f76a88c72712dcf8d5f5',
             'website_track_ids': [(0, 0, {
                 'page_id': self.tracked_page_2.id,
                 'url': self.tracked_page_2.url
