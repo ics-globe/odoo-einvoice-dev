@@ -18,7 +18,7 @@ class HrLeave(models.Model):
             employee = self.env['hr.employee'].browse(vals['employee_id']).sudo()
             employee_calendar = employee.resource_calendar_id
             company_calendar = employee.company_id.resource_calendar_id
-            vals['date_to'] = self._get_fr_new_date_to(vals, employee_calendar, company_calendar)
+            vals['date_to'] = self._get_fr_new_date_to(vals['date_to'], employee_calendar, company_calendar)
         return super().create(vals_list)
 
     def _calendar_works_on_date(self, CalendarAttendance, calendar, working_days, date):
@@ -34,12 +34,13 @@ class HrLeave(models.Model):
             working_days[attendance.week_type][attendance.dayofweek] = True
         return working_days
 
-    def _get_fr_new_date_to(self, vals, employee_calendar, company_calendar):
+    def _get_fr_new_date_to(self, date_to, employee_calendar, company_calendar):
         employee_working_days = self._get_working_hours(employee_calendar)
         company_working_days = self._get_working_hours(company_calendar)
 
         CalendarAttendance = self.env['resource.calendar.attendance']
-        date_target = datetime.fromisoformat(vals['date_to'])
+        if isinstance(date_to, str):
+            date_target = datetime.fromisoformat(date_to)
         new_date_to = date_target
         date_target += relativedelta(days=1)
         while not self._calendar_works_on_date(CalendarAttendance, employee_calendar, employee_working_days, date_target):
@@ -47,7 +48,7 @@ class HrLeave(models.Model):
                 new_date_to = date_target
             date_target += relativedelta(days=1)
 
-        return new_date_to
+        return ' '.join(new_date_to.isoformat().split('T'))
 
     def _get_fr_number_of_days(self, employee, date_from, date_to, employee_calendar, company_calendar):
         self.ensure_one()
@@ -57,7 +58,6 @@ class HrLeave(models.Model):
         # What we need to compute is how much we will need to push date_to in order to account for the lost days
         # This gets even more complicated in two_weeks_calendars
         employee_working_days = self._get_working_hours(employee_calendar)
-        company_working_days = self._get_working_hours(company_calendar)
 
         CalendarAttendance = self.env['resource.calendar.attendance']
         if self.request_unit_half:
@@ -110,11 +110,15 @@ class HrLeave(models.Model):
         Returns a dict containing two keys: 'days' and 'hours' with the value being the duration for the requested time period.
         """
         basic_amount = super()._get_number_of_days(date_from, date_to, employee_id)
-        if employee_id and (basic_amount['days'] or basic_amount['hours']):
-            employee = self.env['hr.employee'].browse(employee_id).sudo()
-            company = employee.company_id
-            if company.country_id.code == 'FR' and company.resource_calendar_id:
-                calendar = self._get_calendar()
-                if calendar and calendar != company.resource_calendar_id:
-                    return self._get_fr_number_of_days(employee, date_from, date_to, calendar, company.resource_calendar_id)
-        return basic_amount
+
+        if not employee_id or not (basic_amount['days'] or basic_amount['hours']):
+            return basic_amount
+        employee = self.env['hr.employee'].browse(employee_id).sudo()
+        company = employee.company_id
+        if company.country_id.code != 'FR' or not company.resource_calendar_id:
+            return basic_amount
+        calendar = self._get_calendar()
+        if not calendar or not calendar != company.resource_calendar_id:
+            return basic_amount
+
+        return self._get_fr_number_of_days(employee, date_from, date_to, calendar, company.resource_calendar_id)
