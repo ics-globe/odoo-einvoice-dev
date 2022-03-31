@@ -437,6 +437,11 @@
                     <field name="name" string="Event"/>
                     <field name="event_type_id"/>
                     <field name="user_id"/>
+                    <field name="address_id" filter_domain="['|', '|', '|', '|', '|', '|',
+                        ('address_id', 'ilike', self), ('address_id.street', 'ilike', self),
+                        ('address_id.street2', 'ilike', self), ('address_id.city', 'ilike', self),
+                        ('address_id.zip', 'ilike', self), ('address_id.state_id', 'ilike', self),
+                        ('address_id.country_id', 'ilike', self)]"/>
                     <field name="stage_id"/>
                     <filter string="My Events" name="myevents" help="My Events" domain="[('user_id', '=', uid)]"/>
                     <separator/>
