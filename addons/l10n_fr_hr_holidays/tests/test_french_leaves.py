@@ -250,7 +250,7 @@ class TestFrenchLeaves(TransactionCase):
         leave.unlink()
 
         # Both ending with week type 0
-        with self.assertQueryCount(46):
+        with self.assertQueryCount(49):
             start_time = time.time()
             leave = self.env['hr.leave'].create({
                 'name': 'Test',
