@@ -246,8 +246,6 @@ class CustomerPortal(Controller):
 
         try:
             request.env['res.users'].change_password(old, new1)
-        except UserError as e:
-            return {'errors': {'password': e.name}}
         except AccessDenied as e:
             # FIXME XMO dead code since https://github.com/odoo/odoo/pull/45723
             # AccessDenied is an UserError now
@@ -255,6 +253,8 @@ class CustomerPortal(Controller):
             if msg == AccessDenied().args[0]:
                 msg = _('The old password you provided is incorrect, your password was not changed.')
             return {'errors': {'password': {'old': msg}}}
+        except UserError as e:
+            return {'errors': {'password': e.name}}
 
         # update session token so the user does not get logged out (cache cleared by passwd change)
         new_token = request.env.user._compute_session_token(request.session.sid)
