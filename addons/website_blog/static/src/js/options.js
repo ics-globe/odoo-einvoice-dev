@@ -121,6 +121,11 @@ options.registry.BlogPostTagSelection = options.Class.extend({
             'display_name': widgetValue,
         };
         this.tagIDs.push(newTagID);
+        return new Promise(resolve => {
+            this.trigger_up('snippet_option_update', {
+                onSuccess: () => resolve(),
+            });
+        });
     },
 
     //--------------------------------------------------------------------------
