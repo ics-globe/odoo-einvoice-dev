@@ -24,6 +24,11 @@ class ProductTemplate(models.Model):
         if combination_info['product_id']:
             product = self.env['product.product'].sudo().browse(combination_info['product_id'])
             website = self.env['website'].get_current_website()
+
+            wishlist = self.env['product.wishlist'].current().filtered_domain([('product_id', '=', combination_info['product_id']),])
+            has_stock_notification = False
+            if wishlist:
+                has_stock_notification = wishlist.stock_notification
             free_qty = product.with_context(warehouse=website._get_warehouse_available()).free_qty
             combination_info.update({
                 'free_qty': free_qty,
@@ -35,6 +40,7 @@ class ProductTemplate(models.Model):
                 'allow_out_of_stock_order': self.allow_out_of_stock_order,
                 'show_availability': self.show_availability,
                 'out_of_stock_message': self.out_of_stock_message,
+                'has_stock_notification': has_stock_notification
             })
         else:
             product_template = self.sudo()

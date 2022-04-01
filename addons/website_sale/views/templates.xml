@@ -610,6 +610,7 @@
                 <section t-attf-class="container py-4 oe_website_sale #{'discount' if combination_info['has_discounted_price'] else ''}" id="product_detail"
                     t-att-data-view-track="view_track and '1' or '0'"
                     t-att-data-product-tracking-info="json.dumps(request.env['product.template'].get_google_analytics_data(combination_info))">
+                    <input id="partner_email" type="hidden" t-att-value="email"/>
                     <div class="row">
                         <div class="col-lg-6">
                             <ol class="breadcrumb mb-2">

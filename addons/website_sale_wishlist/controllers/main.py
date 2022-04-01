@@ -33,10 +33,7 @@ class WebsiteSaleWishlist(WebsiteSale):
             product_id,
             partner_id
         )
-
-        if not partner_id:
-            request.session['wishlist_ids'] = request.session.get('wishlist_ids', []) + [wish.id]
-
+        request.session['wishlist_ids'] = request.session.get('wishlist_ids', []) + [wish.id]
         return wish
 
     @route(['/shop/wishlist'], type='http', auth="public", website=True, sitemap=False)
