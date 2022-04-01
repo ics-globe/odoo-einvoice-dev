@@ -134,6 +134,8 @@ const BaseAnimatedHeader = animations.Animation.extend({
      * @param {boolean} [useFixed=true]
      */
     _toggleFixedHeader: function (useFixed = true) {
+        // The headerHeight should correspond to the non-fixed state.
+        this.headerHeight = useFixed ? this.headerHeight : this.$el.outerHeight();
         this.fixedHeader = useFixed;
         this._adaptToHeaderChange();
         this.el.classList.toggle('o_header_affixed', useFixed);
@@ -143,7 +145,6 @@ const BaseAnimatedHeader = animations.Animation.extend({
      * @private
      */
     _updateMainPaddingTop: function () {
-        this.headerHeight = this.$el.outerHeight();
         this.topGap = this._computeTopGap();
 
         if (this.isOverlayHeader) {
