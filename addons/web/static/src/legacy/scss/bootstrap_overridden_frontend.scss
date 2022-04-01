@@ -15,3 +15,11 @@ $blockquote-small-color: inherit !default;
 // a muted one. This is defined here to be consistent in the whole frontend, as
 // when used with background classes, it should not be forced to a gray color.
 $figure-caption-color: inherit !default;
+
+// Forward ported from BS4 to avoid em and px calc
+// TODO comment why it not working anymore
+$grid-gutter-width:           30px !default;
+
+// Forward ported from BS4 to avoid em and px calc
+// TODO comment why it not working anymore
+$rounded-pill:                50rem !default;
