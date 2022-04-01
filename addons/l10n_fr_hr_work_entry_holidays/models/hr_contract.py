@@ -15,11 +15,11 @@ class HrContract(models.Model):
         # Work entries by default are not generated on days the employee does not work
         # So we have to fill the gaps with work entries for those periods
         result = super()._get_contract_work_entries_values(date_start, date_stop)
-        start_dt = pytz.utc.localize(date_start) if not date_start.tzinfo else date_start
-        end_dt = pytz.utc.localize(date_stop) if not date_stop.tzinfo else date_stop
-        fr_contracts = self.filtered(lambda c: c.company_id.country_id.code == 'FR')
+        fr_contracts = self.filtered(lambda c: c.company_id.country_id.code == 'FR' and c.resource_calendar_id != c.company_id.resource_calendar_id)
         if not fr_contracts:
             return result
+        start_dt = pytz.utc.localize(date_start) if not date_start.tzinfo else date_start
+        end_dt = pytz.utc.localize(date_stop) if not date_stop.tzinfo else date_stop
         # l10n_fr_date_to is False when no adjustment had to be done
         all_leaves = self.env['hr.leave'].search([
             ('employee_id', 'in', fr_contracts.employee_id.ids),

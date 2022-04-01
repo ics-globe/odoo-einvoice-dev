@@ -18,7 +18,7 @@ class HrLeave(models.Model):
             employee = self.env['hr.employee'].browse(vals['employee_id']).sudo()
             employee_calendar = employee.resource_calendar_id
             company_calendar = employee.company_id.resource_calendar_id
-            if company.country_id.code == 'FR' and employee_calendar != company_calendar:
+            if employee.company_id.country_id.code == 'FR' and employee_calendar != company_calendar:
                 vals['date_to'] = self._get_fr_new_date_to(vals['date_to'], employee_calendar, company_calendar)
         return super().create(vals_list)
 
@@ -34,6 +34,15 @@ class HrLeave(models.Model):
         for attendance in calendar.attendance_ids:
             working_days[attendance.week_type][attendance.dayofweek] = True
         return working_days
+
+    def _is_on_part_time_off(self, CalendarAttendance, employee_calendar, company_calendar, date):
+        company_working_days = self._get_working_hours(company_calendar)
+        if not self._calendar_works_on_date(CalendarAttendance, company_calendar, company_working_days, date):
+            return False
+        employee_working_days = self._get_working_hours(employee_calendar)
+        if self._calendar_works_on_date(CalendarAttendance, employee_calendar, employee_working_days, date):
+            return False
+        return True
 
     def _get_fr_new_date_to(self, date_to, employee_calendar, company_calendar):
         employee_working_days = self._get_working_hours(employee_calendar)

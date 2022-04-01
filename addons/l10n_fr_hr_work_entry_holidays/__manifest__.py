@@ -6,7 +6,10 @@
     'version': '1.0',
     'icon': '/l10n_fr/static/description/icon.png',
     'summary': 'Management of leaves for part-time workers in France',
-    'depends': ['l10n_fr_hr_holidays', 'hr_work_entry_holidays'],
+    'depends': [
+        'l10n_fr_hr_holidays',
+        'hr_work_entry_holidays',
+    ],
     'auto_install': True,
     'data': [
     ],
