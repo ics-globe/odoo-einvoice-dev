@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="l10n_ph_chart_template" model="account.chart.template">
+        <field name="property_account_receivable_id" ref="a110000" />
+        <field name="property_account_payable_id" ref="a200000" />
+        <field name="property_account_income_categ_id" ref="a430400" />
+        <field name="property_account_expense_categ_id" ref="a620000" />
+        <field name="property_stock_valuation_account_id" ref="a110300" />
+        <field name="property_stock_account_input_categ_id" ref="a110302" />
+        <field name="property_stock_account_output_categ_id" ref="a110303" />
+        <field name="income_currency_exchange_account_id" ref="a710100" />
+        <field name="expense_currency_exchange_account_id" ref="a710101" />
+        <field name="default_pos_receivable_account_id" ref="a110003" />
+        <field name="account_journal_suspense_account_id" ref="a100000" />
+        <field name="default_cash_difference_income_account_id" ref="a710102" />
+        <field name="default_cash_difference_expense_account_id" ref="a710103" />
+    </record>
+</odoo>

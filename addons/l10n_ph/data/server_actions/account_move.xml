@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="action_account_move_bir_2307" model="ir.actions.server">
+        <field name="name">Download BIR 2307 XLS</field>
+        <field name="groups_id" eval="[(4, ref('account.group_account_invoice'))]"/>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+vendor_bills = records.filtered_domain([('move_type','=','in_invoice')])
+if vendor_bills:
+    wizard_action = env["ir.actions.act_window"]._for_xml_id("l10n_ph.view_l10n_ph_2307_wizard_act_window")
+    wizard_action.update({
+        'context': {'default_moves_to_export': vendor_bills.ids}
+    })
+    action = wizard_action
+else:
+    raise UserError('Only Vendor Bills are available.')
+]]></field>
+    </record>
+</odoo>
