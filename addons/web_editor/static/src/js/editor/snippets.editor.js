@@ -2096,6 +2096,20 @@ var SnippetsMenu = Widget.extend({
         var $html = $(html);
         var $scroll = $html.siblings('#o_scroll');
 
+        // TODO remove me in master: this is a hack that moves the logo options
+        // (type, height, height scrolled) into the navbar section. Before that
+        // these options were not displayed if the logo type was "text".
+        const $logoTypeSelector = $html.find('[data-js="HeaderNavbar"] [data-name="option_header_brand_none"]').parent();
+        if ($logoTypeSelector.length) {
+            const $logoHeightOption = $html.find('[data-customize-website-variable][data-variable="logo-height"]');
+            const $headerLogoTemplate = $logoHeightOption.closest('[data-selector]');
+            const $logoHeightScrolledOption = $headerLogoTemplate.find('[data-customize-website-variable][data-variable="fixed-logo-height"]');
+            $logoTypeSelector[0].dataset.dependencies = "";
+            $logoHeightScrolledOption.insertAfter($logoTypeSelector);
+            $logoHeightOption.insertAfter($logoTypeSelector);
+            $headerLogoTemplate.remove();
+        }
+
         this.templateOptions = [];
         var selectors = [];
         var $styles = $html.find('[data-selector]');
