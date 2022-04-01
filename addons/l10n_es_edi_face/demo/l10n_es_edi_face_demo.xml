@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="face_certificate_demo" model="l10n_es_edi_face.certificate">
+            <field name="company_id" ref="l10n_es.demo_company_es"/>
+            <field name="password">test</field>
+            <field name="content"  type="base64" file="l10n_es_edi_face/demo/certificate_demo.pfx"/>
+        </record>
+    </data>
+</odoo>

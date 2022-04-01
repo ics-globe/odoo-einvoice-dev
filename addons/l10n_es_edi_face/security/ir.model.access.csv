@@ -1,0 +1,2 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+l10n_es_edi_face.access_l10n_es_edi_face_certificate,access_l10n_es_edi_face_certificate,l10n_es_edi_face.model_l10n_es_edi_face_certificate,base.group_system,1,1,1,1

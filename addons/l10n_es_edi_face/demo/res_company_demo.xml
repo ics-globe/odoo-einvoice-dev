@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="l10n_es.partner_demo_company_es" model="res.partner">
+        <field name="zip">12345</field>
+    </record>
+</odoo>

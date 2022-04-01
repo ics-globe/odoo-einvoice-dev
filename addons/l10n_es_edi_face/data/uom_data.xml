@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- UOM.UOM -->
+        <!-- Units -->
+        <record id="uom.product_uom_unit" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">01</field>
+        </record>
+
+        <record id="uom.product_uom_dozen" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">18</field>
+        </record>
+
+        <!-- WORKING TIME -->
+        <record id="uom.product_uom_day" model="uom.uom">
+        </record>
+        <record id="uom.product_uom_hour" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">02</field>
+        </record>
+
+        <!-- LENGTH -->
+        <record id="uom.product_uom_meter" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">25</field>
+        </record>
+        <record id="uom.product_uom_millimeter" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">26</field>
+        </record>
+        <record id="uom.product_uom_km" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">22</field>
+        </record>
+        <record id="uom.product_uom_cm" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">16</field>
+        </record>
+
+        <!-- SURFACE -->
+        <record id="uom.uom_square_meter" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">05</field>
+        </record>
+
+        <!-- VOLUME -->
+        <record id="uom.product_uom_litre" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">04</field>
+        </record>
+        <record id="uom.product_uom_cubic_meter" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">33</field>
+        </record>
+
+        <!-- WEIGHT -->
+        <record id="uom.product_uom_kgm" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">03</field>
+        </record>
+        <record id="uom.product_uom_gram" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">21</field>
+        </record>
+        <record id="uom.product_uom_ton" model="uom.uom">
+            <field name="l10n_es_edi_face_uom_code">05</field>
+        </record>
+    </data>
+</odoo>

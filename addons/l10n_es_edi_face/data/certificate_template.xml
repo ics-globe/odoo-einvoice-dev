@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="signature_template">
+            <xd:Signature xmlns:xd="http://www.w3.org/2000/09/xmldsig#"
+                          xmlns:xades="http://uri.etsi.org/01903/v1.4.1#"
+                          Id="Signature">
+                <xd:SignedInfo Id="Signature-SignedInfo">
+                    <xd:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+                    <xd:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+                    <xd:Reference Id="SignedPropertiesID"
+                                  Type="http://uri.etsi.org/01903#SignedProperties"
+                                  URI="#Signature-SignedProperties">
+                        <xd:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                        <xd:DigestValue/>
+                    </xd:Reference>
+                    <xd:Reference URI="">
+                        <xd:Transforms>
+                            <xd:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                        </xd:Transforms>
+                        <xd:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                        <xd:DigestValue/>
+                    </xd:Reference>
+                    <xd:Reference URI="#Certificate1">
+                        <xd:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                        <xd:DigestValue/>
+                    </xd:Reference>
+                </xd:SignedInfo>
+                <xd:SignatureValue/>
+                <xd:KeyInfo Id="Certificate1">
+                    <xd:X509Data>
+                        <xd:X509Certificate/>
+                    </xd:X509Data>
+                    <xd:KeyValue>
+                        <xd:RSAKeyValue>
+                            <xd:Modulus/>
+                            <xd:Exponent/>
+                        </xd:RSAKeyValue>
+                    </xd:KeyValue>
+                </xd:KeyInfo>
+                <xd:Object Id="Signature-Object">
+                    <xades:QualifyingProperties Target="#Signature">
+                        <xades:SignedProperties Id="Signature-SignedProperties">
+                            <xades:SigningTime t-out="SigningTime"/>
+                            <xades:SigningCertificate>
+                                <xades:Cert>
+                                    <xades:CertDigest>
+                                        <xd:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                                        <xd:DigestValue/>
+                                    </xades:CertDigest>
+                                    <xades:IssuerSerial>
+                                        <xd:X509IssuerName/>
+                                        <xd:X509SerialNumber/>
+                                    </xades:IssuerSerial>
+                                </xades:Cert>
+                            </xades:SigningCertificate>
+                            <xades:SignaturePolicyIdentifier>
+                                <xades:SignaturePolicyId>
+                                    <xades:SigPolicyId>
+                                        <xades:Identifier>http://www.facturae.es/politica_de_firma_formato_facturae/politica_de_firma_formato_facturae_v3_1.pdf</xades:Identifier>
+                                        <xades:Description>facturae31</xades:Description>
+                                    </xades:SigPolicyId>
+                                    <xades:SigPolicyHash>
+                                        <xd:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                                        <xd:DigestValue>Ohixl6upD6av8N7pEvDABhEL6hM=</xd:DigestValue>
+                                    </xades:SigPolicyHash>
+                                </xades:SignaturePolicyId>
+                            </xades:SignaturePolicyIdentifier>
+                            <xades:SignerRole>
+                                <xades:ClaimedRoles>
+                                    <xades:ClaimedRole t-if="SignerRole" t-out="SignerRole"/>
+                                </xades:ClaimedRoles>
+                            </xades:SignerRole>
+                        </xades:SignedProperties>
+                    </xades:QualifyingProperties>
+                </xd:Object>
+            </xd:Signature>
+        </template>
+    </data>
+</odoo>

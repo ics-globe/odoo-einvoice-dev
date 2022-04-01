@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        Resource: res.partner
+        -->
+        <record id="base.main_partner" model="res.partner">
+            <field name="email">info@yourcompany.com</field>
+            <field name="website">www.example.com</field>
+            <field name="vat">US12345671</field>
+        </record>
+        <record id="base.res_partner_1" model="res.partner">
+            <field name="vat">US12345672</field>
+        </record>
+        <record id="base.res_partner_2" model="res.partner">
+            <field name="vat">US12345673</field>
+        </record>
+        <record id="base.res_partner_3" model="res.partner">
+            <field name="vat">US12345674</field>
+        </record>
+
+        <record id="base.res_partner_4" model="res.partner">
+            <field name="vat">US12345675</field>
+        </record>
+
+        <record id="base.res_partner_10" model="res.partner">
+            <field name="vat">US12345676</field>
+        </record>
+
+        <record id="base.res_partner_12" model="res.partner">
+            <field name="vat">US12345677</field>
+        </record>
+
+        <record id="base.res_partner_18" model="res.partner">
+            <field name="vat">US12345678</field>
+        </record>
+    </data>
+</odoo>

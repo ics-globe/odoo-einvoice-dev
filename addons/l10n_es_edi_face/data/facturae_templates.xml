@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Sub-template used for every instance of AddressType -->
+        <template id="address_type">
+            <t t-if="address['CountryCode'] == 'ESP'">
+                <AddressInSpain>
+                    <Address t-out="address['Address']"/>
+                    <PostCode t-out="str(address['PostCode'])"/>
+                    <Town t-out="address['Town']"/>
+                    <Province t-out="address['Province']"/>
+                    <CountryCode t-out="address['CountryCode']"/>
+                </AddressInSpain>
+            </t>
+            <t t-else="">
+                <OverseasAddress>
+                    <Address t-out="address['Address']"/>
+                    <PostCodeAndTown t-out="' '.join(var for var in (address['PostCode'], address['Town']) if var)"/>
+                    <Province t-out="address['Province']"/>
+                    <CountryCode t-out="address['CountryCode']"/>
+                </OverseasAddress>
+            </t>
+        </template>
+
+        <!-- Sub-template used for every instance of ContactDetails -->
+        <template id="contact_details_type">
+            <Telephone t-if="ContactDetails.get('Telephone', False)" t-out="ContactDetails['Telephone']"/>
+            <TeleFax t-if="ContactDetails.get('TeleFax', False)" t-out="ContactDetails['TeleFax']"/>
+            <WebAddress t-if="ContactDetails.get('WebAddress', False)" t-out="ContactDetails['WebAddress']"/>
+            <ElectronicMail t-if="ContactDetails.get('ElectronicMail', False)"
+                            t-out="ContactDetails['ElectronicMail']"/>
+            <ContactPersons t-if="ContactDetails.get('ContactPersons', False)"
+                            t-out="ContactDetails['ContactPersons']"/>
+            <CnoCnae t-if="ContactDetails.get('CnoCnae', False)" t-out="ContactDetails['CnoCnae']"/>
+            <INETownCode
+                    t-if="ContactDetails.get('INETownCode', False)" t-out="ContactDetails['INETownCode']"/>
+            <AdditionalContactDetails
+                    t-if="ContactDetails.get('AdditionalContactDetails', False)"
+                    t-out="ContactDetails['AdditionalContactDetails']"/>
+        </template>
+
+        <!-- Sub-template used for every instance of AccountType -->
+        <template id="account_type">
+            <IBAN t-out="account['IBAN']"/>
+            <AccountNumber t-out="account['AccountNumber']"/>
+            <BankCode t-if="account.get('BankCode', False)" t-out="account['BankCode']"/>
+            <BranchCode t-if="account.get('BranchCode', False)" t-out="account['BranchCode']"/>
+            <t t-call="l10n_es_edi_face.address_type">
+                <t t-set="address"
+                   t-value="account['Address']"/>
+            </t>
+            <BIC t-if="account.get('BIC', False)" t-out="account['BIC']"/>
+            <CollectionAdditionalInformation t-if="account.get('CollectionAdditionalInformation', False)"
+                                             t-out="account['CollectionAdditionalInformation']"/>
+            <RegulatoryReportingData t-if="account.get('RegulatoryReportingData', False)"
+                                     t-out="account['RegulatoryReportingData']"/>
+            <DebitReconciliationReference t-if="account.get('DebitReconciliationReference', False)"
+                                          t-out="account['DebitReconciliationReference']"/>
+            <FactoringAssignmentClauses t-out="account['FactoringAssignmentClauses']"/>
+            <t t-foreach="account['FactoringAssignmentDocuments']" t-as="document">
+                <FactoringAsignmentDocument>
+                    <DocumentCharacter t-out="document['DocumentCharacter']"/>
+                    <RepresentationIdentity t-if="document.get('RepresentationIdentity', False)"
+                                            t-out="document['RepresentationIdentity']"/>
+                    <DocumentType t-out="document['DocumentType']"/>
+                    <Repository t-if="document.get('Repository', False)">
+                        <RepositoryName t-out="document['Repository']['RepositoryName']"/>
+                        <URL t-if="document['Repository'].get('URL', False)" t-out="document['Repository']['URL']"/>
+                        <Reference t-out="document['Repository']['Reference']"/>
+                    </Repository>
+                </FactoringAsignmentDocument>
+            </t>
+        </template>
+
+        <!-- Sub-template used for every instance of InstallmentType -->
+        <template id="installment_type">
+            <Installment>
+                <InstallmentDueDate t-out="installment['InstallmentDueDate']"/>
+                <InstallmentAmount t-out="installment['InstallmentAmount']"/>
+                <PaymentMeans t-out="installment['PaymentMeans']"/>
+                <AccountToBeCredited t-if="installment.get('AccountToBeCredited', False)">
+                    <t t-call="l10n_es_edi_face.account_type">
+                        <t t-set="account"
+                           t-value="installment['AccountToBeCredited']"/>
+                    </t>
+                </AccountToBeCredited>
+                <PaymentReconciliationReference t-if="installment.get('PaymentReconciliationReference', False)"
+                                                t-out="installment['PaymentReconciliationReference']"/>
+                <AccountToBeDebited t-if="installment.get('AccountToBeDebited', False)">
+                    <t t-call="l10n_es_edi_face.account_type">
+                        <t t-set="account"
+                           t-value="installment['AccountToBeDebited']"/>
+                    </t>
+                </AccountToBeDebited>
+                <CollectionAdditionalInformation t-if="installment.get('CollectionAdditionalInformation', False)"
+                                                 t-out="installment['CollectionAdditionalInformation']"/>
+                <RegulatoryReportingData t-if="installment.get('RegulatoryReportingData', False)"
+                                         t-out="installment['RegulatoryReportingData']"/>
+                <RegulatoryReportingData t-if="installment.get('DebitReconciliationReference', False)"
+                                         t-out="installment['DebitReconciliationReference']"/>
+            </Installment>
+        </template>
+
+        <!-- Sub-template used for every instance of LegalEntityType -->
+        <template id="legal_entity_type">
+            <LegalEntity>
+                <CorporateName t-out="legal_entity['CorporateName']"/>
+                <TradeName t-if="legal_entity.get('TradeName', False)" t-out="legal_entity['TradeName']"/>
+                <RegistrationData t-if="legal_entity.get('RegistrationData', False)">
+                    <Book t-if="legal_entity['RegistrationData'].get('Book', False)"
+                          t-out="legal_entity['RegistrationData']['book']"/>
+                    <RegisterOfCompaniesLocation
+                            t-if="legal_entity['RegistrationData'].get('RegisterOfCompaniesLocation', False)"
+                            t-out="legal_entity['RegistrationData']['RegisterOfCompaniesLocation']"/>
+                    <Sheet t-if="legal_entity['RegistrationData'].get('Sheet', False)"
+                           t-out="legal_entity['RegistrationData']['Sheet']"/>
+                    <Folio t-if="legal_entity['RegistrationData'].get('Folio', False)"
+                           t-out="legal_entity['RegistrationData']['Folio']"/>
+                    <Section t-if="legal_entity['RegistrationData'].get('Section', False)"
+                             t-out="legal_entity['RegistrationData']['Section']"/>
+                    <Volume t-if="legal_entity['RegistrationData'].get('Volume', False)"
+                            t-out="legal_entity['RegistrationData']['Volume']"/>
+                    <AdditionalRegistrationData
+                            t-if="legal_entity['RegistrationData'].get('AdditionalRegistrationData', False)"
+                            t-out="legal_entity['RegistrationData']['AdditionalRegistrationData']"/>
+                </RegistrationData>
+                <t t-call="l10n_es_edi_face.address_type">
+                    <t t-set="address" t-value="legal_entity['address']"/>
+                </t>
+                <ContactDetails t-if="legal_entity.get('ContactDetails', False)">
+                    <t t-call="l10n_es_edi_face.contact_details_type">
+                        <t t-set="ContactDetails" t-value="legal_entity['ContactDetails']"/>
+                    </t>
+                </ContactDetails>
+            </LegalEntity>
+        </template>
+
+        <!-- Sub-template used for every instance of IndividualType -->
+        <template id="individual_type">
+            <Individual>
+                <Name t-out="individual['Name']"/>
+                <FirstSurname t-out="individual['FirstSurname']"/>
+                <SecondSurname t-out="individual['SecondSurname']"/>
+                <t t-call="l10n_es_edi_face.address_type">
+                    <t t-set="address" t-value="individual['address']"/>
+                </t>
+                <ContactDetails t-if="individual.get('ContactDetails', False)">
+                    <t t-call="l10n_es_edi_face.contact_details_type">
+                        <t t-set="ContactDetails" t-value="individual['ContactDetails']"/>
+                    </t>
+                </ContactDetails>
+            </Individual>
+        </template>
+
+        <!-- Sub-template used for every instance of TaxIdentificationType -->
+        <template id="tax_identification_type">
+            <TaxIdentification>
+                <PersonTypeCode t-out="tax_id['PersonTypeCode']"/>
+                <ResidenceTypeCode t-out="tax_id['ResidenceTypeCode']"/>
+                <TaxIdentificationNumber t-out="tax_id['TaxIdentificationNumber']"/>
+            </TaxIdentification>
+        </template>
+
+        <!-- Sub-template used for every instance of BusinessType -->
+        <template id="business_type">
+            <t t-call="l10n_es_edi_face.tax_identification_type">
+                <t t-set="tax_id" t-value="business['TaxIdentification']"/>
+            </t>
+            <PartyIdentification t-if="business.get('PartyIdentification', False)"
+                                 t-out="business['PartyIdentification']"/>
+            <AdministrativeCentres t-if="business.get('AdministrativeCentres', False)">
+                <t t-foreach="business['AdministrativeCentres']" t-as="admin_center">
+                    <AdministrativeCentre>
+                        <CentreCode t-if="admin_center.get('CentreCode', False)" t-out="admin_center['CentreCode']"/>
+                        <RoleTypeCode t-if="admin_center.get('RoleTypeCode', False)"
+                                      t-out="admin_center['RoleTypeCode']"/>
+                        <Name t-if="admin_center.get('Name', False)" t-out="admin_center['Name']"/>
+                        <FirstSurname t-if="admin_center.get('FirstSurname', False)"
+                                      t-out="admin_center['FirstSurname']"/>
+                        <SecondSurname t-if="admin_center.get('SecondSurname', False)"
+                                       t-out="admin_center['SecondSurname']"/>
+                        <t t-call="l10n_es_edi_face.address_type">
+                            <t t-set="address" t-value="business['address']"/>
+                        </t>
+                        <ContactDetails t-if="business.get('ContactDetails', False)">
+                            <t t-call="l10n_es_edi_face.contact_details_type">
+                                <t t-set="ContactDetails" t-value="business['ContactDetails']"/>
+                            </t>
+                        </ContactDetails>
+                    </AdministrativeCentre>
+                </t>
+            </AdministrativeCentres>
+            <t t-if="business['Assignee'].get('LegalEntity', False)">
+                <t t-call="l10n_es_edi_face.legal_entity_type">
+                    <t t-set="legal_entity" t-value="business['Assignee']['LegalEntity']"/>
+                </t>
+            </t>
+            <t t-else="">
+                <t t-call="l10n_es_edi_face.individual_type">
+                    <t t-set="individual" t-value="business['Assignee']['Individual']"/>
+                </t>
+            </t>
+        </template>
+
+        <!-- Sub-template used for every instance of TaxType -->
+        <template id="tax_type">
+            <Tax>
+                <TaxTypeCode t-out="tax['TaxTypeCode']"/>
+                <TaxRate t-out="tax['TaxRate']"/>
+                <TaxableBase>
+                    <TotalAmount t-out="tax['TaxableBase']['TotalAmount']"/>
+                    <EquivalentInEuros t-if="tax['TaxableBase'].get('EquivalentInEuros', False)"
+                                       t-out="tax['TaxableBase']['EquivalentInEuros']"/>
+                </TaxableBase>
+                <TaxAmount t-if="tax.get('TaxAmount', False)">
+                    <TotalAmount t-out="tax['TaxAmount']['TotalAmount']"/>
+                    <EquivalentInEuros t-if="tax['TaxAmount'].get('EquivalentInEuros', False)"
+                                       t-out="tax['TaxAmount']['EquivalentInEuros']"/>
+                </TaxAmount>
+                <SpecialTaxableBase t-if="tax.get('SpecialTaxableBase', False)">
+                    <TotalAmount t-out="tax['SpecialTaxableBase']['TotalAmount']"/>
+                    <EquivalentInEuros t-if="tax['SpecialTaxableBase'].get('EquivamentInEuros', False)"
+                                       t-out="tax['SpecialTaxableBase']['EquivalentInEuros']"/>
+                </SpecialTaxableBase>
+                <SpecialTaxAmount t-if="tax.get('SpecialTaxAmount', False)">
+                    <TotalAmount t-out="tax['SpecialTaxAmount']['TotalAmount']"/>
+                    <EquivalentInEuros t-if="tax['SpecialTaxAmount'].get('EquivamentInEuros', False)"
+                                       t-out="tax['SpecialTaxAmount']['EquivalentInEuros']"/>
+                </SpecialTaxAmount>
+                <EquivalenceSurcharge t-if="tax.get('EquivalenceSurcharge', False)"
+                                      t-out="tax['EquivalenceSurcharge']"/>
+                <EquivalenceSurchargeAmount t-if="tax.get('EquivalenceSurchargeAmount', False)">
+                    <TotalAmount t-out="tax['EquivalenceSurchargeAmount']['TotalAmount']"/>
+                    <EquivalentInEuros t-if="tax['EquivalenceSurchargeAmount'].get('EquivamentInEuros', False)"
+                                       t-out="tax['EquivalenceSurchargeAmount']['EquivalentInEuros']"/>
+                </EquivalenceSurchargeAmount>
+            </Tax>
+        </template>
+
+        <!-- Sub-template used for every instance of InvoiceLineType -->
+        <template id="invoice_line_type">
+            <InvoiceLine>
+                <IssuerContractReference t-if="line.get('IssuerContractReference', False)"
+                                         t-out="line['IssuerContractReference']"/>
+                <IssuerContractDate t-if="line.get('IssuerContractDate', False)" t-out="line['IssuerContractDate']"/>
+                <IssuerTransactionReference t-if="line.get('IssuerTransactionReference', False)"
+                                            t-out="line['IssuerTransactionReference']"/>
+                <IssuerTransactionDate t-if="line.get('IssuerTransactionDate', False)"
+                                       t-out="line['IssuerTransactionDate']"/>
+                <ReceiverContractReference t-if="line.get('ReceiverContractReference', False)"
+                                           t-out="line['ReceiverContractReference']"/>
+                <ReceiverContractDate t-if="line.get('ReceiverContractDate', False)"
+                                      t-out="line['ReceiverContractDate']"/>
+                <ReceiverTransactionReference t-if="line.get('ReceiverTransactionReference', False)"
+                                              t-out="line['ReceiverTransactionReference']"/>
+                <ReceiverTransactionDate t-if="line.get('ReceiverTransactionDate', False)"
+                                         t-out="line['ReceiverTransactionDate']"/>
+                <FileReference t-if="line.get('FileReference', False)" t-out="line['FileReference']"/>
+                <FileDate t-if="line.get('FileDate', False)" t-out="line['FileDate']"/>
+                <SequenceNumber t-if="line.get('SequenceNumber', False)" t-out="line['SequenceNumber']"/>
+                <DeliveryNotesReferences t-if="line.get('DeliveryNotesReferences', False)">
+                    <t t-foreach="line['DeliveryNotesReferences']" t-as="note">
+                        <DeliveryNote>
+                            <DeliveryNoteNumber t-out="note['DeliveryNoteNumber']"/>
+                            <DeliveryNoteDate t-if="note.get('DeliveryNoteDate', False)"
+                                              t-out="note['DeliveryNoteDate']"/>
+                        </DeliveryNote>
+                    </t>
+                </DeliveryNotesReferences>
+                <ItemDescription t-out="line['ItemDescription']"/>
+                <Quantity t-out="line['Quantity']"/>
+                <UnitOfMeasure t-if="line.get('UnitOfMeasure', False)"><t
+                        t-out="line['UnitOfMeasure']"/></UnitOfMeasure>
+                <UnitPriceWithoutTax t-out="line['UnitPriceWithoutTax']"/>
+                <TotalCost t-out="line['TotalCost']"/>
+                <DiscountsAndRebates t-if="line.get('DiscountsAndRebates', False)">
+                    <t t-foreach="line['DiscountsAndRebates']" t-as="discount">
+                        <Discount>
+                            <DiscountReason t-out="discount['DiscountReason']"/>
+                            <DiscountRate t-if="dicount.get('DiscountRate', False)" t-out="discount['DiscountRate']"/>
+                            <DiscountAmount t-out="discount['DiscountAmount']"/>
+                        </Discount>
+                    </t>
+                </DiscountsAndRebates>
+                <Charges t-if="line.get('Charges', False)">
+                    <t t-foreach="line['Charges']" t-as="charge">
+                        <Charge>
+                            <ChargeReason t-out="charge['ChargeReason']"/>
+                            <ChargeRate t-if="charge.get('ChargeRate', False)" t-out="charge['ChargeRate']"/>
+                            <ChargeAmount t-out="charge['ChargeAmount']"/>
+                        </Charge>
+                    </t>
+                </Charges>
+                <GrossAmount t-out="line['GrossAmount']"/>
+                <TaxesWithheld t-if="line.get('TaxesWitheld', False)">
+                    <t t-foreach="line['TaxesWitheld']" t-as="tax">
+                        <t t-call="l10n_es_edi_face.tax_type"/>
+                    </t>
+                </TaxesWithheld>
+                <TaxesOutputs>
+                    <t t-foreach="line['TaxesOutputs']" t-as="tax">
+                        <t t-call="l10n_es_edi_face.tax_type"/>
+                    </t>
+                </TaxesOutputs>
+                <LineItemPeriod t-if="line.get('LineItemPeriod', False)">
+                    <StartDate t-out="line['LineItemPeriod']['StartDate']"/>
+                    <EndDate t-out="line['LineItemPeriod']['EndDate']"/>
+                </LineItemPeriod>
+                <TransactionDate t-if="line.get('TransactionDate', False)" t-out="line['TransactionDate']"/>
+                <AdditionalLineItemInformation t-if="line.get('AdditionalLineItemInformation', False)"
+                                               t-out="line['AdditionalLineItemInformation']"/>
+                <SpecialTaxableEvent t-if="line.get('SpecialTaxableEvent', False)">
+                    <SpecialTaxableEventCode t-out="line['SpecialTaxableEvent']['SpecialTaxableEventCode']"/>
+                    <SpecialTaxableEventReason t-out="line['SpecialTaxableEvent']['SpecialTaxableEventReason']"/>
+                </SpecialTaxableEvent>
+                <ArticleCode t-if="line.get('ArticleCode', False)" t-out="line['ArticleCode']"/>
+                <Extensions t-if="line.get('Extensions', False)" t-out="line['Extensions']"/>
+            </InvoiceLine>
+        </template>
+
+        <!-- Sub-template used for every instance of InvoiceType -->
+        <template id="invoice_type">
+            <Invoice>
+                <InvoiceHeader>
+                    <InvoiceNumber t-out="invoice['InvoiceNumber']"/>
+                    <InvoiceSeriesCode t-if="invoice.get('InvoiceSeriesCode', False)"
+                                       t-out="invoice['InvoiceSeriesCode']"/>
+                    <InvoiceDocumentType t-out="invoice['InvoiceDocumentType']"/>
+                    <InvoiceClass t-out="invoice['InvoiceClass']"/>
+                    <Corrective t-if="invoice.get('Corrective', False)">
+                        <InvoiceNumber t-out="invoice['Corrective']['InvoiceNumber']"/>
+                        <InvoiceSeriesCode t-if="invoice['Corrective'].get('InvoiceSeriesCode', False)"
+                                           t-out="invoice['Corrective']['InvoiceSeriesCode']"/>
+                        <ReasonCode t-out="invoice['Corrective']['ReasonCode']"/>
+                        <ReasonDescription t-out="invoice['Corrective']['ReasonDescription']"/>
+                        <TaxPeriod>
+                            <StartDate t-out="invoice['Corrective']['TaxPeriod']['StartDate']"/>
+                            <EndDate t-out="invoice['Corrective']['TaxPeriod']['EndDate']"/>
+                        </TaxPeriod>
+                        <CorrectionMethod t-out="invoice['Corrective']['CorrectionMethod']"/>
+                        <CorrectionMethodDescription t-out="invoice['Corrective']['CorrectionMethodDescription']"/>
+                        <AdditionalReasonDescription
+                                t-if="invoice['Corrective'].get('AdditionalReasonDescription', False)"
+                                t-out="invoice['Corrective']['AdditionalReasonDescription']"/>
+                        <InvoiceIssueDate t-if="invoice['Corrective'].get('InvoiceIssueDate', False)"
+                                          t-out="invoice['Corrective']['InvoiceIssueDate']"/>
+                    </Corrective>
+                </InvoiceHeader>
+                <InvoiceIssueData>
+                    <IssueDate t-out="invoice['InvoiceIssueData']['IssueDate']"/>
+                    <OperationDate t-if="invoice['InvoiceIssueData'].get('OperationDate', False)"
+                                   t-out="invoice['InvoiceIssueData']['OperationDate']"/>
+                    <PlaceOfIssue t-if="invoice['InvoiceIssueData'].get('PlaceOfIssue', False)">
+                        <PostCode t-out="invoice['InvoiceIssueData']['PostCode']"/>
+                        <PlaceOfIssueDescription
+                                t-if="invoice['InvoiceIssueData'].get('PlaceOfIssueDescription', False)"
+                                t-out="invoice['InvoiceIssueData']['PlaceOfIssueDescription']"/>
+                    </PlaceOfIssue>
+                    <InvoicingPeriod t-if="invoice['InvoiceIssueData'].get('InvoicingPeriod', False)">
+                        <StartDate t-out="invoice['InvoiceIssueData']['InvoicingPeriod']['StartDate']"/>
+                        <EndDate t-out="invoice['InvoiceIssueData']['InvoicingPeriod']['EndDate']"/>
+                    </InvoicingPeriod>
+                    <InvoiceCurrencyCode t-out="invoice['InvoiceIssueData']['InvoiceCurrencyCode']"/>
+                    <ExchangeRateDetails t-if="invoice['InvoiceIssueData'].get('ExchangeRateDetails', False)">
+                        <ExchangeRate t-out="invoice['InvoiceIssueData']['ExchangeRate']"/>
+                        <ExchangeDate t-out="invoice['InvoiceIssueData']['ExchangeDate']"/>
+                    </ExchangeRateDetails>
+                    <TaxCurrencyCode t-out="invoice['InvoiceIssueData']['TaxCurrencyCode']"/>
+                    <LanguageName t-out="invoice['InvoiceIssueData']['LanguageName']"/>
+                    <InvoiceDescription t-if="invoice['InvoiceIssueData'].get('InvoiceDescription', False)"
+                                        t-out="invoice['InvoiceIssueData']['InvoiceDescription']"/>
+                    <ReceiverTransactionReference
+                            t-if="invoice['InvoiceIssueData'].get('ReceiverTransactionReference', False)"
+                            t-out="invoice['InvoiceIssueData']['ReceiverTransactionReference']"/>
+                    <FileReference t-if="invoice['InvoiceIssueData'].get('FileReference', False)"
+                                   t-out="invoice['InvoiceIssueData']['FileReference']"/>
+                    <ReceiverContractReference
+                            t-if="invoice['InvoiceIssueData'].get('ReceiverContractReference', False)"
+                            t-out="invoice['InvoiceIssueData']['ReceiverContractReference']"/>
+                </InvoiceIssueData>
+                <TaxesOutputs>
+                    <t t-foreach="invoice['TaxOutputs']" t-as="tax">
+                        <t t-call="l10n_es_edi_face.tax_type"/>
+                    </t>
+                </TaxesOutputs>
+                <TaxesWithheld t-if="invoice.get('TaxesWithheld', False)">
+                    <t t-foreach="invoice['TaxesWithheld']" t-as="tax">
+                        <t t-call="l10n_es_edi_face.tax_type"/>
+                    </t>
+                </TaxesWithheld>
+                <InvoiceTotals>
+                    <TotalGrossAmount t-out="invoice['TotalGrossAmount']"/>
+                    <GeneralDiscounts t-if="invoice.get('GeneralDiscounts', False)">
+                        <t t-foreach="invoice['GeneralDiscounts']" t-as="discount">
+                            <Discount>
+                                <DiscountReason t-out="discount['DiscountReason']"/>
+                                <DiscountRate t-if="dicount.get('DiscountRate', False)"
+                                              t-out="discount['DiscountRate']"/>
+                                <DiscountAmount t-out="discount['DiscountAmount']"/>
+                            </Discount>
+                        </t>
+                    </GeneralDiscounts>
+                    <GeneralSurcharges t-if="invoice.get('GeneralSurcharges', False)">
+                        <t t-foreach="invoice['GeneralSurcharges']" t-as="charge">
+                            <Charge>
+                                <ChargeReason t-out="charge['ChargeReason']"/>
+                                <ChargeRate t-if="charge.get('ChargeRate', False)" t-out="charge['ChargeRate']"/>
+                                <ChargeAmount t-out="charge['ChargeAmount']"/>
+                            </Charge>
+                        </t>
+                    </GeneralSurcharges>
+                    <TotalGeneralDiscounts t-if="invoice.get('TotalGeneralDiscounts', False)"
+                                           t-out="invoice['TotalGeneralDiscounts']"/>
+                    <TotalGeneralSurcharges t-if="invoice.get('TotalGeneralSurcharges', False)"
+                                            t-out="invoice['TotalGeneralSurcharges']"/>
+                    <TotalGrossAmountBeforeTaxes t-out="invoice['TotalGrossAmountBeforeTaxes']"/>
+                    <TotalTaxOutputs t-out="invoice['TotalTaxOutputs']"/>
+                    <TotalTaxesWithheld t-out="invoice['TotalTaxesWithheld']"/>
+                    <InvoiceTotal t-out="invoice['InvoiceTotal']"/>
+                    <Subsidies t-if="invoice.get('Subsidies', False)">
+                        <t t-foreach="invoice['Subsidies']" t-as="subsidy">
+                            <Subsidy>
+                                <SubsidyDescription t-out="subsidy['SubsidyDescription']"/>
+                                <SubsidyRate t-if="subsidy.get('SubsidyRate', False)" t-out="subsidy['SubsidyRate']"/>
+                                <SubsidyAmount t-out="subsidy['SubsidyAmount']"/>
+                            </Subsidy>
+                        </t>
+                    </Subsidies>
+                    <PaymentsOnAccount t-if="invoice.get('PaymentsOnAccount', False)">
+                        <t t-foreach="invoice['PaymentsOnAccount']" t-as="payment">
+                            <PaymentOnAccount>
+                                <PaymentOnAccountDate t-out="payment['PaymentOnAccountDate']"/>
+                                <PaymentOnAccountAmount t-out="payment['PaymentOnAccountAmount']"/>
+                            </PaymentOnAccount>
+                        </t>
+                    </PaymentsOnAccount>
+                    <ReimbursableExpenses t-if="invoice.get('ReimbursableExpenses', False)">
+                        <t t-foreach="invoice['ReimbursableExpenses']" t-as="expenses">
+                            <ReimbursableExpenses>
+                                <ReimbursableExpensesSellerParty
+                                        t-if="expenses.get('ReimbursableExpensesSellerParty', False)">
+                                    <t t-call="l10n_es_edi_face.tax_identification_type">
+                                        <t t-set="tax_id" t-value="expenses['ReimbursableExpensesSellerParty']"/>
+                                    </t>
+                                </ReimbursableExpensesSellerParty>
+                                <ReimbursableExpensesBuyerParty
+                                        t-if="expenses.get('ReimbursableExpensesBuyerParty', False)">
+                                    <t t-call="l10n_es_edi_face.tax_identification_type">
+                                        <t t-set="tax_id" t-value="expenses['ReimbursableExpensesBuyerParty']"/>
+                                    </t>
+                                </ReimbursableExpensesBuyerParty>
+                                <IssueDate t-if="expenses.get('IssueDate', False)" t-out="expenses['IssueDate']"/>
+                                <InvoiceNumber t-if="expenses.get('InvoiceNumber', False)"
+                                               t-out="expenses['InvoiceNumber']"/>
+                                <ReimbursableExpensesAmount t-out="expenses['ReimbursableExpensesAmount']"/>
+                            </ReimbursableExpenses>
+                        </t>
+                    </ReimbursableExpenses>
+                    <TotalFinancialExpenses t-if="invoice.get('ReimbursableExpensesAmount', False)"
+                                            t-out="invoice['ReimbursableExpensesAmount']"/>
+                    <TotalOutstandingAmount t-out="invoice['TotalOutstandingAmount']"/>
+                    <TotalPaymentsOnAccount t-if="invoice.get('TotalPaymentsOnAccount', False)"
+                                            t-out="invoice['TotalPaymentsOnAccount']"/>
+                    <AmountsWithheld t-if="invoice.get('AmountsWithheld', False)">
+                        <WithholdingReason t-out="invoice['AmountsWitheld']['WithholdingReason']"/>
+                        <WithholdingRate t-if="invoice['AmountsWitheld'].get('WithholdingRate', False)"
+                                         t-out="invoice['AmountsWitheld']['WithholdingRate']"/>
+                        <WithholdingAmount t-out="invoice['AmountsWitheld']['WithholdingAmount']"/>
+                    </AmountsWithheld>
+                    <TotalExecutableAmount t-out="invoice['TotalExecutableAmount']"/>
+                    <TotalReimbursableExpenses t-if="invoice.get('TotalReimbursableExpenses', False)"
+                                               t-out="invoice['TotalReimbursableExpenses']"/>
+                    <PaymentInKind t-if="invoice.get('PaymentInKind', False)">
+                        <PaymentInKindReason t-out="invoice['PaymentInKind']['PaymentInKindReason']"/>
+                        <PaymentInKindAmount t-out="invoice['PaymentInKind']['PaymentInKindAmount']"/>
+                    </PaymentInKind>
+                </InvoiceTotals>
+                <Items>
+                    <t t-foreach="invoice['Items']" t-as="line">
+                        <t t-call="l10n_es_edi_face.invoice_line_type"/>
+                    </t>
+                </Items>
+                <PaymentDetails t-if="invoice.get('PaymentDetails', False)">
+                    <t t-foreach="invoice['PaymentDetails']" t-as="installment">
+                        <t t-call="l10n_es_edi_face.installment_type"/>
+                    </t>
+                </PaymentDetails>
+                <LegalLiterals t-if="invoice.get('LegalLiterals', False)">
+                    <t t-foreach="invoice['LegalLiterals']" t-as="reference">
+                        <LegalReference t-out="reference"/>
+                    </t>
+                </LegalLiterals>
+                <AdditionalData t-if="invoice.get('AdditionalData', False)">
+                    <RelatedInvoice t-if="invoice['AdditionalData'].get('RelatedInvoice', False)"
+                                    t-out="invoice['AdditionalData']['RelatedInvoice']"/>
+                    <RelatedDocuments t-if="invoice['AdditionalData'].get('RelatedDocuments', False)">
+                        <t t-foreach="invoice['additionalData']['RelatedDocuments']" t-as="attachment">
+                            <Attachment>
+                                <AttachmentCompressionAlgorithm
+                                        t-if="attachment.get('AttachmentCompressionAlgorithm', False)"
+                                        t-out="attachment['AttachmentCompressionAlgoritm']"/>
+                                <AttachmentFormat t-out="attachment['AttachmentFormat']"/>
+                                <AttachmentEncoding t-if="attachment.get('AttachmentEncoding', False)"
+                                                    t-out="attachment['AttachmentEncoding']"/>
+                                <AttachmentData t-out="attachment['AttachmentData']"/>
+                            </Attachment>
+                        </t>
+                    </RelatedDocuments>
+                    <InvoiceAdditionalInformation t-if="invoice.get('InvoiceAdditionalInformation', False)"
+                                                  t-out="invoice['InvoiceAdditionalInformation']"/>
+                    <Extensions t-if="invoice.get('Extensions', False)" t-out="invoice['Extensions']"/>
+                </AdditionalData>
+            </Invoice>
+        </template>
+
+        <!-- Main template used for the EDI -->
+        <template id="account_invoice_facturae_export">
+            <fac:Facturae xmlns:fac="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml"
+                          xmlns:xd="http://www.w3.org/2000/09/xmldsig#"
+            >
+                <FileHeader>
+                    <SchemaVersion>3.2.2</SchemaVersion>
+                    <Modality t-out="Modality"/>
+                    <InvoiceIssuerType t-out="InvoiceIssuerType"/>
+                    <ThirdParty t-if="ThirdParty != False">
+                        <t t-call="l10n_es_edi_face.business_type">
+                            <t t-set="partner" t-value="ThirdParty"/>
+                        </t>
+                    </ThirdParty>
+                    <Batch>
+                        <BatchIdentifier t-out="BatchIdentifier"/>
+                        <InvoicesCount t-out="InvoicesCount"/>
+                        <TotalInvoicesAmount>
+                            <TotalAmount t-out="TotalInvoicesAmount['TotalAmount']"/>
+                            <EquivalentInEuros t-if="TotalInvoicesAmount.get('EquivalentInEuros', False)"
+                                               t-out="TotalInvoicesAmount['EquivalentInEuros']"/>
+                        </TotalInvoicesAmount>
+                        <TotalOutstandingAmount>
+                            <TotalAmount t-out="TotalOutstandingAmount['TotalAmount']"/>
+                            <EquivalentInEuros t-if="TotalOutstandingAmount.get('EquivalentInEuros', False)"
+                                               t-out="TotalOutstandingAmount['EquivalentInEuros']"/>
+                        </TotalOutstandingAmount>
+                        <TotalExecutableAmount>
+                            <TotalAmount t-out="TotalExecutableAmount['TotalAmount']"/>
+                            <EquivalentInEuros t-if="TotalExecutableAmount.get('EquivalentInEuros', False)"
+                                               t-out="TotalExecutableAmount['EquivalentInEuros']"/>
+                        </TotalExecutableAmount>
+                        <InvoiceCurrencyCode t-out="InvoiceCurrencyCode"/>
+                    </Batch>
+                    <FactoringAssignmentData t-if="FactoringAssignmentData != False">
+                        <Assignee>
+                            <t t-call="l10n_es_edi_face.tax_identification_type">
+                                <t t-set="tax_id" t-value="FactoringAssignmentData['Assignee']['TaxIdentification']"/>
+                            </t>
+                            <t t-if="FactoringAssignmentData['Assignee'].get('LegalEntity', False)">
+                                <t t-call="l10n_es_edi_face.legal_entity_type">
+                                    <t t-set="legal_entity"
+                                       t-value="FactoringAssignmentData['Assignee']['LegalEntity']"/>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <t t-call="l10n_es_edi_face.individual_type">
+                                    <t t-set="individual" t-value="FactoringAssignmentData['Assignee']['Individual']"/>
+                                </t>
+                            </t>
+                        </Assignee>
+                        <PaymentDetails>
+                            <t t-foreach="FactoringAssignmentData['Installments']" t-as="installment">
+                                <t t-call="l10n_es_edi_face.installment_type"/>
+                            </t>
+                        </PaymentDetails>
+                    </FactoringAssignmentData>
+                </FileHeader>
+                <Parties>
+                    <SellerParty>
+                        <t t-call="l10n_es_edi_face.business_type">
+                            <t t-set="business" t-value="SellerParty"/>
+                        </t>
+                    </SellerParty>
+                    <BuyerParty>
+                        <t t-call="l10n_es_edi_face.business_type">
+                            <t t-set="business" t-value="BuyerParty"/>
+                        </t>
+                    </BuyerParty>
+                </Parties>
+                <Invoices>
+                    <t t-foreach="Invoices" t-as="invoice">
+                        <t t-call="l10n_es_edi_face.invoice_type">
+                        </t>
+                    </t>
+                </Invoices>
+                <Extensions t-if="Extensions != False" t-out="Extensions"/>
+                <xd:Signature/>
+            </fac:Facturae>
+        </template>
+    </data>
+</odoo>

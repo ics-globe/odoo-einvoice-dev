@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="edi_es_face" model="account.edi.format">
+            <field name="name">FACe (ES)</field>
+            <field name="code">es_face</field>
+        </record>
+    </data>
+</odoo>

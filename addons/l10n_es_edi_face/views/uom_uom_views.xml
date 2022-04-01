@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_uom_tree_view_inherits_l10n_es_edi_face" model="ir.ui.view">
+        <field name="name">uom.uom.tree.inherits.l10n_es_edi_face</field>
+        <field name="model">uom.uom</field>
+        <field name="inherit_id" ref="uom.product_uom_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="after">
+                <field name="l10n_es_edi_face_uom_code" string="Spanish FACe EDI type"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_uom_form_view_inherits_l10n_es_edi_face" model="ir.ui.view">
+        <field name="name">uom.uom.form.inherits.l10n_es_edi_face</field>
+        <field name="model">uom.uom</field>
+        <field name="inherit_id" ref="uom.product_uom_form_view"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="after">
+                <field name="l10n_es_edi_face_uom_code" string="Spanish FACe EDI type"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_uom_categ_form_view_inherits_l10n_es_edi_face" model="ir.ui.view">
+        <field name="name">uom.category.form.inherits.l10n_es_edi_face</field>
+        <field name="model">uom.category</field>
+        <field name="inherit_id" ref="uom.product_uom_categ_form_view"/>
+        <field name="arch" type="xml">
+            <tree position="inside">
+                <field name="l10n_es_edi_face_uom_code" string="Spanish FACe EDI type"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
