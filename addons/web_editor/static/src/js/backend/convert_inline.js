@@ -90,8 +90,8 @@ function attachmentThumbnailToLinkImg($editable) {
         const image = document.createElement('img');
         image.setAttribute('src', _getStylePropertyValue(link, 'background-image').replace(/(^url\(['"])|(['"]\)$)/g, ''));
         // Note: will trigger layout thrashing.
-        image.setAttribute('height', Math.max(1, _getHeight(link)) + 'px');
-        image.setAttribute('width', Math.max(1, _getWidth(link)) + 'px');
+        image.setAttribute('height', Math.max(1, _getHeight(link)));
+        image.setAttribute('width', Math.max(1, _getWidth(link)));
         link.prepend(image);
     };
 }
@@ -371,14 +371,22 @@ function classToStyle($editable, cssRules) {
             writes.push(() => {
                 node.setAttribute('style', style);
                 if (node.style.width) {
-                    node.setAttribute('width', node.style.width);
+                    node.setAttribute('width', node.style.width.replace('px', '').trim());
                 }
             });
         }
 
-        // Media list images should not have an inline height
-        if (node.nodeName === 'IMG' && node.classList.contains('s_media_list_img')) {
-            writes.push(() => { node.style.removeProperty('height'); });
+        if (node.nodeName === 'IMG') {
+            writes.push(() => {
+                // Media list images should not have an inline height
+                if (node.classList.contains('s_media_list_img')) {
+                    node.style.removeProperty('height');
+                }
+                // Protect aspect ratio when resizing in mobile.
+                if (node.style.getPropertyValue('width') === '100%' && node.style.getPropertyValue('object-fit' === '')) {
+                    node.style.setProperty('object-fit', 'cover');
+                }
+            });
         }
         // Apple Mail
         if (node.nodeName === 'TD' && !node.childNodes.length) {
@@ -428,7 +436,8 @@ function enforceTablesResponsivity(editable) {
     for (const td of editable.querySelectorAll('.s_masonry_block td')) {
         td.classList.toggle('o_desktop_h100', true);
         td.style.setProperty('height', '100%');
-        if ([...td.children].map(child => child.nodeName.toLowerCase()).includes('table')) {
+        const childrenNames = [...td.children].map(child => child.nodeName);
+        if (childrenNames.includes('TABLE')) {
             td.style.setProperty('height', _getHeight(td.parentElement) + 'px');
         } else {
             // Hack that makes vertical-align possible within an inline-block.
@@ -444,6 +453,31 @@ function enforceTablesResponsivity(editable) {
             centeringSpan.style.setProperty('vertical-align', 'middle');
             td.prepend(centeringSpan);
         }
+    }
+}
+/**
+ * Modify the styles of images so they are responsive.
+ *
+ * @param {Element} editable
+ */
+function enforceImagesResponsivity(editable) {
+    // Images with 100% height in cells should preserve that height and the
+    // height of the row should be applied to the cell.
+    for (const image of editable.querySelectorAll('td > img')) {
+        const td = image.parentElement;
+        if (td.childElementCount === 1 && (image.classList.contains('h-100') || _getStylePropertyValue(image, 'height') === '100%')) {
+            td.style.setProperty('height', _getHeight(td.parentElement) + 'px');
+            image.style.setProperty('height', '100%');
+        }
+    }
+    // Remove the height attribute in card images so they can resize
+    // responsively, but leave it for Outlook.
+    for (const image of editable.querySelectorAll('img[width="100%"][height]')) {
+        image.before(document.createComment(`[if mso]>${image.outerHTML}<![endif]`))
+        image.classList.toggle('mso-hide', true);
+        image.before(document.createComment('[if !mso]><!'));
+        image.after(document.createComment('<![endif]'));
+        image.removeAttribute('height');
     }
 }
 /**
@@ -514,6 +548,13 @@ async function toInline($editable, cssRules, $iframe) {
     responsiveToStaticForOutlook(editable);
     enforceTablesResponsivity(editable);
     formatTables($editable);
+    enforceImagesResponsivity(editable);
+
+    // Hide replaced cells on Outlook
+    for (const toHide of editable.querySelectorAll('.mso-hide')) {
+        const style = toHide.getAttribute('style') || '';
+        toHide.setAttribute('style', `${style} mso-hide: all;`.trim());
+    }
 
     // Styles were applied inline, we don't need a style element anymore.
     $editable.find('style').remove();
@@ -713,11 +754,6 @@ function formatTables($editable) {
                 table.style.setProperty('text-align', ancestor.style.textAlign);
             }
         }
-    }
-    // Hide replaced cells on Outlook
-    for (const toHide of editable.querySelectorAll('.mso-hide')) {
-        const style = toHide.getAttribute('style') || '';
-        toHide.setAttribute('style', `${style} mso-hide: all;`.trim());
     }
 }
 /**
