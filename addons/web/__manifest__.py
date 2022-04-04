@@ -404,7 +404,6 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/js/libs/jquery.js',
             'web/static/src/legacy/js/libs/underscore.js',
             'web/static/src/legacy/js/libs/pdfjs.js',
-            'web/static/src/legacy/js/libs/popper.js',
             'web/static/src/legacy/js/libs/zoomodoo.js',
             'web/static/src/legacy/js/libs/jSignatureCustom.js',
             'web/static/src/legacy/js/core/abstract_service.js',
