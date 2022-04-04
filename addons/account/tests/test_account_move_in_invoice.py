@@ -1048,7 +1048,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
         move_form = Form(self.invoice)
         # Change the date to get another rate: 1/3 instead of 1/2.
-        move_form.date = fields.Date.from_string('2016-01-01')
+        move_form.invoice_date = fields.Date.from_string('2016-01-01')
         move_form.save()
 
         self.assertInvoiceValues(self.invoice, [
@@ -1081,11 +1081,12 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
                 'currency_id': self.currency_data['currency'].id,
                 'amount_currency': -1128.0,
                 'credit': 376.0,
+                'date_maturity': fields.Date.from_string('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.currency_data['currency'].id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string('2016-01-31'),
         })
 
         move_form = Form(self.invoice)
@@ -1136,11 +1137,12 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
                 'price_total': -208.006,
                 'amount_currency': -208.006,
                 'credit': 69.33,
+                'date_maturity': fields.Date.from_string('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.currency_data['currency'].id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string('2016-01-31'),
             'amount_untaxed': 160.005,
             'amount_tax': 48.001,
             'amount_total': 208.006,
@@ -1178,11 +1180,12 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
                 'price_total': -208.01,
                 'amount_currency': -208.01,
                 'credit': 208.01,
+                'date_maturity': fields.Date.from_string('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.company_data['currency'].id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string('2016-01-31'),
             'amount_untaxed': 160.01,
             'amount_tax': 48.0,
             'amount_total': 208.01,
