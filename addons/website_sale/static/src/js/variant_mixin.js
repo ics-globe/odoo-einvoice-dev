@@ -40,13 +40,16 @@ VariantMixin._onChangeCombination = function (ev, $parent, combination) {
         $product.trigger('view_item_event', combination['product_tracking_info']);
     }
     const addToCart = $parent.find('#o_wsale_cta_wrapper');
+    const contactUsButton = $parent.find('#contact_us_wrapper');
     const productPrice = $parent.find('.product_price');
     if (!combination.price) {
         productPrice.removeClass('d-inline-block').addClass('d-none');
         addToCart.removeClass('d-flex').addClass('d-none');
+        contactUsButton.removeClass('d-none').addClass('d-flex');
     } else {
         productPrice.removeClass('d-none').addClass('d-inline-block');
         addToCart.removeClass('d-none').addClass('d-flex');
+        contactUsButton.removeClass('d-flex').addClass('d-none');
     }
     originalOnChangeCombination.apply(this, [ev, $parent, combination]);
 };
