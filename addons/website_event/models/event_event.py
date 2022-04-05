@@ -6,13 +6,14 @@ from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import json
 import werkzeug.urls
-
+from psycopg2 import sql
 from pytz import utc, timezone
 
 from odoo import api, fields, models, _
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.osv import expression
 from odoo.tools.misc import get_lang, format_date
+from odoo.tools import escape_psql
 
 GOOGLE_CALENDAR_URL = 'https://www.google.com/calendar/render?'
 
@@ -479,9 +480,6 @@ class Event(models.Model):
         tags = options.get('tags')
         event_type = options.get('type', 'all')
 
-        # We want to let users search events by address (accessible with `addres_id`
-        # m2o field) but read access on `res.partner` requires sudo for public users.
-        requires_sudo = True
         domain = [website.website_domain()]
         if event_type != 'all':
             domain.append([("event_type_id", "=", int(event_type))])
@@ -522,11 +520,10 @@ class Event(models.Model):
                 if date_details[0] != 'upcoming':
                     current_date = date_details[1]
 
-        search_fields = ['name', 'address_id.city']
+        search_fields = ['name']
         fetch_fields = ['name', 'website_url']
         mapping = {
             'name': {'name': 'name', 'type': 'text', 'match': True},
-            'address_id.city': {'name': 'address_id.city', 'type': 'text', 'match': True},
             'website_url': {'name': 'website_url', 'type': 'text', 'truncate': False},
         }
         if with_description:
@@ -541,7 +538,6 @@ class Event(models.Model):
             'search_fields': search_fields,
             'fetch_fields': fetch_fields,
             'mapping': mapping,
-            'requires_sudo': requires_sudo,
             'icon': 'fa-ticket',
             # for website_event main controller:
             'dates': dates,
@@ -560,3 +556,44 @@ class Event(models.Model):
                 end = self.env['ir.qweb.field.date'].record_to_html(event, 'date_end', {})
                 data['range'] = '%s🠖%s' % (begin, end) if begin != end else begin
         return results_data
+
+    def _search_fetch(self, search_detail, search, limit, order):
+        results, count = super()._search_fetch(search_detail, search, limit, order)
+        query = sql.SQL("""
+                SELECT {table}.{id}
+                FROM {table}
+                LEFT JOIN res_partner p ON p.{id} = {table}.{address_id}
+                LEFT JOIN res_country c ON c.{id} = p.{country_id}
+                WHERE p.{city} ilike {search}
+                OR c.{name} ilike {search}
+                LIMIT {limit}
+            """).format(
+                table=sql.Identifier(self._table),
+                id=sql.Identifier('id'),
+                address_id=sql.Identifier('address_id'),
+                city=sql.Identifier('city'),
+                country_id=sql.Identifier('country_id'),
+                name=sql.Identifier('name'),
+                search=sql.Placeholder('search'),
+                limit=sql.Placeholder('limit'),
+            )
+        self.env.cr.execute(query, {
+                'search': '%%%s%%' % escape_psql(search),
+                'limit': limit,
+            })
+
+        ids = {row[0] for row in self.env.cr.fetchall()}
+        ids.update(results.ids)
+        domains = search_detail['base_domain'].copy()
+        domains.append([('id', 'in', list(ids))])
+        domain = expression.AND(domains)
+        model = self.sudo() if search_detail.get('requires_sudo') else self
+
+        results = model.search(
+            domain,
+            limit=limit,
+            order=search_detail.get('order', order)
+        )
+        count = max(count, len(results))
+
+        return results, count
