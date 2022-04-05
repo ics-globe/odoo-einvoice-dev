@@ -692,13 +692,18 @@
                                         </div>
                                         <div id="product_option_block" class="d-flex flex-wrap w-100"/>
                                     </div>
-                                     <div id="contact_us_wrapper" t-attf-class="d-none oe_structure oe_structure_solo #{_div_classes}">
-                                             <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
-                                                 <div class="container">
-                                                     <a t-att-href="website.contact_us_button_url" class="btn btn-primary btn_cta">Contact Us</a>
-                                                 </div>
-                                             </section>
-                                         </div>
+                                    <t t-if="website.hide_add_to_cart">
+                                        <div id="contact_us_wrapper"
+                                             t-attf-class="d-none oe_structure oe_structure_solo #{_div_classes}">
+                                            <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
+                                                <div class="container">
+                                                    <a t-att-href="website.contact_us_button_url"
+                                                       class="btn btn-primary btn_cta">Contact Us
+                                                    </a>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </t>
                                 </div>
                             </form>
                             <p t-elif="not product.active" class="alert alert-warning">This product is no longer available.</p>
