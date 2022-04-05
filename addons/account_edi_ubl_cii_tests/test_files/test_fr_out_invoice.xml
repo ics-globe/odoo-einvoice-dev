@@ -113,15 +113,6 @@
       <ram:BuyerReference>buyer_ref</ram:BuyerReference>
       <ram:SellerTradeParty>
         <ram:Name>partner_1</ram:Name>
-        <ram:DefinedTradeContact>
-          <ram:PersonName>partner_1</ram:PersonName>
-          <ram:TelephoneUniversalCommunication>
-            <ram:CompleteNumber>+1 (650) 555-0111</ram:CompleteNumber>
-          </ram:TelephoneUniversalCommunication>
-          <ram:EmailURIUniversalCommunication>
-            <ram:URIID schemeID="SMTP">partner1@yourcompany.com</ram:URIID>
-          </ram:EmailURIUniversalCommunication>
-        </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>75000</ram:PostcodeCode>
           <ram:LineOne>Rue Jean Jaurès, 42</ram:LineOne>
@@ -134,9 +125,6 @@
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
         <ram:Name>partner_2</ram:Name>
-        <ram:DefinedTradeContact>
-          <ram:PersonName>partner_2</ram:PersonName>
-        </ram:DefinedTradeContact>
         <ram:PostalTradeAddress>
           <ram:PostcodeCode>52330</ram:PostcodeCode>
           <ram:LineOne>Rue Charles de Gaulle</ram:LineOne>

@@ -71,7 +71,7 @@
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode name="credit transfer">30</cbc:PaymentMeansCode>
     <cbc:PaymentID>+++000/0000/26268+++</cbc:PaymentID>
     <cac:PayeeFinancialAccount>
       <cbc:ID>BE15001559627230</cbc:ID>

@@ -36,24 +36,25 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'Country_vals': self._get_country_vals(partner.country_id),
         }
 
-    def _get_partner_party_tax_scheme_vals(self, partner):
-        return {
+    def _get_partner_party_tax_scheme_vals_list(self, partner, role):
+        return [{
             'registration_name': partner.name,
             'company_id': partner.vat,
             'RegistrationAddress_vals': self._get_partner_address_vals(partner),
             'TaxScheme_vals': {},
-        }
+            'tax_scheme_id': 'VAT',
+        }]
 
-    def _get_partner_party_legal_entity_vals(self, partner):
+    def _get_partner_party_legal_entity_vals_list(self, partner):
         commercial_partner = partner.commercial_partner_id
 
-        return {
+        return [{
             'commercial_partner': commercial_partner,
 
             'registration_name': commercial_partner.name,
             'company_id': commercial_partner.vat,
             'RegistrationAddress_vals': self._get_partner_address_vals(commercial_partner),
-        }
+        }]
 
     def _get_partner_contact_vals(self, partner):
         return {
@@ -63,14 +64,14 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'electronic_mail': partner.email,
         }
 
-    def _get_partner_party_vals(self, partner):
+    def _get_partner_party_vals(self, partner, role):
         return {
             'partner': partner,
             'PartyIdentification_vals': self._get_partner_party_identification_vals_list(partner),
             'PartyName_vals': [{'name': partner.name}],
             'PostalAddress_vals': self._get_partner_address_vals(partner),
-            'PartyTaxScheme_vals': self._get_partner_party_tax_scheme_vals(partner),
-            'PartyLegalEntity_vals': self._get_partner_party_legal_entity_vals(partner),
+            'PartyTaxScheme_vals': self._get_partner_party_tax_scheme_vals_list(partner, role),
+            'PartyLegalEntity_vals': self._get_partner_party_legal_entity_vals_list(partner),
             'Contact_vals': self._get_partner_contact_vals(partner),
         }
 
@@ -139,6 +140,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     def _get_invoice_payment_means_vals_list(self, invoice):
         vals = {
             'payment_means_code': 30,
+            'payment_means_code_attrs': {'name': 'credit transfer'},
             'payment_due_date': invoice.invoice_date_due or invoice.invoice_date,
             'instruction_id': invoice.payment_reference,
             'payment_id_vals': [invoice.payment_reference or invoice.name],
@@ -204,6 +206,28 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'ClassifiedTaxCategory_vals': tax_category_vals_list,
         }
 
+    def _get_document_allowance_charge_vals_list(self, invoice):
+        """
+        https://docs.peppol.eu/poacc/billing/3.0/bis/#_document_level_allowance_or_charge
+        The aim is to transform the ecotax/récupel into a charge at the document level.
+        Warning, as the charge is transformed into an allowance, we have to make sure no tax is created on the line
+        level, otherwise, the TaxInclusiveAmount, will be wrong.
+        """
+        vals_list = []
+        #for line in invoice.line_ids:
+        #    for tax in line.tax_ids:
+        #        if tax.amount_type == 'fixed':
+        #            total_amount += tax.amount
+        #            vals_list.append({
+        #                'charge_indicator': 'true',
+        #                'allowance_charge_reason_code': 'AEO',  # "Collection and recycling"
+        #                'allowance_charge_reason': 'Collection and recycling',
+        #                'amount': float(tax.amount),
+        #                'currency_name': line.currency_id.name,
+        #                'currency_dp': line.currency_id.decimal_places,
+        #            })
+        return vals_list
+
     def _get_invoice_line_allowance_vals_list(self, line):
         """ Method used to fill the cac:InvoiceLine/cac:AllowanceCharge node.
 
@@ -227,7 +251,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             gross_price_subtotal = line.currency_id.round(net_price_subtotal / (1.0 - (line.discount or 0.0) / 100.0))
 
         allowance_vals = {
-            'currency': line.currency_id,
+            'currency_name': line.currency_id.name,
             'currency_dp': line.currency_id.decimal_places,
 
             # Must be 'false' since this method is for allowances.
@@ -322,7 +346,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         line_extension_amount = 0.0
 
         invoice_lines = invoice.invoice_line_ids.filtered(lambda line: not line.display_type)
-        allowance_charge_vals_list = []
+        document_allowance_charge_vals_list = self._get_document_allowance_charge_vals_list(invoice)
         invoice_line_vals_list = []
         for line in invoice_lines:
             line_taxes_vals = taxes_vals['invoice_line_tax_details'][line]
@@ -333,7 +357,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         # Compute the total allowance/charge amounts.
         allowance_total_amount = 0.0
-        for allowance_charge_vals in allowance_charge_vals_list:
+        for allowance_charge_vals in document_allowance_charge_vals_list:
             if allowance_charge_vals['charge_indicator'] == 'false':
                 allowance_total_amount += allowance_charge_vals['amount']
 
@@ -378,18 +402,23 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             'vals': {
                 'ubl_version_id': 2.0,
+                'id': invoice.name,
+                'issue_date': invoice.invoice_date,
+                'due_date': invoice.invoice_date_due,
                 'note_vals': [html2plaintext(invoice.narration)] if invoice.narration else [],
+                'order_reference': invoice.invoice_origin,
                 'AccountingSupplierParty_vals': {
-                    'Party_vals': self._get_partner_party_vals(supplier),
+                    'Party_vals': self._get_partner_party_vals(supplier, role='supplier'),
                 },
                 'AccountingCustomerParty_vals': {
-                    'Party_vals': self._get_partner_party_vals(customer),
+                    'Party_vals': self._get_partner_party_vals(customer, role='customer'),
                 },
                 'InvoicePeriod_vals': self._get_invoice_period_vals(invoice),
                 'Delivery_vals': self._get_delivery_vals(invoice),
                 'PaymentMeans_vals': self._get_invoice_payment_means_vals_list(invoice),
                 'PaymentTerms_vals': self._get_invoice_payment_terms_vals_list(invoice),
-                'AllowanceCharge_vals': allowance_charge_vals_list,  # allowances at the document level, the allowances on invoices (eg. discount) are on InvoiceLine_vals
+                # allowances at the document level, the allowances on invoices (eg. discount) are on InvoiceLine_vals
+                'AllowanceCharge_vals': document_allowance_charge_vals_list,
                 'TaxTotal_vals': self._get_invoice_tax_totals_vals_list(invoice, taxes_vals),
                 'LegalMonetaryTotal_vals': {
                     'currency': invoice.currency_id,
@@ -401,27 +430,30 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                     'prepaid_amount': invoice.amount_total - invoice.amount_residual,
                     'payable_amount': invoice.amount_residual,
                 },
-                'InvoiceLine_vals': invoice_line_vals_list,  # TODO: here are the info about the taxes for each line (vals['vals']['InvoiceLine_vals'][0]['Item_vals']['ClassifiedTaxCategory_vals'])
+                'InvoiceLine_vals': invoice_line_vals_list,
                 'currency_dp': invoice.currency_id.decimal_places,  # currency decimal places
             },
         }
 
         if invoice.move_type == 'out_invoice':
             vals['main_template'] = 'account_edi_ubl_cii.ubl_20_Invoice'
+            vals['vals']['invoice_type_code'] = 380
         else:
             vals['main_template'] = 'account_edi_ubl_cii.ubl_20_CreditNote'
+            vals['vals']['credit_note_type_code'] = 381
 
         return vals
 
     def _export_invoice_constraints(self, invoice, vals):
-        self._invoice_constraints_common(invoice)
-        return {
+        constraints = self._invoice_constraints_common(invoice)
+        constraints.update({
             'ubl20_supplier_name_required': self._check_required_fields(vals['supplier'], 'name'),
             'ubl20_customer_name_required': self._check_required_fields(vals['customer'], 'name'),
             'ubl20_commercial_customer_name_required': self._check_required_fields(vals['customer'].commercial_partner_id, 'name'),
             'ubl20_invoice_name_required': self._check_required_fields(invoice, 'name'),
             'ubl20_invoice_date_required': self._check_required_fields(invoice, 'invoice_date'),
-        }
+        })
+        return constraints
 
     def _export_invoice(self, invoice):
         vals = self._export_invoice_vals(invoice)
@@ -459,11 +491,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             ], limit=1)
             if currency:
                 if not currency.active:
-                    logs.append(_(f"The currency '{currency.name}' is not active."))
+                    logs.append(_("The currency '%s' is not active.", currency.name))
                 invoice_form.currency_id = currency
             else:
-                logs.append(_(f"Could not retrieve currency: {currency_code_node.text}. "
-                              f"Did you enable the multicurrency option and activate the currency ?"))
+                logs.append(_("Could not retrieve currency: %s. Did you enable the multicurrency option "
+                              "and activate the currency ?", currency_code_node.text))
 
         # ==== Reference ====
 
@@ -531,7 +563,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 invl_logs = self._import_fill_invoice_line_form(journal, invl_el, invoice_form, invoice_line_form, qty_factor)
                 logs += invl_logs
 
-        return invoice_form.save(), logs
+        return invoice_form, logs
 
     def _import_fill_invoice_line_form(self, journal, tree, invoice_form, invoice_line_form, qty_factor):
         logs = []
@@ -566,8 +598,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         if not invoice_line_form.product_uom_id:
             logs.append(
-                _(f"Could not retrieve the unit of measure for line with label '{invoice_line_form.name}'. "
-                  f"Did you install the inventory app and enabled the 'Units of Measure' option ?"))
+                _("Could not retrieve the unit of measure for line with label '%s'. Did you install the inventory "
+                  "app and enabled the 'Units of Measure' option ?", invoice_line_form.name))
 
         # Taxes
         taxes = []
@@ -595,7 +627,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 if tax:
                     taxes.append(tax)
                 else:
-                    logs.append(_(f"Could not retrieve the tax: {float(tax_categ_percent_el.text)}% for line '{invoice_line_form.name}'."))
+                    logs.append(_(
+                        "Could not retrieve the tax: %s %% for line '%s'.",
+                        float(tax_categ_percent_el.text),
+                        invoice_line_form.name)
+                    )
             elif all(x is not None for x in (tax_categ_id_el, taxable_amount_el, tax_amount_el)):
                 if tax_categ_id_el.text.upper() == 'S':
                     amount = float(tax_amount_el.text) / float(taxable_amount_el.text)
@@ -613,7 +649,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 if tax:
                     taxes.append(tax)
                 else:
-                    logs.append(_(f"Could not retrieve the tax: {float(tax_categ_percent_el.text)}% for line '{invoice_line_form.name}'."))
+                    logs.append(_(
+                        "Could not retrieve the tax: %s %% for line '%s'.",
+                        float(tax_categ_percent_el.text),
+                        invoice_line_form.name)
+                    )
 
         if not taxes:
             tax_categ_percent_el = tree.find('./{*}Item/{*}ClassifiedTaxCategory/{*}Percent')
@@ -627,7 +667,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 if tax:
                     taxes.append(tax)
                 else:
-                    logs.append(_(f"Could not retrieve the tax: {float(tax_categ_percent_el.text)}% for line '{invoice_line_form.name}'."))
+                    logs.append(_(
+                        "Could not retrieve the tax: %s %% for line '%s'.",
+                        float(tax_categ_percent_el.text),
+                        invoice_line_form.name)
+                    )
 
         invoice_line_form.tax_ids.clear()
         for tax in taxes:

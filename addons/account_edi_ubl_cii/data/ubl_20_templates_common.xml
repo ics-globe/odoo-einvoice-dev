@@ -63,7 +63,7 @@
                     </t>
                 </cac:RegistrationAddress>
                 <cac:TaxScheme>
-                    <cbc:ID>VAT</cbc:ID>
+                    <cbc:ID t-esc="vals.get('tax_scheme_id')"/>
                 </cac:TaxScheme>
             </t>
         </template>
@@ -124,16 +124,20 @@
                         <t t-set="vals" t-value="vals.get('PostalAddress_vals', {})"/>
                     </t>
                 </cac:PostalAddress>
-                <cac:PartyTaxScheme>
-                    <t t-call="{{PartyTaxSchemeType_template}}">
-                        <t t-set="vals" t-value="vals.get('PartyTaxScheme_vals', {})"/>
-                    </t>
-                </cac:PartyTaxScheme>
-                <cac:PartyLegalEntity>
-                    <t t-call="{{PartyLegalEntityType_template}}">
-                        <t t-set="vals" t-value="vals.get('PartyLegalEntity_vals', {})"/>
-                    </t>
-                </cac:PartyLegalEntity>
+                <t t-foreach="vals.get('PartyTaxScheme_vals', [])" t-as="foreach_vals">
+                    <cac:PartyTaxScheme>
+                        <t t-call="{{PartyTaxSchemeType_template}}">
+                            <t t-set="vals" t-value="foreach_vals"/>
+                        </t>
+                    </cac:PartyTaxScheme>
+                </t>
+                <t t-foreach="vals.get('PartyLegalEntity_vals', [])" t-as="foreach_vals">
+                    <cac:PartyLegalEntity>
+                        <t t-call="{{PartyLegalEntityType_template}}">
+                            <t t-set="vals" t-value="foreach_vals"/>
+                        </t>
+                    </cac:PartyLegalEntity>
+                </t>
                 <cac:Contact>
                     <t t-call="{{ContactType_template}}">
                         <t t-set="vals" t-value="vals.get('Contact_vals', {})"/>
@@ -253,10 +257,8 @@
                 <cbc:Percent t-esc="vals.get('percent')"/>
                 <!-- Only include below <TaxSubtotal>, not below <Item> -->
                 <cbc:TaxExemptionReasonCode
-                        t-if="include_exemption_code_and_reason"
                         t-esc="vals.get('tax_exemption_reason_code')"/>
                 <cbc:TaxExemptionReason
-                        t-if="include_exemption_code_and_reason"
                         t-esc="vals.get('tax_exemption_reason')"/>
                 <cac:TaxScheme>
                     <cbc:ID>VAT</cbc:ID>
@@ -278,7 +280,6 @@
                 <cac:TaxCategory>
                     <t t-call="{{TaxCategoryType_template}}">
                         <t t-set="vals" t-value="vals.get('TaxCategory_vals', {})"/>
-                        <t t-set="include_exemption_code_and_reason" t-value="True"/>
                     </t>
                 </cac:TaxCategory>
             </t>
@@ -362,8 +363,9 @@
                 <cbc:ChargeIndicator t-esc="vals.get('charge_indicator')"/>
                 <cbc:AllowanceChargeReasonCode t-esc="vals.get('allowance_charge_reason_code')"/>
                 <cbc:AllowanceChargeReason t-esc="vals.get('allowance_charge_reason')"/>
+                <cbc:MultiplierFactorNumeric t-esc="vals.get('multiplier_factor')"/>
                 <cbc:Amount
-                        t-att-currencyID="vals['currency'].name"
+                        t-att-currencyID="vals.get('currency_name')"
                         t-esc="format_float(vals.get('amount'), vals.get('currency_dp'))"/>
                 <t t-foreach="vals.get('TaxCategory_vals', [])" t-as="foreach_vals">
                     <cac:TaxCategory>

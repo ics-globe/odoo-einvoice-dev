@@ -12,7 +12,7 @@
                 <ram:IncludedSupplyChainTradeLineItem>
                     <!-- Line number. -->
                     <ram:AssociatedDocumentLineDocument>
-                        <ram:LineID t-esc="line_vals['index']"/>
+                        <ram:LineID t-esc="line_vals.get('index')"/>
                     </ram:AssociatedDocumentLineDocument>
 
                     <!-- Product. -->
@@ -51,17 +51,17 @@
 
                     <!-- Quantity. -->
                     <ram:SpecifiedLineTradeDelivery>
-                        <ram:BilledQuantity t-att-unitCode="line_vals['uom_code']"
+                        <ram:BilledQuantity t-att-unitCode="line_vals.get('uom_code')"
                             t-esc="line.quantity"/> <!-- /!\ The quantity is the line.quantity since we keep the uom_code ! -->
                     </ram:SpecifiedLineTradeDelivery>
 
                     <ram:SpecifiedLineTradeSettlement>
                         <t t-foreach="tax_details['invoice_line_tax_details'][line]['tax_details'].values()"
                            t-as="tax_detail_vals">
-                            <t t-set="tax" t-value="tax_detail_vals['tax']"/>
+                            <t t-set="tax" t-value="tax_detail_vals.get('tax')"/>
                             <ram:ApplicableTradeTax t-if="tax.amount_type == 'percent'">
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:CategoryCode t-esc="tax_detail_vals['tax_category_code']"/>
+                                <ram:CategoryCode t-esc="tax_detail_vals.get('tax_category_code')"/>
                                 <ram:RateApplicablePercent t-esc="tax.amount"/>
                             </ram:ApplicableTradeTax>
                         </t>
@@ -102,16 +102,6 @@
                             t-if="partner.company_id and 'siret' in partner.company_id._fields and partner.company_id.siret"
                             t-esc="partner.company_id.siret"/>
                 </ram:SpecifiedLegalOrganization>
-                <!-- [CII-SR-312] - DefinedTradeContact should not be present (under ApplicableHeaderTradeDelivery) -->
-                <ram:DefinedTradeContact t-if="not exclude_defined_trade_contact">
-                    <ram:PersonName t-esc="partner.name"/>
-                    <ram:TelephoneUniversalCommunication t-if="partner.phone or partner.mobile">
-                        <ram:CompleteNumber t-esc="partner.phone or partner.mobile"/>
-                    </ram:TelephoneUniversalCommunication>
-                    <ram:EmailURIUniversalCommunication t-if="partner.email">
-                        <ram:URIID schemeID='SMTP' t-esc="partner.email"/>
-                    </ram:EmailURIUniversalCommunication>
-                </ram:DefinedTradeContact>
                 <!-- Address. -->
                 <t t-call="account_edi_ubl_cii.account_invoice_address_facturx_export_22"/>
             </t>
@@ -249,21 +239,19 @@
                         </ram:SpecifiedTradeSettlementPaymentMeans>
 
                         <!-- Tax Summary. -->
-                        <t t-foreach="tax_details['tax_details'].values()" t-as="tax_detail_vals">
-                            <t t-set="tax" t-value="tax_detail_vals['tax']"/>
+                        <t t-foreach="tax_details.get('tax_details', []).values()" t-as="tax_detail_vals">
+                            <t t-set="tax" t-value="tax_detail_vals.get('tax')"/>
                             <ram:ApplicableTradeTax>
                                 <ram:CalculatedAmount
-                                    t-esc="format_monetary(tax_detail_vals['tax_amount'], 2)"/>
+                                    t-esc="format_monetary(tax_detail_vals.get('tax_amount'), 2)"/>
                                 <ram:TypeCode>VAT</ram:TypeCode>
                                 <ram:ExemptionReason
-                                        t-if="tax_detail_vals['tax_exemption_reason']"
-                                        t-esc="tax_detail_vals['tax_exemption_reason']"/>
+                                        t-esc="tax_detail_vals.get('tax_exemption_reason')"/>
                                 <ram:BasisAmount
-                                    t-esc="format_monetary(balance_multiplicator * tax_detail_vals['base_amount_currency'], 2)"/>
-                                <ram:CategoryCode t-esc="tax_detail_vals['tax_category_code']"/>
+                                    t-esc="format_monetary(balance_multiplicator * tax_detail_vals.get('base_amount_currency'), 2)"/>
+                                <ram:CategoryCode t-esc="tax_detail_vals.get('tax_category_code')"/>
                                 <ram:ExemptionReasonCode
-                                        t-if="tax_detail_vals['tax_exemption_reason_code']"
-                                        t-esc="tax_detail_vals['tax_exemption_reason_code']"/>
+                                        t-esc="tax_detail_vals.get('tax_exemption_reason_code')"/>
                                 <!-- 5 = Tax is exigible on the date on the invoice -->
                                 <ram:DueDateTypeCode>5</ram:DueDateTypeCode>
                                 <ram:RateApplicablePercent

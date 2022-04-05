@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-from lxml import etree
 
 from odoo import _, models
 from odoo.tools import float_repr
-from zeep import Client
-from odoo.exceptions import ValidationError
 from odoo.tests.common import Form
 
+from zeep import Client
+from lxml import etree
+
 FORMAT_CODE_LIST = [
-    'facturx_cii',
+    'facturx_1_0_05',
     'ubl_bis3',
     'ubl_de',
+    'nlcius_1',
     'ubl_20',
-    'ubl_21',
+    'ubl_2_1',
+    'ehf_3',
 ]
 
 #TODO: do it with the xmlid
@@ -42,6 +44,7 @@ UOM_TO_UNECE_CODE = {
 }
 
 COUNTRY_EAS = {
+    'NO': '0190',  #TODO: Not sure I can include it here or if I should override _get_partner_party_vals
     'HU': 9910,
     'ES': 9920,
     'AD': 9922,
@@ -109,7 +112,7 @@ class AccountEdiCommon(models.AbstractModel):
                 cleanup_node(node, child_node)
 
             # Remove empty node.
-            if parent_node is not None and not len(node) and not (node.text or '').strip():
+            if parent_node is not None and len(node) == 0 and not (node.text or '').strip():
                 parent_node.remove(node)
 
         cleanup_node(None, tree)
@@ -170,8 +173,6 @@ class AccountEdiCommon(models.AbstractModel):
         supplier = invoice.company_id.partner_id.commercial_partner_id
         customer = invoice.commercial_partner_id
 
-        # this case raises an error for CII ([BR-IG-08] or [BR-IP-08]) in ecosio but it is okay when I debug it using
-        # another validator (create an invoice with a non-null tax with a customer in the canary for instance)...
         if customer.country_id.code == 'ES':
             if customer.zip[:2] in ['35', '38']:  # Canary
                 return 'L', None, None  # [BR-IG-10]-A VAT breakdown (BG-23) with VAT Category code (BT-118) "IGIC" shall not have a VAT exemption reason code (BT-121) or VAT exemption reason text (BT-120).
@@ -180,15 +181,30 @@ class AccountEdiCommon(models.AbstractModel):
 
         if supplier.country_id == customer.country_id:
             if not tax or tax.amount == 0:
-                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'  # in theory, you should indicate the precise the article
+                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'  # in theory, you should indicate the precise article
             else:
                 return 'S', None, None  # standard VAT
 
-        if supplier.country_id in self.env.ref('base.europe').country_ids:
+        # Norway is part of the European Economic Area.
+        if supplier.country_id in self.env.ref('base.europe').country_ids or supplier.country_id.code == 'NO':
+            if tax.amount != 0:
+                # otherwise, the validator will complain because G and K code should be used with 0% tax
+                return 'S', None, None
             if customer.country_id not in self.env.ref('base.europe').country_ids:
                 return 'G', 'VATEX-EU-G', 'Export outside the EU'
             if customer.country_id in self.env.ref('base.europe').country_ids:
                 return 'K', 'VATEX-EU-IC', 'Intra-Community supply'
+
+        # see: https://anskaffelser.dev/postaward/g3/spec/current/billing-3.0/norway/#_value_added_tax_norwegian_mva
+        if supplier.country_id.code == 'NO':
+            if tax.amount == 25:
+                return 'S', None, 'Output VAT, regular rate'
+            if tax.amount == 15:
+                return 'S', None, 'Output VAT, reduced rate, middle'
+            if tax.amount == 11.11:
+                return 'S', None, 'Output VAT, reduced rate, raw fish'
+            if tax.amount == 12:
+                return 'S', None, 'Output VAT, reduced rate, low'
 
         return None, None, None
 
@@ -251,19 +267,23 @@ class AccountEdiCommon(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _invoice_constraints_common(self, invoice):
+        constraints = {}
         # check that there is at least one tax repartition line !
         for tax in invoice.invoice_line_ids.mapped('tax_ids'):
             for line_repartition_ids in ['invoice_repartition_line_ids', 'refund_repartition_line_ids']:
                 lines = tax[line_repartition_ids]
                 base_line = lines.filtered(lambda x: x.repartition_type == 'base')
                 if not lines - base_line:
-                    raise ValidationError(
-                        _("Taxes should have at least one tax repartition line."))
+                    constraints.update({
+                        'tax_repartition_line': _("Taxes should have at least one tax repartition line."),
+                    })
         # check that there is a tax on each line
         for line in invoice.invoice_line_ids:
             if not line.tax_ids:
-                raise ValidationError(
-                    _("Each invoice line should have at least one tax."))
+                constraints.update({
+                    'tax_on_line': _("Each invoice line should have at least one tax."),
+                })
+        return constraints
 
     # -------------------------------------------------------------------------
     # Import invoice
@@ -280,12 +300,15 @@ class AccountEdiCommon(models.AbstractModel):
             default_move_type=move_type,
             default_journal_id=journal.id,
         ))
-        invoice, logs = self._import_fill_invoice_form(journal, tree, invoice_form, qty_factor)
+        invoice_form, logs = self._import_fill_invoice_form(journal, tree, invoice_form, qty_factor)
+        invoice = invoice_form.save()
         if invoice:
-            invoice.with_context(no_new_invoice=True).message_post(
-                body="<strong>Format used to import the invoice: " + str(self._description) + "</strong>"
-                    "<p><li>" + "</li><li>".join(logs) + "</li></p>"
-            )
+            if logs:
+                body = "<strong>Format used to import the invoice: " + str(self._description) + "</strong>" \
+                      "<p><li>" + "</li><li>".join(logs) + "</li></p>"
+            else:
+                body = "<strong>Format used to import the invoice: " + str(self._description) + "</strong>"
+            invoice.with_context(no_new_invoice=True).message_post(body=body)
         return invoice
 
     def _import_fill_invoice_allowance_charge(self, tree, invoice_form, journal, qty_factor):
@@ -346,7 +369,10 @@ class AccountEdiCommon(models.AbstractModel):
                         invoice_line_form.tax_ids.add(tax)
                     else:
                         logs.append(
-                            _(f"Could not retrieve the tax: {float(tax_categ_percent_el.text)}% for line '{name}'."))
+                            _("Could not retrieve the tax: %s %% for line '%s'.",
+                              float(tax_categ_percent_el.text),
+                              name)
+                        )
         return logs
 
     def _import_fill_invoice_down_payment(self, invoice_form, prepaid_node, qty_factor):
@@ -529,27 +555,33 @@ class AccountEdiCommon(models.AbstractModel):
                 body="ECOSIO: could not validate xml, formats only exist for invoice or credit notes"
             )
             return
+        if not xml_format:
+            return
         response = soap_client.service.validate(xml_content, xml_format)
-        if not all([item['success'] == 'true' for item in response['Result']]):
-            errors = []
-            for item in response['Result']:
-                if item['artifactPath']:
-                    errors.append(
-                        "<li><font style='color:Blue;'><strong>" + item['artifactPath'] + "</strong></font></li>")
-                for detail in item['Item']:
-                    if detail['errorLevel'] == 'WARN':
-                        errors.append(
-                            "<li><font style='color:Orange;'><strong>" + detail['errorText'] + "</strong></font></li>")
-                    else:
-                        errors.append(
-                            "<li><font style='color:Tomato;'><strong>" + detail['errorText'] + "</strong></font></li>")
 
+        report = []
+        errors_cnt = 0
+        for item in response['Result']:
+            if item['artifactPath']:
+                report.append(
+                    "<li><font style='color:Blue;'><strong>" + item['artifactPath'] + "</strong></font></li>")
+            for detail in item['Item']:
+                if detail['errorLevel'] == 'WARN':
+                    errors_cnt += 1
+                    report.append(
+                        "<li><font style='color:Orange;'><strong>" + detail['errorText'] + "</strong></font></li>")
+                elif detail['errorLevel'] == 'ERROR':
+                    errors_cnt += 1
+                    report.append(
+                        "<li><font style='color:Tomato;'><strong>" + detail['errorText'] + "</strong></font></li>")
+
+        if errors_cnt == 0:
             invoice.with_context(no_new_invoice=True).message_post(
-                body=f"<font style='color:Tomato;'><strong>ECOSIO ERRORS for format {xml_format}</strong></font>: <ul> "
-                     + "\n".join(errors) + " </ul>"
+                body=f"<font style='color:Green;'><strong>ECOSIO: All clear for format {xml_format}!</strong></font>"
             )
         else:
             invoice.with_context(no_new_invoice=True).message_post(
-                body=f"<font style='color:Green;'><strong>ECOSIO: All clear for format {xml_format}!</strong></font>"
+                body=f"<font style='color:Tomato;'><strong>ECOSIO ERRORS/WARNINGS for format {xml_format}</strong></font>: <ul> "
+                     + "\n".join(report) + " </ul>"
             )
         return response

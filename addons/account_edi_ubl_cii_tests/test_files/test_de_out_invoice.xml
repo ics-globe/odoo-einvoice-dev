@@ -73,7 +73,7 @@
     </cac:Party>
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
-    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+    <cbc:PaymentMeansCode name="credit transfer">30</cbc:PaymentMeansCode>
     <cbc:PaymentID>INV/2017/01/0002</cbc:PaymentID>
     <cac:PayeeFinancialAccount>
       <cbc:ID>DE48500105176424548921</cbc:ID>

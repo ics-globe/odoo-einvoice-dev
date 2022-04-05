@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, _
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, float_repr, is_html_empty, str2bool
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, float_repr, is_html_empty, str2bool, html2plaintext
 
 from datetime import datetime
 
@@ -14,7 +14,7 @@ DEFAULT_FACTURX_DATE_FORMAT = '%Y%m%d'
 class AccountEdiXmlCII(models.AbstractModel):
     _name = "account.edi.xml.cii"
     _inherit = 'account.edi.common'
-    _description = "CII 2.2"
+    _description = "Factur-x/XRechnung CII 2.2.0"
 
     def _prepare_invoice_report(self, pdf_writer, edi_document):
         self.ensure_one()
@@ -23,7 +23,7 @@ class AccountEdiXmlCII(models.AbstractModel):
         if not edi_document.attachment_id:
             return
 
-        pdf_writer.embed_odoo_attachment(edi_document.attachment_id, subtype='application/xml')
+        pdf_writer.embed_odoo_attachment(edi_document.attachment_id, subtype='text/xml')
         if not pdf_writer.is_pdfa and str2bool(
                 self.env['ir.config_parameter'].sudo().get_param('edi.use_pdfa', 'False')):
             try:
@@ -39,16 +39,20 @@ class AccountEdiXmlCII(models.AbstractModel):
                 }).encode())
 
     def _export_invoice_constraints(self, invoice, vals):
-        self._invoice_constraints_common(invoice)
-        return {
+        constraints = self._invoice_constraints_common(invoice)
+        constraints.update({
             # [BR-08]-An Invoice shall contain the Seller postal address (BG-5).
             # [BR-09]-The Seller postal address (BG-5) shall contain a Seller country code (BT-40).
             'seller_postal_address': self._check_required_fields(
-                vals['record']['company_id']['partner_id']['commercial_partner_id'], ['zip', 'street', 'city', 'country_id']
+                vals['record']['company_id']['partner_id']['commercial_partner_id'], 'country_id'
             ),
             # [BR-DE-9] The element "Buyer post code" (BT-53) must be transmitted. (only mandatory in Germany ?)
             'buyer_postal_address': self._check_required_fields(
-                vals['record']['commercial_partner_id'], ['zip', 'street', 'city', 'country_id']
+                vals['record']['commercial_partner_id'], 'zip'
+            ),
+            # [BR-DE-4] The element "Seller post code" (BT-38) must be transmitted. (only mandatory in Germany ?)
+            'seller_post_code': self._check_required_fields(
+                vals['record']['commercial_partner_id'], 'zip'
             ),
             # [BR-CO-26]-In order for the buyer to automatically identify a supplier, the Seller identifier (BT-29),
             # the Seller legal registration identifier (BT-30) and/or the Seller VAT identifier (BT-31) shall be present.
@@ -89,7 +93,8 @@ class AccountEdiXmlCII(models.AbstractModel):
             'igic_tax_rate': self._check_non_0_rate_tax(vals)
                 if vals['record']['commercial_partner_id']['country_id']['code'] == 'ES'
                    and vals['record']['commercial_partner_id']['zip'][:2] in ['35', '38'] else None,
-        }
+        })
+        return constraints
 
     def _check_required_tax(self, vals):
         for line_vals in vals['invoice_line_vals_list']:
@@ -120,7 +125,7 @@ class AccountEdiXmlCII(models.AbstractModel):
             'id': invoice.name,
             'type_code': '381' if 'refund' in invoice.move_type else '380',
             'issue_date_time': invoice.invoice_date,
-            'included_note': invoice.narration,
+            'included_note': html2plaintext(invoice.narration) if invoice.narration else "",
         }
 
     def _export_invoice_vals(self, invoice):
@@ -146,7 +151,6 @@ class AccountEdiXmlCII(models.AbstractModel):
             'is_html_empty': is_html_empty,
             'scheduled_delivery_time': self._get_scheduled_delivery_time(invoice),
             'intracom_delivery': False,
-            'document_context_id': "urn:cen.eu:en16931:2017",
             'ExchangedDocument_vals': self._get_exchanged_document_vals(invoice),
         }
 
@@ -180,6 +184,17 @@ class AccountEdiXmlCII(models.AbstractModel):
                 date_range = self._get_invoicing_period(invoice)
                 template_values['billing_start'] = min(date_range)
                 template_values['billing_end'] = max(date_range)
+
+        # The only difference between XRechnung and Facturx is the following (but it only raises a warning when
+        # providing the french id to XRechnung schemas.
+        # TODO: this is a bit problematic since we have no way to specify which format we want from the interface
+        #  "_get_edi_peppol_builder". Ideally, the determination of the format should be separate from the
+        #  generation logic such that we can easily call the creation of one format.
+        supplier = invoice.company_id.partner_id.commercial_partner_id
+        if supplier.country_id.code == 'DE':
+            template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
+        else:
+            template_values['document_context_id'] = "urn:cen.eu:en16931:2017"
 
         return template_values
 
@@ -223,11 +238,11 @@ class AccountEdiXmlCII(models.AbstractModel):
             ], limit=1)
             if currency:
                 if not currency.active:
-                    logs.append(_(f"The currency '{currency.name}' is not active."))
+                    logs.append(_("The currency '%s' is not active.", currency.name))
                 invoice_form.currency_id = currency
             else:
-                logs.append(_(f"Could not retrieve currency: {currency_code_node.text}. "
-                              f"Did you enable the multicurrency option and activate the currency ?"))
+                logs.append(_("Could not retrieve currency: %s. Did you enable the multicurrency option and "
+                              "activate the currency ?", currency_code_node.text))
 
         # ==== Reference ====
 
@@ -290,7 +305,7 @@ class AccountEdiXmlCII(models.AbstractModel):
                     invl_logs = self._import_fill_invoice_line_form(journal, invl_el, invoice_form, invoice_line_form, qty_factor)
                     logs += invl_logs
 
-        return invoice_form.save(), logs
+        return invoice_form, logs
 
     def _import_fill_invoice_line_form(self, journal, tree, invoice_form, invoice_line_form, qty_factor):
         logs = []
@@ -326,8 +341,8 @@ class AccountEdiXmlCII(models.AbstractModel):
 
         if not invoice_line_form.product_uom_id:
             logs.append(
-                _(f"Could not retrieve the unit of measure for line with label '{invoice_line_form.name}'. "
-                  f"Did you install the inventory app and enabled the 'Units of Measure' option ?"))
+                _("Could not retrieve the unit of measure for line with label '%s'. Did you install the inventory "
+                  "app and enabled the 'Units of Measure' option ?", invoice_line_form.name))
 
         # Taxes
         taxes = []
@@ -343,7 +358,7 @@ class AccountEdiXmlCII(models.AbstractModel):
                 taxes.append(tax)
             else:
                 logs.append(
-                    _(f"Could not retrieve the tax: {float(tax_node.text)}% for line '{invoice_line_form.name}'."))
+                    _("Could not retrieve the tax: %s %% for line '%s'.", float(tax_node.text), invoice_line_form.name))
 
         invoice_line_form.tax_ids.clear()
         for tax in taxes:

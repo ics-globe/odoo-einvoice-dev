@@ -84,6 +84,10 @@ class AccountEdiFormat(models.Model):
 
     def _check_move_configuration(self, invoice):
         errors = super()._check_move_configuration(invoice)
+
+        if 'account_edi_ubl_cii' in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
+            return errors
+
         if self.code != 'nlcius_1':
             return errors
 
@@ -121,6 +125,10 @@ class AccountEdiFormat(models.Model):
 
     def _post_invoice_edi(self, invoices):
         self.ensure_one()
+
+        if 'account_edi_ubl_cii' in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
+            return super()._post_invoice_edi(invoices)
+
         if self.code != 'nlcius_1':
             return super()._post_invoice_edi(invoices)
 
@@ -128,15 +136,17 @@ class AccountEdiFormat(models.Model):
         attachment = self._export_nlcius(invoice)
         return {invoice: {'success': True, 'attachment': attachment}}
 
-    def _create_invoice_from_xml_tree(self, filename, tree):
+    def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         self.ensure_one()
-        if self.code == 'nlcius_1' and self._is_nlcius(filename, tree):
+        if self.code == 'nlcius_1' and self._is_nlcius(filename, tree) and \
+                'account_edi_ubl_cii' not in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
             return self._decode_bis3(tree, self.env['account.move'])
-        return super()._create_invoice_from_xml_tree(filename, tree)
+        return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()
-        if self.code == 'nlcius_1' and self._is_nlcius(filename, tree):
+        if self.code == 'nlcius_1' and self._is_nlcius(filename, tree) and \
+                'account_edi_ubl_cii' not in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
             return self._decode_bis3(tree, invoice)
         return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 

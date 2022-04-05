@@ -28,13 +28,15 @@
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                         t-if="invoice.move_type == 'out_invoice'"
-                        t-esc="invoice.invoice_date_due"/>
+                        t-esc="vals.get('due_date')"/>
                 <cbc:CreditNoteTypeCode
                         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                         t-if="invoice.move_type == 'out_refund'"
-                        t-att="vals.get('invoice_type_code_attrs', {})">381</cbc:CreditNoteTypeCode>
+                        t-att="vals.get('invoice_type_code_attrs', {})"
+                        t-esc="vals.get('credit_note_type_code')"
+                />
             </xpath>
             <xpath expr="//*[local-name()='DocumentCurrencyCode']" position="after">
                 <cbc:BuyerReference
@@ -57,6 +59,30 @@
                     </t>
                 </t>
             </xpath>
+        </template>
+
+        <template id="ubl_21_PaymentMeansType" inherit_id="account_edi_ubl_cii.ubl_20_PaymentMeansType" primary="True">
+            <xpath expr="//*[local-name()='PayeeFinancialAccount']" position="after">
+                <cac:PaymentMandate
+                        xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+                        xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+                        xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+                        <t t-call="{{PaymentMandateType_template}}">
+                            <t t-set="vals" t-value="vals.get('PaymentMandate_vals', {})"/>
+                        </t>
+                </cac:PaymentMandate>
+            </xpath>
+        </template>
+
+        <template id="ubl_21_PaymentMandateType">
+            <t xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+               xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+               xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+                    <cbc:ID t-esc="vals.get('mandate_ref_id')"/>
+                    <cac:PayerFinancialAccount>
+                        <cbc:ID t-esc="vals.get('account_iban')"/>
+                    </cac:PayerFinancialAccount>
+            </t>
         </template>
 
     </data>

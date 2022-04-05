@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, models, fields
+from odoo import _, models
 import base64
 
 
 class AccountEdiFormat(models.Model):
-    _name = 'account.edi.format'  # TODO: mandatory to have a _name attribute when inheriting an abstract.model, right ?
+    _name = 'account.edi.format'
     _inherit = [
         'account.edi.format',
         'account.edi.common',
@@ -21,6 +21,7 @@ class AccountEdiFormat(models.Model):
 
     def _get_edi_peppol_builder(self, company_country_code):
         self.ensure_one()
+
         if self.code not in self._get_format_code_list():
             return
 
@@ -32,10 +33,9 @@ class AccountEdiFormat(models.Model):
                     'invoice': 'org.oasis-open:invoice:2.0',
                     'credit_note': 'org.oasis-open:creditnote:2.0',
                 },
-                'format_name': "UBL 2.0",
             }
 
-        if self.code == 'ubl_21':
+        if self.code == 'ubl_2_1':
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_21'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_21.xml",
@@ -43,10 +43,9 @@ class AccountEdiFormat(models.Model):
                     'invoice': 'org.oasis-open:invoice:2.1',
                     'credit_note': 'org.oasis-open:creditnote:2.1',
                 },
-                'format_name': "UBL 2.1",
             }
 
-        if self.code == 'facturx_cii':
+        if self.code == 'facturx_1_0_05':
             return {
                 # see https://communaute.chorus-pro.gouv.fr/wp-content/uploads/2017/08/20170630_Solution-portail_Dossier_Specifications_Fournisseurs_Chorus_Facture_V.1.pdf
                 # page 45 -> ubl 2.1 for France seems also supported
@@ -56,7 +55,6 @@ class AccountEdiFormat(models.Model):
                     'invoice': 'de.xrechnung:cii:2.2.0',
                     'credit_note': 'de.xrechnung:cii:2.2.0',
                 },
-                'format_name': "Factur-X/XRechnung",
             }
 
         if self.code == 'ubl_bis3' and company_country_code in self._get_eas_mapping():
@@ -67,7 +65,6 @@ class AccountEdiFormat(models.Model):
                     'invoice': 'eu.peppol.bis3:invoice:3.13.0',
                     'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
                 },
-                'format_name': "Peppol BIS Billing 3.0",
             }
 
         if self.code == 'ubl_de' and company_country_code == 'DE':
@@ -78,7 +75,27 @@ class AccountEdiFormat(models.Model):
                     'invoice': 'de.xrechnung:ubl-invoice:2.2.0',
                     'credit_note': 'de.xrechnung:ubl-creditnote:2.2.0',
                 },
-                'format_name': "XRechnung",
+            }
+
+        if self.code == 'nlcius_1' and company_country_code == 'NL':
+            return {
+                'invoice_xml_builder': self.env['account.edi.xml.ubl_nl'],
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_nlcius.xml",
+                'xml_format': {
+                    'invoice': 'org.simplerinvoicing:invoice:2.0.3.3',
+                    'credit_note': 'org.simplerinvoicing:creditnote:2.0.3.3',
+                },
+            }
+
+        # a bit useless since bis 3 includes EHF3
+        if self.code == 'ehf_3' and company_country_code == 'NO':
+            return {
+                'invoice_xml_builder': self.env['account.edi.xml.ubl_no'],
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ehf3.xml",
+                'xml_format': {
+                    'invoice': 'eu.peppol.bis3:invoice:3.13.0',
+                    'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
+                },
             }
 
     def _get_edi_peppol_info(self, company, customer=None):
@@ -88,7 +105,6 @@ class AccountEdiFormat(models.Model):
             return
         #if self.code == 'ubl_bis3' and customer is not None and not self._is_edi_peppol_customer_valid(customer):
         #    return
-
         return self._get_edi_peppol_builder(company.country_id.code.upper())
 
     def _infer_xml_builder_from_tree(self, tree):
@@ -102,6 +118,8 @@ class AccountEdiFormat(models.Model):
                 return self.env['account.edi.xml.ubl_de']
             if customization_id.text == 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0':
                 return self.env['account.edi.xml.ubl_bis3']
+            if customization_id.text == 'urn:cen.eu:en16931:2017#compliant#urn:fdc:nen.nl:nlcius:v1.0':
+                return self.env['account.edi.xml.ubl_nl']
         if ubl_version is not None:
             if ubl_version.text == '2.0':
                 return self.env['account.edi.xml.ubl_20']
@@ -157,22 +175,21 @@ class AccountEdiFormat(models.Model):
         for invoice in invoices:
             xml_content, errors = peppol_info['invoice_xml_builder']._export_invoice(invoice)
             # DEBUG: export generated xml file
-            """with open(peppol_info['invoice_filename'](invoice), 'w+') as f:
-                f.write(xml_content)"""
+            #with open(peppol_info['invoice_filename'](invoice), 'w+') as f:
+            #    f.write(xml_content)
             if errors:
                 # don't block the user, but give him a warning in the chatter
                 # res[invoice] = {'error': '\n'.join(set(errors))}
                 invoice.with_context(no_new_invoice=True).message_post(
-                    body=_(
-                        "Warning, errors occured while creating the edi document (format: %s). "
-                        "The receiver might refuse it." % peppol_info['format_name']
-                         + '<p> <li>' + "</li> <li>".join(errors) + '</li> <p>'
-                    )
+                    body=
+                    _("Warning, errors occured while creating the edi document (format: %s). The receiver might "
+                      "refuse it.", peppol_info['invoice_xml_builder']._description)
+                    + '<p> <li>' + "</li> <li>".join(errors) + '</li> <p>'
                 )
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
-            """response = self._check_xml_ecosio(invoice, xml_content, peppol_info['xml_format'])
-            print("Response: ", response['Result'])"""
+            #response = self._check_xml_ecosio(invoice, xml_content, peppol_info['xml_format'])
+            #print("Response: ", response['Result'])
 
             # remove existing (old) attachments
             self.env['ir.attachment'].search([
