@@ -695,7 +695,7 @@
                                      <div id="contact_us_wrapper" t-attf-class="d-none oe_structure oe_structure_solo #{_div_classes}">
                                              <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
                                                  <div class="container">
-                                                     <a href="/contactus" class="btn btn-primary btn_cta">Contact Us</a>
+                                                     <a t-att-href="website.contact_us_button_url" class="btn btn-primary btn_cta">Contact Us</a>
                                                  </div>
                                              </section>
                                          </div>
