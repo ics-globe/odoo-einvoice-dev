@@ -302,13 +302,17 @@ class MailComposer(models.TransientModel):
                     if wizard.composition_mode == 'mass_mail':
                         batch_mails_sudo |= self.env['mail.mail'].sudo().create(mail_values)
                     else:
+                        use_edi = False
+                        if self.env['account.move'].browse(res_id).edi_state in ['to_send', 'to_cancel']:
+                            use_edi = True
                         post_params = dict(
                             message_type=wizard.message_type,
                             subtype_id=subtype_id,
                             email_layout_xmlid=wizard.email_layout_xmlid,
                             email_add_signature=not bool(wizard.template_id) and wizard.email_add_signature,
                             mail_auto_delete=wizard.template_id.auto_delete if wizard.template_id else self._context.get('mail_auto_delete', True),
-                            model_description=model_description)
+                            model_description=model_description
+                            )
                         post_params.update(mail_values)
                         if ActiveModel._name == 'mail.thread':
                             if wizard.model:
@@ -318,7 +322,16 @@ class MailComposer(models.TransientModel):
                                 # if message_notify returns an empty record set, no recipients where found.
                                 raise UserError(_("No recipient found."))
                         else:
-                            ActiveModel.browse(res_id).message_post(**post_params)
+                            account_move = ActiveModel.browse(res_id)
+                            if not use_edi:
+                                account_move.message_post(**post_params)
+                                continue
+                            self._create_pending_message(account_move, post_params)
+                            account_move.message_post(
+                                body=_('The sending of the email has been planned'),
+                                message_type='comment',
+                                subtype_xmlid='mail.mt_note',
+                                author_id=self.env.ref('base.partner_root').id)
 
                 if wizard.composition_mode == 'mass_mail':
                     batch_mails_sudo.send(auto_commit=auto_commit)
@@ -571,7 +584,6 @@ class MailComposer(models.TransientModel):
 
         # This onchange should return command instead of ids for x2many field.
         values = self._convert_to_write(values)
-
         return {'value': values}
 
     def render_message(self, res_ids):
@@ -661,3 +673,16 @@ class MailComposer(models.TransientModel):
             values[res_id] = res_id_values
 
         return multi_mode and values or values[res_ids[0]]
+
+    def _create_pending_message(self, account_move, post_params):
+        msg_kwargs = dict((key, val) for key, val in post_params.items() if key in self.env['mail.message.pending']._fields)
+        msg_values = dict(msg_kwargs)
+        parent_id = account_move._message_compute_parent_id(msg_values['parent_id'])
+        document_ids = account_move.edi_document_ids.ids
+        msg_values.update({
+            'parent_id' : parent_id,
+            'account_edi_document_ids' : [Command.set(document_ids)],
+            'template_id' : self.template_id.id,
+            'account_move_id' : account_move.id
+        })
+        self.env['mail.message.pending'].create(msg_values)

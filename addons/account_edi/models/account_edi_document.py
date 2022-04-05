@@ -34,6 +34,8 @@ class AccountEdiDocument(models.Model):
     name = fields.Char(related='attachment_id.name')
     edi_format_name = fields.Char(string='Format Name', related='edi_format_id.name')
     edi_content = fields.Binary(compute='_compute_edi_content', compute_sudo=True)
+    mail_message_pending_ids = fields.Many2many('mail.message.pending', 'mail_message_pending_account_edi_document_rel',
+        'account_edi_document_id', 'mail_message_pending_id', string="Account EDI Document")
 
     _sql_constraints = [
         (
@@ -206,6 +208,17 @@ class AccountEdiDocument(models.Model):
             elif state == 'to_cancel':
                 edi_result = edi_format._cancel_payment_edi(documents.move_id)
                 _postprocess_cancel_edi_results(documents, edi_result)
+        flag = True
+        for edi_document_id in self.ids:
+            if self.env['account.edi.document'].browse(edi_document_id).state not in ['sent', 'cancel']:
+                flag = False
+                break
+        if flag:
+            #send message
+            mail_message_pending_id = self.browse(documents.id).mapped("mail_message_pending_ids").id
+            self.env['mail.message.pending'].update_report(mail_message_pending_id)
+            post_params = self.env['mail.message.pending'].get_post_values(mail_message_pending_id)
+            invoices.message_post(**post_params)
 
     def _process_documents_no_web_services(self):
         """ Post and cancel all the documents that don't need a web service.
