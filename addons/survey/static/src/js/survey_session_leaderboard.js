@@ -49,7 +49,8 @@ publicWidget.registry.SurveySessionLeaderboard = publicWidget.Widget.extend({
         });
 
         Promise.all([fadeOutPromise, leaderboardPromise]).then(function (results) {
-            var leaderboardResults = results[1];
+            var { leaderboardResults, nextPageStatus } = results[1];
+            self.trigger_up('update_next_page_status', { nextPageStatus });
             var $renderedTemplate = $(leaderboardResults);
             self.$('.o_survey_session_leaderboard_container').append($renderedTemplate);
 

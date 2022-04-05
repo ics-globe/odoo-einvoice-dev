@@ -17,6 +17,9 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
         'click .o_survey_session_navigation_previous': '_onBack',
         'click .o_survey_session_close': '_onEndSessionClick',
     },
+    custom_events: {
+        update_next_page_status: '_updateNextPageStatus',
+    },
 
     /**
      * Overridden to set a few properties that come from the python template rendering.
@@ -28,6 +31,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
     start: function () {
         var self = this;
         this.fadeInOutTime = 500;
+        this.$('[data-toggle="tooltip"]').tooltip({ delay: 0 });
         return this._super.apply(this, arguments).then(function () {
             if (self.$el.data('isSessionClosed')) {
                 self._displaySessionClosedPage();
@@ -164,6 +168,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
             this._setShowAnswers(true);
             // when showing results, stop refreshing answers
             clearInterval(this.resultsRefreshInterval);
+            this._updateNextPageStatus({data: {nextPageStatus: this.nextPageStatus}});
             delete this.resultsRefreshInterval;
         } else if (['leaderboard', 'leaderboardFinal'].includes(screenToDisplay)
                    && !['leaderboard', 'leaderboardFinal'].includes(this.currentScreen)) {
@@ -455,6 +460,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
         }).then(function (questionResults) {
             if (questionResults) {
                 self.attendeesCount = questionResults.attendees_count;
+                self.nextPageStatus = questionResults.next_page_status;
 
                 if (self.resultsChart && questionResults.question_statistics_graph) {
                     self.resultsChart.updateChart(JSON.parse(questionResults.question_statistics_graph));
@@ -653,6 +659,19 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
         if (this.resultsChart) {
             this.resultsChart.setShowAnswers(showAnswers);
             this.resultsChart.updateChart();
+        }
+    },
+    /**
+     * Sometimes we don't render the whole content of Survey session.
+     * Hence, we need to update the next page status manaully.
+     * Cases: Leader Board, Result.
+     *
+     * @param {Object} ev
+     */
+    _updateNextPageStatus(ev) {
+        const sessionNavigationNextEl = this.el.querySelector('.o_survey_session_navigation_next');
+        if (sessionNavigationNextEl && ev.data.nextPageStatus) {
+            sessionNavigationNextEl.dataset.originalTitle = ev.data.nextPageStatus;
         }
     }
 });
