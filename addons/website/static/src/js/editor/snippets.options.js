@@ -1785,7 +1785,7 @@ options.registry.HeaderNavbar = options.Class.extend({
      */
     async _computeWidgetVisibility(widgetName, params) {
         if (widgetName === 'option_logo_height_scrolled') {
-            return !this.$('.navbar-brand').hasClass('d-none');
+            return this.$('.navbar-brand').length;
         }
         return this._super(...arguments);
     },
