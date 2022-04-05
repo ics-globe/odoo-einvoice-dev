@@ -4,13 +4,12 @@
 from odoo import http
 from odoo.http import request
 
-# TODO edm: see if possibility to take off the pricelist from these completely. If it was passed just to get the currency...
+
 class ProductConfiguratorController(http.Controller):
     @http.route(['/sale_product_configurator/configure'], type='json', auth="user", methods=['POST'])
-    def configure(self, product_template_id, currency_id, pricelist_id, **kw):
+    def configure(self, product_template_id, pricelist_id, **kw):
         add_qty = int(kw.get('add_qty', 1))
         product_template = request.env['product.template'].browse(int(product_template_id))
-        currency = request.env['res.currency'].browse(int(currency_id))
         pricelist = self._get_pricelist(pricelist_id)
 
         product_combination = False
@@ -24,26 +23,24 @@ class ProductConfiguratorController(http.Controller):
 
         return request.env['ir.ui.view']._render_template("sale_product_configurator.configure", {
             'product': product_template,
-            'currency': currency,
             'pricelist': pricelist,
             'add_qty': add_qty,
             'product_combination': product_combination
         })
 
     @http.route(['/sale_product_configurator/show_advanced_configurator'], type='json', auth="user", methods=['POST'])
-    def show_advanced_configurator(self, product_id, variant_values, currency_id, pricelist_id, **kw):
+    def show_advanced_configurator(self, product_id, variant_values, pricelist_id, **kw):
         pricelist = self._get_pricelist(pricelist_id)
-        return self._show_advanced_configurator(product_id, variant_values, currency_id, pricelist, False, **kw)
+        return self._show_advanced_configurator(product_id, variant_values, pricelist, False, **kw)
 
     @http.route(['/sale_product_configurator/optional_product_items'], type='json', auth="user", methods=['POST'])
-    def optional_product_items(self, product_id, currency_id, pricelist_id, **kw):
+    def optional_product_items(self, product_id, pricelist_id, **kw):
         pricelist = self._get_pricelist(pricelist_id)
-        return self._optional_product_items(product_id, currency_id, pricelist, **kw)
+        return self._optional_product_items(product_id, pricelist, **kw)
 
-    def _optional_product_items(self, product_id, currency_id, pricelist, **kw):
+    def _optional_product_items(self, product_id, pricelist, **kw):
         add_qty = int(kw.get('add_qty', 1))
         product = request.env['product.product'].browse(int(product_id))
-        currency = request.env['res.currency'].browse(int(currency_id))
 
         parent_combination = product.product_template_attribute_value_ids
         if product.env.context.get('no_variant_attribute_values'):
@@ -55,14 +52,12 @@ class ProductConfiguratorController(http.Controller):
             'product': product,
             'parent_name': product.name,
             'parent_combination': parent_combination,
-            'currency': currency,
             'pricelist': pricelist,
             'add_qty': add_qty,
         })
 
-    def _show_advanced_configurator(self, product_id, variant_values, currency_id, pricelist, handle_stock, **kw):
+    def _show_advanced_configurator(self, product_id, variant_values, pricelist, handle_stock, **kw):
         product = request.env['product.product'].browse(int(product_id))
-        currency = request.env['res.currency'].browse(int(currency_id))
         combination = request.env['product.template.attribute.value'].browse(variant_values)
         add_qty = int(kw.get('add_qty', 1))
 
@@ -78,11 +73,10 @@ class ProductConfiguratorController(http.Controller):
             'add_qty': add_qty,
             'parent_name': product.name,
             'variant_values': variant_values,
-            'currency': currency,
             'pricelist': pricelist,
             'handle_stock': handle_stock,
             'already_configured': kw.get("already_configured", False)
         })
 
     def _get_pricelist(self, pricelist_id, pricelist_fallback=False):
-        return request.env['product.pricelist'].browse(int(pricelist_id or 0)) # TODO edm: why this one in a separated function ? All or None, make a choice (cfr product and currency)
+        return request.env['product.pricelist'].browse(int(pricelist_id or 0))

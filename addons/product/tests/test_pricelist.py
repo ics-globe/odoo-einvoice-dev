@@ -18,7 +18,6 @@ class TestPricelist(TransactionCase):
         self.uom_dozen_id = self.uom_dozen.id
         self.uom_kgm_id = self.ref('uom.product_uom_kgm')
 
-        self.currency = self.env.company.currency_id
         self.sale_pricelist_id = self.env['product.pricelist'].create({
             'name': 'Sale pricelist',
             'item_ids': [(0, 0, {
@@ -42,21 +41,21 @@ class TestPricelist(TransactionCase):
         ProductPricelist = self.env['product.pricelist']
 
         self.assertEqual(
-            ProductPricelist._get_product_price(self.usb_adapter, 1.0, self.currency)*.9,
-            self.sale_pricelist_id._get_product_price(self.usb_adapter, 1.0, self.currency))
+            ProductPricelist._get_product_price(self.usb_adapter, 1.0)*.9,
+            self.sale_pricelist_id._get_product_price(self.usb_adapter, 1.0))
 
         self.assertEqual(
-            ProductPricelist._get_product_price(self.datacard, 1.0, self.currency)-.5,
-            self.sale_pricelist_id._get_product_price(self.datacard, 1.0, self.currency))
+            ProductPricelist._get_product_price(self.datacard, 1.0)-.5,
+            self.sale_pricelist_id._get_product_price(self.datacard, 1.0))
 
         self.assertAlmostEqual(
-            ProductPricelist._get_product_price(self.usb_adapter, 1.0, self.currency, uom=self.uom_unit)*12*0.9,
-            self.sale_pricelist_id._get_product_price(self.usb_adapter, 1.0, self.currency, uom=self.uom_dozen))
+            ProductPricelist._get_product_price(self.usb_adapter, 1.0, uom=self.uom_unit)*12*0.9,
+            self.sale_pricelist_id._get_product_price(self.usb_adapter, 1.0, uom=self.uom_dozen))
 
         # price_surcharge applies to product default UoM, here "Units", so surcharge will be multiplied
         self.assertAlmostEqual(
-            ProductPricelist._get_product_price(self.datacard, 1.0, self.currency, uom=self.uom_unit)*12-6,
-            self.sale_pricelist_id._get_product_price(self.datacard, 1.0, self.currency, uom=self.uom_dozen))  # TODO edm: technically, for all these using the pricelist, should be the pricelists currency. Or make it an optional param for when there IS a pricelist
+            ProductPricelist._get_product_price(self.datacard, 1.0, uom=self.uom_unit)*12-6,
+            self.sale_pricelist_id._get_product_price(self.datacard, 1.0, uom=self.uom_dozen))
 
     def test_20_pricelist_uom(self):
         # Verify that the pricelist rules are correctly using the product's default UoM
@@ -88,7 +87,7 @@ class TestPricelist(TransactionCase):
 
         def test_unit_price(qty, uom_id, expected_unit_price):
             uom = self.env['uom.uom'].browse(uom_id)
-            unit_price = self.sale_pricelist_id._get_product_price(spam, qty, self.currency, uom=uom)
+            unit_price = self.sale_pricelist_id._get_product_price(spam, qty, uom=uom)
             self.assertAlmostEqual(unit_price, expected_unit_price, msg='Computed unit price is wrong')
 
         # Test prices - they are *per unit*, the quantity is only here to match the pricelist rules!

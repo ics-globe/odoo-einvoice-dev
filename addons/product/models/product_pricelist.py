@@ -68,13 +68,12 @@ class Pricelist(models.Model):
             for product_id, res_tuple in self._compute_price_rule(
                 products,
                 quantity,
-                currency,
                 uom=uom,
                 date=date,
             ).items()
         }
 
-    def _get_product_price(self, product, quantity, currency, uom=None, date=False):
+    def _get_product_price(self, product, quantity, currency=None, uom=None, date=False):
         """Compute the pricelist price for the specified product, qty & uom.
 
         Note: self and self.ensure_one()
@@ -82,8 +81,8 @@ class Pricelist(models.Model):
         :returns: unit price of the product, considering pricelist rules
         :rtype: float
         """
-        self and self.ensure_one()  # self is at most one record  (to be verified, could it ever be called without pricelist?)
-        return self._compute_price_rule(product, quantity, currency, uom=uom, date=date)[product.id][0]
+        self and self.ensure_one()
+        return self._compute_price_rule(product, quantity, currency=currency, uom=uom, date=date)[product.id][0]
 
     def _get_product_price_rule(self, product, quantity, uom=None, date=False):
         """Compute the pricelist price & rule for the specified product, qty & uom.
@@ -94,11 +93,9 @@ class Pricelist(models.Model):
         :rtype: tuple(float, int)
         """
         self.ensure_one()
-        return self._compute_price_rule(
-            product, quantity, self.currency_id, uom=uom, date=date
-        )[product.id]
+        return self._compute_price_rule(product, quantity, uom=uom, date=date)[product.id]
 
-    def _get_product_rule(self, product, quantity, currency, uom=None, date=False):
+    def _get_product_rule(self, product, quantity, uom=None, date=False):
         """Compute the pricelist price & rule for the specified product, qty & uom.
 
         Note: self.ensure_one()
@@ -107,10 +104,9 @@ class Pricelist(models.Model):
         :rtype: int or False
         """
         self.ensure_one()
-        price_rules = self._compute_price_rule(product, quantity, currency, uom=uom, date=date)
-        return price_rules[product.id][1]
+        return self._compute_price_rule(product, quantity, uom=uom, date=date)[product.id][1]
 
-    def _compute_price_rule(self, products, qty, currency, uom=None, date=False):
+    def _compute_price_rule(self, products, qty, currency=None, uom=None, date=False):
         """ Low-level method - Mono pricelist, multi products
         Returns: dict{product_id: (price, suitable_rule) for the given pricelist}
 
@@ -119,7 +115,7 @@ class Pricelist(models.Model):
         :param currency: record of currency (res.currency)
                          note: currency.ensure_one()
         :param uom: unit of measure (uom.uom record)
-                    If not specified, prices returned are expressed in product uoms
+            If not specified, prices returned are expressed in product uoms
         :param date: date to use for price computation and currency conversions
         :type date: date or datetime
 
@@ -127,7 +123,6 @@ class Pricelist(models.Model):
         :rtype: dict
         """
         self and self.ensure_one()  # self is at most one record
-        currency.ensure_one()
 
         if not products:
             return {}
@@ -137,7 +132,7 @@ class Pricelist(models.Model):
             date = fields.Datetime.now()
 
         # Fetch all rules potentially matching specified products/templates/categories and date
-        rules = self._get_applicable_rules(products, date) if self else None
+        rules = self._get_applicable_rules(products, date)
 
         results = {}
         for product in products:
@@ -153,19 +148,18 @@ class Pricelist(models.Model):
             else:
                 qty_in_product_uom = qty
 
-            if rules:
-                for rule in rules:
-                    if rule._is_applicable_for(product, qty_in_product_uom):
-                        suitable_rule = rule
-                        break
+            for rule in rules:
+                if rule._is_applicable_for(product, qty_in_product_uom):
+                    suitable_rule = rule
+                    break
 
             # TODO VFE provide a way for lazy computation of price ?
             if suitable_rule:
-                price = suitable_rule._compute_price(product, qty, currency, target_uom, date)
+                price = suitable_rule._compute_price(product, qty, target_uom, date)
             else:
                 # fall back on Sales Price if no rule is found
                 price = product.price_compute('list_price', uom=target_uom, date=date)[product.id]
-
+                currency = self.currency_id or currency or self.env.company.currency_id
                 if product.currency_id != currency:
                     price = product.currency_id._convert(price, currency, self.env.company, date, round=False)
 
@@ -175,7 +169,7 @@ class Pricelist(models.Model):
 
     # Split methods to ease (community) overrides
     def _get_applicable_rules(self, products, date, **kwargs):
-        self.ensure_one()
+        self and self.ensure_one()  # self is at most one record
         # Do not filter out archived pricelist items, since it means current pricelist is also archived
         # We do not want the computation of prices for archived pricelist to always fallback on the Sales price
         # because no rule was found (thanks to the automatic orm filtering on active field)
@@ -184,7 +178,7 @@ class Pricelist(models.Model):
         )
 
     def _get_applicable_rules_domain(self, products, date, **kwargs):
-        self.ensure_one()
+        self and self.ensure_one()  # self is at most one record
         if products._name == 'product.template':
             templates_domain = ('product_tmpl_id', 'in', products.ids)
             products_domain = ('product_id.product_tmpl_id', 'in', products.ids)
@@ -211,16 +205,13 @@ class Pricelist(models.Model):
     def _compute_price_rule_multi(self, products, qty, uom=None, date=False):
         """ Low-level method - Multi pricelist, multi products
         Returns: dict{product_id: dict{pricelist_id: (price, suitable_rule)} }"""
-        # TODO edm: check that's NEVER called without pricelist
         if not self.ids:
             pricelists = self.search([])
         else:
             pricelists = self
         results = {}
         for pricelist in pricelists:
-            subres = pricelist._compute_price_rule(
-                products, qty, pricelist.currency_id, uom=uom, date=date
-            )
+            subres = pricelist._compute_price_rule(products, qty, uom=uom, date=date)
             for product_id, price in subres.items():
                 results.setdefault(product_id, {})
                 results[product_id][pricelist.id] = price
@@ -235,7 +226,7 @@ class Pricelist(models.Model):
         First, the pricelist of the specific property (res_id set), this one
                 is created when saving a pricelist on the partner form view.
         Else, it will return the pricelist of the partner country group
-        Else, it will return the first available pricelist if any  # TODO edm: is that even correct? Or should **explicitly** return None now? (even in the code)
+        Else, it will return the first available pricelist if any  # TODO edm: check if archived pricelist shown if no other available
 
         :param int company_id: if passed, used for looking up properties,
             instead of current user's company

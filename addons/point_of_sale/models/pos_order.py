@@ -366,10 +366,11 @@ class PosOrder(models.Model):
     @api.onchange('payment_ids', 'lines')
     def _onchange_amount_all(self):
         for order in self:
+            currency = order.currency_id
             order.amount_paid = sum(payment.amount for payment in order.payment_ids)
             order.amount_return = sum(payment.amount < 0 and payment.amount or 0 for payment in order.payment_ids)
-            order.amount_tax = order.currency_id.round(sum(self._amount_line_tax(line, order.fiscal_position_id) for line in order.lines))
-            amount_untaxed = order.currency_id.round(sum(line.price_subtotal for line in order.lines))
+            order.amount_tax = currency.round(sum(self._amount_line_tax(line, order.fiscal_position_id) for line in order.lines))
+            amount_untaxed = currency.round(sum(line.price_subtotal for line in order.lines))
             order.amount_total = order.amount_tax + amount_untaxed
 
     def _compute_batch_amount_all(self):
@@ -598,7 +599,7 @@ class PosOrder(models.Model):
             'ref': self.name,
             'partner_id': self.partner_id.id,
             'partner_bank_id': self._get_partner_bank_id(),
-            'currency_id': self.currency_id.id,  # The currency changed according to the pricelist if any (TODO edm: wrote ba better comment)
+            'currency_id': self.currency_id.id,  # considering partner's currency
             'invoice_user_id': self.user_id.id,
             'invoice_date': self.date_order.astimezone(timezone).date(),
             'fiscal_position_id': self.fiscal_position_id.id,
@@ -996,7 +997,7 @@ class PosOrderLine(models.Model):
     def _onchange_product_id(self):
         if self.product_id:
             pricelist = self.order_id.pricelist_id
-            price = pricelist._get_product_price(self.product_id, self.qty or 1.0, self.currency_id)
+            price = pricelist._get_product_price(self.product_id, self.qty or 1.0, currency=self.currency_id)
             self.tax_ids = self.product_id.taxes_id.filtered(lambda r: not self.company_id or r.company_id == self.company_id)
             tax_ids_after_fiscal_position = self.order_id.fiscal_position_id.map_tax(self.tax_ids)
             self.price_unit = self.env['account.tax']._fix_tax_included_price_company(price, self.tax_ids, tax_ids_after_fiscal_position, self.company_id)

@@ -397,7 +397,6 @@ class WebsiteSale(http.Controller):
         attrib_list = request.httprequest.args.getlist('attrib')
         attrib_values = [[int(x) for x in v.split("-")] for v in attrib_list if v]
         attrib_set = {v[1] for v in attrib_values}
-        pricelist = request.website.get_current_pricelist()
 
         keep = QueryURL(
             '/shop',
@@ -414,8 +413,7 @@ class WebsiteSale(http.Controller):
         return {
             'search': search,
             'category': category,
-            'currency': pricelist.currency_id or request.website.currency_id,
-            'pricelist': pricelist,
+            'pricelist': request.website.get_current_pricelist(),
             'attrib_values': attrib_values,
             'attrib_set': attrib_set,
             'keep': keep,

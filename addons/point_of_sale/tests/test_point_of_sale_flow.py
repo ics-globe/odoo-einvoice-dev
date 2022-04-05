@@ -754,10 +754,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         })
 
         # make a config that has currency different from the company
-        eur_pricelist = self.env['product.pricelist'].create({
-            'name': 'Test EUR Pricelist',
-            'currency_id': self.env.ref('base.EUR').id
-        })
+        eur_pricelist = self.env['product.pricelist'].create({'name': 'Test EUR Pricelist', 'currency_id': self.env.ref('base.EUR').id})
         sale_journal = self.env['account.journal'].create({
             'name': 'PoS Sale EUR',
             'type': 'sale',

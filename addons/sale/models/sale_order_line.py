@@ -379,12 +379,7 @@ class SaleOrderLine(models.Model):
                 line.pricelist_item_id = False
             else:
                 line.pricelist_item_id = line.order_id.pricelist_id._get_product_rule(
-                    line.product_id,
-                    line.product_uom_qty or 1.0,
-                    line.currency_id,
-                    line.product_uom,
-                    line.order_id.date_order
-                )
+                    line.product_id, line.product_uom_qty or 1.0, line.product_uom, line.order_id.date_order)
 
     def _get_price_rule_id(self, **product_context):
         self.ensure_one()
@@ -400,23 +395,11 @@ class SaleOrderLine(models.Model):
             # fall back on Sales Price if no rule is found
             price = product.price_compute('list_price', uom=self.product_uom, date=order_date)[product.id]
 
-            # # Note: we do not rely on the currency parameter of price_compute
-            # # to avoid rounding the resulting price value to the currency decimal precision
-            # # TODO edm? With this if, we just convert two times instead of only one (==> not
-            #  # anymore). If-else can solve this, but see if still needed, or exactly the same
+            # Note: we do not rely on the currency parameter of price_compute
+            # to avoid rounding the resulting price value to the currency decimal precision
             if product.currency_id != self.currency_id:
                 price = product.currency_id._convert(
                     price, self.currency_id, self.env.company, order_date, round=False)
-
-        # src_currency = pricelist_rule.currency_id if pricelist_rule else product.currency_id
-        # # TODO edm: or add if in the if-else above
-        #
-        # # # Note: we do not rely on the currency parameter of price_compute
-        # # # to avoid rounding the resulting price value to the currency decimal precision
-        # if src_currency != self.currency_id:
-        #     price = product.currency_id._convert(
-        #         price, self.currency_id, self.env.company, order_date, round=False)
-
         return price, pricelist_rule.id
 
     @api.depends('product_id', 'product_uom', 'product_uom_qty')
@@ -500,7 +483,7 @@ class SaleOrderLine(models.Model):
                 if line.order_id.pricelist_id.currency_id != currency:
                     # we need new_list_price in the same currency as price, which is in the SO's pricelist's currency
                     new_list_price = currency._convert(
-                        new_list_price, line.order_id.pricelist_id.currency_id,  # TODO edm?
+                        new_list_price, line.order_id.pricelist_id.currency_id,
                         line.order_id.company_id or self.env.company,
                         line.order_id.date_order or fields.Date.today())
                 discount = (new_list_price - price) / new_list_price * 100
@@ -516,7 +499,6 @@ class SaleOrderLine(models.Model):
         :param int rule_id: suitable rule found, as a `product.pricelist.item` id
         :param float qty: total quantity of product
         :param recordset uom: unit of measure of current order line
-        :param int pricelist_id: pricelist id of sales order  # TODO edm: this isn't even a param... Can this be called without pricelist?
         """
         product.ensure_one()
 
@@ -535,7 +517,7 @@ class SaleOrderLine(models.Model):
                 currency = product.cost_currency_id
             elif pricelist_item.base == 'pricelist' and pricelist_item.base_pricelist_id:
                 price = pricelist_item.base_pricelist_id._get_product_price(
-                    product, qty, self.currency_id, uom=uom, date=date)
+                    product, qty, uom=uom, date=date)
                 currency = pricelist_item.base_pricelist_id.currency_id
             else:
                 price = product.lst_price

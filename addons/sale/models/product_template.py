@@ -145,7 +145,7 @@ class ProductTemplate(models.Model):
                 }]
         return res
 
-    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, currency=False, pricelist=False, parent_combination=False, only_template=False):
+    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         """ Return info about a given combination.
 
         Note: this method does not take into account whether the combination is
@@ -162,8 +162,6 @@ class ProductTemplate(models.Model):
 
         :param add_qty: float with the quantity for which to get the info,
             indeed some pricelist rules might depend on it.
-
-        :param currency: `product.currency` the currency to use
 
         :param pricelist: `product.pricelist` the pricelist to use
             (can be none, eg. from SO if no partner and no pricelist selected)
@@ -204,7 +202,7 @@ class ProductTemplate(models.Model):
 
         combination = combination or product_template.env['product.template.attribute.value']
 
-        date = fields.Datetime.now()
+        pricelist = pricelist or self.env['product.pricelist']
 
         if not product_id and not combination and not only_template:
             combination = product_template._get_first_possible_combination(parent_combination)
@@ -233,13 +231,7 @@ class ProductTemplate(models.Model):
                     no_variant_attributes_price_extra=tuple(no_variant_attributes_price_extra)
                 )
             list_price = product.price_compute('list_price')[product.id]
-            currency = pricelist.currency_id if pricelist else currency or product.currency_id
-            if pricelist:
-                price = pricelist._get_product_price(product, quantity, currency)
-            else:
-                price = product.currency_id._convert(
-                    list_price, currency, self.env.company, date, round=False
-                )
+            price = pricelist._get_product_price(product, quantity)
             display_image = bool(product.image_128)
             display_name = product.display_name
             price_extra = (product.price_extra or 0.0) + (sum(no_variant_attributes_price_extra) or 0.0)
@@ -248,19 +240,14 @@ class ProductTemplate(models.Model):
             product_template = product_template.with_context(current_attributes_price_extra=current_attributes_price_extra)
             price_extra = sum(current_attributes_price_extra)
             list_price = product_template.price_compute('list_price')[product_template.id]
-            currency = pricelist.currency_id if pricelist else currency or product_template.currency_id  # Todo edm: this is ugly
-            if pricelist:
-                price = pricelist._get_product_price(product_template, quantity, currency)
-            else:
-                price = product_template.currency_id._convert(
-                    list_price, currency, self.env.company, date, round=False
-                )
+            price = pricelist._get_product_price(product_template, quantity)
             display_image = bool(product_template.image_128)
 
             combination_name = combination._get_combination_name()
             if combination_name:
                 display_name = "%s (%s)" % (display_name, combination_name)
 
+        currency = pricelist.currency_id or self.env.company.currency_id
         if currency != product_template.currency_id:
             list_price = product_template.currency_id._convert(
                 list_price, currency, product_template._get_current_company(pricelist=pricelist),
@@ -270,9 +257,8 @@ class ProductTemplate(models.Model):
                 price_extra, currency, product_template._get_current_company(pricelist=pricelist),
                 fields.Date.today()
             )
-        # TODO edm: we use _convert a bit too much here, for the currency, see why it's like this and if this can be simplified
 
-        price_without_discount = list_price if pricelist and pricelist.discount_policy == 'without_discount' else price  # TODO edm
+        price_without_discount = list_price if pricelist and pricelist.discount_policy == 'without_discount' else price
         has_discounted_price = currency.compare_amounts(price_without_discount, price) == 1
 
         return {

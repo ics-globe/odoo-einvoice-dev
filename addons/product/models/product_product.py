@@ -710,8 +710,6 @@ class ProductProduct(models.Model):
             return 0.0
 
         quantity = self.env.context.get('quantity', 1.0)
-        currency = pricelist.currency_id or self.env.context.get('currency_id')
-
         uom = self.env['uom.uom'].browse(self.env.context.get('uom'))
         date = self.env.context.get('date')
-        return pricelist._get_product_price(self, quantity, currency, uom=uom, date=date)
+        return pricelist._get_product_price(self, quantity, uom=uom, date=date)

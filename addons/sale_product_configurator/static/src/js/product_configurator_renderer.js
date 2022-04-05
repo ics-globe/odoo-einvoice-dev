@@ -13,10 +13,8 @@ var ProductConfiguratorFormRenderer = FormRenderer.extend(VariantMixin, {
     /**
      * @override
      */
-    // TODO edm?
     init: function () {
         this._super.apply(this, arguments);
-        this.currencyId = this.state.context.default_currency_id || 0;
         this.pricelistId = this.state.context.default_pricelist_id || 0;
     },
     /**

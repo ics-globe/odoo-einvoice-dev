@@ -27,13 +27,9 @@ class Website(models.Model):
         default=_default_salesteam_id)
 
     pricelist_id = fields.Many2one(
-        'product.pricelist',
-        compute='_compute_pricelist_id',
-    )
+        'product.pricelist', compute='_compute_pricelist_id', string='Default Pricelist if any')
     currency_id = fields.Many2one(
-        'res.currency',
-        compute='_compute_currency_id',
-    )
+        'res.currency', compute='_compute_currency_id', string='Default Currency')
     pricelist_ids = fields.One2many('product.pricelist', compute="_compute_pricelist_ids",
                                     string='Price list available for this Ecommerce/Website')
     all_pricelist_ids = fields.One2many('product.pricelist', 'website_id', string='All pricelists',
@@ -99,8 +95,7 @@ class Website(models.Model):
     @api.depends('all_pricelist_ids', 'pricelist_id', 'company_id')
     def _compute_currency_id(self):
         for website in self:
-            website.currency_id = website.pricelist_id.currency_id.id \
-                                  or website.company_id.currency_id.id
+            website.currency_id = website.pricelist_id.currency_id or website.company_id.currency_id
 
     # This method is cached, must not return records! See also #8795
     @tools.ormcache(

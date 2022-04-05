@@ -118,7 +118,6 @@ ProductConfiguratorWidget.include({
         if (!result.mode || result.mode === 'configurator') {
             this._openProductConfigurator({
                     configuratorMode: result && result.has_optional_products ? 'options' : 'add',
-                    default_currency_id: this._getCurrencyId(),
                     default_pricelist_id: this._getPricelistId(),
                     default_product_template_id: productTemplateId
                 },
@@ -128,7 +127,6 @@ ProductConfiguratorWidget.include({
         }
         return Promise.resolve(false);
     },
-    // TODO edm?
 
     /**
      * Opens the product configurator to allow configuring the product template
@@ -204,7 +202,6 @@ ProductConfiguratorWidget.include({
         this._openProductConfigurator({
                 configuratorMode: 'edit',
                 default_product_template_id: this.recordData.product_template_id.data.id,
-                default_currency_id: this._getCurrencyId(),
                 default_pricelist_id: this._getPricelistId(),
                 default_product_template_attribute_value_ids: this._convertFromMany2Many(
                     this.recordData.product_template_attribute_value_ids
@@ -315,16 +312,6 @@ ProductConfiguratorWidget.include({
         };
 
         return result;
-    },
-
-    /**
-     * Returns the currency_id set on the sale_order form
-     *
-     * @private
-     * @returns {integer} currency_id's id
-     */
-    _getCurrencyId: function () {
-        return this.record.evalContext.parent.currency_id;
     },
 
     /**

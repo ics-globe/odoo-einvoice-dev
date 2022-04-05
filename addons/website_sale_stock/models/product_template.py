@@ -13,10 +13,10 @@ class ProductTemplate(models.Model):
     show_availability = fields.Boolean(string='Show availability Qty', default=False)
     out_of_stock_message = fields.Html(string="Out-of-Stock Message", translate=html_translate)
 
-    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, currency=False, pricelist=False, parent_combination=False, only_template=False):
+    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         combination_info = super(ProductTemplate, self)._get_combination_info(
-            combination=combination, product_id=product_id, add_qty=add_qty, currency=currency,
-            pricelist=pricelist, parent_combination=parent_combination, only_template=only_template)
+            combination=combination, product_id=product_id, add_qty=add_qty, pricelist=pricelist,
+            parent_combination=parent_combination, only_template=only_template)
 
         if not self.env.context.get('website_sale_stock_get_quantity'):
             return combination_info

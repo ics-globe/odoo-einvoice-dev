@@ -1059,16 +1059,6 @@ class Product extends PosModel {
     get_price(pricelist, quantity, price_extra){
         var self = this;
         var date = moment();
-
-        // In case of nested pricelists, it is necessary that all pricelists are made available in
-        // the POS. Display a basic alert to the user in this case.
-        // if (!pricelist) {
-        //     alert(_t(
-        //         'An error occurred when loading product prices. ' +
-        //         'Make sure all pricelists are available in the POS.'
-        //     ));
-        // }
-
         var category_ids = [];
         var category = this.categ;
         while (category) {

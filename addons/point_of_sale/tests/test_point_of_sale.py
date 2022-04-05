@@ -45,8 +45,7 @@ class TestPointOfSale(TransactionCase):
     #
     #     self.assertEqual(new_config.pricelist_id, company1_pricelist,
     #                      "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
-    #     TODO edm: no default pricelist anymore. But if one exist, should be default? For now, it's not
-
+    #
     # def test_default_pricelist_without_company(self):
     #     """ Verify that a default pricelist without a company works """
     #     universal_pricelist = self.env["product.pricelist"].create({
@@ -62,4 +61,3 @@ class TestPointOfSale(TransactionCase):
     #
     #     self.assertEqual(new_config.pricelist_id, universal_pricelist,
     #                      "POS config incorrectly has pricelist %s" % new_config.pricelist_id.display_name)
-    #     TODO edm: no default pricelist anymore. But if one exist, should be default? For now, it's not

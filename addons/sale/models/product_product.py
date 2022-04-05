@@ -49,12 +49,12 @@ class ProductProduct(models.Model):
     def _get_invoice_policy(self):
         return self.invoice_policy
 
-    def _get_combination_info_variant(self, add_qty=1, currency=False, pricelist=False, parent_combination=False):
+    def _get_combination_info_variant(self, add_qty=1, pricelist=False, parent_combination=False):
         """Return the variant info based on its combination.
         See `_get_combination_info` for more information.
         """
         self.ensure_one()
-        return self.product_tmpl_id._get_combination_info(self.product_template_attribute_value_ids, self.id, add_qty, currency, pricelist, parent_combination)
+        return self.product_tmpl_id._get_combination_info(self.product_template_attribute_value_ids, self.id, add_qty, pricelist, parent_combination)
 
     def _filter_to_unlink(self):
         domain = [('product_id', 'in', self.ids)]

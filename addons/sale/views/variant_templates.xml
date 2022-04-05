@@ -117,7 +117,7 @@
         </ul>
     </template>
     <template id="badge_extra_price" name="Badge Extra Price">
-        <t t-set="combination_info_variant" t-value="product._get_combination_info(ptav, currency=currency, pricelist=pricelist)"/>
+        <t t-set="combination_info_variant" t-value="product._get_combination_info(ptav, pricelist=pricelist)"/>
         <span class="badge badge-pill badge-light border" t-if="combination_info_variant['price_extra']">
         <!--
             price_extra is displayed as catalog price instead of
@@ -130,13 +130,13 @@
 
             To cover some generic cases, the price_extra also
             covers the price-included taxes in e-commerce flows.
-            (See the override of `_get_combination_info`)  TODO edm
+            (See the override of `_get_combination_info`)
         -->
         <span class="sign_badge_price_extra" t-esc="combination_info_variant['price_extra'] > 0 and '+' or '-'"/>
         <span t-esc="abs(combination_info_variant['price_extra'])" class="variant_price_extra text-muted font-italic" style="white-space: nowrap;"
             t-options='{
                 "widget": "monetary",
-                "display_currency": currency
+                "display_currency": (pricelist or product.env.company).currency_id
             }'/>
         </span>
     </template>

@@ -164,7 +164,6 @@
                             <body>
                                 <t t-foreach="wishes" t-as="wish">
                                     <t t-set="combination_info" t-value="wish.product_id._get_combination_info_variant()"/>
-                                    <!--        TODO edm no currency nor pricelist passed here?-->
                                     <tr t-att-data-wish-id='wish.id' t-att-data-product-id='wish.product_id.id'
                                         t-att-data-product-tracking-info="json.dumps(request.env['product.template'].get_google_analytics_data(combination_info))">
                                         <td class='td-img align-middle'>

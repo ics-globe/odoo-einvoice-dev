@@ -86,6 +86,7 @@ class TestProductPricelist(TransactionCase):
         })
 
         self.uom_unit_id = self.ref('uom.product_uom_unit')
+        self.base_pricelist = self.env['product.pricelist'].create({'name': 'Base Pricelist'})
 
         self.new_currency = self.env['res.currency'].create({
             'name': 'Wonderful Currency',
@@ -97,6 +98,11 @@ class TestProductPricelist(TransactionCase):
         self.customer_pricelist = self.ProductPricelist.create({
             'name': 'Customer Pricelist',
             'item_ids': [(0, 0, {
+                'name': 'Default pricelist',
+                'compute_price': 'formula',
+                'base': 'pricelist',
+                'base_pricelist_id': self.base_pricelist.id
+            }), (0, 0, {
                 'name': '10% Discount on Assemble Computer',
                 'applied_on': '1_product',
                 'product_tmpl_id': self.ipad_retina_display.product_tmpl_id.id,
@@ -144,7 +150,6 @@ class TestProductPricelist(TransactionCase):
                  'base': 'list_price'
              })]
         })
-        self.currency = self.env.company.currency_id  # This is also the default currency of the pricelists
         self.business_pricelist = self.ProductPricelist.create({
             'name': 'Business Pricelist',
             'item_ids': [(0, 0, {
@@ -163,38 +168,38 @@ class TestProductPricelist(TransactionCase):
         context = {}
         context.update({'pricelist': self.customer_pricelist.id, 'quantity': 1})
         product = self.ipad_retina_display
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong sale price: Customizable Desk. should be %s instead of %s" % (price, (product.lst_price-product.lst_price*(0.10)))
         self.assertEqual(float_compare(
             price, (product.lst_price-product.lst_price*(0.10)), precision_digits=2), 0, msg)
 
         # I check sale price of Laptop.
         product = self.laptop_E5023
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong sale price: Laptop. should be %s instead of %s" % (price, (product.lst_price + 1))
         self.assertEqual(float_compare(price, product.lst_price + 1, precision_digits=2), 0, msg)
 
         # I check sale price of IT component.
         product = self.apple_in_ear_headphones
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong sale price: IT component. should be %s instead of %s" % (price, product.lst_price)
         self.assertEqual(float_compare(price, product.lst_price, precision_digits=2), 0, msg)
 
         # I check sale price of IT component if more than 3 Unit.
         context.update({'quantity': 5})
         product = self.laptop_S3450
-        price = self.customer_pricelist._get_product_price(product, 5.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=5.0)
         msg = "Wrong sale price: IT component if more than 3 Unit. should be %s instead of %s" % (price, (product.lst_price-product.lst_price*(0.05)))
         self.assertEqual(float_compare(price, product.lst_price-product.lst_price*(0.05), precision_digits=2), 0, msg)
 
         # I check sale price of LCD Monitor.
         product = self.ipad_mini
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong sale price: LCD Monitor. should be %s instead of %s" % (price, product.lst_price)
         self.assertEqual(float_compare(price, product.lst_price, precision_digits=2), 0, msg)
 
         # I check sale price of LCD Monitor on end of year.
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency, date='2011-12-31')
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0, date='2011-12-31')
         msg = "Wrong sale price: LCD Monitor on end of year. should be %s instead of %s" % (price, product.lst_price-product.lst_price*(0.30))
         self.assertEqual(float_compare(price, product.lst_price-product.lst_price*(0.30), precision_digits=2), 0, msg)
 
@@ -212,13 +217,13 @@ class TestProductPricelist(TransactionCase):
 
         # Check if the pricelist is applied at precise datetime
         product = self.monitor
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency, date='2020-04-05 08:00:00')
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0, date='2020-04-05 08:00:00')
         context.update({'quantity': 1, 'date': datetime.strptime('2020-04-05 08:00:00', '%Y-%m-%d %H:%M:%S')})
         msg = "Wrong cost price: LCD Monitor. should be 1000 instead of %s" % price
         self.assertEqual(
             float_compare(price, product.lst_price, precision_digits=2), 0,
             msg)
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency, date='2020-04-06 10:00:00')
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0, date='2020-04-06 10:00:00')
         msg = "Wrong cost price: LCD Monitor. should be 500 instead of %s" % price
         self.assertEqual(
             float_compare(price, product.lst_price/2, precision_digits=2), 0,
@@ -226,11 +231,11 @@ class TestProductPricelist(TransactionCase):
 
         # Check if the price is different when we change the pricelist
         product = self.product_multi_price
-        price = self.customer_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.customer_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong price: Multi Product Price. should be 99 instead of %s" % price
         self.assertEqual(float_compare(price, 99, precision_digits=2), 0)
 
-        price = self.business_pricelist._get_product_price(product, 1.0, self.currency)
+        price = self.business_pricelist._get_product_price(product, quantity=1.0)
         msg = "Wrong price: Multi Product Price. should be 50 instead of %s" % price
         self.assertEqual(float_compare(price, 50, precision_digits=2), 0)
 

@@ -122,7 +122,6 @@ var ProductConfiguratorFormController = FormController.extend({
             route: '/sale_product_configurator/configure',
             params: {
                 product_template_id: productTemplateId,
-                currency_id: this.renderer.currencyId,
                 pricelist_id: this.renderer.pricelistId,
                 add_qty: data.quantity,
                 product_template_attribute_value_ids: changed ? [] : this._getAttributeValueIds(
@@ -198,9 +197,9 @@ var ProductConfiguratorFormController = FormController.extend({
                 self._onAddRootProductOnly();
                 return;
             }
+
             self.optionalProductsModal = new OptionalProductsModal($('body'), {
                 rootProduct: self.rootProduct,
-                currencyId: self.renderer.currencyId,
                 pricelistId: self.renderer.pricelistId,
                 okButtonText: _t('Confirm'),
                 cancelButtonText: _t('Back'),

@@ -157,21 +157,23 @@ class ProductTemplate(models.Model):
 
         return self._get_possible_variants(parent_combination).sorted(_sort_key_variant)
 
-    def _get_sales_prices(self, currency, pricelist):
+    def _get_sales_prices(self, pricelist=None):
+        pricelist and pricelist.ensure_one()
         partner_sudo = self.env.user.partner_id
         pricelist = pricelist or self.env['product.pricelist']
+        currency = pricelist.currency_id or self.env.company.currency_id
 
         # Try to fetch geoip based fpos or fallback on partner one
         fpos_id = self.env['website']._get_current_fiscal_position_id(partner_sudo)
         fiscal_position = self.env['account.fiscal.position'].sudo().browse(fpos_id)
 
-        sales_prices = pricelist._get_products_price(self, 1.0, currency)
-        show_discount = pricelist.discount_policy == 'without_discount'
+        sales_prices = pricelist._get_products_price(self, 1.0)
+        show_discount = pricelist and pricelist.discount_policy == 'without_discount'
 
         base_sales_prices = None
         if show_discount:
             base_sales_prices = self.price_compute(
-                'list_price', currency=pricelist.currency_id)
+                'list_price', currency=currency)
 
         res = {}
         for template in self:
@@ -184,8 +186,8 @@ class ProductTemplate(models.Model):
                 price_reduce, product_taxes, taxes, self.env.company)
 
             tax_display = self.user_has_groups('account.group_show_line_subtotals_tax_excluded') and 'total_excluded' or 'total_included'
-            price_reduce = taxes.compute_all(price_reduce, pricelist.currency_id, 1, template, partner_sudo)[tax_display]
-            # TODO edm?
+            price_reduce = taxes.compute_all(price_reduce, currency, 1, template, partner_sudo)[tax_display]
+
             template_price_vals = {
                 'price_reduce': price_reduce
             }
@@ -195,17 +197,16 @@ class ProductTemplate(models.Model):
                 if base_price != price_reduce:
                     base_price = self.env['account.tax']._fix_tax_included_price_company(
                         base_price, product_taxes, taxes, self.env.company)
-                    base_price = taxes.compute_all(base_price, pricelist.currency_id, 1, template, partner_sudo)[tax_display]
+                    base_price = taxes.compute_all(base_price, currency, 1, template, partner_sudo)[tax_display]
                     template_price_vals['base_price'] = base_price
 
             res[template.id] = template_price_vals
 
         return res
 
-    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, currency=False, pricelist=False, parent_combination=False, only_template=False):
+    def _get_combination_info(self, combination=False, product_id=False, add_qty=1, pricelist=False, parent_combination=False, only_template=False):
         """Override for website, where we want to:
             - take the website pricelist if no pricelist is set and one is available
-            - take the website currency if no currency is set
             - apply the b2b/b2c setting to the result
 
         This will work when adding website_id to the context, which is done
@@ -219,17 +220,14 @@ class ProductTemplate(models.Model):
             current_website = self.env['website'].get_current_website()
             if not pricelist:
                 pricelist = current_website.get_current_pricelist()
-            if not currency:
-                currency = pricelist.currency_id or current_website.currency_id
 
         combination_info = super(ProductTemplate, self)._get_combination_info(
-            combination=combination, product_id=product_id, add_qty=add_qty, currency=currency,
-            pricelist=pricelist, parent_combination=parent_combination, only_template=only_template)
+            combination=combination, product_id=product_id, add_qty=add_qty, pricelist=pricelist,
+            parent_combination=parent_combination, only_template=only_template)
 
         if self.env.context.get('website_id'):
             context = dict(self.env.context, ** {
                 'quantity': self.env.context.get('quantity', add_qty),
-                'currency': currency.id,
                 'pricelist': pricelist and pricelist.id
             })
 
@@ -246,7 +244,7 @@ class ProductTemplate(models.Model):
             quantity_1 = 1
             combination_info['price'] = self.env['account.tax']._fix_tax_included_price_company(
                 combination_info['price'], product_taxes, taxes, company_id)
-            price = taxes.compute_all(combination_info['price'], current_website.currency_id, quantity_1, product, partner)[tax_display]
+            price = taxes.compute_all(combination_info['price'], (pricelist or current_website).currency_id, quantity_1, product, partner)[tax_display]
             if pricelist.discount_policy == 'without_discount':
                 combination_info['list_price'] = self.env['account.tax']._fix_tax_included_price_company(
                     combination_info['list_price'], product_taxes, taxes, company_id)

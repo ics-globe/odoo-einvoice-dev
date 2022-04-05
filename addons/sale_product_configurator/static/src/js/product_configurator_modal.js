@@ -20,7 +20,6 @@ var OptionalProductsModal = Dialog.extend(ServicesMixin, VariantMixin, {
      * @override
      * @param {$.Element} parent The parent container
      * @param {Object} params
-     * @param {integer} params.currencyId
      * @param {integer} params.pricelistId
      * @param {string} params.okButtonText The text to apply on the "ok" button, typically
      *   "Add" for the sale order and "Proceed to checkout" on the web shop
@@ -57,7 +56,6 @@ var OptionalProductsModal = Dialog.extend(ServicesMixin, VariantMixin, {
         this.context = params.context;
         this.rootProduct = params.rootProduct;
         this.container = parent;
-        this.currencyId = params.currencyId;
         this.pricelistId = params.pricelistId;
         this.previousModalHeight = params.previousModalHeight;
         this.dialogClass = 'oe_advanced_configurator_modal';
@@ -74,11 +72,11 @@ var OptionalProductsModal = Dialog.extend(ServicesMixin, VariantMixin, {
      */
     willStart: function () {
         var self = this;
+
         var uri = this._getUri("/sale_product_configurator/show_advanced_configurator");
         var getModalContent = ajax.jsonRpc(uri, 'call', {
             product_id: self.rootProduct.product_id,
             variant_values: self.rootProduct.variant_values,
-            currency_id: self.currencyId,
             pricelist_id: self.pricelistId || false,
             add_qty: self.rootProduct.quantity,
             force_dialog: self.forceDialog,
@@ -379,7 +377,6 @@ var OptionalProductsModal = Dialog.extend(ServicesMixin, VariantMixin, {
 
             ajax.jsonRpc(self._getUri("/sale_product_configurator/optional_product_items"), 'call', {
                 'product_id': productId,
-                'currency_id': self.currencyId,
                 'pricelist_id': self.pricelistId || false,
             }).then(function (addedItem) {
                 var $addedItem = $(addedItem);
