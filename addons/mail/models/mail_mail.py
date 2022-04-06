@@ -19,8 +19,8 @@ from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 
 _logger = logging.getLogger(__name__)
 
-MAILMAIL_NO_RECIPIENTS = _lt('Error without exception. Probably due do sending an email without computed recipients.')
-NOTIF_NO_RECIPIENTS = _lt('Error without exception. Probably due do concurrent access update of notification records. Please see with an administrator')
+MAILMAIL_NO_RECIPIENTS = _lt('Error without exception. Probably due to sending an email without computed recipients.')
+NOTIF_NO_RECIPIENTS = _lt('Error without exception. Probably due to concurrent access update of notification records. Please see with an administrator')
 
 
 class MailMail(models.Model):
