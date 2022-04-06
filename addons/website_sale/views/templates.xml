@@ -215,7 +215,7 @@
         <xpath expr="//div[hasclass('o_wsale_product_btn')]" position="inside">
             <t t-set="product_variant_id" t-value="product._get_first_possible_variant_id()"/>
             <input name="product_id" t-att-value="product_variant_id" type="hidden"/>
-            <t t-if="product_variant_id and template_price_vals['price_reduce']">
+            <t t-if="product_variant_id">
                 <a t-if="product._website_show_quick_add()"
                    href="#" role="button" class="btn btn-primary a-submit" aria-label="Shopping cart" title="Shopping cart">
                     <span class="fa fa-shopping-cart"/>
@@ -641,7 +641,7 @@
                         <div class="col-lg-6 mt-lg-4">
                             <t t-call="website_sale.shop_product_carousel"/>
                         </div>
-                        <div class="col-lg-6 mt-md-4" id="product_details">
+                        <div id="product_details" t-attf-class="col-lg-6 mt-md-4 {{'oe_wsale_hide_zero_price' if website.hide_add_to_cart else None}}" >
                             <h1 itemprop="name" t-field="product.name">Product Name</h1>
                             <span itemprop="url" style="display:none;" t-esc="product.website_url"/>
                             <t t-if="is_view_active('website_sale.product_comment')">
