@@ -147,6 +147,16 @@ class TestCRMLeadMultiCompany(TestCrmCommon):
         self.assertEqual(crm_lead_form.user_id, self.env['res.users'])
         self.assertEqual(crm_lead_form.team_id, self.env['crm.team'])
 
+        # computation w\o salesperson (forcing the compute after setting manually the company_id)
+        # based on the partner_id.company_id
+        crm_lead_form.user_id = self.user_sales_manager_mc
+        crm_lead_form.partner_id = self.env['res.partner'].create({'name': 'Vlad the Impaler', 'company_id': self.company_2.id})
+        crm_lead_form.company_id = self.company_2
+        crm_lead_form.team_id = self.env['crm.team']
+        crm_lead_form.user_id = self.env['res.users']
+        # ensuring that company_id is not overwritten when the salesperson becomes empty (w\o any team_id)
+        self.assertEqual(crm_lead_form.company_id, self.company_2)
+
         # force company manually
         crm_lead_form.company_id = self.company_2
         lead = crm_lead_form.save()

@@ -286,7 +286,7 @@ class Lead(models.Model):
                 if lead.team_id and not lead.team_id.company_id and not lead.user_id:
                     proposal = False
                 # no user and no team -> void company and let assignment do its job
-                if not lead.team_id and not lead.user_id:
+                if not lead.team_id and not lead.user_id and not (lead.partner_id and proposal == lead.partner_id.company_id):
                     proposal = False
 
             # propose a new company based on responsible, limited by team
@@ -297,6 +297,8 @@ class Lead(models.Model):
                     proposal = lead.user_id.company_id & self.env.companies
                 elif lead.team_id:
                     proposal = lead.team_id.company_id
+                elif lead.partner_id and lead.partner_id.company_id:
+                    proposal = lead.partner_id.company_id
                 else:
                     proposal = False
 
