@@ -156,7 +156,7 @@ class ResUsers(models.Model):
         if not users:
             users = self.search([('email', '=', login)])
         if len(users) != 1:
-            raise Exception(_('Reset password: invalid username or email'))
+            raise Exception(_('We did not find any account matching this login/email.'))
         return users.action_reset_password()
 
     def action_reset_password(self):

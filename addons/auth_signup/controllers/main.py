@@ -77,7 +77,7 @@ class AuthSignupHome(Home):
                         "Password reset attempt for <%s> by user <%s> from %s",
                         login, request.env.user.login, request.httprequest.remote_addr)
                     request.env['res.users'].sudo().reset_password(login)
-                    qcontext['message'] = _("An email has been sent with credentials to reset your password")
+                    qcontext['message'] = _("We have sent you an email with instructions on how to reset your password")
             except UserError as e:
                 qcontext['error'] = e.args[0]
             except SignupError:
