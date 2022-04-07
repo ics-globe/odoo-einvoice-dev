@@ -17,4 +17,11 @@
         </xpath>
     </template>
 
+   <template id="express_form">
+        <!-- As the following link does not end with '.js', it's not loaded when
+                placed in __manifest__.py. The following declaration fix this problem -->
+        <script type="text/javascript" src="https://js.stripe.com/v3/"></script>
+        <div t-attf-id="o_stripe_express_checkout_container_{{acquirer_id}}" style="padding: 1rem;"/>
+    </template>
+
 </odoo>

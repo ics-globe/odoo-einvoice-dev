@@ -54,6 +54,10 @@ class PaymentAcquirer(models.Model):
         string="Inline Form Template", comodel_name='ir.ui.view',
         help="The template rendering the inline payment form when making a direct payment",
         domain=[('type', '=', 'qweb')])
+    express_form_view_id = fields.Many2one(
+        string="Express Form Template", comodel_name='ir.ui.view',
+        help="The template rendering the express payment form when making a direct payment",
+        domain=[('type', '=', 'qweb')])
     country_ids = fields.Many2many(
         string="Countries", comodel_name='res.country', relation='payment_country_rel',
         column1='payment_id', column2='country_id',
@@ -106,6 +110,7 @@ class PaymentAcquirer(models.Model):
         string="Type of Refund Supported",
         selection=[('full_only', "Full Only"), ('partial', "Partial")],
     )
+    support_express_checkout = fields.Boolean(string="Express Checkout supported")
 
     # Kanban view fields
     description = fields.Html(
@@ -284,7 +289,7 @@ class PaymentAcquirer(models.Model):
     @api.model
     def _get_compatible_acquirers(
         self, company_id, partner_id, currency_id=None, force_tokenization=False,
-        is_validation=False, **kwargs
+        is_validation=False, express=False, **kwargs
     ):
         """ Select and return the acquirers matching the criteria.
 
@@ -314,6 +319,10 @@ class PaymentAcquirer(models.Model):
         # Handle tokenization support requirements
         if force_tokenization or self._is_tokenization_required(**kwargs):
             domain = expression.AND([domain, [('allow_tokenization', '=', True)]])
+
+        # Handle express checkout
+        if express:
+            domain = expression.AND([domain, [('support_express_checkout', '=', True)]])
 
         compatible_acquirers = self.env['payment.acquirer'].search(domain)
         return compatible_acquirers

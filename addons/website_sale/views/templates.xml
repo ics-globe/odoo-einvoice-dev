@@ -1209,6 +1209,9 @@
                                         <span class="">Process Checkout</span>
                                         <span class="fa fa-chevron-right" />
                                     </a>
+                                    <t t-if="website_sale_order and website_sale_order.website_order_line">
+                                        <t t-call="payment.express"/>
+                                    </t>
                                     <div class="oe_structure" id="oe_structure_website_sale_cart_1"/>
                                 </div>
                             </div>

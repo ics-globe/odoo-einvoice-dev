@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Express form -->
+    <template id="express" name="Payment Express Checkout">
+         <!-- Variables description: TODO VCR
+        -->
+        <form name="o_payment_express_checkout"
+              t-att-data-reference-prefix="reference_prefix"
+              t-att-data-amount="amount"
+              t-att-data-minor-amount="minor_amount"
+              t-att-data-currency-id="currency and currency.id"
+              t-att-data-currency-name="currency.name.lower()"
+              t-att-data-label="label"
+              t-att-data-partner-id="partner_id"
+              t-att-data-access-token="payment_access_token"
+              t-att-data-transaction-route="transaction_route"
+              t-att-data-landing-route="landing_route">
+              <t t-foreach="acquirers" t-as="acquirer">
+                <t t-set="express_form_xml_id"
+                    t-value="acquirer.sudo().express_form_view_id.xml_id"/>
+                <t t-if="express_form_xml_id">
+                    <input name="o_payment_express"
+                           t-att-data-payment-option-id="acquirer.id"
+                           t-att-data-provider="acquirer.provider"
+                           type="hidden"/>
+                    <t t-call="{{express_form_xml_id}}">
+                        <t t-set="acquirer_id" t-value="acquirer.id"/>
+                    </t>
+                </t>
+              </t>
+        </form>
+    </template>
+
     <!-- Checkout form -->
     <template id="checkout" name="Payment Checkout">
         <!-- Variables description:

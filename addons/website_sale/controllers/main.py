@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import json
 import logging
-from werkzeug.exceptions import Forbidden, NotFound
+from werkzeug.exceptions import BadRequest, Forbidden, NotFound
 from werkzeug.urls import url_decode, url_encode, url_parse
 
 from odoo import fields, http, SUPERUSER_ID, tools, _
@@ -10,6 +10,7 @@ from odoo.fields import Command
 from odoo.http import request
 from odoo.addons.base.models.ir_qweb_fields import nl2br
 from odoo.addons.http_routing.models.ir_http import slug
+from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.controllers import portal as payment_portal
 from odoo.addons.payment.controllers.post_processing import PaymentPostProcessing
 from odoo.addons.website.controllers.main import QueryURL
@@ -510,6 +511,7 @@ class WebsiteSale(http.Controller):
         if order:
             order.order_line.filtered(lambda l: not l.product_id.active).unlink()
             values['suggested_products'] = order._cart_accessories()
+            values.update(self._get_express_shop_payment_values(order))
 
         if post.get('type') == 'popover':
             # force no-cache so IE11 doesn't cache this XHR
@@ -589,6 +591,10 @@ class WebsiteSale(http.Controller):
             return values
 
         values['cart_quantity'] = order.cart_quantity
+        values['minor_amount'] = payment_utils.to_minor_currency_units(
+            order.amount_total, order.currency_id
+        ),
+        values['amount'] = order.amount_total
 
         if not display:
             return values
@@ -881,6 +887,56 @@ class WebsiteSale(http.Controller):
         render_values.update(self._get_country_related_render_values(kw, render_values))
         return request.render("website_sale.address", render_values)
 
+    @http.route(['/shop/express/address'], type='json', methods=['POST'], auth="public", website=True, sitemap=False)
+    def address_json(self, **post):
+        """ TODO VCR: do a proper docstring
+        TODO VCR: CHECK IF Existing Partner
+        """
+        order = request.website.sale_get_order()
+
+        mode = (False, False)
+
+        partner_id = int(post.get('partner_id', -1))
+
+        if partner_id > 0:
+            # Proccess existing partner
+            return
+        elif partner_id == -1:
+            # Create Billing partner
+            mode = ('new', 'billing')
+            billing_country_id = request.env["res.country"].search([('code', '=', post['billing']['country'])], limit=1).id
+            post['billing']['country_id'] = billing_country_id
+            billing_pre_values = self.values_preprocess(order, mode, post['billing'])
+            billing_errors, billing_error_msg = self.checkout_form_validate(mode, post['billing'], billing_pre_values)
+            billing_new_values, billing_errors, billing_error_msg = self.values_postprocess(order, mode, billing_pre_values, billing_errors, billing_error_msg)
+            billing_partner_id = self._checkout_form_save(mode, billing_new_values, post['billing'])
+            if not billing_errors:  # We Need to set billing partner first to be able to save shipping partner
+                order.partner_id = billing_partner_id
+                order.partner_invoice_id = billing_partner_id
+
+                # Create Shipping partner
+                mode = ('new', 'shipping')
+                shipping_country_id = request.env["res.country"].search([('code', '=', post['shipping']['country'])], limit=1).id
+                post['shipping']['country_id'] = shipping_country_id
+                shipping_pre_values = self.values_preprocess(order, mode, post['shipping'])
+                shipping_errors, shipping_error_msg = self.checkout_form_validate(mode, post['shipping'], shipping_pre_values)
+                shipping_new_values, shipping_errors, shipping_error_msg = self.values_postprocess(order, mode, shipping_pre_values, shipping_errors, shipping_error_msg)
+                shipping_partner_id = self._checkout_form_save(mode, shipping_new_values, post['billing'])
+                if not shipping_errors:
+                    order.partner_shipping_id = shipping_partner_id
+                else:
+                    shipping_errors['error_message'] = shipping_error_msg
+                    return shipping_errors
+            else:
+                billing_errors['error_message'] = billing_error_msg
+                return billing_errors
+        else:
+            return BadRequest()
+
+        order.message_partner_ids = [Command.set([billing_partner_id])]
+        request.session['sale_last_order_id'] = order.id  # TODO VCR: Better comment (needed for /shop/confirmation)
+        return billing_partner_id
+
     def _get_country_related_render_values(self, kw, render_values):
         '''
         This method provides fields related to the country to render the website sale form
@@ -981,6 +1037,37 @@ class WebsiteSale(http.Controller):
     # Payment
     # ------------------------------------------------------
 
+    def _get_express_shop_payment_values(self, order, **kwargs):
+        logged_in = not request.env.user._is_public()
+        acquirers_sudo = request.env['payment.acquirer'].sudo()._get_compatible_acquirers(
+            order.company_id.id,
+            order.partner_id.id,
+            currency_id=order.currency_id.id,
+            sale_order_id=order.id,
+            website_id=request.website.id,
+            express=True,
+        )  # In sudo mode to read the fields of acquirers, order and partner (if not logged in)
+        fees_by_acquirer = {
+            acq_sudo: acq_sudo._compute_fees(
+                order.amount_total, order.currency_id, order.partner_id.country_id
+            ) for acq_sudo in acquirers_sudo.filtered('fees_active')
+        }
+        return {
+            # Payment express form values
+            'acquirers': acquirers_sudo,
+            'fees_by_acquirer': fees_by_acquirer,
+            'amount': order.amount_total,
+            'minor_amount': payment_utils.to_minor_currency_units(
+               order.amount_total, order.currency_id
+            ),
+            'label': request.website.name,
+            'currency': order.currency_id,
+            'partner_id': order.partner_id.id if logged_in else -1,
+            'payment_access_token': order._portal_ensure_token(),
+            'transaction_route': f'/shop/payment/transaction/{order.id}',
+            'landing_route': '/shop/payment/validate',
+        }
+
     def _get_shop_payment_values(self, order, **kwargs):
         logged_in = not request.env.user._is_public()
         acquirers_sudo = request.env['payment.acquirer'].sudo()._get_compatible_acquirers(
@@ -1077,8 +1164,8 @@ class WebsiteSale(http.Controller):
             assert order.id == request.session.get('sale_last_order_id')
 
         if transaction_id:
-            tx = request.env['payment.transaction'].sudo().browse(transaction_id)
-            assert tx in order.transaction_ids()
+            tx = request.env['payment.transaction'].sudo().browse(int(transaction_id))
+            assert int(tx.id) in order.transaction_ids.ids  # TODO VCR: ask anv
         elif order:
             tx = order.get_portal_last_transaction()
         else:

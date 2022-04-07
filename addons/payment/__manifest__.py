@@ -39,6 +39,7 @@
             'payment/static/src/scss/payment_form.scss',
             'payment/static/lib/jquery.payment/jquery.payment.js',
             'payment/static/src/js/checkout_form.js',
+            'payment/static/src/js/express_form.js',
             'payment/static/src/js/manage_form.js',
             'payment/static/src/js/payment_form_mixin.js',
             'payment/static/src/js/post_processing.js',

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="acquirer_form_website" model="ir.ui.view">
+            <field name="name">acquirer.form.inherit.website_payment_stripe</field>
+            <field name="model">payment.acquirer</field>
+            <field name="inherit_id" ref="website_payment.acquirer_form_website"/>
+            <field name="arch" type="xml">
+                <field name='website_id' position='after'>
+                    <field name='domain_registered' invisible='1'/>
+                    <button string="Register your domain"
+                            type="object"
+                            name="action_stripe_link_apple_domain"
+                            class="btn-primary"
+                            attrs="{'invisible': ['|', ('state', '!=', 'enabled'), ('domain_registered', '=', True)]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

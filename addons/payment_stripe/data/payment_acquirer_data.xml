@@ -8,6 +8,8 @@
         <field name="support_refund"></field>
         <field name="support_tokenization">True</field>
         <field name="allow_tokenization">True</field>
+        <field name="support_express_checkout">True</field>
+        <field name="express_form_view_id" ref="express_form"/>
     </record>
 
     <record id="payment_method_stripe" model="account.payment.method">

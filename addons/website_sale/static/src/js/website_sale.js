@@ -363,6 +363,7 @@ publicWidget.registry.WebsiteSale = publicWidget.Widget.extend(VariantMixin, car
                 return window.location = '/shop/cart';
             }
             wSaleUtils.updateCartNavBar(data);
+            core.bus.trigger('amount_changed', data.amount, data.minor_amount);
             $input.val(data.quantity);
             $('.js_quantity[data-line-id='+line_id+']').val(data.quantity).text(data.quantity);
 
@@ -956,7 +957,7 @@ publicWidget.registry.websiteSaleCarouselProduct = publicWidget.Widget.extend({
     /**
      * Center the selected indicator to scroll the indicators list when it
      * overflows.
-     * 
+     *
      * @private
      * @param {Event} ev
      */

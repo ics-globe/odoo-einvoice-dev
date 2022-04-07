@@ -465,6 +465,7 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
 
         processing_values = {
+            'tx_id': self.id,  # TODO VCR: ask ANV. Needed because tx are in draft when hitting /shop/payment/validate
             'acquirer_id': self.acquirer_id.id,
             'provider': self.provider,
             'reference': self.reference,

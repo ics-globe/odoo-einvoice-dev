@@ -23,6 +23,7 @@ _logger = logging.getLogger(__name__)
 class StripeController(http.Controller):
     _checkout_return_url = '/payment/stripe/checkout_return'
     _validation_return_url = '/payment/stripe/validation_return'
+    _get_publishable_key_url = '/payment/stripe/publishable_key'
     _webhook_url = '/payment/stripe/webhook'
     WEBHOOK_AGE_TOLERANCE = 10*60  # seconds
 
@@ -77,6 +78,11 @@ class StripeController(http.Controller):
 
         # Redirect the user to the status page
         return request.redirect('/payment/status')
+
+    @http.route(_get_publishable_key_url, type='json', auth='public')
+    def stripe_get_publishable_key(self, acquirer_id):
+        acquirer_sudo = request.env['payment.acquirer'].sudo().browse(acquirer_id)
+        return acquirer_sudo.stripe_publishable_key
 
     @http.route(_webhook_url, type='json', auth='public')
     def stripe_webhook(self):
