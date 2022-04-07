@@ -568,6 +568,9 @@ export class WysiwygAdapterComponent extends ComponentAdapter {
             iframeClone.remove();
         }
     }
+    _onMobilePreviewRequest() {
+        this.websiteService.context.isMobile = !this.websiteService.context.isMobile;
+    }
 }
 WysiwygAdapterComponent.prototype.events = {
     'widgets_start_request': '_onRootEventRequest',
@@ -583,4 +586,5 @@ WysiwygAdapterComponent.prototype.events = {
     'menu_dialog': '_onMenuDialogRequest',
     'request_public_widget': '_onPublicWidgetRequest',
     'update_color_previews': '_onColorPreviewsUpdate',
+    'request_mobile_preview': '_onMobilePreviewRequest',
 };
