@@ -924,6 +924,21 @@ class TestQWebBasic(TransactionCase):
             """
         rendered = self.env['ir.qweb']._render(t.id)
         self.assertEqual(rendered.strip(), result.strip())
+    
+    def test_set_6(self):
+        t = self.env['ir.ui.view'].create({
+            'name': 'test',
+            'type': 'qweb',
+            'arch_db': '''<t t-name="set">
+                <t t-set="dynamic_width" t-valuef="50%"/>
+                <div t-attf-style="max-width: {{dynamic_width}}"/>
+            </t>'''
+        })
+        result = """
+                <div style="max-width: 50%"></div>
+            """
+        rendered = self.env['ir.qweb']._render(t.id)
+        self.assertEqual(rendered.strip(), result.strip())
 
     def test_set_body_1(self):
         t = self.env['ir.ui.view'].create({
