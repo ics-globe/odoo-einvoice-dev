@@ -1193,6 +1193,21 @@ class SaleOrder(models.Model):
         transaction = self.get_portal_last_transaction()
         return (self.state == 'sent' or (self.state == 'draft' and include_draft)) and not self.is_expired and self.require_payment and transaction.state != 'done' and self.amount_total
 
+    def _get_portal_base_domain(self, partner):
+        return [
+            ('message_partner_ids', 'child_of', [partner.commercial_partner_id.id]),
+        ]
+
+    def _get_portal_quotations_domain(self, partner):
+        return self._get_portal_base_domain(partner) + [
+            ('state', 'in', ['sent', 'cancel']),
+        ]
+
+    def _get_portal_orders_domain(self, partner):
+        return self._get_portal_base_domain(partner) + [
+            ('state', 'in', ['sale', 'done']),
+        ]
+
     def _get_portal_return_action(self):
         """ Return the action used to display orders when returning from customer portal. """
         self.ensure_one()

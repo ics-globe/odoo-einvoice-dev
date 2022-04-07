@@ -25,23 +25,14 @@ class CustomerPortal(portal.CustomerPortal):
 
         SaleOrder = request.env['sale.order'].sudo()
         if 'quotation_count' in counters:
-            values['quotation_count'] = SaleOrder.search_count(self._prepare_quotations_domain(partner))
+            values['quotation_count'] = SaleOrder.search_count(
+                SaleOrder._get_portal_quotations_domain(partner)
+            )
         if 'order_count' in counters:
-            values['order_count'] = SaleOrder.search_count(self._prepare_orders_domain(partner))
-
+            values['order_count'] = SaleOrder.search_count(
+                SaleOrder._get_portal_orders_domain(partner)
+            )
         return values
-
-    def _prepare_quotations_domain(self, partner):
-        return [
-            ('message_partner_ids', 'child_of', [partner.commercial_partner_id.id]),
-            ('state', 'in', ['sent', 'cancel']),
-        ]
-
-    def _prepare_orders_domain(self, partner):
-        return [
-            ('message_partner_ids', 'child_of', [partner.commercial_partner_id.id]),
-            ('state', 'in', ['sale', 'done']),
-        ]
 
     def _get_sale_searchbar_sortings(self):
         return {
@@ -63,10 +54,10 @@ class CustomerPortal(portal.CustomerPortal):
 
         if quotation_page:
             url = "/my/quotes"
-            domain = self._prepare_quotations_domain(partner)
+            domain = SaleOrder._get_portal_quotations_domain(partner)
         else:
             url = "/my/orders"
-            domain = self._prepare_orders_domain(partner)
+            domain = SaleOrder._get_portal_orders_domain(partner)
 
         searchbar_sortings = self._get_sale_searchbar_sortings()
 
