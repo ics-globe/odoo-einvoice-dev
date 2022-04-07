@@ -253,6 +253,131 @@ class AccountMove(models.Model):
     # ONCHANGE METHODS
     # -------------------------------------------------------------------------
 
+    @api.onchange('name', 'highest_name')
+    def _onchange_name_warning(self):
+        if self.name and self.name != '/' and self.name <= (self.highest_name or ''):
+            self.show_name_warning = True
+        else:
+            self.show_name_warning = False
+
+        origin_name = self._origin.name
+        if not origin_name or origin_name == '/':
+            origin_name = self.highest_name
+        if self.name and self.name != '/' and origin_name and origin_name != '/':
+            new_format, new_format_values = self._get_sequence_format_param(self.name)
+            origin_format, origin_format_values = self._get_sequence_format_param(origin_name)
+
+            if (
+                new_format != origin_format
+                or dict(new_format_values, seq=0) != dict(origin_format_values, seq=0)
+            ):
+                changed = _(
+                    "It was previously '%(previous)s' and it is now '%(current)s'.",
+                    previous=origin_name,
+                    current=self.name,
+                )
+                reset = self._deduce_sequence_number_reset(self.name)
+                if reset == 'month':
+                    detected = _(
+                        "The sequence will restart at 1 at the start of every month.\n"
+                        "The year detected here is '%(year)s' and the month is '%(month)s'.\n"
+                        "The incrementing number in this case is '%(formatted_seq)s'."
+                    )
+                elif reset == 'year':
+                    detected = _(
+                        "The sequence will restart at 1 at the start of every year.\n"
+                        "The year detected here is '%(year)s'.\n"
+                        "The incrementing number in this case is '%(formatted_seq)s'."
+                    )
+                else:
+                    detected = _(
+                        "The sequence will never restart.\n"
+                        "The incrementing number in this case is '%(formatted_seq)s'."
+                    )
+                new_format_values['formatted_seq'] = "{seq:0{seq_length}d}".format(**new_format_values)
+                detected = detected % new_format_values
+                return {'warning': {
+                    'title': _("The sequence format has changed."),
+                    'message': "%s\n\n%s" % (changed, detected)
+                }}
+
+    @api.model
+    def _get_tax_grouping_key_from_tax_line(self, tax_line):
+        ''' Create the dictionary based on a tax line that will be used as key to group taxes together.
+        /!\ Must be consistent with '_get_tax_grouping_key_from_base_line'.
+        :param tax_line:    An account.move.line being a tax line (with 'tax_repartition_line_id' set then).
+        :return:            A dictionary containing all fields on which the tax will be grouped.
+        '''
+        return {
+            'tax_repartition_line_id': tax_line.tax_repartition_line_id.id,
+            'group_tax_id': tax_line.group_tax_id.id,
+            'account_id': tax_line.account_id.id,
+            'currency_id': tax_line.currency_id.id,
+            'analytic_tag_ids': [(6, 0, tax_line.tax_line_id.analytic and tax_line.analytic_tag_ids.ids or [])],
+            'analytic_account_id': tax_line.tax_line_id.analytic and tax_line.analytic_account_id.id,
+            'tax_ids': [(6, 0, tax_line.tax_ids.ids)],
+            'tax_tag_ids': [(6, 0, tax_line.tax_tag_ids.ids)],
+            'partner_id': tax_line.partner_id.id,
+        }
+
+    @api.model
+    def _get_tax_grouping_key_from_base_line(self, base_line, tax_vals):
+        ''' Create the dictionary based on a base line that will be used as key to group taxes together.
+        /!\ Must be consistent with '_get_tax_grouping_key_from_tax_line'.
+        :param base_line:   An account.move.line being a base line (that could contains something in 'tax_ids').
+        :param tax_vals:    An element of compute_all(...)['taxes'].
+        :return:            A dictionary containing all fields on which the tax will be grouped.
+        '''
+        tax_repartition_line = self.env['account.tax.repartition.line'].browse(tax_vals['tax_repartition_line_id'])
+        account = base_line._get_default_tax_account(tax_repartition_line) or base_line.account_id
+        return {
+            'tax_repartition_line_id': tax_vals['tax_repartition_line_id'],
+            'group_tax_id': tax_vals['group'].id if tax_vals['group'] else False,
+            'account_id': account.id,
+            'currency_id': base_line.currency_id.id,
+            'analytic_tag_ids': [(6, 0, tax_vals['analytic'] and base_line.analytic_tag_ids.ids or [])],
+            'analytic_account_id': tax_vals['analytic'] and base_line.analytic_account_id.id,
+            'tax_ids': [(6, 0, tax_vals['tax_ids'])],
+            'tax_tag_ids': [(6, 0, tax_vals['tag_ids'])],
+            'partner_id': base_line.partner_id.id,
+        }
+
+    def _get_tax_force_sign(self):
+        """ The sign must be forced to a negative sign in case the balance is on credit
+            to avoid negatif taxes amount.
+            Example - Customer Invoice :
+            Fixed Tax  |  unit price  |   discount   |  amount_tax  | amount_total |
+            -------------------------------------------------------------------------
+                0.67   |      115      |     100%     |    - 0.67    |      0
+            -------------------------------------------------------------------------"""
+        self.ensure_one()
+        return -1 if self.move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
+
+    def _preprocess_taxes_map(self, taxes_map):
+        """ Useful in case we want to pre-process taxes_map """
+        return taxes_map
+
+    @api.model
+    def _get_base_amount_to_display(self, base_amount, tax_rep_ln, parent_tax_group=None):
+        """ The base amount returned for taxes by compute_all has is the balance
+        of the base line. For inbound operations, positive sign is on credit, so
+        we need to invert the sign of this amount before displaying it.
+        """
+        source_tax = parent_tax_group or tax_rep_ln.tax_id
+        if (tax_rep_ln.document_type == 'invoice' and source_tax.type_tax_use == 'sale') \
+           or (tax_rep_ln.document_type == 'refund' and source_tax.type_tax_use == 'purchase'):
+            return -base_amount
+        return base_amount
+
+    # -------------------------------------------------------------------------
+    # COMPUTE METHODS
+    # -------------------------------------------------------------------------
+
+    @api.depends('journal_id')
+    def _compute_company_id(self):
+        for move in self:
+            move.company_id = move.journal_id.company_id or move.company_id or self.env.company
+
     def _get_accounting_date(self, original_date, has_tax):
         """Get correct accounting date for previous periods, taking tax lock date into account.
 
@@ -338,95 +463,6 @@ class AccountMove(models.Model):
             raise UserError(error_msg)
 
         return journal
-
-    @api.onchange('partner_shipping_id', 'company_id')
-    def _onchange_partner_shipping_id(self):
-        """
-        Trigger the change of fiscal position when the shipping address is modified.
-        """
-        fiscal_position = self.env['account.fiscal.position']\
-            .with_company(self.company_id)\
-            ._get_fiscal_position(self.partner_id, delivery=self.partner_shipping_id)
-
-        if fiscal_position:
-            self.fiscal_position_id = fiscal_position
-
-    @api.model
-    def _get_tax_grouping_key_from_tax_line(self, tax_line):
-        ''' Create the dictionary based on a tax line that will be used as key to group taxes together.
-        /!\ Must be consistent with '_get_tax_grouping_key_from_base_line'.
-        :param tax_line:    An account.move.line being a tax line (with 'tax_repartition_line_id' set then).
-        :return:            A dictionary containing all fields on which the tax will be grouped.
-        '''
-        return {
-            'tax_repartition_line_id': tax_line.tax_repartition_line_id.id,
-            'group_tax_id': tax_line.group_tax_id.id,
-            'account_id': tax_line.account_id.id,
-            'currency_id': tax_line.currency_id.id,
-            'analytic_tag_ids': [(6, 0, tax_line.tax_line_id.analytic and tax_line.analytic_tag_ids.ids or [])],
-            'analytic_account_id': tax_line.tax_line_id.analytic and tax_line.analytic_account_id.id,
-            'tax_ids': [(6, 0, tax_line.tax_ids.ids)],
-            'tax_tag_ids': [(6, 0, tax_line.tax_tag_ids.ids)],
-            'partner_id': tax_line.partner_id.id,
-        }
-
-    @api.model
-    def _get_tax_grouping_key_from_base_line(self, base_line, tax_vals):
-        ''' Create the dictionary based on a base line that will be used as key to group taxes together.
-        /!\ Must be consistent with '_get_tax_grouping_key_from_tax_line'.
-        :param base_line:   An account.move.line being a base line (that could contains something in 'tax_ids').
-        :param tax_vals:    An element of compute_all(...)['taxes'].
-        :return:            A dictionary containing all fields on which the tax will be grouped.
-        '''
-        tax_repartition_line = self.env['account.tax.repartition.line'].browse(tax_vals['tax_repartition_line_id'])
-        account = base_line._get_default_tax_account(tax_repartition_line) or base_line.account_id
-        return {
-            'tax_repartition_line_id': tax_vals['tax_repartition_line_id'],
-            'group_tax_id': tax_vals['group'].id if tax_vals['group'] else False,
-            'account_id': account.id,
-            'currency_id': base_line.currency_id.id,
-            'analytic_tag_ids': [(6, 0, tax_vals['analytic'] and base_line.analytic_tag_ids.ids or [])],
-            'analytic_account_id': tax_vals['analytic'] and base_line.analytic_account_id.id,
-            'tax_ids': [(6, 0, tax_vals['tax_ids'])],
-            'tax_tag_ids': [(6, 0, tax_vals['tag_ids'])],
-            'partner_id': base_line.partner_id.id,
-        }
-
-    def _get_tax_force_sign(self):
-        """ The sign must be forced to a negative sign in case the balance is on credit
-            to avoid negatif taxes amount.
-            Example - Customer Invoice :
-            Fixed Tax  |  unit price  |   discount   |  amount_tax  | amount_total |
-            -------------------------------------------------------------------------
-                0.67   |      115      |     100%     |    - 0.67    |      0
-            -------------------------------------------------------------------------"""
-        self.ensure_one()
-        return -1 if self.move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-
-    def _preprocess_taxes_map(self, taxes_map):
-        """ Useful in case we want to pre-process taxes_map """
-        return taxes_map
-
-    @api.model
-    def _get_base_amount_to_display(self, base_amount, tax_rep_ln, parent_tax_group=None):
-        """ The base amount returned for taxes by compute_all has is the balance
-        of the base line. For inbound operations, positive sign is on credit, so
-        we need to invert the sign of this amount before displaying it.
-        """
-        source_tax = parent_tax_group or tax_rep_ln.tax_id
-        if (tax_rep_ln.document_type == 'invoice' and source_tax.type_tax_use == 'sale') \
-           or (tax_rep_ln.document_type == 'refund' and source_tax.type_tax_use == 'purchase'):
-            return -base_amount
-        return base_amount
-
-    @api.depends('journal_id')
-    def _compute_company_id(self):
-        for move in self:
-            move.company_id = move.journal_id.company_id or move.company_id or self.env.company
-
-    # -------------------------------------------------------------------------
-    # COMPUTE METHODS
-    # -------------------------------------------------------------------------
 
     @api.depends('move_type')
     def _compute_is_storno(self):
@@ -521,54 +557,6 @@ class AccountMove(models.Model):
     def _compute_highest_name(self):
         for record in self:
             record.highest_name = record._get_last_sequence()
-
-    @api.onchange('name', 'highest_name')
-    def _onchange_name_warning(self):
-        if self.name and self.name != '/' and self.name <= (self.highest_name or ''):
-            self.show_name_warning = True
-        else:
-            self.show_name_warning = False
-
-        origin_name = self._origin.name
-        if not origin_name or origin_name == '/':
-            origin_name = self.highest_name
-        if self.name and self.name != '/' and origin_name and origin_name != '/':
-            new_format, new_format_values = self._get_sequence_format_param(self.name)
-            origin_format, origin_format_values = self._get_sequence_format_param(origin_name)
-
-            if (
-                new_format != origin_format
-                or dict(new_format_values, seq=0) != dict(origin_format_values, seq=0)
-            ):
-                changed = _(
-                    "It was previously '%(previous)s' and it is now '%(current)s'.",
-                    previous=origin_name,
-                    current=self.name,
-                )
-                reset = self._deduce_sequence_number_reset(self.name)
-                if reset == 'month':
-                    detected = _(
-                        "The sequence will restart at 1 at the start of every month.\n"
-                        "The year detected here is '%(year)s' and the month is '%(month)s'.\n"
-                        "The incrementing number in this case is '%(formatted_seq)s'."
-                    )
-                elif reset == 'year':
-                    detected = _(
-                        "The sequence will restart at 1 at the start of every year.\n"
-                        "The year detected here is '%(year)s'.\n"
-                        "The incrementing number in this case is '%(formatted_seq)s'."
-                    )
-                else:
-                    detected = _(
-                        "The sequence will never restart.\n"
-                        "The incrementing number in this case is '%(formatted_seq)s'."
-                    )
-                new_format_values['formatted_seq'] = "{seq:0{seq_length}d}".format(**new_format_values)
-                detected = detected % new_format_values
-                return {'warning': {
-                    'title': _("The sequence format has changed."),
-                    'message': "%s\n\n%s" % (changed, detected)
-                }}
 
     def _get_last_sequence_domain(self, relaxed=False):
         self.ensure_one()
@@ -801,19 +789,6 @@ class AccountMove(models.Model):
                     message = _("You cannot add/modify entries prior to and inclusive of the lock date %s. Check the company settings or ask someone with the 'Adviser' role", format_date(self.env, lock_date))
                 raise UserError(message)
         return True
-
-    @api.constrains('line_ids', 'fiscal_position_id', 'company_id')
-    def _validate_taxes_country(self):
-        """ By playing with the fiscal position in the form view, it is possible to keep taxes on the invoices from
-        a different country than the one allowed by the fiscal country or the fiscal position.
-        This contrains ensure such account.move cannot be kept, as they could generate inconsistencies in the reports.
-        """
-        self._compute_tax_country_id() # We need to ensure this field has been computed, as we use it in our check
-        for record in self:
-            amls = record.line_ids
-            impacted_countries = amls.tax_ids.country_id | amls.tax_line_id.country_id | amls.tax_tag_ids.country_id
-            if impacted_countries and impacted_countries != record.tax_country_id:
-                raise ValidationError(_("This entry contains some tax from an unallowed country. Please check its fiscal position and your tax configuration."))
 
     # -------------------------------------------------------------------------
     # LOW-LEVEL METHODS

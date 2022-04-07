@@ -21,20 +21,12 @@ class AccountMoveLine(models.Model):
         index=True, required=True, readonly=True, auto_join=True, ondelete="cascade",
         check_company=True,
         help="The move of this entry line.")
-    move_name = fields.Char(string='Number', related='move_id.name', store=True, index='trigram')
-    date = fields.Date(related='move_id.date', store=True, readonly=True, index=True, copy=False, group_operator='min')
-    ref = fields.Char(related='move_id.ref', store=True, copy=False, index='trigram', readonly=True)
-    parent_state = fields.Selection(related='move_id.state', store=True, readonly=True)
     journal_id = fields.Many2one(
         related='move_id.journal_id', store=True, index=True, copy=False, precompute=True)
     company_id = fields.Many2one(related='move_id.company_id', store=True, readonly=True, precompute=True)
     company_currency_id = fields.Many2one(related='move_id.company_currency_id', string='Company Currency',
         readonly=True, store=True,
         help='Utility field to express amount currency')
-    is_storno = fields.Boolean(
-        related='move_id.is_storno',
-        string='Company Storno Accounting',
-        help='Utility field to express whether the journal item is subject to storno accounting')
 
     # === Accountable fields === #
     account_id = fields.Many2one(
@@ -45,9 +37,6 @@ class AccountMoveLine(models.Model):
         domain="[('deprecated', '=', False), ('company_id', '=', 'company_id'),('is_off_balance', '=', False)]",
         check_company=True,
         tracking=True)
-    account_internal_type = fields.Selection(related='account_id.user_type_id.type', string="Internal Type", readonly=True)
-    account_internal_group = fields.Selection(related='account_id.user_type_id.internal_group', string="Internal Group", readonly=True)
-    account_root_id = fields.Many2one(related='account_id.root_id', string="Account Root", store=True, readonly=True)
     name = fields.Char(
         string='Label', tracking=True,
         compute='_compute_name', store=True, readonly=False, precompute=True)
@@ -73,9 +62,6 @@ class AccountMoveLine(models.Model):
         compute='_compute_amount_currency', precompute=True,
         inverse='_inverse_amount_currency',
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
-    reconciled = fields.Boolean(compute='_compute_amount_residual', store=True)
-    blocked = fields.Boolean(string='No Follow-up', default=False,
-        help="You can check this box to mark this journal item as a litigation with the associated partner")
     currency_id = fields.Many2one(
         'res.currency', string='Currency', required=True,
         compute='_compute_currency_id', store=True, readonly=False, precompute=True)
@@ -105,9 +91,6 @@ class AccountMoveLine(models.Model):
     )
     tax_line_id = fields.Many2one('account.tax', string='Originator Tax', ondelete='restrict', store=True,
         compute='_compute_tax_line_id', help="Indicates that this journal item is a tax line")
-    tax_group_id = fields.Many2one(related='tax_line_id.tax_group_id', string='Originator tax group',
-        readonly=True, store=True,
-        help='technical field for widget tax-group-custom-field')
     tax_base_amount = fields.Monetary(string="Base Amount", store=True, readonly=True,
         currency_field='company_currency_id')
     tax_repartition_line_id = fields.Many2one(comodel_name='account.tax.repartition.line',
@@ -123,22 +106,88 @@ class AccountMoveLine(models.Model):
              "inverted when computing its total for each tag (for sales invoices, for example).")
 
     # ==== Reconciliation fields ====
-    amount_residual = fields.Monetary(string='Residual Amount', store=True,
+    amount_residual = fields.Monetary(
+        string='Residual Amount',
+        compute='_compute_amount_residual', store=True,
         currency_field='company_currency_id',
-        compute='_compute_amount_residual',
-        help="The residual amount on a journal item expressed in the company currency.")
-    amount_residual_currency = fields.Monetary(string='Residual Amount in Currency', store=True,
-        compute='_compute_amount_residual',
-        help="The residual amount on a journal item expressed in its currency (possibly not the company currency).")
-    full_reconcile_id = fields.Many2one('account.full.reconcile', string="Matching", copy=False, index='btree_not_null', readonly=True)
-    matched_debit_ids = fields.One2many('account.partial.reconcile', 'credit_move_id', string='Matched Debits',
-        help='Debit journal items that are matched with this journal item.', readonly=True)
-    matched_credit_ids = fields.One2many('account.partial.reconcile', 'debit_move_id', string='Matched Credits',
-        help='Credit journal items that are matched with this journal item.', readonly=True)
-    matching_number = fields.Char(string="Matching #", compute='_compute_matching_number', store=True, help="Matching number for this line, 'P' if it is only partially reconcile, or the name of the full reconcile if it exists.")
+        help="The residual amount on a journal item expressed in the company currency.",
+    )
+    amount_residual_currency = fields.Monetary(
+        string='Residual Amount in Currency',
+        compute='_compute_amount_residual', store=True,
+        help="The residual amount on a journal item expressed in its currency (possibly not the "
+             "company currency).",
+    )
+    reconciled = fields.Boolean(compute='_compute_amount_residual', store=True)
+    full_reconcile_id = fields.Many2one(
+        comodel_name='account.full.reconcile',
+        string="Matching",
+        copy=False,
+        index='btree_not_null',
+        readonly=True,
+    )
+    matched_debit_ids = fields.One2many(
+        'account.partial.reconcile',
+        'credit_move_id',
+        string='Matched Debits',
+        readonly=True,
+        help='Debit journal items that are matched with this journal item.',
+    )
+    matched_credit_ids = fields.One2many(
+        'account.partial.reconcile',
+        'debit_move_id',
+        string='Matched Credits',
+        readonly=True,
+        help='Credit journal items that are matched with this journal item.',
+    )
+    matching_number = fields.Char(
+        string="Matching #",
+        compute='_compute_matching_number', store=True,
+        help="Matching number for this line, 'P' if it is only partially reconcile, or the name of "
+             "the full reconcile if it exists.",
+    )
 
-    # ==== Onchange / display purpose fields ====
-    is_rounding_line = fields.Boolean(help="Technical field used to retrieve the cash rounding line.")
+    # === Related fields ===
+    move_name = fields.Char(
+        string='Number',
+        related='move_id.name', store=True,
+        index='trigram',
+    )
+    parent_state = fields.Selection(related='move_id.state', store=True, readonly=True)
+    date = fields.Date(
+        related='move_id.date', store=True,
+        index=True,
+        copy=False,
+        group_operator='min',
+    )
+    ref = fields.Char(
+        related='move_id.ref', store=True,
+        copy=False,
+        index='trigram',
+    )
+    is_storno = fields.Boolean(
+        related='move_id.is_storno',
+        string="Company Storno Accounting",
+        help="Utility field to express whether the journal item is subject to storno accounting",
+    )
+    account_internal_type = fields.Selection(
+        related='account_id.user_type_id.type',
+        string="Internal Type",
+    )
+    account_internal_group = fields.Selection(
+        related='account_id.user_type_id.internal_group',
+        string="Internal Group",
+    )
+    account_root_id = fields.Many2one(
+        related='account_id.root_id',
+        string="Account Root",
+        store=True,
+    )
+    tax_group_id = fields.Many2one(
+        string='Originator tax group',
+        related='tax_line_id.tax_group_id', store=True,
+        help='technical field for widget tax-group-custom-field',
+    )
 
     _sql_constraints = [
         (

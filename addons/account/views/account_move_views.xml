@@ -930,7 +930,6 @@
                                         <field name="company_id" invisible="1"/>
                                         <field name="company_currency_id" invisible="1"/>
                                         <field name="display_type" force_save="1" invisible="1"/>
-                                        <field name="is_rounding_line" invisible="1"/>
                                         <field name="exclude_from_invoice_tab" invisible="1"/>
                                         <field name="account_internal_type" invisible="1"/>
                                         <field name="account_internal_group" invisible="1"/>
@@ -1003,7 +1002,6 @@
                                         <field name="company_id" invisible="1"/>
                                         <field name="company_currency_id" invisible="1"/>
                                         <field name="display_type" force_save="1" invisible="1"/>
-                                        <field name="is_rounding_line" invisible="1"/>
                                         <field name="exclude_from_invoice_tab" invisible="1"/>
                                         <field name="account_internal_type" invisible="1"/>
                                         <field name="account_internal_group" invisible="1"/>
@@ -1164,7 +1162,6 @@
                                         <field name="company_id" invisible="1"/>
                                         <field name="company_currency_id" invisible="1"/>
                                         <field name="display_type" force_save="1" invisible="1"/>
-                                        <field name="is_rounding_line" invisible="1"/>
                                         <field name="exclude_from_invoice_tab" invisible="1"/>
                                         <field name="account_internal_type" invisible="1"/>
                                         <field name="account_internal_group" invisible="1"/>

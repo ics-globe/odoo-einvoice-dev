@@ -378,15 +378,13 @@ class AccountInvoice(models.Model):
                 lambda bank: not bank.company_id or bank.company_id == move.company_id)
             move.partner_bank_id = bank_ids[0] if bank_ids else False
 
-    @api.depends('invoice_vendor_bill_id', 'partner_id')
+    @api.depends('partner_id')
     def _compute_invoice_payment_term_id(self):
         for move in self:
             if move.is_sale_document(include_receipts=True) and move.partner_id.property_payment_term_id:
                 move.invoice_payment_term_id = move.partner_id.property_payment_term_id
             elif move.is_purchase_document(include_receipts=True) and move.partner_id.property_supplier_payment_term_id:
                 move.invoice_payment_term_id = move.partner_id.property_supplier_payment_term_id
-            else:
-                move.invoice_payment_term_id = move.invoice_vendor_bill_id.invoice_payment_term_id
 
     @api.depends('invoice_date', 'highest_name', 'company_id')
     def _compute_invoice_date_due(self):
@@ -990,6 +988,19 @@ class AccountInvoice(models.Model):
                 })
             ))
 
+    @api.constrains('line_ids', 'fiscal_position_id', 'company_id')
+    def _validate_taxes_country(self):
+        """ By playing with the fiscal position in the form view, it is possible to keep taxes on the invoices from
+        a different country than the one allowed by the fiscal country or the fiscal position.
+        This contrains ensure such account.move cannot be kept, as they could generate inconsistencies in the reports.
+        """
+        self._compute_tax_country_id() # We need to ensure this field has been computed, as we use it in our check
+        for record in self:
+            amls = record.line_ids
+            impacted_countries = amls.tax_ids.country_id | amls.tax_line_id.country_id | amls.tax_tag_ids.country_id
+            if impacted_countries and impacted_countries != record.tax_country_id:
+                raise ValidationError(_("This entry contains some tax from an unallowed country. Please check its fiscal position and your tax configuration."))
+
     # -------------------------------------------------------------------------
     # ONCHANGE METHODS
     # -------------------------------------------------------------------------
@@ -1004,9 +1015,8 @@ class AccountInvoice(models.Model):
                 new_line = self.env['account.move.line'].new(copied_vals)
                 # TODO uh? unused?
 
-            # Copy currency.
-            if self.currency_id != self.invoice_vendor_bill_id.currency_id:
-                self.currency_id = self.invoice_vendor_bill_id.currency_id
+            self.currency_id = self.invoice_vendor_bill_id.currency_id
+            self.fiscal_position_id = self.invoice_vendor_bill_id.fiscal_position_id
 
             # Reset
             self.invoice_vendor_bill_id = False
@@ -1249,7 +1259,7 @@ class AccountInvoice(models.Model):
                 'currency_id': self.currency_id.id,
                 'company_id': self.company_id.id,
                 'company_currency_id': self.company_id.currency_id.id,
-                'is_rounding_line': True,
+                'display_type': 'rounding',
                 'sequence': 9999,
             }
 
@@ -1290,7 +1300,7 @@ class AccountInvoice(models.Model):
             else:
                 cash_rounding_line = self.env['account.move.line'].create(rounding_line_vals)
 
-        existing_cash_rounding_line = self.line_ids.filtered(lambda line: line.is_rounding_line)
+        existing_cash_rounding_line = self.line_ids.filtered(lambda line: line.display_type == 'rounding')
 
         # The cash rounding has been removed.
         if not self.invoice_cash_rounding_id:

@@ -14,6 +14,7 @@ class AccountInvoiceLine(models.Model):
             ('payment_term', 'Payment Term'),
             ('line_section', 'Section'),
             ('line_note', 'Note'),
+            ('rounding', "Rounding"),
         ],
     )
     exclude_from_invoice_tab = fields.Boolean(
@@ -105,6 +106,13 @@ class AccountInvoiceLine(models.Model):
         copy=True,
     )
 
+    # === Misc Information === #
+    blocked = fields.Boolean(
+        string='No Follow-up',
+        default=False,
+        help="You can check this box to mark this journal item as a litigation with the "
+             "associated partner",
+    )
     def _inverse_product_id(self):
         for line in self:
             fiscal_position = line.move_id.fiscal_position_id
