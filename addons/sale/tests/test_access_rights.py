@@ -129,8 +129,7 @@ class TestAccessRightsControllers(HttpCase):
     def test_access_controller(self):
 
         portal_so = self.env.ref("sale.portal_sale_order_2").sudo()
-        portal_so._portal_ensure_token()
-        token = portal_so.access_token
+        token = portal_so._portal_ensure_token()
 
         private_so = self.env.ref("sale.sale_order_1")
 
@@ -165,9 +164,9 @@ class TestAccessRightsControllers(HttpCase):
 
         self.authenticate("portal", "portal")
 
-        # do not need the token when logged in
+        # portal users needs the access_token
         req = self.url_open(
-            url='/my/orders/%s?report_type=pdf' % portal_so.id,
+            url=f'{portal_so.access_url}?report_type=pdf&access_token={token}',
             allow_redirects=False,
         )
         self.assertEqual(req.status_code, 200)

@@ -21,26 +21,26 @@ class CustomerPortal(portal.CustomerPortal):
         values = super()._prepare_home_portal_values(counters)
         partner = request.env.user.partner_id
 
-        SaleOrder = request.env['sale.order']
+        # TODO multi-comp analysis/consideration (only when website installed ?)
+
+        SaleOrder = request.env['sale.order'].sudo()
         if 'quotation_count' in counters:
-            values['quotation_count'] = SaleOrder.search_count(self._prepare_quotations_domain(partner)) \
-                if SaleOrder.check_access_rights('read', raise_exception=False) else 0
+            values['quotation_count'] = SaleOrder.search_count(self._prepare_quotations_domain(partner))
         if 'order_count' in counters:
-            values['order_count'] = SaleOrder.search_count(self._prepare_orders_domain(partner)) \
-                if SaleOrder.check_access_rights('read', raise_exception=False) else 0
+            values['order_count'] = SaleOrder.search_count(self._prepare_orders_domain(partner))
 
         return values
 
     def _prepare_quotations_domain(self, partner):
         return [
             ('message_partner_ids', 'child_of', [partner.commercial_partner_id.id]),
-            ('state', 'in', ['sent', 'cancel'])
+            ('state', 'in', ['sent', 'cancel']),
         ]
 
     def _prepare_orders_domain(self, partner):
         return [
             ('message_partner_ids', 'child_of', [partner.commercial_partner_id.id]),
-            ('state', 'in', ['sale', 'done'])
+            ('state', 'in', ['sale', 'done']),
         ]
 
     def _get_sale_searchbar_sortings(self):
@@ -53,7 +53,7 @@ class CustomerPortal(portal.CustomerPortal):
     def _prepare_sale_portal_rendering_values(
         self, page=1, date_begin=None, date_end=None, sortby=None, quotation_page=False, **kwargs
     ):
-        SaleOrder = request.env['sale.order']
+        SaleOrder = request.env['sale.order'].sudo()
 
         if not sortby:
             sortby = 'date'
@@ -86,8 +86,8 @@ class CustomerPortal(portal.CustomerPortal):
 
         values.update({
             'date': date_begin,
-            'quotations': orders.sudo() if quotation_page else SaleOrder,
-            'orders': orders.sudo() if not quotation_page else SaleOrder,
+            'quotations': orders if quotation_page else SaleOrder,
+            'orders': orders if not quotation_page else SaleOrder,
             'page_name': 'quote' if quotation_page else 'order',
             'pager': pager_values,
             'default_url': url,
@@ -219,7 +219,7 @@ class CustomerPortal(portal.CustomerPortal):
                 'signature': signature,
             })
             request.env.cr.commit()
-        except (TypeError, binascii.Error) as e:
+        except (TypeError, binascii.Error):
             return {'error': _('Invalid signature data.')}
 
         if not order_sudo.has_to_be_paid():
