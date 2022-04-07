@@ -309,21 +309,22 @@ class StockRule(models.Model):
                 if len(partners) == 1:
                     partner = partners
                     move_dest.partner_id = partner
+        to_refund = values.get('to_refund', False)
 
         move_values = {
             'name': name[:2000],
             'company_id': self.company_id.id or self.location_src_id.company_id.id or self.location_id.company_id.id or company_id.id,
             'product_id': product_id.id,
             'product_uom': product_uom.id,
-            'product_uom_qty': qty_left,
+            'product_uom_qty': qty_left if not to_refund else -qty_left,
             'partner_id': partner.id if partner else False,
-            'location_id': self.location_src_id.id,
-            'location_dest_id': location_id.id,
+            'location_id': self.location_src_id.id if not to_refund else location_id.id,
+            'location_dest_id': location_id.id if not to_refund else self.location_src_id.id,
             'move_dest_ids': move_dest_ids,
             'rule_id': self.id,
             'procure_method': self.procure_method,
             'origin': origin,
-            'picking_type_id': self.picking_type_id.id,
+            'picking_type_id': self.picking_type_id.id if not to_refund else self.picking_type_id.return_picking_type_id.id,
             'group_id': group_id,
             'route_ids': [(4, route.id) for route in values.get('route_ids', [])],
             'warehouse_id': self.propagate_warehouse_id.id or self.warehouse_id.id,
