@@ -113,9 +113,6 @@ class AccrualPlanLevel(models.Model):
     maximum_leave = fields.Float(
         'Limit to', required=False, default=100,
         help="Choose a cap for this accrual. 0 means no cap.")
-    parent_id = fields.Many2one(
-        'hr.leave.accrual.level', string="Previous Level",
-        help="If this field is empty, this level is the first one.")
     action_with_unused_accruals = fields.Selection(
         [('postponed', 'Transferred to the next year'),
          ('lost', 'Lost')],
