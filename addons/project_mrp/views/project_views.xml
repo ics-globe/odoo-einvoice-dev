@@ -13,7 +13,7 @@
                     <field string="Manufacturing Orders" name="production_count" widget="statinfo"/>
                 </button>
                 <button class="oe_stat_button" type="object" name="action_view_workorder"
-                    icon="fa-cog"
+                    icon="fa-cog" attrs="{'invisible': [('workorder_count', '=', 0)]}"
                     groups="mrp.group_mrp_user">
                     <field string="Work Orders" name="workorder_count" widget="statinfo"/>
                 </button>

@@ -485,6 +485,15 @@ class Project(models.Model):
         new_subtasks.write({'display_project_id': project.id})
         return True
 
+    def unlink_origin_project_tasks(self, project_id):
+        for new_task in self.env['project.task'].search([('project_id', '=', project_id)]):
+            new_task.write({
+                'depend_on_ids': [Command.unlink(depend_on_id.id) for depend_on_id in new_task.depend_on_ids if depend_on_id.project_id.id == self.id]
+            })
+            new_task.write({
+                'dependent_ids': [Command.unlink(dependent_id.id) for dependent_id in new_task.dependent_ids if dependent_id.project_id.id == self.id]
+            })
+
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
         if default is None:
@@ -496,6 +505,9 @@ class Project(models.Model):
             project.message_subscribe(partner_ids=follower.partner_id.ids, subtype_ids=follower.subtype_ids.ids)
         if 'tasks' not in default:
             self.map_tasks(project.id)
+
+        self.unlink_origin_project_tasks(project.id)
+
         return project
 
     @api.model
@@ -1080,7 +1092,7 @@ class Task(models.Model):
     working_days_close = fields.Float(compute='_compute_elapsed', string='Working Days to Close', store=True, group_operator="avg")
     # customer portal: include comment and incoming emails in communication history
     website_message_ids = fields.One2many(domain=lambda self: [('model', '=', self._name), ('message_type', 'in', ['email', 'comment'])])
-    is_private = fields.Boolean(compute='_compute_is_private')
+    is_private = fields.Boolean(compute='_compute_is_private', search='_search_is_private')
 
     # Task Dependencies fields
     allow_task_dependencies = fields.Boolean(related='project_id.allow_task_dependencies')
@@ -1209,6 +1221,16 @@ class Task(models.Model):
     def _compute_ancestor_id(self):
         for task in self:
             task.ancestor_id = task.parent_id.ancestor_id or task.parent_id
+
+    def _search_is_private(self, operator, value):
+        if not isinstance(value, bool):
+            raise ValueError(_('Value should be True or False (not %s)'), value)
+        if operator not in ['=', '!=']:
+            raise NotImplementedError(_('Operation should be = or != (not %s)'), value)
+        if (operator == '=' and value) or (operator == '!=' and not value):
+            return [('project_id', '=', False), ('parent_id', '=', False)]
+        else:
+            return ['|', ('project_id', '!=', False), ('parent_id', '!=', False)]
 
     @api.depends_context('uid')
     @api.depends('user_ids')
@@ -1567,8 +1589,6 @@ class Task(models.Model):
             self.write({'dependent_ids': [Command.unlink(t.id) for t in self.dependent_ids if t.id in new_tasks]})
             task_copy.write({'depend_on_ids': [Command.link(task_mapping.get(t.id, t.id)) for t in self.depend_on_ids]})
             task_copy.write({'dependent_ids': [Command.link(task_mapping.get(t.id, t.id)) for t in self.dependent_ids]})
-            self.depend_on_ids.write({'dependent_ids': [Command.link(task_copy.id)]})
-            self.dependent_ids.write({'depend_on_ids': [Command.link(task_copy.id)]})
         return task_copy
 
     @api.model
