@@ -508,6 +508,8 @@ class Lead(models.Model):
     def _compute_potential_lead_duplicates(self):
         MIN_EMAIL_LENGTH = 7
         MIN_NAME_LENGTH = 6
+        MIN_PHONE_LENGTH = 7
+        MIN_MOBILE_LENGTH = 7
         SEARCH_RESULT_LIMIT = 21
 
         def return_if_relevant(model_name, domain):
@@ -558,6 +560,22 @@ class Lead(models.Model):
             if lead.partner_name and len(lead.partner_name) >= MIN_NAME_LENGTH:
                 duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
                     ('partner_name', 'ilike', lead.partner_name)
+                ])
+            if lead.phone and len(lead.phone) >= MIN_PHONE_LENGTH:
+                duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
+                    ('phone', 'ilike', lead.phone)
+                ])
+            if lead.phone and len(lead.phone) >= MIN_PHONE_LENGTH:
+                duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
+                    ('mobile', 'ilike', lead.phone)
+                ])
+            if lead.mobile and len(lead.mobile) >= MIN_MOBILE_LENGTH:
+                duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
+                    ('phone', 'ilike', lead.mobile)
+                ])
+            if lead.mobile and len(lead.mobile) >= MIN_MOBILE_LENGTH:
+                duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
+                    ('mobile', 'ilike', lead.mobile)
                 ])
             if lead.contact_name and len(lead.contact_name) >= MIN_NAME_LENGTH:
                 duplicate_lead_ids |= return_if_relevant('crm.lead', common_lead_domain + [
