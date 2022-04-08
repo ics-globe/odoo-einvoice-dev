@@ -19,6 +19,20 @@ import tour from 'web_tour.tour';
  * -> select footer
  * -> select icon
  * -> check icon options are still displayed
+ * -> click on replace icon
+ * -> select video tab
+ * -> enter a video URL
+ * -> wait for preview
+ * -> confirm selection
+ * -> wait for dialog to disappear
+ * -> check video options are displayed
+ * -> click on replace video
+ * -> select pictogram tab
+ * -> select an icon
+ * -> check icon options are displayed
+ * -> select footer
+ * -> select icon
+ * -> check icon options are still displayed
  */
 
 tour.register('test_replace_media', {
@@ -56,6 +70,69 @@ tour.register('test_replace_media', {
     {
         content: "ensure image size is not displayed",
         trigger: "#oe_snippets we-title:contains('Image'):not(:has(span.o_we_image_weight:not(.d-none)))",
+        run: function () {}, // check
+    },
+    {
+        content: "replace image",
+        trigger: "#oe_snippets we-button[data-replace-media]",
+    },
+    {
+        content: "go to pictogram tab",
+        trigger: ".o_select_media_dialog .nav-link#editor-media-icon-tab",
+    },
+    {
+        content: "select an icon",
+        trigger: ".o_select_media_dialog .tab-pane#editor-media-icon span.fa-lemon-o",
+    },
+    {
+        content: "ensure icon block is displayed",
+        trigger: "#oe_snippets we-customizeblock-options we-title:contains('Icon')",
+        run: function () {}, // check
+    },
+    {
+        content: "select footer",
+        trigger: "#wrapwrap footer",
+    },
+    {
+        content: "select icon",
+        trigger: "#wrapwrap .s_picture figure span.fa-lemon-o",
+    },
+    {
+        content: "ensure icon block is still displayed",
+        trigger: "#oe_snippets we-customizeblock-options we-title:contains('Icon')",
+        run: function () {}, // check
+    },
+    {
+        content: "replace icon",
+        trigger: "#oe_snippets we-button[data-replace-media]",
+    },
+    {
+        content: "go to video tab",
+        trigger: ".o_select_media_dialog .nav-link#editor-media-video-tab",
+    },
+    {
+        content: "enter a video URL",
+        trigger: ".o_select_media_dialog #o_video_text",
+        // Design your first web page.
+        run: "text https://www.youtube.com/watch?v=Dpq87YCHmJc",
+    },
+    {
+        content: "wait for preview to appear",
+        trigger: ".o_select_media_dialog div.media_iframe_video iframe",
+        run: function () {}, // check
+    },
+    {
+        content: "confirm selection",
+        trigger: ".o_select_media_dialog .modal-footer .btn-primary",
+    },
+    {
+        content: "wait for dialog to be closed",
+        trigger: ".o_dialog_container:not(:has(div))",
+        run: function () {}, // check
+    },
+    {
+        content: "ensure video option block is displayed",
+        trigger: "#oe_snippets we-customizeblock-options we-title:contains('Video')",
         run: function () {}, // check
     },
     {
