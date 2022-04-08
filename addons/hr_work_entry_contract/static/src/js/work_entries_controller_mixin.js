@@ -88,11 +88,18 @@ odoo.define('hr_work_entry_contract.WorkEntryControllerMixin', function(require)
         },
 
         _regenerateWorkEntries: function () {
+            let only_employee = null;
+            let viewed_employees = Object.keys(this.model.allRows)
+            if (viewed_employees.length === 1) {
+                only_employee = JSON.parse(viewed_employees[0])[0].employee_id[0]
+            }
             this.do_action('hr_work_entry_contract.hr_work_entry_regeneration_wizard_action', {
                 additional_context: {
+                    employee_id: only_employee,
                     date_start: time.date_to_str(this.firstDay),
                     date_end: time.date_to_str(this.lastDay),
                 },
+                on_close: this.reload.bind(this),
             });
         },
 
