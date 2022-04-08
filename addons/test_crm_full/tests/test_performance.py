@@ -70,7 +70,7 @@ class TestCrmPerformance(CrmPerformanceCase):
         country_be = self.env.ref('base.be')
         lang_be = self.env['res.lang']._lang_get('fr_BE')
 
-        with freeze_time(self.reference_now), self.assertQueryCount(user_sales_leads=188):  # tcf only: 175 - com runbot: 175
+        with freeze_time(self.reference_now), self.assertQueryCount(user_sales_leads=192):  # tcf only: 177 - com runbot: 179
             self.env.cr._now = self.reference_now  # force create_date to check schedulers
             with Form(self.env['crm.lead']) as lead_form:
                 lead_form.country_id = country_be
@@ -89,7 +89,7 @@ class TestCrmPerformance(CrmPerformanceCase):
     @warmup
     def test_lead_create_form_partner(self):
         """ Test a single lead creation using Form with a partner """
-        with freeze_time(self.reference_now), self.assertQueryCount(user_sales_leads=193):  # tcf only: 180 - com runbot: 180
+        with freeze_time(self.reference_now), self.assertQueryCount(user_sales_leads=199):  # tcf only: 184 - com runbot: 186
             self.env.cr._now = self.reference_now  # force create_date to check schedulers
             with Form(self.env['crm.lead']) as lead_form:
                 lead_form.partner_id = self.partners[0]

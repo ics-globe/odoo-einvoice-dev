@@ -119,6 +119,40 @@ class TestLeadConvert(TestCrmCommon):
             'type': 'lead',
             'partner_id': partner_2.id
         })
+        lead_15 = self.env['crm.lead'].create({
+            'name': 'Lead 15',
+            'type': 'lead',
+            'phone': '(803)-456-6126',
+            'partner_name': 'test partner 1',
+        })
+        lead_16 = self.env['crm.lead'].create({
+            'name': 'Lead 16',
+            'type': 'lead',
+            'phone': '(803)-456-6126',
+            'partner_name': 'test partner 2',
+        })
+        lead_17 = self.env['crm.lead'].create({
+            'name': 'Lead 17',
+            'type': 'lead',
+            'mobile': '1234567890',
+            'contact_name': 'test contact 1',
+        })
+        lead_18 = self.env['crm.lead'].create({
+            'name': 'Lead 18',
+            'type': 'lead',
+            'mobile': '1234567890',
+            'contact_name': 'test contact 2',
+        })
+        lead_19 = self.env['crm.lead'].create({
+            'name': 'Lead 19',
+            'type': 'lead',
+            'mobile': '(803)-456-6126',
+        })
+        lead_20 = self.env['crm.lead'].create({
+            'name': 'Lead 20',
+            'type': 'lead',
+            'phone': '1234567890',
+        })
 
         self.assertEqual(lead_1 + lead_2 + lead_3, lead_1.duplicate_lead_ids)
         self.assertEqual(lead_1 + lead_2 + lead_3, lead_2.duplicate_lead_ids)
@@ -134,6 +168,12 @@ class TestLeadConvert(TestCrmCommon):
         self.assertEqual(lead_12, lead_12.duplicate_lead_ids)
         self.assertEqual(lead_13 + lead_14, lead_13.duplicate_lead_ids)
         self.assertEqual(lead_13 + lead_14, lead_14.duplicate_lead_ids)
+        self.assertEqual(lead_15 + lead_16 + lead_19, lead_15.duplicate_lead_ids)
+        self.assertEqual(lead_15 + lead_16 + lead_19, lead_16.duplicate_lead_ids)
+        self.assertEqual(lead_15 + lead_16 + lead_19, lead_19.duplicate_lead_ids)
+        self.assertEqual(lead_17 + lead_18 + lead_20, lead_17.duplicate_lead_ids)
+        self.assertEqual(lead_17 + lead_18 + lead_20, lead_18.duplicate_lead_ids)
+        self.assertEqual(lead_17 + lead_18 + lead_20, lead_20.duplicate_lead_ids)
 
     @users('user_sales_manager')
     def test_potential_duplicates_with_invalid_email(self):
