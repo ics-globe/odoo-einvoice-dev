@@ -1611,7 +1611,6 @@ var SnippetsMenu = Widget.extend({
             snippetEditor.destroy();
         });
         await Promise.all(proms);
-        this.snippetEditors.splice(0);
     },
     /**
      * Calls a given callback 'on' the given snippet and all its child ones if
