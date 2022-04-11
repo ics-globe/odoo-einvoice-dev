@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from markupsafe import Markup
 
 from odoo.tests.common import TransactionCase, users
 from odoo.addons.mail.tests.common import mail_new_test_user
 from odoo.exceptions import AccessError
 from odoo.tests import tagged
-from odoo.tools import mute_logger
+from odoo.tools import mute_logger, convert_file
+from odoo.modules.module import get_module_resource
 
 
 @tagged('post_install')
 class TestSmsTemplateAccessRights(TransactionCase):
+    def _load(self, module, *args):
+        convert_file(self.cr, 'sms',
+                     get_module_resource(module, *args),
+                     {}, 'init', False, 'test')
 
     @classmethod
     def setUpClass(cls):
@@ -106,3 +112,21 @@ class TestSmsTemplateAccessRights(TransactionCase):
 
         body = sms_composer._prepare_body_values(self.partner)[self.partner.id]
         self.assertIn(self.partner.name, body, 'Template Editor should be able to write new Jinja code')
+
+    def test_sms_template_reset(self):
+        self._load('sms', 'tests', 'test_sms_template.xml')
+
+        sms_template = self.env.ref('sms.sms_template_test').with_context(lang=self.env.user.lang)
+        self.assertFalse(sms_template.is_template_modified, "SMS Template should not be modified")
+
+        sms_template.write({
+            'body': '<div>Hello</div>',
+            'name': 'SMS: SMS Template',
+        })
+        self.assertTrue(sms_template.is_template_modified, "SMS Template should be modified")
+
+        sms_template.reset_template()
+        self.assertEqual(sms_template.body.strip(), Markup('<div>Hello Odoo</div>'))
+        # Name is not there in the data file template, so it should not be reset
+        self.assertEqual(sms_template.name, 'SMS: SMS Template', "Name should not be reset")
+        self.assertFalse(sms_template.is_template_modified, "SMS Template should not be modified")

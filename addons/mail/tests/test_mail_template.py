@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from markupsafe import Markup
+
 from odoo.tests import Form, users
+from odoo.tools import convert_file
 from odoo.exceptions import AccessError
 from odoo.addons.mail.tests.common import MailCommon
+from odoo.modules.module import get_module_resource
 
 
 class TestMailTemplate(MailCommon):
+    def _load(self, module, *args):
+        convert_file(self.cr, 'mail',
+                     get_module_resource(module, *args),
+                     {}, 'init', False, 'test')
+
     @classmethod
     def setUpClass(cls):
         super(TestMailTemplate, cls).setUpClass()
@@ -63,3 +72,24 @@ class TestMailTemplate(MailCommon):
 
         with self.assertRaises(AccessError):
             mail_template.with_user(self.user_employee).name = 'Test write'
+
+    def test_mail_template_reset(self):
+        self._load('mail', 'tests', 'test_mail_template.xml')
+
+        mail_template = self.env.ref('mail.mail_template_test').with_context(lang=self.env.user.lang)
+        self.assertFalse(mail_template.is_template_modified, "Mail Template should not be modified")
+
+        mail_template.write({
+            'body_html': '<div>Hello</div>',
+            'name': 'Mail: Mail Template',
+            'subject': 'Test'
+        })
+        self.assertTrue(mail_template.is_template_modified, "Mail Template should be modified")
+
+        mail_template.reset_template()
+        self.assertEqual(mail_template.body_html.strip(), Markup('<div>Hello Odoo</div>'))
+        self.assertEqual(mail_template.name, 'Mail: Test Mail Template')
+
+        # subject is not there in the data file template, so it should not be reset
+        self.assertEqual(mail_template.subject, 'Test', "Subject should not be reset")
+        self.assertFalse(mail_template.is_template_modified, "Mail Template should not be modified")

@@ -15,7 +15,7 @@ _logger = logging.getLogger(__name__)
 class MailTemplate(models.Model):
     "Templates for sending email"
     _name = "mail.template"
-    _inherit = ['mail.render.mixin']
+    _inherit = ['mail.render.mixin', 'reset.template.mixin']
     _description = 'Email Templates'
     _order = 'name'
 

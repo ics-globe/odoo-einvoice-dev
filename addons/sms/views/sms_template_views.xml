@@ -5,6 +5,12 @@
         <field name="model">sms.template</field>
         <field name="arch" type="xml">
             <form string="SMS Templates">
+                <header>
+                    <field name="is_template_modified" invisible="1"/>
+                    <field name="template_fs" invisible="1"/>
+                    <button string="Reset Template" class="oe_highlight" groups="base.group_system"
+                        name="reset_template" type="object" attrs="{'invisible':['|', ('is_template_modified', '=', False), ('template_fs', '=', False)]}"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <field name="sidebar_action_id" invisible="1"/>
