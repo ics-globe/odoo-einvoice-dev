@@ -9,7 +9,8 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, exceptions, fields, models, _, Command
 from odoo.osv import expression
-from odoo.tools.misc import clean_context
+from odoo.tools import is_html_empty
+from odoo.tools.misc import clean_context, get_lang
 
 
 class MailActivity(models.Model):
@@ -433,10 +434,18 @@ class MailActivity(models.Model):
     # Business Methods
     # ------------------------------------------------------
 
+    def _render_notify_header(self):
+        """ :return: a dict with subject and subtitles rendered for the notification of the activity """
+        self.ensure_one()
+        return dict(subject=_('"%(activity_name)s: %(summary)s" assigned to you',
+                              activity_name=self.res_name,
+                              summary=self.summary or self.activity_type_id.name),
+                    subtitles=[_('Activity: %s', self.activity_type_id.name),
+                               _('Deadline: %s', self.date_deadline.strftime(get_lang(self.env).date_format))])
+
     def action_notify(self):
         if not self:
             return
-        body_template = self.env.ref('mail.message_activity_assigned')
         for activity in self:
             if activity.user_id.lang:
                 # Send the notification in the assigned user's language
@@ -445,11 +454,7 @@ class MailActivity(models.Model):
             model_description = activity.env['ir.model']._get(activity.res_model).display_name
             body = activity.env['ir.qweb']._render(
                 'mail.message_activity_assigned',
-                dict(
-                    activity=activity,
-                    model_description=model_description,
-                    access_link=activity.env['mail.thread']._notify_get_action_link('view', model=activity.res_model, res_id=activity.res_id),
-                ),
+                dict(activity=activity, model_description=model_description, is_html_empty=is_html_empty),
                 minimal_qcontext=True
             )
             record = activity.env[activity.res_model].browse(activity.res_id)
@@ -457,12 +462,10 @@ class MailActivity(models.Model):
                 record.message_notify(
                     partner_ids=activity.user_id.partner_id.ids,
                     body=body,
-                    subject=_('%(activity_name)s: %(summary)s assigned to you',
-                        activity_name=activity.res_name,
-                        summary=activity.summary or activity.activity_type_id.name),
                     record_name=activity.res_name,
                     model_description=model_description,
-                    email_layout_xmlid='mail.mail_notification_light',
+                    email_layout_xmlid='mail.mail_notification',
+                    **activity._render_notify_header(),
                 )
 
     def action_done(self):

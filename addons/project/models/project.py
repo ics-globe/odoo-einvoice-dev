@@ -1977,7 +1977,9 @@ class Task(models.Model):
                     body=assignation_msg,
                     partner_ids=user.partner_id.ids,
                     record_name=task.display_name,
-                    email_layout_xmlid='mail.mail_notification_light',
+                    email_layout_xmlid='mail.mail_notification',
+                    subtitles=[_('Document Type: %s', task_model_description),
+                               _('Document Name: %s', task.display_name)],
                     model_description=task_model_description,
                 )
 
