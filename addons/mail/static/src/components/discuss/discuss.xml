@@ -15,7 +15,7 @@
                 </t>
                 <t t-if="messaging.device.isMobile" t-call="mail.Discuss.content"/>
                 <t t-else="">
-                    <div t-attf-class="o_Discuss_content d-flex flex-column overflow-auto flex-grow-1">
+                    <div t-attf-class="o_Discuss_content d-flex flex-column overflow-auto flex-grow-1 {{ o_Discuss_noThread_bg === True ? 'bg-white' : '' }}">
                         <t t-call="mail.Discuss.content"/>
                     </div>
                 </t>
@@ -28,7 +28,7 @@
             <DiscussMobileMailboxSelection className="'o_Discuss_mobileMailboxSelection border-bottom'" localId="discussView.localId"/>
         </t>
         <t t-if="discussView.mobileAddItemHeaderAutocompleteInputView">
-            <div class="o_Discuss_mobileAddItemHeader border-bottom">
+            <div class="o_Discuss_mobileAddItemHeader d-flex p-3 bg-light border-bottom">
                 <AutocompleteInput
                     className="'o_Discuss_mobileAddItemHeaderInput flex-grow-1 p-2 mb-3 rounded border'"
                     isFocusOnMount="true"
@@ -51,18 +51,19 @@
             />
         </t>
         <t t-if="!discussView.discuss.thread and (!messaging.device.isMobile or discussView.discuss.activeMobileNavbarTabId === 'mailbox')">
-            <div class="o_Discuss_noThread">
-                No conversation selected.
+            <t t-set="o_Discuss_noThread_bg" t-value="True"/>
+            <div class="o_Discuss_noThread d-flex mx-auto my-auto">
+                <h4 class="text-muted"><b><i>No conversation selected.</i></b></h4>
             </div>
         </t>
         <t t-if="messaging.device.isMobile and discussView.discuss.activeMobileNavbarTabId !== 'mailbox'">
             <t t-if="discussView.discuss.activeMobileNavbarTabId === 'chat'">
-                <button class="o_Discuss_mobileNewChatButton btn btn-secondary" t-on-click="discussView.onClickMobileNewChatButton">
+                <button class="o_Discuss_mobileNewChatButton btn btn-secondary border-bottom bg-light" t-on-click="discussView.onClickMobileNewChatButton">
                     Start a conversation
                 </button>
             </t>
             <t t-if="discussView.discuss.activeMobileNavbarTabId === 'channel'">
-                <button class="o_Discuss_mobileNewChannelButton btn btn-secondary" t-on-click="discussView.onClickMobileNewChannelButton">
+                <button class="o_Discuss_mobileNewChannelButton btn btn-secondary border-bottom bg-light" t-on-click="discussView.onClickMobileNewChannelButton">
                     New Channel
                 </button>
             </t>
