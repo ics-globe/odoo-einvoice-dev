@@ -306,8 +306,8 @@ class MailComposer(models.TransientModel):
                             message_type=wizard.message_type,
                             subtype_id=subtype_id,
                             email_layout_xmlid=wizard.email_layout_xmlid,
-                            email_add_signature=not bool(wizard.template_id) and wizard.email_add_signature,
-                            mail_auto_delete=wizard.template_id.auto_delete if wizard.template_id else self._context.get('mail_auto_delete', True),
+                            email_add_signature=not bool(wizard.template_id.exists()) and wizard.email_add_signature,
+                            mail_auto_delete=wizard.template_id.auto_delete if wizard.template_id.exists() else self._context.get('mail_auto_delete', True),
                             model_description=model_description)
                         post_params.update(mail_values)
                         if ActiveModel._name == 'mail.thread':

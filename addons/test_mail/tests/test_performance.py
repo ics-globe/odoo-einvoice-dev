@@ -408,7 +408,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
             }).create({})
             composer._onchange_template_id_wrapper()
 
-        with self.assertQueryCount(__system__=32, employee=38):
+        with self.assertQueryCount(__system__=34, employee=40):
             composer._action_send_mail()
 
         # notifications
@@ -435,7 +435,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
             }).create({})
             composer._onchange_template_id_wrapper()
 
-        with self.assertQueryCount(__system__=40, employee=51):
+        with self.assertQueryCount(__system__=42, employee=53):
             composer._action_send_mail()
 
         # notifications
@@ -469,7 +469,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
             )
             composer = composer_form.save()
 
-        with self.assertQueryCount(__system__=40, employee=46):
+        with self.assertQueryCount(__system__=42, employee=48):
             composer._action_send_mail()
 
         # notifications
@@ -501,7 +501,7 @@ class TestMailAPIPerformance(BaseMailPerformance):
             )
             composer = composer_form.save()
 
-        with self.assertQueryCount(__system__=52, employee=69):
+        with self.assertQueryCount(__system__=54, employee=71):
             composer._action_send_mail()
 
         # notifications
@@ -746,7 +746,7 @@ class TestMailComplexPerformance(BaseMailPerformance):
         record = self.container.with_user(self.env.user)
         template_id = self.env.ref('test_mail.mail_test_container_tpl').id
 
-        with self.assertQueryCount(__system__=63, employee=64):  # about 20 (19 ?) queries per additional customer group
+        with self.assertQueryCount(__system__=65, employee=66):  # about 20 (19 ?) queries per additional customer group
             record.message_post_with_template(template_id, message_type='comment', composition_mode='comment')
 
         self.assertEqual(record.message_ids[0].body, '<p>Adding stuff on %s</p>' % record.name)
