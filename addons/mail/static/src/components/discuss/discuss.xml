@@ -3,19 +3,19 @@
 
     <t t-name="mail.Discuss" owl="1">
         <t t-if="discussView">
-            <div class="o_Discuss" t-attf-class="{{ className }}"
+            <div class="o_Discuss d-flex h-100" t-attf-class="{{ className }}"
                 t-att-class="{
                     'o-adding-item': discussView.discuss.isAddingChannel or discussView.discuss.isAddingChat,
-                    'o-mobile': messaging.device.isMobile,
+                    'o-mobile flex-column bg-white': messaging.device.isMobile,
                 }"
                 t-ref="root"
             >
                 <t t-if="!messaging.device.isMobile">
-                    <DiscussSidebar className="'o_Discuss_sidebar bg-light border-right'" localId="discussView.localId"/>
+                    <DiscussSidebar className="'o_Discuss_sidebar pt-3 flex-shrink-0 overflow-auto bg-light border-right'" localId="discussView.localId"/>
                 </t>
                 <t t-if="messaging.device.isMobile" t-call="mail.Discuss.content"/>
                 <t t-else="">
-                    <div class="o_Discuss_content">
+                    <div t-attf-class="o_Discuss_content d-flex flex-column overflow-auto flex-grow-1">
                         <t t-call="mail.Discuss.content"/>
                     </div>
                 </t>
@@ -30,7 +30,7 @@
         <t t-if="discussView.mobileAddItemHeaderAutocompleteInputView">
             <div class="o_Discuss_mobileAddItemHeader border-bottom">
                 <AutocompleteInput
-                    className="'o_Discuss_mobileAddItemHeaderInput'"
+                    className="'o_Discuss_mobileAddItemHeaderInput flex-grow-1 p-2 mb-3 rounded border'"
                     isFocusOnMount="true"
                     isHtml="discussView.discuss.isAddingChannel"
                     localId="discussView.mobileAddItemHeaderAutocompleteInputView.localId"
@@ -43,7 +43,7 @@
         <t t-if="discussView.discuss.threadView">
             <t name="beforeThread"/>
             <ThreadView
-                className="'o_Discuss_thread'"
+                className="'o_Discuss_thread flex-grow-1'"
                 classNameObj="{ 'o-mobile': messaging.device.isMobile }"
                 hasComposerCurrentPartnerAvatar="!messaging.device.isMobile"
                 hasComposerDiscardButton="discussView.discuss.thread === messaging.inbox"
@@ -68,7 +68,7 @@
             </t>
         </t>
         <t t-if="discussView.discuss.notificationListView">
-            <NotificationList className="'o_Discuss_notificationList'" localId="discussView.discuss.notificationListView.localId"/>
+            <NotificationList className="'o_Discuss_notificationList flex-grow-1'" localId="discussView.discuss.notificationListView.localId"/>
         </t>
         <t t-if="discussView.discuss.mobileMessagingNavbarView">
             <MobileMessagingNavbar
