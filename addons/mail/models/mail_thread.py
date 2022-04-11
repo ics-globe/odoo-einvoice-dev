@@ -687,7 +687,7 @@ class MailThread(models.AbstractModel):
         }
         bounce_from = self.env['ir.mail_server']._get_default_bounce_address()
         if bounce_from:
-            bounce_mail_values['email_from'] = 'MAILER-DAEMON <%s>' % bounce_from
+            bounce_mail_values['email_from'] = tools.formataddr(('MAILER-DAEMON', bounce_from))
         bounce_mail_values.update(mail_values)
         self.env['mail.mail'].create(bounce_mail_values).send()
 
