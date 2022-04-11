@@ -20,7 +20,7 @@ class SlideChannelInvite(models.TransientModel):
     @api.model
     def _default_email_from(self):
         if self.env.user.email:
-            return formataddr((self.env.user.name, self.env.user.email))
+            return self.env.user.email_formatted
         raise UserError(_("Unable to post message, please configure the sender's email address."))
 
     @api.model

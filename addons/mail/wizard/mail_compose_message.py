@@ -66,7 +66,7 @@ class MailComposer(models.TransientModel):
         elif 'email_from' not in result:
             author = self.env['res.partner'].browse(result['author_id'])
             if author.email:
-                result['email_from'] = tools.formataddr((author.name, author.email))
+                result['email_from'] = author.email_formatted
 
         # v6.1 compatibility mode
         result['composition_mode'] = result.get('composition_mode', self._context.get('mail.compose.message.mode', 'comment'))
