@@ -1,7 +1,6 @@
 /** @odoo-module alias=mass_mailing.design_constants**/
 
 export const CSS_PREFIX = '.o_mail_wrapper';
-
 export const BTN_SIZE_STYLES = {
     'btn-sm': {
         'padding': '3px 7.5px',
