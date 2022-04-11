@@ -236,7 +236,7 @@
                                        attrs="{'invisible': ['|', ('planned_hours', '=', 0.0), ('encode_uom_in_days', '=', False)]}"/>
                             </span>
                             <field name="remaining_hours" widget="timesheet_uom" class="oe_subtotal_footer_separator"
-                                   attrs="{'invisible' : [('planned_hours', '=', 0.0)]}" nolabel="1"/>
+                                   attrs="{'invisible' : [('planned_hours', '=', 0.0)]}" nolabel="1" decoration-danger="remaining_hours &lt; 0"/>
                         </group>
                     </group>
                 </page>
