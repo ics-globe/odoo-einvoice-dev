@@ -229,7 +229,8 @@ class TestMessagePost(BaseFunctionalTest, TestRecipients, MockEmails):
         self.assertEmails(
             self.user_employee.partner_id,
             [[self.partner_1]],
-            email_to=[formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com, valid.lelitre.cc@agrolait.com'))]
+            email_to=[formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com')),
+                      formataddr((self.partner_1.name, 'valid.lelitre.cc@agrolait.com'))]
         )
 
         # Formatted email
@@ -246,7 +247,7 @@ class TestMessagePost(BaseFunctionalTest, TestRecipients, MockEmails):
         self.assertEmails(
             self.user_employee.partner_id,
             [[self.partner_1]],
-            email_to=[formataddr((self.partner_1.name, '"Valid Lelitre" <valid.lelitre@agrolait.com>'))]
+            email_to=[formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com'))]
         )
 
         # Wrong email: sent normally

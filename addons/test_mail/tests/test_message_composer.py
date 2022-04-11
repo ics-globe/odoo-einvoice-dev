@@ -274,19 +274,18 @@ class TestComposerWTpl(BaseFunctionalTest, MockEmails, TestRecipients):
         # specific for customer with formatted email
         partner1_email = next(
             (mail for mail in self._mails
-             if mail['email_to'] == [tools.formataddr((self.partner_1.name, '"Valid Formatted" <valid.lelitre@agrolait.com>'))]),
+             if mail['email_to'] == [tools.formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com'))]),
             False
         )
-        self.assertTrue(partner1_email,
-                       'Mail: sent an email to a broken address: double encapsulation of emails ("Tony" <"Formatted" <tony@e.com>>)')
+        self.assertTrue(partner1_email, 'Mail: sent an email to a valid address: avoided double encapsulation of emails ("Tony" <"Formatted" <tony@e.com>>)')
         # specific for customer with multiple email
         partner2_email = next(
             (mail for mail in self._mails
-             if mail['email_to'] == [tools.formataddr((self.partner_2.name, 'valid.other.1@agrolait.com, valid.other.cc@agrolait.com'))]),
+             if sorted(mail['email_to']) == sorted([tools.formataddr((self.partner_2.name, 'valid.other.1@agrolait.com')),
+                                                    tools.formataddr((self.partner_2.name, 'valid.other.cc@agrolait.com'))])),
             False
         )
-        self.assertTrue(partner2_email,
-                        'Mail: sent an email to an invalid multi-emails ("Tony" <tony@e.com, tony2@e.com>), not valid but some providers support it')
+        self.assertTrue(partner2_email, 'Mail: sent an email to each email of email field')
         # other emails
         self._mails = [mail for mail in self._mails if mail not in [partner1_email, partner2_email]]
         self.assertEmails(
@@ -440,19 +439,20 @@ class TestComposerWTpl(BaseFunctionalTest, MockEmails, TestRecipients):
             # specific for customer with formatted email
             partner1_email = next(
                 (mail for mail in mails
-                 if mail['email_to'] == [tools.formataddr((self.partner_1.name, '"Valid Formatted" <valid.lelitre@agrolait.com>'))]),
+                 if mail['email_to'] == [tools.formataddr((self.partner_1.name, 'valid.lelitre@agrolait.com'))]),
                 False
             )
-            self.assertTrue(partner1_email, 
-                            'Mail: sent an email to a broken address: double encapsulation of emails ("Tony" <"Formatted" <tony@e.com>>)')
+            self.assertTrue(partner1_email,
+                            'Mail: sent with avoiding double formatting, keeping only the email part ("Tony" <"Formatted" <tony@e.com>>)')
             # specific for customer with multiple email
             partner2_email = next(
                 (mail for mail in mails
-                 if mail['email_to'] == [tools.formataddr((self.partner_2.name, 'valid.other.1@agrolait.com, valid.other.cc@agrolait.com'))]),
+                 if sorted(mail['email_to']) == sorted([tools.formataddr((self.partner_2.name, 'valid.other.1@agrolait.com')),
+                                                        tools.formataddr((self.partner_2.name, 'valid.other.cc@agrolait.com'))])),
                 False
             )
             self.assertTrue(partner2_email,
-                            'Mail: sent an email to an invalid multi-emails ("Tony" <tony@e.com, tony2@e.com>), not valid but some providers support it')
+                            'Mail: multi emails in a single address are managed like separate emails')
             # other emails
             self._mails = [mail for mail in mails if mail not in [partner1_email, partner2_email]]
             self.assertEmails(
