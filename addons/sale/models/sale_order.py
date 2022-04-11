@@ -849,10 +849,17 @@ class SaleOrder(models.Model):
         lines_to_recompute.discount = 0.0
         lines_to_recompute._compute_discount()
         self.show_update_pricelist = False
-        self.message_post(body=_(
-            "Product prices have been recomputed according to pricelist %s.",
-            self.pricelist_id._get_html_link(),
-        ))
+        if self.pricelist_id:
+            message = _(
+                "Product prices have been recomputed according to pricelist %s.",
+                self.pricelist_id._get_html_link(),
+            )
+        else:
+            message = _(
+                "Product prices have been recomputed according to currency %s.",
+                self.currency_id._get_html_link(),
+            )
+        self.message_post(body=message)
 
     # INVOICING #
 

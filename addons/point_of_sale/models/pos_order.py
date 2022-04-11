@@ -1218,8 +1218,8 @@ class ReportSaleDetails(models.AbstractModel):
         products_sold = {}
         taxes = {}
         for order in orders:
-            if user_currency != order.pricelist_id.currency_id:
-                total += order.pricelist_id.currency_id._convert(
+            if user_currency != order.currency_id:
+                total += order.currency_id._convert(
                     order.amount_total, user_currency, order.company_id, order.date_order or fields.Date.today())
             else:
                 total += order.amount_total

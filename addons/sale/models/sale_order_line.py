@@ -374,7 +374,7 @@ class SaleOrderLine(models.Model):
 
     @api.depends('product_id', 'product_uom', 'product_uom_qty')
     def _compute_pricelist_item_id(self):
-        for line in self:
+        for line in self:  # TODO edm
             if not line.product_id or line.display_type or not line.order_id.pricelist_id:
                 line.pricelist_item_id = False
             else:

@@ -59,17 +59,14 @@ class Pricelist(models.Model):
 
         Note: self and self.ensure_one()
 
-        :returns: dict{product_id: product price}, considering the current pricelist
+        :returns: dict{product_id: product price}, considering the current pricelist if any
         :rtype: dict
         """
         self and self.ensure_one()  # self is at most one record
         return {
             product_id: res_tuple[0]
             for product_id, res_tuple in self._compute_price_rule(
-                products,
-                quantity,
-                uom=uom,
-                date=date,
+                products, quantity, currency=currency, uom=uom, date=date,
             ).items()
         }
 
@@ -78,37 +75,43 @@ class Pricelist(models.Model):
 
         Note: self and self.ensure_one()
 
-        :returns: unit price of the product, considering pricelist rules
+        :returns: unit price of the product, considering pricelist rules if any
         :rtype: float
         """
-        self and self.ensure_one()
-        return self._compute_price_rule(product, quantity, currency=currency, uom=uom, date=date)[product.id][0]
+        self and self.ensure_one()  # self is at most one record
+        return self._compute_price_rule(
+            product, quantity, currency=currency, uom=uom, date=date
+        )[product.id][0]
 
-    def _get_product_price_rule(self, product, quantity, uom=None, date=False):
+    def _get_product_price_rule(self, product, quantity, currency=None, uom=None, date=False):
         """Compute the pricelist price & rule for the specified product, qty & uom.
 
-        Note: self.ensure_one()
+        Note: self and self.ensure_one()
 
         :returns: (product unit price, applied pricelist rule id)
         :rtype: tuple(float, int)
         """
-        self.ensure_one()
-        return self._compute_price_rule(product, quantity, uom=uom, date=date)[product.id]
+        self and self.ensure_one()  # self is at most one record
+        return self._compute_price_rule(
+            product, quantity, currency=currency, uom=uom, date=date
+        )[product.id]
 
     def _get_product_rule(self, product, quantity, uom=None, date=False):
-        """Compute the pricelist price & rule for the specified product, qty & uom.
+        """Compute the pricelist rule for the specified product, qty & uom.
 
-        Note: self.ensure_one()
+        Note: self and self.ensure_one()
 
         :returns: applied pricelist rule id
         :rtype: int or False
         """
-        self.ensure_one()
+        self and self.ensure_one()  # self is at most one record
         return self._compute_price_rule(product, quantity, uom=uom, date=date)[product.id][1]
 
     def _compute_price_rule(self, products, qty, currency=None, uom=None, date=False):
         """ Low-level method - Mono pricelist, multi products
         Returns: dict{product_id: (price, suitable_rule) for the given pricelist}
+
+        Note: self and self.ensure_one()
 
         :param products: recordset of products (product.product/product.template)
         :param float qty: quantity of products requested (in given uom)
@@ -123,6 +126,7 @@ class Pricelist(models.Model):
         :rtype: dict
         """
         self and self.ensure_one()  # self is at most one record
+        currency and currency.ensure_one()  # currency is at most one record
 
         if not products:
             return {}

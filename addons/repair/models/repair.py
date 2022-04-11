@@ -83,7 +83,7 @@ class Repair(models.Model):
         'product.pricelist', 'Pricelist',
         default=lambda self: self.env['product.pricelist'].search([('company_id', 'in', [self.env.company.id, False])], limit=1).id,
         help='Pricelist of the selected partner.', check_company=True)
-    currency_id = fields.Many2one(comodel_name='res.currency', compute='_compute_currency_id')
+    currency_id = fields.Many2one(comodel_name='res.currency', compute='_compute_currency_id', store=True, precompute=True)  # TODO edm: is it really needed to store here?
     partner_invoice_id = fields.Many2one('res.partner', 'Invoicing Address', check_company=True)
     invoice_method = fields.Selection([
         ("none", "No Invoice"),
@@ -147,21 +147,20 @@ class Repair(models.Model):
         returned = self.filtered(lambda r: r.picking_id and r.picking_id.state == 'done')
         returned.is_returned = True
 
-    @api.depends('operations.price_subtotal', 'invoice_method', 'fees_lines.price_subtotal', 'pricelist_id.currency_id')
+    @api.depends('operations.price_subtotal', 'invoice_method', 'fees_lines.price_subtotal', 'currency_id')
     def _amount_untaxed(self):
         for order in self:
             total = sum(operation.price_subtotal for operation in order.operations)
             total += sum(fee.price_subtotal for fee in order.fees_lines)
-            currency = order.pricelist_id.currency_id or self.env.company.currency_id
-            order.amount_untaxed = currency.round(total)
+            order.amount_untaxed = order.currency_id.round(total)
 
     @api.depends('operations.price_unit', 'operations.product_uom_qty', 'operations.product_id',
                  'fees_lines.price_unit', 'fees_lines.product_uom_qty', 'fees_lines.product_id',
-                 'pricelist_id.currency_id', 'partner_id')
+                 'currency_id', 'partner_id')
     def _amount_tax(self):
         for order in self:
             val = 0.0
-            currency = order.pricelist_id.currency_id or self.env.company.currency_id
+            currency = order.currency_id
             for operation in order.operations:
                 if operation.tax_id:
                     tax_calculate = operation.tax_id.compute_all(operation.price_unit, currency, operation.product_uom_qty, operation.product_id, order.partner_id)
@@ -177,8 +176,7 @@ class Repair(models.Model):
     @api.depends('amount_untaxed', 'amount_tax')
     def _amount_total(self):
         for order in self:
-            currency = order.pricelist_id.currency_id or self.env.company.currency_id
-            order.amount_total = currency.round(order.amount_untaxed + order.amount_tax)
+            order.amount_total = order.currency_id.round(order.amount_untaxed + order.amount_tax)
 
     _sql_constraints = [
         ('name', 'unique (name)', 'The name of the Repair Order must be unique!'),
@@ -354,7 +352,7 @@ class Repair(models.Model):
                 raise UserError(_('You have to select an invoice address in the repair form.'))
 
             narration = repair.quotation_notes
-            currency = repair.pricelist_id.currency_id
+            currency = repair.currency_id
             company = repair.env.company
 
             journal = repair.env['account.move'].with_context(move_type='out_invoice')._get_default_journal()
@@ -693,7 +691,7 @@ class RepairLine(models.Model):
     @api.depends('price_unit', 'repair_id', 'product_uom_qty', 'product_id', 'tax_id', 'repair_id.invoice_method')
     def _compute_price_total_and_subtotal(self):
         for line in self:
-            taxes = line.tax_id.compute_all(line.price_unit, line.repair_id.pricelist_id.currency_id, line.product_uom_qty, line.product_id, line.repair_id.partner_id)
+            taxes = line.tax_id.compute_all(line.price_unit, line.repair_id.currency_id, line.product_uom_qty, line.product_id, line.repair_id.partner_id)
             line.price_subtotal = taxes['total_excluded']
             line.price_total = taxes['total_included']
 
@@ -744,16 +742,7 @@ class RepairLine(models.Model):
                 fpos = self.env['account.fiscal.position']._get_fiscal_position(partner_invoice, delivery=self.repair_id.address_id)
                 taxes = self.product_id.taxes_id.filtered(lambda x: x.company_id == self.repair_id.company_id)
                 self.tax_id = fpos.map_tax(taxes)
-            warning = False
-            pricelist = self.repair_id.pricelist_id
-            if not pricelist:
-                warning = {
-                    'title': _('No pricelist found.'),
-                    'message':
-                        _('You have to select a pricelist in the Repair form !\n Please set one before choosing a product.')}
-                return {'warning': warning}
-            else:
-                self._onchange_product_uom()
+            self._onchange_product_uom()  # TODO edm: be sure of this. Need to see how repair works, is it possible without pricelist? Of is the repair price define IN a pricelist and not on the product or whatever?
 
     @api.onchange('product_uom')
     def _onchange_product_uom(self):
@@ -800,7 +789,7 @@ class RepairFee(models.Model):
     @api.depends('price_unit', 'repair_id', 'product_uom_qty', 'product_id', 'tax_id')
     def _compute_price_total_and_subtotal(self):
         for fee in self:
-            taxes = fee.tax_id.compute_all(fee.price_unit, fee.repair_id.pricelist_id.currency_id, fee.product_uom_qty, fee.product_id, fee.repair_id.partner_id)
+            taxes = fee.tax_id.compute_all(fee.price_unit, fee.repair_id.currency_id, fee.product_uom_qty, fee.product_id, fee.repair_id.partner_id)
             fee.price_subtotal = taxes['total_excluded']
             fee.price_total = taxes['total_included']
 
@@ -832,15 +821,7 @@ class RepairFee(models.Model):
             else:
                 self.name += '\n' + self.product_id.description_sale
 
-        warning = False
-        if not pricelist:
-            warning = {
-                'title': _('No pricelist found.'),
-                'message':
-                    _('You have to select a pricelist in the Repair form !\n Please set one before choosing a product.')}
-            return {'warning': warning}
-        else:
-            self._onchange_product_uom()
+        self._onchange_product_uom()  # TODO edm: be sure of this. Need to see how repair works, is it possible without pricelist? Of is the repair price define IN a pricelist and not on the product or whatever?
 
     @api.onchange('product_uom')
     def _onchange_product_uom(self):

@@ -177,7 +177,7 @@
                                             <button type="button" class="btn btn-link o_wish_rm no-decoration"><small><i class='fa fa-trash-o'></i> Remove</small></button>
                                         </td>
                                         <td class="align-middle">
-                                            <t t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.pricelist_id.currency_id}"/>
+                                            <t t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                                             <small t-if="wish.product_id.base_unit_price" class="cart_product_base_unit_price d-block text-muted" groups="website_sale.group_show_uom_price">
                                                 <t t-call='website_sale.base_unit_price'><t t-set='product' t-value='wish.product_id' /></t>
                                             </small>
