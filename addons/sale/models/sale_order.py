@@ -1185,6 +1185,36 @@ class SaleOrder(models.Model):
         self.ensure_one()
         return self.transaction_ids._get_last()
 
+    def _on_downpayment_creation(self):
+        if (
+                len(self.order_line.filtered(lambda line: line.is_downpayment)) == 1
+                and len(self.order_line.filtered(
+                    lambda line: line.display_type and line.name == _("Down Payments"))) == 0
+        ):
+            sequence_before_downpayment = max(
+                line.sequence for line in self.order_line if not line.is_downpayment
+            )
+
+            # create a section "Down Payment" and introduce the down payment after it
+            so_values = {
+                'name': _('Down Payments'),
+                'product_uom_qty': 0.0,
+                'order_id': self.id,
+                'display_type': 'line_section',
+                'sequence': 2 * sequence_before_downpayment,
+            }
+            so_line_obj = self.env['sale.order.line']
+            so_line_obj.create(so_values)
+
+            # alter the down payment to be after the rest of the down payments
+            down_payment = [line for line in self.order_line if line.is_downpayment][0]
+            down_payment._alter_sequence(2 * sequence_before_downpayment + 1)
+
+    def _count_downpayment(self):
+        return len(self.order_line.filtered(
+            lambda line: line.is_downpayment and line._downpayment_state() == "")
+        )
+
     # PORTAL #
 
     def has_to_be_signed(self, include_draft=False):

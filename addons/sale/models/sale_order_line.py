@@ -289,12 +289,19 @@ class SaleOrderLine(models.Model):
                 if ptav._origin not in valid_values:
                     line.product_no_variant_attribute_value_ids -= ptav
 
-    @api.depends('product_id')
+    @api.depends('product_id', 'invoice_lines.move_id.state', 'invoice_lines.move_id.payment_state')
     def _compute_name(self):
         for line in self:
             if not line.product_id:
                 continue
-            line.name = line.with_context(lang=line.order_partner_id.lang)._get_sale_order_line_multiline_description_sale()
+
+            # added to be sure the client knows that this down payment is still in the
+            # draft state or cancel state
+            to_add = line._downpayment_state()
+            line.name = (
+                    line.with_context(lang=line.order_partner_id.lang)
+                    ._get_sale_order_line_multiline_description_sale() + to_add
+            )
 
     def _get_sale_order_line_multiline_description_sale(self):
         """ Compute a default multiline description for this sales order line.
@@ -652,6 +659,36 @@ class SaleOrderLine(models.Model):
         for so_line in lines_by_analytic:
             so_line.qty_delivered = mapping.get(so_line.id or so_line._origin.id, 0.0)
 
+    def _downpayment_state(self):
+        """
+        Check that this sale order line is a draft down payment
+        Note: self.ensure_one()
+        :return: True Verify that this SO line is a draft down payment
+        :rtype: Boolean
+        """
+        self.ensure_one()
+        if not self.is_downpayment:
+            return ""
+
+        if all(line.move_id.state == 'draft' for line in self._get_invoice_lines()):
+            return _(' (Draft) ')
+        if all(line.move_id.state == 'cancel' for line in self._get_invoice_lines()):
+            return _(' (Cancelled) ')
+
+        return ""
+
+    def _show_downpayment_section(self):
+        self.ensure_one()
+
+        if (
+                self.display_type == 'line_section'
+                and self.name == _("Down Payments")
+                and self.order_id
+        ):
+            return self.order_id._count_downpayment() != 0
+
+        return True
+
     def _get_delivered_quantity_by_analytic(self, additional_domain):
         """ Compute and write the delivered quantity of current SO lines, based on their related
             analytic lines.
@@ -926,6 +963,10 @@ class SaleOrderLine(models.Model):
                 # create an analytic account if at least an expense product
                 if line.product_id.expense_policy not in [False, 'no'] and not line.order_id.analytic_account_id:
                     line.order_id._create_analytic_account()
+
+        # call the SO to create a section of Down Payments in case a down payment is created
+        if any(line.is_downpayment for line in lines):
+            lines.order_id._on_downpayment_creation()
         return lines
 
     def write(self, values):
@@ -990,6 +1031,10 @@ class SaleOrderLine(models.Model):
     def _unlink_except_confirmed(self):
         if self._check_line_unlink():
             raise UserError(_('You can not remove an order line once the sales order is confirmed.\nYou should rather set the quantity to 0.'))
+
+    def _alter_sequence(self, seq):
+        self.ensure_one()
+        self.sequence = seq
 
     #=== BUSINESS METHODS ===#
 
