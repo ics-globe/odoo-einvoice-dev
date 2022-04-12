@@ -49,6 +49,9 @@
                                 </button>
                             </div>
                         </div>
+                        <t t-if="channelInvitationForm.thread.authorizedGroupFullName and channelInvitationForm.thread.public === 'groups'">
+                            <div class="o_ChannelInvitationForm_accessRestrictedToGroup" t-esc="channelInvitationForm.accessRestrictedToGroupText"/>
+                        </t>
                     </div>
                 </t>
             </div>

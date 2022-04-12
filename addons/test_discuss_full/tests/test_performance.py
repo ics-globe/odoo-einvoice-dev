@@ -103,11 +103,13 @@ class TestDiscussFullPerformance(TransactionCase):
         with self.assertQueryCount(emp=82):
             init_messaging = self.users[0].with_user(self.users[0])._init_messaging()
 
+        group_user = self.env.ref('base.group_user')
         self.assertEqual(init_messaging, {
             'needaction_inbox_counter': 1,
             'starred_counter': 1,
             'channels': [
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_general._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': user_root.id,
@@ -133,6 +135,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_general.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_public_1._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -158,6 +161,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_public_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_public_2._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -183,6 +187,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_public_2.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_group_1._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -208,6 +213,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_group_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_group_2._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -233,6 +239,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_group_2.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_private_1._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -258,6 +265,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_private_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_channel_private_2._get_avatar_cache_key(),
                     'channel_type': 'channel',
                     'create_uid': self.env.user.id,
@@ -283,6 +291,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_channel_private_2.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_group_1._get_avatar_cache_key(),
                     'channel_type': 'group',
                     'create_uid': self.env.user.id,
@@ -347,6 +356,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_group_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_chat_1._get_avatar_cache_key(),
                     'channel_type': 'chat',
                     'create_uid': self.env.user.id,
@@ -411,6 +421,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_chat_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_chat_2._get_avatar_cache_key(),
                     'channel_type': 'chat',
                     'create_uid': self.env.user.id,
@@ -475,6 +486,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_chat_2.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_chat_3._get_avatar_cache_key(),
                     'channel_type': 'chat',
                     'create_uid': self.env.user.id,
@@ -539,6 +551,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_chat_3.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_chat_4._get_avatar_cache_key(),
                     'channel_type': 'chat',
                     'create_uid': self.env.user.id,
@@ -603,6 +616,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_chat_4.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_livechat_1._get_avatar_cache_key(),
                     'channel_type': 'livechat',
                     'create_uid': self.env.user.id,
@@ -667,6 +681,7 @@ class TestDiscussFullPerformance(TransactionCase):
                     'uuid': channel_livechat_1.uuid,
                 },
                 {
+                    'authorizedGroupFullName': group_user.full_name,
                     'avatarCacheKey': channel_livechat_2._get_avatar_cache_key(),
                     'channel_type': 'livechat',
                     'create_uid': self.env.ref('base.public_user').id,

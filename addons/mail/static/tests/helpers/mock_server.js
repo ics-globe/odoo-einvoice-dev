@@ -792,7 +792,7 @@ MockServer.include({
                 channel_last_seen_partner_ids: [[2, channelMember.id]],
             },
         );
-        this.pyEnv['bus.bus']._sendone(this.currentPartner, 'mail.channel/leave', { 
+        this.pyEnv['bus.bus']._sendone(this.currentPartner, 'mail.channel/leave', {
             'id': channel.id,
         });
         /**
@@ -1007,6 +1007,9 @@ MockServer.include({
                 ['model', '=', 'mail.channel'],
                 ['res_id', '=', channel.id],
             ]);
+            const [group_public_id] = this.getRecords('res.groups', [
+                ['id', '=', channel.group_public_id],
+            ]);
             const lastMessageId = messages.reduce((lastMessageId, message) => {
                 if (!lastMessageId || message.id > lastMessageId) {
                     return message.id;
@@ -1022,6 +1025,7 @@ MockServer.include({
                 last_message_id: lastMessageId,
                 members: [...this._mockResPartnerMailPartnerFormat(partnerIds).values()],
                 message_needaction_counter: messageNeedactionCounter,
+                authorizedGroupFullName: group_public_id ? group_public_id.name : false,
             });
             if (channel.channel_type === 'channel') {
                 delete res.members;
@@ -1068,8 +1072,8 @@ MockServer.include({
             );
         }
         if (!pinned) {
-            this.pyEnv['bus.bus']._sendone(this.currentPartner, 'mail.channel/unpin', { 
-                'id': channel.id, 
+            this.pyEnv['bus.bus']._sendone(this.currentPartner, 'mail.channel/unpin', {
+                'id': channel.id,
             });
         } else {
             this.pyEnv['bus.bus']._sendone(this.currentPartner, 'mail.channel/legacy_insert', this._mockMailChannelChannelInfo([channel.id])[0]);
@@ -1263,9 +1267,9 @@ MockServer.include({
             },
         );
         const channel = this.pyEnv['mail.channel'].searchRead([['id', '=', id]])[0];
-        this.pyEnv['bus.bus']._sendone(channel, 'mail.channel/insert', { 
-            'id': id, 
-            'avatarCacheKey': channel.avatarCacheKey 
+        this.pyEnv['bus.bus']._sendone(channel, 'mail.channel/insert', {
+            'id': id,
+            'avatarCacheKey': channel.avatarCacheKey
         });
     },
     /**

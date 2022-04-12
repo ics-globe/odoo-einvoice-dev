@@ -5,6 +5,8 @@ import { attr, many, one } from '@mail/model/model_field';
 import { clear, insertAndReplace, link, replace, unlink } from '@mail/model/model_field_command';
 import { cleanSearchTerm } from '@mail/utils/utils';
 
+import { sprintf } from '@web/core/utils/strings';
+
 registerModel({
     name: 'ChannelInvitationForm',
     identifyingFields: [['chatWindow', 'popoverViewOwner']],
@@ -160,6 +162,19 @@ registerModel({
          * @private
          * @returns {string}
          */
+        _computeAccessRestrictedToGroupText() {
+            if (!this.thread) {
+                return clear();
+            }
+            return sprintf(
+                this.env._t('Access restricted to group %(groupFullName)s'),
+                { 'groupFullName': this.thread.authorizedGroupFullName }
+            );
+        },
+        /**
+         * @private
+         * @returns {string}
+         */
         _computeInviteButtonText() {
             if (!this.thread) {
                 return clear();
@@ -211,6 +226,9 @@ registerModel({
         },
     },
     fields: {
+        accessRestrictedToGroupText: attr({
+            compute: '_computeAccessRestrictedToGroupText',
+        }),
         chatWindow: one('ChatWindow', {
             inverse: 'channelInvitationForm',
             readonly: true,
