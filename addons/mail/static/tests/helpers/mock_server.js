@@ -562,6 +562,7 @@ MockServer.include({
         if (request_list.includes('suggestedRecipients')) {
             res['suggestedRecipients'] = this._mockMailThread_MessageGetSuggestedRecipients(thread_model, [thread.id])[thread_id];
         }
+        res['hasWriteAccess'] = true;
         return res;
     },
     /**

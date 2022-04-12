@@ -39,13 +39,16 @@ registerModel({
          * @returns {Boolean}
          */
         _computeIsDisabled() {
-            return Boolean(!this.chatterOwner || this.chatterOwner.isDisabled);
+            return Boolean(!this.chatterOwner.thread || this.chatterOwner.thread.isTemporary);
         }
     },
     fields: {
         chatterOwner: one('Chatter', {
             inverse: 'followerListMenuView',
             readonly: true,
+        }),
+        isDisabled: attr({
+            compute: '_computeIsDisabled',
         }),
         isDropdownOpen: attr({
             default: false,

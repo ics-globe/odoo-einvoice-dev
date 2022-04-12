@@ -33,6 +33,13 @@ registerModel({
             }
             return clear();
         },
+        /**
+         * @private
+         * @returns {Boolean}
+         */
+        _computeIsUploadDisabled() {
+            return this.chatter.thread.hasWriteAccess;
+        }
     },
     fields: {
         /**
@@ -64,6 +71,9 @@ registerModel({
             isCausal: true,
             readonly: true,
             required: true,
+        }),
+        isUploadDisabled: attr({
+            compute: '_computeIsUploadDisabled',
         }),
         useDragVisibleDropZone: one('UseDragVisibleDropZone', {
             default: insertAndReplace(),

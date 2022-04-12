@@ -180,6 +180,9 @@ registerModel({
                     (message.guestAuthor && message.guestAuthor === this.messaging.currentGuest)
                 ));
             }
+            if (this.originThread && !this.originThread.hasWriteAccess) {
+                return false;
+            }
             return true;
         },
         /**
