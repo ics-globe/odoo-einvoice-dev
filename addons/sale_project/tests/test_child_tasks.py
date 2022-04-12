@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details
 
+from odoo import Command
 from odoo.tests.common import TransactionCase, new_test_user
 
 
@@ -34,7 +35,7 @@ class TestNestedTaskUpdate(TransactionCase):
     #----------------------------------
 
     def test_creating_subtask_user_id_on_parent_dont_go_on_child(self):
-        parent = self.env['project.task'].create({'name': 'parent', 'user_ids': [(4, self.user.id)]})
+        parent = self.env['project.task'].create({'name': 'parent', 'user_ids': [Command.link(self.user.id)]})
         child = self.env['project.task'].create({'name': 'child', 'parent_id': parent.id, 'user_ids': False})
         self.assertFalse(child.user_ids)
 
@@ -91,7 +92,7 @@ class TestNestedTaskUpdate(TransactionCase):
         parent = self.env['project.task'].create({'name': 'parent', 'user_ids': False})
         child = self.env['project.task'].create({'name': 'child', 'user_ids': False, 'parent_id': parent.id})
         self.assertFalse(child.user_ids)
-        parent.write({'user_ids': [(4, self.user.id)]})
+        parent.write({'user_ids': [Command.link(self.user.id)]})
         self.assertFalse(child.user_ids)
         parent.write({'user_ids': False})
         self.assertFalse(child.user_ids)
@@ -148,7 +149,7 @@ class TestNestedTaskUpdate(TransactionCase):
     #----------------------------------
 
     def test_linking_user_id_on_parent_dont_write_on_child(self):
-        parent = self.env['project.task'].create({'name': 'parent', 'user_ids': [(4, self.user.id)]})
+        parent = self.env['project.task'].create({'name': 'parent', 'user_ids': [Command.link(self.user.id)]})
         child = self.env['project.task'].create({'name': 'child', 'user_ids': False})
         self.assertFalse(child.user_ids)
         child.write({'parent_id': parent.id})
@@ -207,7 +208,7 @@ class TestNestedTaskUpdate(TransactionCase):
             self.assertEqual(child.sale_line_id, self.order_line)
 
     def test_linking_on_parent_with_multiple_tasks(self):
-        parent = self.env['project.task'].create({'name': 'parent', 'partner_id': self.partner.id, 'sale_line_id': self.order_line.id, 'user_ids': [(4, self.user.id)]})
+        parent = self.env['project.task'].create({'name': 'parent', 'partner_id': self.partner.id, 'sale_line_id': self.order_line.id, 'user_ids': [Command.link(self.user.id)]})
         children_values = [{'name': 'child%s' % i, 'user_ids': False} for i in range(5)]
         children = self.env['project.task'].create(children_values)
         # test writing user_ids and sale_line_id
