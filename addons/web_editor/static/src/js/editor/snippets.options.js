@@ -2512,7 +2512,7 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
      */
     getValue(methodName) {
         if (methodName === this.options.createMethod && this.createInput) {
-            return this.createInput._value;
+            return this._isAboutCreate ? this.createInput._value : "";
         }
         return this._super(...arguments);
     },
@@ -2721,13 +2721,14 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
             return;
         }
         if (widget && widget === this.createButton) {
+            this._isAboutCreate = true;
             if (!this.createInput._value) {
                 ev.stopPropagation();
             }
             return;
         }
         if (widget !== this.createButton && this.createInput) {
-            this.createInput._value = '';
+            this._isAboutCreate = false;
         }
         return this._super(ev);
     },
