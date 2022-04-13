@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models, _
+from odoo import api, fields, models, _
 
 
 class StockWarehouse(models.Model):
@@ -25,6 +25,17 @@ class StockWarehouse(models.Model):
     subcontracting_resupply_type_id = fields.Many2one(
         'stock.picking.type', 'Subcontracting Resupply Operation Type',
         domain=[('code', '=', 'outgoing')])
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        self._update_subcontracting_locations_rules()
+        return res
+
+    def write(self, vals):
+        res = super().write(vals)
+        self._update_subcontracting_locations_rules()
+        return res
 
     def get_rules_dict(self):
         result = super(StockWarehouse, self).get_rules_dict()
@@ -131,16 +142,17 @@ class StockWarehouse(models.Model):
 
     def _get_sequence_values(self):
         values = super(StockWarehouse, self)._get_sequence_values()
+        count = self.env['ir.sequence'].search_count([('prefix', 'like', self.code + '/SBC%/%')])
         values.update({
             'subcontracting_type_id': {
                 'name': self.name + ' ' + _('Sequence subcontracting'),
-                'prefix': self.code + '/SBC/',
+                'prefix': self.code + (('/SBC' + str(count) + '/') if count else '/SBC/'),
                 'padding': 5,
                 'company_id': self.company_id.id
             },
             'subcontracting_resupply_type_id': {
                 'name': self.name + ' ' + _('Sequence Resupply Subcontractor'),
-                'prefix': self.code + '/RES/',
+                'prefix': self.code + (('/RES' + str(count) + '/') if count else '/RES/'),
                 'padding': 5,
                 'company_id': self.company_id.id
             },
@@ -167,3 +179,10 @@ class StockWarehouse(models.Model):
 
     def _get_subcontracting_location(self):
         return self.company_id.subcontracting_location_id
+
+    def _update_subcontracting_locations_rules(self):
+        subcontracting_locations = self.env['stock.location'].search([
+            ('company_id', 'in', self.company_id.ids),
+            ('subcontracting_location', '=', 'True'),
+        ])
+        subcontracting_locations._activate_subcontracting_location_rules()
