@@ -2,7 +2,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
-from odoo.addons.website_payment.const import STRIPE_SUPPORTED_COUNTRIES
 
 
 class ResConfigSettings(models.TransientModel):
@@ -20,7 +19,7 @@ class ResConfigSettings(models.TransientModel):
     module_payment_paypal = fields.Boolean(
         string='Paypal - Express Checkout')
     is_stripe_supported_country = fields.Boolean(
-        compute='_compute_is_stripe_supported_country')
+        related='company_id.country_id.is_stripe_supported_country')
 
     def _get_activated_acquirers(self):
         self.ensure_one()
@@ -47,12 +46,6 @@ class ResConfigSettings(models.TransientModel):
                 config.acquirers_state = 'other_than_paypal'
             else:
                 config.acquirers_state = 'none'
-
-    @api.depends('company_id')
-    def _compute_is_stripe_supported_country(self):
-        for config in self:
-            code = config.company_id.country_id.code
-            config.is_stripe_supported_country = code in STRIPE_SUPPORTED_COUNTRIES
 
     def action_activate_stripe(self):
         self.ensure_one()
