@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.RtcLayoutMenu" owl="1">
-        <t t-if="layoutMenu">
             <div class="o_RtcLayoutMenu" t-attf-class="{{ className }}" t-ref="root">
                 <t t-if="layoutMenu.callViewer.threadView.thread.videoCount > 0">
                     <label class="o_RtcLayoutMenu_radio">
@@ -47,7 +46,6 @@
                     </span>
                 </label>
             </div>
-        </t>
     </t>
 
     <!-- TODO TEMPORARY ICONS -->

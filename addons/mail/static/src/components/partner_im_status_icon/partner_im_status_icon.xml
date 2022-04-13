@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.PartnerImStatusIcon" owl="1">
-        <t t-if="partner">
             <span class="o_PartnerImStatusIcon fa-stack"
                 t-att-class="{
                     'o-away': partner.im_status === 'away',
@@ -34,7 +33,6 @@
                     <i class="o_PartnerImStatusIcon_icon o-bot fa fa-heart fa-stack-1x" title="Bot" role="img" aria-label="User is a bot"/>
                 </t>
             </span>
-        </t>
     </t>
 
 </templates>

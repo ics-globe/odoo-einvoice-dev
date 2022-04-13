@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.ChannelMemberList" owl="1">
-        <t t-if="channel">
             <div class="o_ChannelMemberList d-flex flex-column overflow-auto bg-light" t-attf-class="{{ className }}" t-ref="root">
                 <t t-if="channel.orderedOnlineMembers.length > 0">
                     <t t-call="mail.ChannelMemberList_memberList">
@@ -28,7 +27,6 @@
                     </div>
                 </t>
             </div>
-        </t>
     </t>
 
     <t t-name="mail.ChannelMemberList_memberList" owl="1">

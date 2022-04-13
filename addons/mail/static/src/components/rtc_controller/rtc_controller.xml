@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.RtcController" owl="1">
-        <t t-if="rtcController">
             <div class="o_RtcController" t-attf-class="{{ className }}" t-ref="root">
                 <div class="o_RtcController_buttons">
                     <t t-if="rtcController.callViewer.threadView.thread.rtc and messaging.rtc.currentRtcSession">
@@ -121,7 +120,6 @@
                     </t>
                 </div>
             </div>
-        </t>
     </t>
 
 </templates>

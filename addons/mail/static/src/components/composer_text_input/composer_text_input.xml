@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.ComposerTextInput" owl="1">
-        <t t-if="composerView">
             <div class="o_ComposerTextInput" t-attf-class="{{ className }}" t-on-paste="composerView.onPasteTextInput" t-ref="root">
                 <t t-if="composerView.hasSuggestions">
                     <ComposerSuggestionList
@@ -18,7 +17,6 @@
                 -->
                 <textarea class="o_ComposerTextInput_mirroredTextarea o_ComposerTextInput_textareaStyle" t-att-class="{ 'o-composer-is-compact': composerView.isCompact }" t-esc="composerView.composer.textInputContent" t-ref="mirroredTextarea" disabled="1"/>
             </div>
-        </t>
     </t>
 
 </templates>

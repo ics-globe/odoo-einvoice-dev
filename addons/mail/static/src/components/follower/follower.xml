@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.Follower" owl="1">
-        <t t-if="follower">
             <div class="o_Follower d-flex justify-content-between p-0" t-attf-class="{{ className }}" t-on-click="props.onClick" t-ref="root">
                 <a class="o_Follower_details d-flex align-items-center flex-grow-1 px-3 text-700" t-att-class="{ 'o-inactive font-italic opacity-25': !follower.isActive }" href="#" t-on-click="_onClickDetails">
                     <img class="o_Follower_avatar me-2 rounded-circle" t-att-src="follower.partner.avatarUrl" alt="Avatar"/>
@@ -17,7 +16,6 @@
                     </button>
                 </t>
             </div>
-        </t>
     </t>
 
 </templates>

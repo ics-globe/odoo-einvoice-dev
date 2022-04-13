@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.PopoverView" owl="1">
-        <t t-if="popoverView">
             <div class="o_PopoverView" t-attf-class="{{ className }}" t-ref="root">
                 <t
                     t-component="constructor.components[popoverView.contentComponentName]"
@@ -10,7 +9,6 @@
                     t-props="{ localId: popoverView.content.localId }"
                 />
             </div>
-        </t>
     </t>
 
 </templates>

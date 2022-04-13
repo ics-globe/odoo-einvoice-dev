@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.MailTemplate" owl="1">
-        <t t-if="mailTemplateView">
             <div class="o_MailTemplate flex-shrink-0 align-items-center d-flex" t-attf-class="{{ className }}" t-ref="root">
                 <i class="fa fa-envelope-o" title="Mail" role="img"/>
                 <span class="o_MailTemplate_name ms-2" t-esc="mailTemplateView.mailTemplate.name"/>
@@ -23,7 +22,6 @@
                     Send Now
                 </button>
             </div>
-        </t>
     </t>
 
 </templates>

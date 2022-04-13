@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.MessageList" owl="1">
-        <t t-if="messageListView">
             <div class="o_MessageList" t-att-class="{ 'o-empty': messageListView.threadViewOwner.messages.length === 0 }" t-attf-class="{{ className }}" t-on-scroll="onScroll" t-ref="root">
                 <!-- No result messages -->
                 <t t-if="messageListView.threadViewOwner.threadCache.orderedNonEmptyMessages.length === 0">
@@ -69,7 +68,6 @@
                     <t t-call="mail.MessageList.loadMore"/>
                 </t>
             </div>
-        </t>
     </t>
 
     <t t-name="mail.MessageList.loadMore" owl="1">

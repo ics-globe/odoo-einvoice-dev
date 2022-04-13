@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.Discuss" owl="1">
-        <t t-if="discussView">
             <div class="o_Discuss" t-attf-class="{{ className }}"
                 t-att-class="{
                     'o-adding-item': discussView.discuss.isAddingChannel or discussView.discuss.isAddingChat,
@@ -20,7 +19,6 @@
                     </div>
                 </t>
             </div>
-        </t>
     </t>
 
     <t t-name="mail.Discuss.content" owl="1">

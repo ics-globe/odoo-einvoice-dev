@@ -2,7 +2,6 @@
 <templates xml:space="preserve">
 
     <t t-name="mail.ChatWindow" owl="1">
-        <t t-if="chatWindow">
             <div class="o_ChatWindow bg-white" t-attf-class="{{ className }}" tabindex="0" t-att-data-visible-index="chatWindow.visibleIndex"
                 t-att-class="{
                     'o-focused': chatWindow.isFocused,
@@ -50,7 +49,6 @@
                     </div>
                 </t>
             </div>
-        </t>
     </t>
 
 </templates>
