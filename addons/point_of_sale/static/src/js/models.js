@@ -283,18 +283,19 @@ class PosGlobalState extends PosModel {
     // reload the list of partner, returns as a promise that resolves if there were
     // updated partners, and fails if not
     load_new_partners(){
-        return new Promise((resolve, reject)  => {
-            var domain = this.prepare_new_partners_domain();
-            this.env.services.orm.silent
-                .call('pos.session', 'get_pos_ui_res_partner_by_params', [[odoo.pos_session_id], { domain }])
-                .then((partners) => {
-                    if (this.db.add_partners(partners)) {
-                        // check if the partners we got were real updates
-                        resolve();
-                    } else {
-                        reject('Failed in updating partners.');
-                    }
-                }).catch(() => reject());
+        return new Promise(async (resolve, reject)  => {
+            try {
+                const domain = this.prepare_new_partners_domain();
+                const partners = await this.env.services.orm.silent.call('pos.session', 'get_pos_ui_res_partner_by_params', [[odoo.pos_session_id], { domain }]);
+                if (this.db.add_partners(partners)) {
+                    // check if the partners we got were real updates
+                    resolve();
+                } else {
+                    reject('Failed in updating partners.');
+                }
+            } catch {
+                reject();
+            }
         });
     }
 
@@ -404,10 +405,8 @@ class PosGlobalState extends PosModel {
                 }
             }
         }
-        const products = await this.env.services.orm.call('pos.session', 'get_pos_ui_product_product_by_params', [
-            odoo.pos_session_id,
-            { domain: [['id', 'in', [...missingProductIds]]] },
-        ]);
+        const args = [odoo.pos_session_id, { domain: [['id', 'in', [...missingProductIds]]] }];
+        const products = await this.env.services.orm.call('pos.session', 'get_pos_ui_product_product_by_params', args);
         this._loadProductProduct(products);
     }
     async loadProductsBackground() {
@@ -682,8 +681,7 @@ class PosGlobalState extends PosModel {
                 return order;
             })];
         args.push(options.draft || false);
-        return this.env.services.orm
-            .call('pos.order', 'create_from_ui', args)
+        return this.env.services.orm.call('pos.order', 'create_from_ui', args)
             .then(function (server_ids) {
                 _.each(order_ids_to_sync, function (order_id) {
                     self.db.remove_order(order_id);

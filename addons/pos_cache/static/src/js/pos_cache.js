@@ -10,11 +10,8 @@ const PosCachePosGlobalState = (PosGlobalState) => class PosCachePosGlobalState 
         return this.env.services.orm.call('pos.session', 'get_total_products_count', [[odoo.pos_session_id]]);
     }
     async _loadCachedProducts(start, end) {
-        const products = await this.env.services.orm.silent.call('pos.session', 'get_cached_products', [
-            [odoo.pos_session_id],
-            start,
-            end,
-        ]);
+        const args = [[odoo.pos_session_id], start, end];
+        const products = await this.env.services.orm.silent.call('pos.session', 'get_cached_products', args);
         this._loadProductProduct(products);
     }
 }

@@ -115,12 +115,8 @@ odoo.define('point_of_sale.ReceiptScreen', function (require) {
                 const orderName = order.get_name();
                 const orderPartner = { email: this.orderUiState.inputEmail, name: partner ? partner.name : this.orderUiState.inputEmail };
                 const order_server_id = this.env.pos.validated_orders_name_server_id_map[orderName];
-                await this.env.services.orm.call('pos.order', 'action_receipt_to_customer', [
-                    [order_server_id],
-                    orderName,
-                    orderPartner,
-                    ticketImage,
-                ]);
+                const args = [[order_server_id], orderName, orderPartner, ticketImage];
+                await this.env.services.orm.call('pos.order', 'action_receipt_to_customer', args);
             }
         }
         ReceiptScreen.template = 'ReceiptScreen';

@@ -523,12 +523,8 @@ odoo.define('point_of_sale.TicketScreen', function (require) {
             const domain = this._computeSyncedOrdersDomain();
             const limit = this._state.syncedOrders.nPerPage;
             const offset = (this._state.syncedOrders.currentPage - 1) * this._state.syncedOrders.nPerPage;
-            const { ids, totalCount } = await this.env.services.orm.call('pos.order', 'search_paid_order_ids', [], {
-                config_id: this.env.pos.config.id,
-                domain,
-                limit,
-                offset,
-            });
+            const kwargs = { config_id: this.env.pos.config.id, domain, limit, offset };
+            const { ids, totalCount } = await this.env.services.orm.call('pos.order', 'search_paid_order_ids', [], kwargs);
             const idsNotInCache = ids.filter((id) => !(id in this._state.syncedOrders.cache));
             if (idsNotInCache.length > 0) {
                 const fetchedOrders = await this.env.services.orm.call('pos.order', 'export_for_ui', [idsNotInCache]);

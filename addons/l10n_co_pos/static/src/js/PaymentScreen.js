@@ -9,11 +9,7 @@ odoo.define('l10n_co_pos.PaymentScreen', function(require) {
             async _postPushOrderResolve(order, order_server_ids) {
                 try {
                     if (this.env.pos.is_colombian_country()) {
-                        const result = await this.env.services.orm.searchRead(
-                            'pos.order',
-                            [['id', 'in', order_server_ids]],
-                            ['name']
-                        );
+                        const result = await this.env.services.orm.searchRead('pos.order', [['id', 'in', order_server_ids]], ['name']);
                         order.set_l10n_co_dian(result[0].name || false);
                     }
                 } finally {

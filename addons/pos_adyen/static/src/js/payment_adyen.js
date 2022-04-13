@@ -43,8 +43,7 @@ var PaymentAdyen = PaymentInterface.extend({
     },
 
     _call_adyen: function (data, operation) {
-        return this.pos.env.services.orm.silent
-            .call('pos.payment.method', 'proxy_adyen_request', [[this.payment_method.id], data, operation])
+        return this.pos.env.services.orm.silent.call('pos.payment.method', 'proxy_adyen_request', [[this.payment_method.id], data, operation])
             .catch(this._handle_odoo_connection_failure.bind(this));
     },
 
@@ -173,11 +172,8 @@ var PaymentAdyen = PaymentInterface.extend({
             return Promise.resolve();
         }
 
-        return this.pos.env.services.orm.silent.call(
-            'pos.payment.method',
-            'get_latest_adyen_status',
-            [[this.payment_method.id], this._adyen_get_sale_id()]
-        ).catch(function (data) {
+        return this.pos.env.services.orm.silent.call('pos.payment.method', 'get_latest_adyen_status', [[this.payment_method.id], this._adyen_get_sale_id()])
+        .catch(function (data) {
             if (self.remaining_polls != 0) {
                 self.remaining_polls--;
             } else {

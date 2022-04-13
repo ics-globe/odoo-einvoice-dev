@@ -242,11 +242,8 @@ odoo.define('pos_sale.SaleOrderManagementScreen', function (require) {
         }
 
         async _getSaleOrder(id) {
-            let sale_order = await this.env.services.orm.read(
-                'sale.order',
-                [id],
-                ['order_line', 'partner_id', 'pricelist_id', 'fiscal_position_id', 'amount_total', 'amount_untaxed']
-            );
+            const fields = ['order_line', 'partner_id', 'pricelist_id', 'fiscal_position_id', 'amount_total', 'amount_untaxed'];
+            let sale_order = await this.env.services.orm.read('sale.order', [id], fields);
 
             let sale_lines = await this._getSOLines(sale_order[0].order_line);
             sale_order[0].order_line = sale_lines;

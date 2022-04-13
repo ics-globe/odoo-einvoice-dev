@@ -128,30 +128,18 @@ odoo.define('point_of_sale.ClosePosPopup', function(require) {
                 this.closeSessionClicked = true;
                 let response;
                 if (this.cashControl) {
-                    response = await this.env.services.orm.call(
-                        'pos.session',
-                        'post_closing_cash_details',
-                        [this.env.pos.pos_session.id],
-                        {
-                            counted_cash: this.state.payments[this.defaultCashDetails.id].counted,
-                        }
-                    );
+                    const kwargs = { counted_cash: this.state.payments[this.defaultCashDetails.id].counted };
+                    response = await this.env.services.orm.call('pos.session', 'post_closing_cash_details', [this.env.pos.pos_session.id], kwargs);
                     if (!response.successful) {
                         return this.handleClosingError(response);
                     }
                 }
-                await this.env.services.orm.call('pos.session', 'update_closing_control_state_session', [
-                    this.env.pos.pos_session.id,
-                    this.state.notes,
-                ]);
+                await this.env.services.orm.call('pos.session', 'update_closing_control_state_session', [this.env.pos.pos_session.id, this.state.notes]);
                 try {
                     const bankPaymentMethodDiffPairs = this.otherPaymentMethods
                         .filter((pm) => pm.type == 'bank')
                         .map((pm) => [pm.id, this.state.payments[pm.id].difference]);
-                    response = await this.env.services.orm.call('pos.session', 'close_session_from_ui', [
-                        this.env.pos.pos_session.id,
-                        bankPaymentMethodDiffPairs,
-                    ]);
+                    response = await this.env.services.orm.call('pos.session', 'close_session_from_ui', [this.env.pos.pos_session.id, bankPaymentMethodDiffPairs]);
                     if (!response.successful) {
                         return this.handleClosingError(response);
                     }

@@ -27,11 +27,8 @@ odoo.define('point_of_sale.CashOpeningPopup', function(require) {
         startSession() {
             this.env.pos.bank_statement.balance_start = this.state.openingCash;
             this.env.pos.pos_session.state = 'opened';
-            this.env.services.orm.call('pos.session', 'set_cashbox_pos', [
-                this.env.pos.pos_session.id,
-                this.state.openingCash,
-                this.state.notes,
-            ]);
+            const args = [this.env.pos.pos_session.id, this.state.openingCash, this.state.notes];
+            this.env.services.orm.call('pos.session', 'set_cashbox_pos', args);
             this.cancel(); // close popup
         }
         updateCashOpening({ total, moneyDetailsNotes }) {

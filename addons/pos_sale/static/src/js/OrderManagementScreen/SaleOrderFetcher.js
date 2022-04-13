@@ -77,13 +77,10 @@ odoo.define('pos_sale.SaleOrderFetcher', function (require) {
             this.totalCount = sale_orders.length;
             return sale_orders;
         }
-        async _getOrderIdsForCurrentPage(limit, offset) {
-            return await this.comp.env.services.orm.searchRead(
-                'sale.order',
-                this.searchDomain ? this.searchDomain : [],
-                ['name', 'partner_id', 'amount_total', 'date_order', 'state', 'user_id'],
-                { offset, limit }
-            );
+        _getOrderIdsForCurrentPage(limit, offset) {
+            const domain = this.searchDomain ? this.searchDomain : [];
+            const fields = ['name', 'partner_id', 'amount_total', 'date_order', 'state', 'user_id'];
+            return this.comp.env.services.orm.searchRead('sale.order', domain, fields, { offset, limit });
         }
 
         nextPage() {

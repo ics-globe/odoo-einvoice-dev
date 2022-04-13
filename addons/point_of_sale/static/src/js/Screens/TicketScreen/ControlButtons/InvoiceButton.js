@@ -29,9 +29,7 @@ odoo.define('point_of_sale.InvoiceButton', function (require) {
         async _downloadInvoice(orderId) {
             try {
                 // IMPROVEMENT: Use orm.read, but need a way to pass "load = false" as kwargs.
-                const [orderWithInvoice] = await this.env.services.orm.call('pos.order', 'read', [orderId, ['account_move']], {
-                    load: false,
-                });
+                const [orderWithInvoice] = await this.env.services.orm.call('pos.order', 'read', [orderId, ['account_move']], { load: false });
                 if (orderWithInvoice && orderWithInvoice.account_move) {
                     await this.env.legacyActionManager.do_action('account.account_invoices', {
                         additional_context: {

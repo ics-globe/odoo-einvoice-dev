@@ -10,12 +10,8 @@ odoo.define('point_of_sale.SaleDetailsButton', function(require) {
             // IMPROVEMENT: Perhaps put this logic in a parent component
             // so that for unit testing, we can check if this simple
             // component correctly triggers an event.
-            const saleDetails = await this.env.services.orm.call('report.point_of_sale.report_saledetails', 'get_sale_details', [
-                false,
-                false,
-                false,
-                [this.env.pos.pos_session.id],
-            ]);
+            const args = [false, false, false, [this.env.pos.pos_session.id]];
+            const saleDetails = await this.env.services.orm.call('report.point_of_sale.report_saledetails', 'get_sale_details', args);
             const report = renderToString(
                 'SaleDetailsReport',
                 Object.assign({}, saleDetails, {
