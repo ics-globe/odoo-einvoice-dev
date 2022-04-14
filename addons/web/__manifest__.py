@@ -17,6 +17,7 @@ This module provides the core of the Odoo Web Client.
         'security/ir.model.access.csv',
         'views/webclient_templates.xml',
         'views/report_templates.xml',
+        'views/res_partner_views.xml',
         'views/base_document_layout_views.xml',
         'views/speedscope_template.xml',
         'views/lazy_assets.xml',
@@ -138,6 +139,7 @@ This module provides the core of the Odoo Web Client.
             'web/static/src/legacy/scss/form_view_extra.scss',
             'web/static/src/legacy/scss/list_view_extra.scss',
             'web/static/src/legacy/scss/profiling_qweb_view.scss',
+            'web/static/src/legacy/scss/res_partner.scss',
 
             'web/static/src/legacy/action_adapters.js',
             'web/static/src/legacy/debug_manager.js',

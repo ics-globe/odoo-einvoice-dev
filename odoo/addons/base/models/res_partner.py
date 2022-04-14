@@ -181,11 +181,15 @@ class Partner(models.Model):
         [('contact', 'Contact'),
          ('invoice', 'Invoice Address'),
          ('delivery', 'Delivery Address'),
+         ('private', 'Private Address'),
          ('other', 'Other Address'),
-         ("private", "Private Address"),
         ], string='Address Type',
         default='contact',
-        help="Invoice & Delivery addresses are used in sales orders. Private addresses are only visible by authorized users.")
+        help="- Contact: Use this to gather and organize the name and contact details of employees of a company (e.g. CEO, Salesman, ...).\n"
+             "- Invoice: Preferred address for all invoices. Select by default when you invoice an order that belongs to this company.\n"
+             "- Delivery: Delivery addresses are selected by default when you confirm an order and that a delivery needs to be scheduled.\n"
+             "- Private: Private addresses are only visible by authorized users and contain sensitive data (employee home address, ...).\n"
+             "- Other: Other address for the company (warehouse, ...).")
     # address fields
     street = fields.Char()
     street2 = fields.Char()
