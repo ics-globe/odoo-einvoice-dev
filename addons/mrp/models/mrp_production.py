@@ -231,6 +231,7 @@ class MrpProduction(models.Model):
         ('available', 'Available'),
         ('expected', 'Expected'),
         ('late', 'Late')], compute='_compute_components_availability')
+    production_capacity = fields.Float(compute='_compute_production_capacity', help="Quantity that can be produced with the current stock of components")
     show_lot_ids = fields.Boolean('Display the serial number shortcut on the moves', compute='_compute_show_lot_ids')
     forecasted_issue = fields.Boolean(compute='_compute_forecasted_issue')
     show_serial_mass_produce = fields.Boolean('Display the serial mass produce wizard action', compute='_compute_show_serial_mass_produce')
@@ -291,6 +292,13 @@ class MrpProduction(models.Model):
                 fallback_loc = self.env['stock.warehouse'].search([('company_id', '=', company_id)], limit=1).lot_stock_id
             production.location_src_id = production.picking_type_id.default_location_src_id.id or fallback_loc.id
             production.location_dest_id = production.picking_type_id.default_location_dest_id.id or fallback_loc.id
+
+    def _compute_production_capacity(self):
+        for production in self:
+            if production.move_raw_ids:
+                moves = production.move_raw_ids.filtered(lambda move: move.unit_factor and move.product_id.type != 'consu')
+                production_capacity = min(moves.mapped(lambda move: move.product_id.uom_id._compute_quantity(move.product_id.qty_available, move.product_uom) / move.unit_factor))
+                production.production_capacity = min(production.product_qty, float_round(production_capacity, precision_rounding=production.product_id.uom_id.rounding))
 
     @api.depends('state', 'reservation_state', 'date_planned_start', 'move_raw_ids', 'move_raw_ids.forecast_availability', 'move_raw_ids.forecast_expected_date')
     def _compute_components_availability(self):
