@@ -1535,8 +1535,10 @@ const ColorpickerUserValueWidget = SelectUserValueWidget.extend({
         if (this.options.dataAttributes.selectedTab) {
             options.selectedTab = this.options.dataAttributes.selectedTab;
         }
-        if (this.getParent().options.wysiwyg) {
-            options.ownerDocument = this.getParent().options.wysiwyg.el.ownerDocument;
+        const wysiwyg = this.getParent().options.wysiwyg;
+        if (wysiwyg) {
+            options.ownerDocument = wysiwyg.el.ownerDocument;
+            options.editable = wysiwyg.$editable[0];
         }
         const oldColorPalette = this.colorPalette;
         this.colorPalette = new ColorPaletteWidget(this, options);
