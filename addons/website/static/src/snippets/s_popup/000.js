@@ -178,26 +178,26 @@ Modal.prototype._hideModal = function () {
         delete this._odooLoadEventCaptureHandler;
     }
 };
-
-const _baseSetScrollbar = Modal.prototype._setScrollbar;
-Modal.prototype._setScrollbar = function () {
-    if (this._element.classList.contains('s_popup_no_backdrop')) {
-        this._element.classList.toggle('s_popup_overflow_page', !!this._isOverflowingWindow);
-
-        if (!this._isOverflowingWindow) {
-            return;
-        }
-    }
-    return _baseSetScrollbar.apply(this, arguments);
-};
-
-const _baseGetScrollbarWidth = Modal.prototype._getScrollbarWidth;
-Modal.prototype._getScrollbarWidth = function () {
-    if (this._element.classList.contains('s_popup_no_backdrop') && !this._isOverflowingWindow) {
-        return 0;
-    }
-    return _baseGetScrollbarWidth.apply(this, arguments);
-};
+//
+// const _baseSetScrollbar = Modal.prototype._setScrollbar;
+// Modal.prototype._setScrollbar = function () {
+//     if (this._element.classList.contains('s_popup_no_backdrop')) {
+//         this._element.classList.toggle('s_popup_overflow_page', !!this._isOverflowingWindow);
+//
+//         if (!this._isOverflowingWindow) {
+//             return;
+//         }
+//     }
+//     return _baseSetScrollbar.apply(this, arguments);
+// };
+//
+// const _baseGetScrollbarWidth = Modal.prototype._getScrollbarWidth;
+// Modal.prototype._getScrollbarWidth = function () {
+//     if (this._element.classList.contains('s_popup_no_backdrop') && !this._isOverflowingWindow) {
+//         return 0;
+//     }
+//     return _baseGetScrollbarWidth.apply(this, arguments);
+// };
 
 return PopupWidget;
 });
