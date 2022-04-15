@@ -9,7 +9,7 @@
         }
     }
 
-    .o_project_kanban_boxes {
+    .o_project_kanban_boxes, .o_project_kanban_config_boxes {
         display: flex;
         flex-flow: row wrap;
         justify-content: space-between;

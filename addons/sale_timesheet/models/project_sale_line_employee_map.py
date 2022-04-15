@@ -23,7 +23,7 @@ class ProjectProductEmployeeMap(models.Model):
     partner_id = fields.Many2one(related='project_id.partner_id')
     price_unit = fields.Float("Unit Price", compute='_compute_price_unit', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string="Currency", compute='_compute_currency_id', store=True, readonly=False)
-    cost = fields.Monetary(currency_field='cost_currency_id', compute='_compute_cost', store=True, readonly=False,
+    cost = fields.Monetary(currency_field='cost_currency_id', compute='_compute_cost', store=True, readonly=False, string="Hourly Cost",
                            help="This cost overrides the employee's default timesheet cost in employee's HR Settings")
     cost_currency_id = fields.Many2one('res.currency', string="Cost Currency", related='employee_id.currency_id', readonly=True)
     is_cost_changed = fields.Boolean('Is Cost Manually Changed', compute='_compute_is_cost_changed', store=True)
