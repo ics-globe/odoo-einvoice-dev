@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Exempt taxpayer -->
+        <record id="fiscal_position_hu_exempt_tax_F27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_F18" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_18"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_F5" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_5"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_V27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_V27TE" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27_property"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_V18" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_18"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_0_subject"/>
+        </record>
+
+        <record id="fiscal_position_hu_exempt_tax_V5" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_exempt"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_5"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_0_subject"/>
+        </record>
+        <!-- Exempt taxpayer [END] -->
+
+        <!-- EU partner -->
+        <record id="fiscal_position_hu_eu_F27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_icd"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_F18" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_18"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_icd"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_F5" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_5"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_icd"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_V27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_27_ica"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_V27TE" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27_property"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_27_ica_property"/>
+        </record>
+        <!-- EU partner [END] -->
+
+        <!-- Partner outside the EU -->
+        <record id="fiscal_position_hu_eu_out_F27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu_out"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_export"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_out_F18" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu_out"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_18"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_export"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_out_F5" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu_out"/>
+            <field name="tax_src_id" ref="l10n_hu_sale_vat_5"/>
+            <field name="tax_dest_id" ref="l10n_hu_sale_vat_0_export"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_out_V27" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu_out"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_27_import_sourcing"/>
+        </record>
+
+        <record id="fiscal_position_hu_eu_out_V27TE" model="account.fiscal.position.tax.template">
+            <field name="position_id" ref="fiscal_position_hu_eu_out"/>
+            <field name="tax_src_id" ref="l10n_hu_purchase_vat_27_property"/>
+            <field name="tax_dest_id" ref="l10n_hu_purchase_vat_27_import_sourcing"/>
+        </record>
+        <!-- Partner outside the EU [END] -->
+    </data>
+</odoo>
