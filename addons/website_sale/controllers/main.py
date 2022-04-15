@@ -1180,8 +1180,6 @@ class WebsiteSale(http.Controller):
 
         # clean context and session, then redirect to the confirmation page
         request.website.sale_reset()
-        if tx and tx.state == 'draft':
-            return request.redirect('/shop')
 
         PaymentPostProcessing.remove_transactions(tx)
         return request.redirect('/shop/confirmation')
