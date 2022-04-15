@@ -588,11 +588,29 @@ class IrQWeb(models.AbstractModel):
         'xml' not in tools.config['dev_mode'],
         tools.ormcache('template', 'tuple(self.env.context.get(k) for k in self._get_template_cache_keys())'),
     )
-    def _get_view_id(self, template):
+    def _get_view_id_timestamp(self, template):
         try:
-            return self.env['ir.ui.view'].sudo().with_context(load_all_views=True)._get_view_id(template)
+            view_id = self.env['ir.ui.view'].sudo().with_context(load_all_views=True)._get_view_id(template)
+            if not view_id:
+                return (None, None)
+            query = """
+                WITH RECURSIVE ir_ui_view_inherits AS (
+                    SELECT ir_ui_view.id, ir_ui_view.write_date, ir_ui_view.model
+                    FROM ir_ui_view
+                    WHERE id = %s
+                UNION
+                    SELECT ir_ui_view.id, ir_ui_view.write_date, ir_ui_view.model
+                    FROM ir_ui_view
+                    INNER JOIN ir_ui_view_inherits parent ON parent.id = ir_ui_view.inherit_id
+                    WHERE ir_ui_view.model = parent.model
+                )
+                SELECT SUM(extract(epoch from v.write_date))
+                FROM ir_ui_view_inherits v
+            """
+            self.env.cr.execute(query, [view_id])
+            return (view_id, self.env.cr.fetchone()[0])
         except Exception:
-            return None
+            return (None, None)
 
     @QwebTracker.wrap_compile
     def _compile(self, template):
@@ -600,12 +618,12 @@ class IrQWeb(models.AbstractModel):
             self = self.with_context(use_qweb_t_cache=False)
             ref = None
         else:
-            ref = self._get_view_id(template)
+            ref, timestamp = self._get_view_id_timestamp(template)
 
         # define the base key cache for code in cache and t-cache feature
         base_key_cache = None
         if ref:
-            base_key_cache = self._get_cache_key(tuple([ref] + [self.env.context.get(k) for k in self._get_template_cache_keys()]))
+            base_key_cache = self._get_cache_key(tuple([self.env.cr.dbname, ref, timestamp] + [self.env.context.get(k) for k in self._get_template_cache_keys()]))
         self = self.with_context(__qweb_base_key_cache=base_key_cache)
 
         # generate the template function code

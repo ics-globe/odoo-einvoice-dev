@@ -108,7 +108,7 @@
                 </t>
 
                 <t t-if="request and request.is_frontend_multilang and website">
-                    <t t-cache="website,canonical_params,">
+                    <t t-cache="website.language_ids,canonical_params,">
                         <t t-set="alternate_languages" t-value="website._get_alternate_languages(canonical_params=canonical_params)"/>
                         <t t-foreach="alternate_languages" t-as="lg">
                             <link rel="alternate" t-att-hreflang="lg['hreflang']" t-att-href="lg['href']"/>
@@ -133,7 +133,7 @@
     </xpath>
 
     <xpath expr="//header/t[@t-cache]" position="attributes">
-        <attribute name="t-cache" add="xmlid,website" remove="res_company," separator=","/>
+        <attribute name="t-cache" add="xmlid,website,website_menus" remove="res_company," separator=","/>
     </xpath>
 
     <xpath expr="//header" position="before">

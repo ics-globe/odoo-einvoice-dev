@@ -85,6 +85,7 @@ class IrQWeb(models.AbstractModel):
 
         values.update(dict(
             website=current_website,
+            website_menus=lazy(lambda: irQweb.env['website.menu'].browse(current_website._get_menu_ids())),
             is_view_active=lazy(lambda: current_website.is_view_active),
             res_company=lazy(request.env['res.company'].browse(current_website._get_cached('company_id')).sudo),
             translatable=translatable,

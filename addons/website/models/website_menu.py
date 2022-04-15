@@ -98,7 +98,8 @@ class Menu(models.Model):
         return menus
 
     def write(self, values):
-        self.clear_caches()
+        if 'website_id' in values:
+            self.clear_caches()
         return super().write(values)
 
     def unlink(self):
