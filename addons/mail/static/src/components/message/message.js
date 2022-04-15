@@ -527,6 +527,9 @@ export class Message extends Component {
             !isEventHandled(ev, 'MessageInReplyToView.ClickMessageInReplyTo')
         ) {
             this.state.isClicked = !this.state.isClicked;
+            if (this.messageView && this.messageView.threadView) {
+                this.messageView.clearClickedStateOfOthers();
+            }
         }
     }
 

@@ -9,6 +9,28 @@ function factory(dependencies) {
     class MessageView extends dependencies['mail.model'] {
 
         /**
+         * @override
+         */
+        _created() {
+            this.onMouseEnter = this.onMouseEnter.bind(this);
+        }
+
+        /**
+         * Clears the clicked state of the other message views of this thread view.
+         */
+        clearClickedStateOfOthers() {
+            for (const messageView of this.threadView.messageViews) {
+                if (
+                    messageView !== this &&
+                    messageView.component &&
+                    messageView.component.state.isClicked
+                ) {
+                    messageView.component.state.isClicked = false;
+                }
+            }
+        }
+
+        /**
          * Briefly highlights the message.
          */
         highlight() {
@@ -24,6 +46,20 @@ function factory(dependencies) {
             });
         }
 
+        /**
+         * Handles mouse enter on this message view.
+         */
+        onMouseEnter() {
+            if (!this.exists()) {
+                return;
+            }
+            if (this.component) {
+                this.component.state.isHovered = true;
+            }
+            if (this.threadView) {
+                this.clearClickedStateOfOthers();
+            }
+        }
         /**
          * Action to initiate reply to current messageView.
          */
