@@ -24,8 +24,14 @@
                                 <Follower
                                     t-foreach="thread.followers" t-as="follower" t-key="follower.localId"
                                     className="'o_FollowerMenu_follower dropdown-item'"
+<<<<<<< HEAD
                                     follower="follower"
                                     onClick="followerListMenuView.onClickFollower"
+=======
+                                    chatterLocalId="props.chatterLocalId"
+                                    followerLocalId="follower.localId"
+                                    onClick="_onClickFollower"
+>>>>>>> 05aa96bb648... temp
                                 />
                             </t>
                             <t t-elif="!thread.hasWriteAccess">
