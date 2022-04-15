@@ -299,8 +299,14 @@ class WebsiteVisitor(models.Model):
         if tz:
             vals['timezone'] = tz
 
+        # TODO: This can be removed and `_prepare_create_values()` called
+        # directly instead of `_add_missing_default_values()` once the ORM will
+        # use python instead of SQL to get current date. See #85078
+        vals['create_uid'] = vals['write_uid'] = self.env.uid
+        vals['create_date'] = vals['write_date'] = datetime.utcnow()
+
         # Add missing default values and convert to SQL format
-        vals = self._prepare_create_values([vals])[0]
+        vals = self._add_missing_default_values(vals)
         vals = {k: self._fields[k].convert_to_column(v, self) for k, v in vals.items()}
 
         return vals
