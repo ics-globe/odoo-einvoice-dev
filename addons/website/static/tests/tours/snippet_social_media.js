@@ -47,7 +47,7 @@ tour.register('snippet_social_media', {
     {
         content: 'Change added Option label (3)',
         trigger: 'we-list table input:eq(8)',
-        run: 'text https://instagr.am/odoo.official/',
+        run: 'text_blur https://instagr.am/odoo.official/',
     },
     {
         content: "Check if the result is correct before removing",
@@ -65,7 +65,7 @@ tour.register('snippet_social_media', {
     {
         content: 'Change custom social to unsupported link',
         trigger: 'we-list table input:eq(5)',
-        run: 'text https://www.paypal.com/abc',
+        run: 'text_blur https://www.paypal.com/abc',
     },
     {
         content: "Ensure paypal icon is found",
@@ -97,7 +97,7 @@ tour.register('snippet_social_media', {
     {
         content: 'Change url of the DB instagram link',
         trigger: 'we-list table input:eq(3)',
-        run: 'text https://instagram.com/odoo.official/',
+        run: 'text_blur https://instagram.com/odoo.official/',
     },
     {
         content: 'Save',
