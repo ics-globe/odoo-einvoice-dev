@@ -139,10 +139,10 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         new_visitor = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
         new_track = self.env['website.track'].search([('id', 'not in', existing_tracks.ids)])
         self.assertEqual(len(new_visitor), 1, "1 visitor should be created")
-        self.assertEqual(len(new_track), 1, "There should be 1 tracked page")
+        self.assertEqual(len(new_track), 2, "There should be 2 tracked page")
         self.assertEqual(new_visitor.visit_count, 1)
         self.assertEqual(new_visitor.website_track_ids, new_track)
-        self.assertVisitorTracking(new_visitor, self.tracked_page)
+        self.assertVisitorTracking(new_visitor, self.tracked_page + self.tracked_page)
 
         # ------------------------------------------------------------
         # Admin connects
@@ -161,7 +161,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         # check tracking and visitor / user sync
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
         self.assertEqual(len(new_visitors), 1, "There should still be only one visitor.")
-        self.assertVisitorTracking(visitor_admin, self.tracked_page | self.tracked_page_2)
+        self.assertVisitorTracking(visitor_admin, self.tracked_page + self.tracked_page + self.tracked_page_2)
         self.assertEqual(visitor_admin.partner_id, self.partner_admin)
         self.assertEqual(visitor_admin.name, self.partner_admin.name)
 
@@ -180,7 +180,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.url_open(self.tracked_page.url)
         self.url_open(self.untracked_page.url)
         self.url_open(self.tracked_page_2.url)
-        self.url_open(self.tracked_page_2.url)  # 2 time to be sure it does not record twice
 
         # new visitor is created
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
@@ -201,7 +200,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.url_open(self.tracked_page.url)
         self.url_open(self.untracked_page.url)
         self.url_open(self.tracked_page_2.url)
-        self.url_open(self.tracked_page_2.url)  # 2 time to be sure it does not record twice
 
         # new visitor is created
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])
@@ -224,7 +222,7 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         visitor_admin = self.env['website.visitor'].search([('partner_id', '=', self.partner_admin.id)])
         # tracks are linked
         self.assertTrue(visitor_anonymous_tracks < visitor_admin.website_track_ids)
-        self.assertEqual(len(visitor_admin.website_track_ids), 4, "There should be 4 tracked page for the admin")
+        self.assertEqual(len(visitor_admin.website_track_ids), 5, "There should be 5 tracked page for the admin")
 
         # ------------------------------------------------------------
         # Back to anonymous
@@ -237,7 +235,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
         self.url_open(self.tracked_page.url)
         self.url_open(self.untracked_page.url)
         self.url_open(self.tracked_page_2.url)
-        self.url_open(self.tracked_page_2.url)  # 2 time to be sure it does not record twice
 
         # new visitor created
         new_visitors = self.env['website.visitor'].search([('id', 'not in', existing_visitors.ids)])

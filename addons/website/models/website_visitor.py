@@ -231,25 +231,14 @@ class WebsiteVisitor(models.Model):
                 track_values['visit_datetime'] = visitor_values['last_connection_datetime']
                 track_columns = ', '.join(track_values.keys())
                 track_template = ', '.join('%s' for _ in track_values)
-
-                _, where_clause, where_params = self.env['website.track']._where_calc(force_track['domain']).get_sql()
                 query = f"""
                     WITH visitor AS (
                         {query}, {track_template}::timestamp
-                    ),
-                    track AS (
-                        INSERT INTO website_track (visitor_id, {track_columns})
-                        SELECT * FROM visitor
-                        WHERE NOT EXISTS (
-                            SELECT 1 FROM website_track
-                            WHERE visitor_id = visitor.id
-                            AND {where_clause}
-                            AND visit_datetime >= NOW() AT TIME ZONE 'UTC' - INTERVAL '30 minutes'
-                        )
                     )
-                    SELECT id from visitor
+                    INSERT INTO website_track (visitor_id, {track_columns})
+                    SELECT * FROM visitor RETURNING visitor_id;
                 """
-                query_values += tuple(track_values.values()) + tuple(where_params)
+                query_values += tuple(track_values.values())
 
             self.env.cr.execute(query, query_values)
             visitor_id = self.env.cr.fetchone()[0]
