@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_tr_area_everyone,l10n_tr.area.,model_l10n_tr_area,,1,0,0,0
+access_l10n_tr_area_partner_manager,l10n_tr.area.partner.manager,model_l10n_tr_area,base.group_partner_manager,1,1,1,1
+access_l10n_tr_neighborhood_everyone,l10n_tr.neighborhood.,model_l10n_tr_neighborhood,,1,0,0,0
+access_l10n_tr_neighborhood_partner_manager,l10n_tr.neighborhood.partner.manager,model_l10n_tr_neighborhood,base.group_partner_manager,1,1,1,1
 access_l10n_tr_tax_office_everyone,l10n_tr.tax_office.,model_l10n_tr_tax_office,,1,0,0,0
 access_l10n_tr_tax_office_account_manager,l10n_tr.tax_office.account.manager,model_l10n_tr_tax_office,account.group_account_manager,1,1,1,1

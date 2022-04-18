@@ -17,6 +17,10 @@ Bu modül kurulduktan sonra, Muhasebe yapılandırma sihirbazı çalışır
     'depends': [
         'account',
         'l10n_multilang',
+        # there is no use of base_address_extended features here but setting up view_address_id of th company should be
+        # different if this module is installed.
+        # Hence, we explicitly depend on it, otherwise we don't know if it is installed or not
+        'base_address_extended',
     ],
     'data': [
         # Chart of Accounts
@@ -36,11 +40,15 @@ Bu modül kurulduktan sonra, Muhasebe yapılandırma sihirbazı çalışır
 
         # Data
         "data/l10n_tr.tax_office.csv",
+        "data/res.city.csv",
+        "data/l10n_tr.area.csv",
 
         # Views
         "views/tax_office_views.xml",
         "views/res_partner_views.xml",
         "views/ir_qweb_widget_templates.xml",
+
+        "data/res_country_data.xml",
 
         # Security
         "security/ir.model.access.csv",
@@ -49,4 +57,6 @@ Bu modül kurulduktan sonra, Muhasebe yapılandırma sihirbazı çalışır
         'demo/demo_company.xml',
     ],
     'license': 'LGPL-3',
+    "post_init_hook": "post_init_hook",
+    'uninstall_hook': 'uninstall_hook',
 }
