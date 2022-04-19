@@ -667,7 +667,7 @@ class Users(models.Model):
 
     @tools.ormcache('self._uid')
     def _get_company_ids(self):
-        return self.company_ids.ids
+        return frozenset(self.company_ids.ids)
 
     @api.model
     def action_get(self):
