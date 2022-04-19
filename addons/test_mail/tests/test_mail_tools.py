@@ -88,8 +88,11 @@ class TestMessageModeration(BaseFunctionalTest, TestRecipients):
 
         # test direct match
         found = Partner._mail_find_partner_from_emails(['%s, "Robert Astaire" <not.alfredoastaire@test.example.com>' % self._test_email])
-        self.assertFalse(found[0], 'Mail: not recognized due to usage of email_normalize that does not accept multi emails')
+        self.assertEqual(found[0], test_partner, 'Mail: multi email comparison is done based on first found email in input')
 
         # test based on first email
         found = Partner._mail_find_partner_from_emails([self._test_email])
-        self.assertFalse(found[0], 'Mail: not recognized due to usage of email_normalize that does not accept multi emails')
+        self.assertEqual(found[0], test_partner, 'Mail: storing multi email is now supported on email normalize search (on first found email only)')
+        # other email is used for normalization, hence no results
+        found = Partner._mail_find_partner_from_emails(['not.alfredoastaire@test.example.com'])
+        self.assertFalse(found[0], 'Mail: storing multi email is now supported on first email only')
