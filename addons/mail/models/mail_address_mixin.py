@@ -30,7 +30,7 @@ class MailAddressMixin(models.AbstractModel):
     def _compute_email_normalized(self):
         self._assert_primary_email()
         for record in self:
-            record.email_normalized = tools.email_normalize(record[self._primary_email])
+            record.email_normalized = tools.email_normalize(record[self._primary_email], force_single=False)
 
     def _assert_primary_email(self):
         if not hasattr(self, "_primary_email") or not isinstance(self._primary_email, str):

@@ -170,9 +170,9 @@ class TestMailThread(BaseFunctionalTest, TestRecipients, MockEmails):
                       (' ', False)]
         multi_pairs = [
             ('%s, other.email@test.example.com' % base_email,
-             False),  # multi not supported currently
+             base_email),  # multi supports first found
             ('%s, other.email@test.example.com' % tools.formataddr(('Another Name', base_email)),
-             False),  # multi not supported currently
+             base_email),  # multi supports first found
         ]
         for source, expected in valid_pairs + void_pairs + multi_pairs:
             new_record = self.env['mail.test.gateway'].create({
