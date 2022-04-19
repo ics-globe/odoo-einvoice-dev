@@ -24,7 +24,7 @@
                 <t t-call="website.get_tooltip_dependencies"/>
             </t>
             It looks like your file is being called by
-            <a href="#" data-toggle="popover" t-att-data-content="depTooltip" data-html="true" title="Dependencies"><t t-esc="dep_text" /></a>.
+            <a href="#" data-bs-toggle="popover" t-att-data-bs-content="depTooltip" data-bs-html="true" title="Dependencies"><t t-esc="dep_text" /></a>.
             Changing its name will break these calls.
         </span>
     </div>
