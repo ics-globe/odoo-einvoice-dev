@@ -1733,6 +1733,8 @@ const RangeUserValueWidget = UnitUserValueWidget.extend({
         this.input.setAttribute('max', max);
         this.input.setAttribute('step', step);
         this.containerEl.appendChild(this.input);
+
+        this._onInputChange = _.debounce(this._onInputChange, 500);
     },
 
     //--------------------------------------------------------------------------
