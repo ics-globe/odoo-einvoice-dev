@@ -1729,7 +1729,7 @@ class TestQwebCache(TransactionCase):
             </div>
         """)
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [1, 2, 3]}))
         self.assertEqual(result, expected_result, 'First rendering (add in cache)')
@@ -1758,7 +1758,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -1819,7 +1819,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [1, 2, 3]}))
         self.assertEqual(result, etree.fromstring("""
@@ -1868,7 +1868,7 @@ class TestQwebCache(TransactionCase):
             """
         })
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -1968,7 +1968,7 @@ class TestQwebCache(TransactionCase):
             """
         })
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -2059,7 +2059,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=False)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=True)
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [1, 2, 3]}))
         self.assertEqual(result, etree.fromstring("""
@@ -2104,7 +2104,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=False)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=True)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -2165,7 +2165,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=False)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=True)
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [1, 2, 3]}))
         self.assertEqual(result, etree.fromstring("""
@@ -2213,7 +2213,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=False)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=True)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -2312,7 +2312,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=False)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=True)
 
         # use same cache id, display the same content
         result = etree.fromstring(IrQweb._render(view1.id, {
@@ -2402,7 +2402,7 @@ class TestQwebCache(TransactionCase):
             """
         })
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         render = IrQweb._render(template_page.id, {
             'cache_id': 1,
@@ -2457,7 +2457,7 @@ class TestQwebCache(TransactionCase):
             """
         })
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         render = IrQweb._render(template_page.id, {
             'cache_id': 1,
@@ -2518,7 +2518,7 @@ class TestQwebCache(TransactionCase):
                 </t>
             """
         })
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         render = IrQweb._render(template_page.id, {
             'cache_id': 1,
@@ -2583,7 +2583,7 @@ class TestQwebCache(TransactionCase):
             """
         })
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         render = IrQweb._render(template_page.id, {
             'key1': (1,),
@@ -2662,7 +2662,7 @@ class TestQwebCache(TransactionCase):
             </div>
         """)
 
-        IrQweb = self.env['ir.qweb'].with_context(use_qweb_cache=True)
+        IrQweb = self.env['ir.qweb'].with_context(disable_t_cache=False)
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'condition': True, 'value': [1, 2, 3]}))
         self.assertEqual(result, expected_result, 'First rendering (add in cache)')

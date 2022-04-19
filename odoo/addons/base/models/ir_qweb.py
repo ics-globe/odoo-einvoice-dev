@@ -598,7 +598,7 @@ class IrQWeb(models.AbstractModel):
     @QwebTracker.wrap_compile
     def _compile(self, template):
         if isinstance(template, etree._Element):
-            self = self.with_context(use_qweb_cache=False)
+            self = self.with_context(disable_t_cache=True)
             ref = None
         else:
             ref = self._get_view_id(template)
@@ -897,9 +897,9 @@ class IrQWeb(models.AbstractModel):
 
         context = {'dev_mode': 'qweb' in tools.config['dev_mode']}
         if 'xml' in tools.config['dev_mode']:
-            context['use_qweb_cache'] = False
-        elif 'use_qweb_cache' not in self.env.context:
-            context['use_qweb_cache'] = True
+            context['disable_t_cache'] = True
+        elif request and 'disable-t-cache' in request.session.debug:
+            context['disable_t_cache'] = True
         return self.with_context(**context)
 
     def _prepare_globals(self):
@@ -2230,7 +2230,7 @@ class IrQWeb(models.AbstractModel):
         # method is already known otherwise the corresponding template
         # and its functions are loaded.
         code.append(indent_code(f"""
-            template_cache_key = {self._compile_expr(expr)} if self.env.context.get('use_qweb_cache') else None
+            template_cache_key = {self._compile_expr(expr)} if not self.env.context.get('disable_t_cache') else None
             cache_key = self._get_cache_key(template_cache_key) if template_cache_key else None
             uniq_cache_key = cache_key and tuple([{self.env.context['__qweb_base_key_cache']!r}, '{def_name}_cache', cache_key])
             loaded_values = values['__qweb_loaded_values']
@@ -2537,7 +2537,7 @@ def render(template_name, values, load, **options):
         def _prepare_environment(self, values):
             values['true'] = True
             values['false'] = False
-            return self.with_context(use_qweb_cache=False, __qweb_loaded_values={})
+            return self.with_context(disable_t_cache=True, __qweb_loaded_values={})
 
         def _get_field(self, *args):
             raise NotImplementedError("Fields are not allowed in this rendering mode. Please use \"env['ir.qweb']._render\" method")
