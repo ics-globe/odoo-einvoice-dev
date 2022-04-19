@@ -2560,16 +2560,19 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
     async _search(needle) {
         this._userValueWidgets = this._userValueWidgets.filter(widget => !widget.isDestroyed());
         // Remove select options
-        this._userValueWidgets
-            .filter(widget => {
+        const clearSuggestions = () => {
+            this._userValueWidgets = this._userValueWidgets.filter(widget => !widget.isDestroyed());
+            this._userValueWidgets.filter(widget => {
                 return widget instanceof ButtonUserValueWidget &&
-                    widget.el.parentElement.matches('we-selection-items');
+                    widget.el && widget.el.parentElement.matches('we-selection-items');
             }).forEach(button => {
                 if (button.isPreviewed()) {
                     button.notifyValueChange('reset');
                 }
                 button.destroy();
             });
+        };
+        clearSuggestions();
         const recTuples = await this._rpc({
             model: this.options.model,
             method: 'name_search',
@@ -2590,6 +2593,9 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
         });
 
         await Promise.all(records.slice(0, this.options.limit).map(async record => {
+            // In case of race between updates of the list, make sure to always
+            // start with an empty list of suggestions.
+            clearSuggestions();
             // Copy over the data-attributes from the main element, and default the value
             // to the callWith field of the record so that if it's a method, it will
             // be called with that value
