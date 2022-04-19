@@ -137,3 +137,21 @@ class TestMailingABTesting(MassMailCommon):
         self.ab_testing_mailing_ids.invalidate_cache()
         winner_mailing = self.ab_testing_campaign.mailing_mail_ids.filtered(lambda mailing: mailing.ab_testing_pc == 100)
         self.assertEqual(winner_mailing.subject, 'A/B Testing V2')
+
+    @users('user_marketing')
+    def test_ab_testing_compare_version(self):
+        # mailing.mailing record with mailing_type sms and with same campaign_id
+        # as of other ab_testing mailing.mailing record to check compare verson
+        self.env['mailing.mailing'].create({
+            'subject': 'A/B Testing SMS V1',
+            'contact_list_ids': self.mailing_list.ids,
+            'ab_testing_enabled': True,
+            'ab_testing_pc': 10,
+            'ab_testing_schedule_datetime': datetime.now(),
+            'mailing_type': 'sms',
+            'campaign_id': self.ab_testing_campaign.id,
+        })
+        compare_version = self.ab_testing_mailing_1.action_compare_versions()
+        compare_version_record_count = self.env['mailing.mailing'].search_count(compare_version.get('domain'))
+        # Record with mailing_type equals to sms should not be included in compare version count
+        self.assertEqual(compare_version_record_count, 2, 'Number of records should be according to mailing type')
