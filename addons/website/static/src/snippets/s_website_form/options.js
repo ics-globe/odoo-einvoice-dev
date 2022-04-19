@@ -151,6 +151,28 @@ const FieldEditor = FormEditor.extend({
     },
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * Allows to select a value and set it on the associated snippet as a data attribute.
+     * The name of the data attribute is given by the attributeName parameter.
+     * Redefined to be applied only for the form.
+     *
+     * @override method from snippet.options.js
+     */
+    selectDataAttribute: function (previewMode, widgetValue, params) {
+        this._super(previewMode, widgetValue, params);
+        if (params.attributeName === 'maxFilesNumber') {
+            if (params.activeValue > 1) {
+                this.$target[0].setAttribute('multiple', 'multiple');
+            } else {
+                this.$target[0].removeAttribute('multiple');
+            }
+        }
+    },
+
+    //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
 
@@ -277,6 +299,10 @@ const FieldEditor = FormEditor.extend({
             field.value = input.getAttribute('value') || input.value;
         } else if (field.type === 'boolean') {
             field.value = !!this.$target[0].querySelector('input[type="checkbox"][checked]');
+        } else if (field.type === 'binary') {
+            const inputEl = this.$target[0].querySelector('input[type="file"]');
+            field.maxFilesNumber = inputEl.dataset.maxFilesNumber;
+            field.maxFileSize = inputEl.dataset.maxFileSize;
         }
         // property value is needed for date/datetime (formated date).
         field.propertyValue = input && input.value;
