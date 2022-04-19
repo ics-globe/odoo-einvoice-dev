@@ -3,7 +3,7 @@ odoo.define('point_of_sale.PaymentScreen', function (require) {
 
     const { parse } = require('web.field_utils');
     const PosComponent = require('point_of_sale.PosComponent');
-    const { useErrorHandlers } = require('point_of_sale.custom_hooks');
+    const { useErrorHandlers, useAsyncLockedMethod } = require('point_of_sale.custom_hooks');
     const NumberBuffer = require('point_of_sale.NumberBuffer');
     const { useListener } = require('web.custom_hooks');
     const Registries = require('point_of_sale.Registries');
@@ -20,7 +20,11 @@ odoo.define('point_of_sale.PaymentScreen', function (require) {
             useListener('send-payment-cancel', this._sendPaymentCancel);
             useListener('send-payment-reverse', this._sendPaymentReverse);
             useListener('send-force-done', this._sendForceDone);
+<<<<<<< HEAD
             useListener('validate-order', () => this.validateOrder(false));
+=======
+            this.lockedValidateOrder = useAsyncLockedMethod(this.validateOrder);
+>>>>>>> 11000bcf839... temp
             NumberBuffer.use({
                 // The numberBuffer listens to this event to update its state.
                 // Basically means 'update the buffer when this event is triggered'
@@ -355,7 +359,7 @@ odoo.define('point_of_sale.PaymentScreen', function (require) {
                         ' ' +
                         this.env._t('? Clicking "Confirm" will validate the payment.'),
                 }).then(({ confirmed }) => {
-                    if (confirmed) this.validateOrder(true);
+                    if (confirmed) this.lockedValidateOrder(true);
                 });
                 return false;
             }
