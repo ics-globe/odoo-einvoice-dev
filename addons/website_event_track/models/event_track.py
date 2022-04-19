@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
+from odoo import api, fields, models, tools
 from odoo.tools.translate import _, html_translate
 from odoo.addons.http_routing.models.ir_http import slug
 from datetime import timedelta
@@ -175,11 +175,12 @@ class Track(models.Model):
             # we consider that posting a message with a specified recipient (not a follower, a specific one)
             # on a document without customer means that it was created through the chatter using
             # suggested recipients. This heuristic allows to avoid ugly hacks in JS.
-            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.partner_email)
+            email_normalized = tools.email_normalize(self.partner_email)
+            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.partner_email or partner.email_normalized == email_normalized)
             if new_partner:
                 self.search([
                     ('partner_id', '=', False),
-                    ('partner_email', '=', new_partner.email),
+                    ('partner_email', 'in', [new_partner.email, new_partner.email_normalized]),
                     ('stage_id.is_cancel', '=', False),
                 ]).write({'partner_id': new_partner.id})
         return super(Track, self)._message_post_after_hook(message, msg_vals)

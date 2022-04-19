@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, SUPERUSER_ID
+from odoo import api, fields, models, tools, SUPERUSER_ID
 from odoo.tools.translate import _
 from odoo.exceptions import UserError
 
@@ -438,13 +438,14 @@ class Applicant(models.Model):
             # we consider that posting a message with a specified recipient (not a follower, a specific one)
             # on a document without customer means that it was created through the chatter using
             # suggested recipients. This heuristic allows to avoid ugly hacks in JS.
-            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.email_from)
+            email_normalized = tools.email_normalize(self.email_from)
+            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.email_from or partner.email_normalized == email_normalized)
             if new_partner:
                 if new_partner.create_date.date() == fields.Date.today():
                     new_partner.type = 'private'
                 self.search([
                     ('partner_id', '=', False),
-                    ('email_from', '=', new_partner.email),
+                    ('email_from', 'in', [new_partner.email, new_partner.email_normalized]),
                     ('stage_id.fold', '=', False)]).write({'partner_id': new_partner.id})
         return super(Applicant, self)._message_post_after_hook(message, msg_vals)
 

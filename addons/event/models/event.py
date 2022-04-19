@@ -3,7 +3,7 @@
 import logging
 import pytz
 
-from odoo import _, api, fields, models, SUPERUSER_ID
+from odoo import _, api, fields, models, tools, SUPERUSER_ID
 from odoo.tools import format_datetime
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.translate import html_translate
@@ -543,11 +543,12 @@ class EventRegistration(models.Model):
             # we consider that posting a message with a specified recipient (not a follower, a specific one)
             # on a document without customer means that it was created through the chatter using
             # suggested recipients. This heuristic allows to avoid ugly hacks in JS.
-            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.email)
+            email_normalized = tools.email_normalize(self.email)
+            new_partner = message.partner_ids.filtered(lambda partner: partner.email == self.email or partner.email_normalized == email_normalized)
             if new_partner:
                 self.search([
                     ('partner_id', '=', False),
-                    ('email', '=', new_partner.email),
+                    ('email', 'in', [new_partner.email, new_partner.email_normalized]),
                     ('state', 'not in', ['cancel']),
                 ]).write({'partner_id': new_partner.id})
         return super(EventRegistration, self)._message_post_after_hook(message, msg_vals)
