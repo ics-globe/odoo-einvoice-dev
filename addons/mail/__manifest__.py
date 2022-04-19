@@ -124,6 +124,10 @@
             'mail/static/src/webclient/commands/*.js',
             'mail/static/src/widgets/*/*.js',
             'mail/static/src/widgets/*/*.scss',
+            'mail/static/src/yolo/tfjs_1_2.js',
+            'mail/static/src/yolo/body_pix_2_0.js',
+            #"https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2",
+            #"https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.0"
         ],
         'web.assets_backend_prod_only': [
             'mail/static/src/main.js',
@@ -154,3 +158,5 @@
     },
     'license': 'LGPL-3',
 }
+    # <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2"></script>
+    # <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2.0"></script>

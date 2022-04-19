@@ -964,6 +964,12 @@ registerModel({
                 },
             });
         },
+
+        test() {
+            debugger;
+            videotrack = $( '.output-canvas canvas' )[ 0 ].getContext( '2d' ).capture_stream()
+        },
+
         /**
          * @private
          * @param {String} type 'user-video' or 'display'
@@ -987,7 +993,7 @@ registerModel({
             }
             try {
                 if (type === 'user-video') {
-                    videoStream = await browser.navigator.mediaDevices.getUserMedia({ video: this.videoConfig });
+                    videoStream = await browser.navigator.mediaDevices.getUserMedia({ video: this.videoConfig });  
                 }
                 if (type === 'display') {
                     videoStream = await browser.navigator.mediaDevices.getDisplayMedia({ video: this.videoConfig });
@@ -1004,6 +1010,7 @@ registerModel({
                 });
                 return;
             }
+            //const videoTrack = videoStream ? videoStream.getVideoTracks()[0] : undefined;
             const videoTrack = videoStream ? videoStream.getVideoTracks()[0] : undefined;
             if (videoTrack) {
                 videoTrack.addEventListener('ended', async () => {

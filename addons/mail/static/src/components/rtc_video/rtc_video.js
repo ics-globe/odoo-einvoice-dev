@@ -3,7 +3,8 @@
 import { useUpdate } from '@mail/component_hooks/use_update';
 import { registerMessagingComponent } from '@mail/utils/messaging_component';
 
-const { Component } = owl;
+const { Component, useRef } = owl;
+
 
 export class RtcVideo extends Component {
 
@@ -13,6 +14,55 @@ export class RtcVideo extends Component {
     setup() {
         super.setup();
         useUpdate({ func: () => this._update() });
+        //this._zoomerRef = useRef('input1');
+    }
+
+    async perform(net) {
+
+        var localVideo = $('video.o_RtcVideo')[0];
+        var outputCtx = $( '.output-canvas canvas' )[ 0 ];
+        while (true) {
+          const segmentation = await net.segmentPerson(localVideo);
+      
+          const backgroundBlurAmount = 26;
+          const edgeBlurAmount = 2;
+          const flipHorizontal = false;
+      
+          bodyPix.drawBokehEffect(
+            outputCtx, localVideo, segmentation, backgroundBlurAmount,
+            edgeBlurAmount, flipHorizontal);
+        }
+      }
+      
+
+
+    drawToCanvas() {
+
+        let options = {
+            multiplier: 0.75,
+            stride: 32,
+            quantBytes: 4
+          }
+        bodyPix.load(options)
+        .then(net => this.perform(net))
+        .catch(err => console.log(err))
+
+        function localFunc() {
+            var localVideo = $('video.o_RtcVideo')[0];
+            //var inputCtx = $( '.input-canvas canvas' )[ 0 ].getContext( '2d' );
+            var outputCtx = $( '.output-canvas canvas' )[ 0 ].getContext( '2d' );
+            // draw video to input canvas
+            //inputCtx.drawImage( localVideo, 0, 0, localVideo.width, localVideo.height );
+    
+            // get pixel data from input canvas
+            //var pixelData = inputCtx.getImageData( 0, 0, localVideo.width, localVideo.height );
+
+    
+            //outputCtx.putImageData( pixelData, 0, 0 );
+            //requestAnimationFrame(localFunc);
+        }
+
+        //requestAnimationFrame(localFunc);
     }
 
     //--------------------------------------------------------------------------
@@ -50,6 +100,7 @@ export class RtcVideo extends Component {
             this.root.el.srcObject = undefined;
         } else {
             this.root.el.srcObject = this.rtcSession.videoStream;
+            this.drawToCanvas();
         }
         this.root.el.load();
     }

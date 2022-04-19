@@ -10,7 +10,20 @@
                 muted="true"
                 t-on-loadedmetadata="_onVideoLoadedMetaData"
                 t-ref="root"
+                width="600" height="480"
+                style="display:none"
             />
+            <!--<div class="video-wrapper input-canvas" t-ref="c1">
+                <canvas width="300" height="225"></canvas>
+                <label>input canvas</label>
+            </div>-->
+            <div class="video-wrapper output-canvas" t-ref="c2">
+                <canvas style="width:100%;height:100%"></canvas>
+            </div>
+            <!--<div class="video-wrapper remote" t-ref="c3">
+                <video autoplay="true" width="300" height="225"></video>
+                <label>remote stream</label>
+            </div>-->
         </t>
     </t>
 
