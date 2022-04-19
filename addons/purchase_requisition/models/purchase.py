@@ -112,15 +112,15 @@ class PurchaseOrder(models.Model):
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    @api.onchange('product_qty', 'product_uom')
-    def _onchange_quantity(self):
-        res = super(PurchaseOrderLine, self)._onchange_quantity()
-        if self.order_id.requisition_id:
-            for line in self.order_id.requisition_id.line_ids.filtered(lambda l: l.product_id == self.product_id):
-                if line.product_uom_id != self.product_uom:
-                    self.price_unit = line.product_uom_id._compute_price(
-                        line.price_unit, self.product_uom)
-                else:
-                    self.price_unit = line.price_unit
-                break
-        return res
+    def _compute_price_unit_and_date_planned(self):
+        for pol in self:
+            if pol.order_id.requisition_id and pol.product_id.id in pol.order_id.requisition_id.line_ids.product_id.ids:
+                for line in pol.order_id.requisition_id.line_ids:
+                    if line.product_id == pol.product_id:
+                        if line.product_uom_id != pol.product_uom:
+                            pol.price_unit = line.product_uom_id._compute_price(line.price_unit, pol.product_uom)
+                        else:
+                            pol.price_unit = line.price_unit
+                        break
+            else:
+                super(PurchaseOrderLine, pol)._compute_price_unit_and_date_planned()
