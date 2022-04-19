@@ -510,3 +510,7 @@ class ProductTemplate(models.Model):
 
     def _website_show_quick_add(self):
         return self.sale_ok
+
+    def _get_possible_combination_count(self, attribute_values):
+        ptav = self.env['product.template.attribute.value'].search([('product_tmpl_id', '=', self.id), ('product_attribute_value_id', 'in', attribute_values)])
+        return len(list(self._get_possible_combinations(necessary_values=ptav)))
