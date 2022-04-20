@@ -49,6 +49,16 @@ class AccountMove(models.Model):
     _check_company_auto = True
     _sequence_index = "journal_id"
 
+    def is_eligible_for_early_discount(self, payment_date):
+        '''
+        An early payment discount is possible if the option has been activated,
+        no partial payment was registered,
+        and the payment date is before the last early_payment_date possible.
+        '''
+        return self.invoice_payment_term_id.has_early_payment and \
+            self.payment_state != 'partial' and \
+            payment_date <= self.invoice_payment_term_id.get_last_date_for_discount(self.invoice_date)
+
     def init(self):
         super().init()
         self.env.cr.execute("""
@@ -267,6 +277,27 @@ class AccountMove(models.Model):
         help='Edit Tax amounts if you encounter rounding issues.')
     payment_state = fields.Selection(PAYMENT_STATE_SELECTION, string="Payment Status", store=True,
         readonly=True, copy=False, tracking=True, compute='_compute_amount')
+
+    # ==== Early payment fields ====
+    early_pay_total_amount = fields.Float(default=0.0, compute='_compute_early_pay_total_amount', store=True) #TODO Store aussi date? à mettre dans la même classe
+    early_pay_description = fields.Char(default="", compute='_compute_early_pay_description')
+    early_pay_counterpart_account = fields.Char(default="", compute="_compute_early_pay_counterpart_account")
+
+    def _compute_early_pay_counterpart_account(self):
+        try:
+            self.ensure_one()
+            self.early_pay_counterpart_account = self.invoice_payment_term_id.account_id
+        except ValueError:
+            self.early_pay_counterpart_account = None
+
+    def get_early_pay_info(self):
+        early_pay_info = {
+            'has_early_pay': self.invoice_payment_term_id.has_early_payment,
+            'early_pay_total_amount': self.early_pay_total_amount,
+            'early_pay_description': self.early_pay_description,
+            'counterpart_account': self.early_pay_counterpart_account,
+        }
+        return early_pay_info
 
     # ==== Cash basis feature fields ====
     tax_cash_basis_rec_id = fields.Many2one(
@@ -1096,7 +1127,6 @@ class AccountMove(models.Model):
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
     # -------------------------------------------------------------------------
-
     @api.depends('move_type')
     def _compute_is_storno(self):
         for move in self:
@@ -1793,6 +1823,38 @@ class AccountMove(models.Model):
         msg += ': %s' % formatLang(self.env, updated_credit, currency_obj=record.company_id.currency_id)
         return msg
 
+    @api.depends('invoice_payment_term_id', 'amount_residual_signed')
+    def _compute_early_pay_total_amount(self):
+        #TODO remise belge
+        #TODO ensure one?
+        try :
+            self.ensure_one()
+            percentage_to_discount = self.invoice_payment_term_id.percentage_to_discount
+            discount_computation = self.invoice_payment_term_id.discount_computation
+            base_amount = self.amount_residual if discount_computation == 'included' else self.amount_untaxed
+            to_deduce = (base_amount / 100) * percentage_to_discount
+            self.early_pay_total_amount = "{:.2f}".format(base_amount - to_deduce)
+            if discount_computation == 'excluded':
+                self.early_pay_total_amount += self.amount_tax
+            if not float(self.early_pay_total_amount) or float(self.early_pay_total_amount) < 0.0: #TODO to test
+                self.early_pay_total_amount = 0
+        except ValueError:
+            self.early_pay_total_amount = 0
+
+    @api.depends('invoice_payment_term_id')
+    def _compute_early_pay_description(self):
+        try:
+            self.ensure_one()
+            discount_end_date = self.invoice_payment_term_id.get_last_date_for_discount(self.invoice_date)
+            discount = self.invoice_payment_term_id.percentage_to_discount
+            discount_description = _('%s %% discount', discount)
+            self.early_pay_description = _("Early Payment (before %s) : %s %s (%s)",
+                                           discount_end_date,
+                                           self.currency_id.symbol,
+                                           self.early_pay_total_amount,
+                                           discount_description)
+        except ValueError:
+            self.early_pay_description = None
     # -------------------------------------------------------------------------
     # BUSINESS MODELS SYNCHRONIZATION
     # -------------------------------------------------------------------------

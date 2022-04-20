@@ -103,6 +103,45 @@
                         </p>
                         <field name="line_ids"/>
                     </sheet>
+                    <sheet>
+                        <!-- ============================== Early payment section ============================== -->
+                            <field name="has_early_payment"/>
+                            <label for="has_early_payment"/>
+                            <div  attrs="{'invisible':[('has_early_payment','=',False)]}">
+                                <group>
+                                    <group>
+                                        <div class="o_row">
+                                            <label for="percentage_to_discount"/>
+                                            <field name="percentage_to_discount"/>
+                                            <span class="o_form_label oe_inline">%</span>
+                                        </div>
+                                    </group>
+                                </group>
+                                <group>
+                                    <group>
+                                        <field name="account_id" domain="[('user_type_id.internal_group', '=', ['expense', 'income'])]"/>
+                                    </group>
+                                </group>
+                                <group>
+                                    <group>
+                                        <div class="o_row">
+                                            <label for="discount_computation"/>
+                                            <field name="discount_computation"/>
+                                        </div>
+                                    </group>
+                                </group>
+                                <group>
+                                    <group>
+                                        <div class="o_row">
+                                            <label for="discount_time_availability"/>
+                                            <field name="discount_days" class="oe_inline"/>
+                                            <label for="discount_time_availability" string=""/>
+                                            <field name="discount_time_availability" class="oe_inline"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </div>
+                    </sheet>
                 </form>
             </field>
         </record>

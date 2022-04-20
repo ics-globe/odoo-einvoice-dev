@@ -59,15 +59,16 @@
                             <label for="payment_difference"/>
                             <div>
                                 <field name="payment_difference"/>
-                                <field name="payment_difference_handling" widget="radio" nolabel="1"/>
+                                <field name="payment_difference_handling" widget="radio" nolabel="1" readonly="0"/>
                                 <div attrs="{'invisible': [('payment_difference_handling','=','open')]}">
                                     <label for="writeoff_account_id" string="Post Difference In" class="oe_edit_only"/>
                                     <field name="writeoff_account_id"
                                            string="Post Difference In"
                                            options="{'no_create': True}"
-                                           attrs="{'required': [('payment_difference_handling', '=', 'reconcile')]}"/>
+                                           attrs="{'required': [('payment_difference_handling', '=', 'reconcile')]}"
+                                           readonly="0"/>
                                     <label for="writeoff_label" class="oe_edit_only" string="Label"/>
-                                    <field name="writeoff_label" attrs="{'required': [('payment_difference_handling', '=', 'reconcile')]}"/>
+                                    <field name="writeoff_label" attrs="{'required': [('payment_difference_handling', '=', 'reconcile')]}" readonly="0"/>
                                 </div>
                             </div>
                         </group>
