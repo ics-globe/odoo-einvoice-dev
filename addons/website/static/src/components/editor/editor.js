@@ -21,6 +21,7 @@ export class WebsiteEditorComponent extends Component {
         useChildSubEnv(legacyEnv);
 
         onWillStart(async () => {
+            this.websiteService.blockIframe(false);
             this.Wysiwyg = await this.websiteService.loadWysiwyg();
         });
 
@@ -35,9 +36,11 @@ export class WebsiteEditorComponent extends Component {
         this.websiteContext.snippetsLoaded = true;
         this.state.reloading = false;
         this.wysiwygOptions.invalidateSnippetCache = false;
+        this.websiteService.unblockIframe();
     }
 
     willReload(widgetEl) {
+        this.websiteService.blockIframe();
         if (widgetEl) {
             widgetEl.querySelectorAll('#oe_manipulators').forEach(el => el.remove());
             widgetEl.querySelectorAll('we-input input').forEach((input, index) => {

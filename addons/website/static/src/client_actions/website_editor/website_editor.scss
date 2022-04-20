@@ -40,3 +40,17 @@
         margin-right: 0 !important;
     }
 }
+body.editor_has_snippets {
+    .o_website_editor {
+        .o_block_iframe {
+            right: $o-we-sidebar-width;
+        }
+    }
+}
+body:not(.editor_has_snippets) {
+    .o_website_editor {
+        .o_block_iframe {
+            top: $o-navbar-height;
+        }
+    }
+}
