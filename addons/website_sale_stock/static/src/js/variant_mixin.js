@@ -48,7 +48,9 @@ VariantMixin._onChangeCombinationStock = function (ev, $parent, combination) {
     const $addQtyInput = $parent.find('input[name="add_qty"]');
     let qty = $addQtyInput.val();
     let ctaWrapper = $parent[0].querySelector('#o_wsale_cta_wrapper');
-    ctaWrapper.classList.replace('d-none', 'd-flex');
+    if (combination.price) {
+        ctaWrapper.classList.replace('d-none', 'd-flex');
+    }
     ctaWrapper.classList.remove('out_of_stock');
 
     if (combination.product_type === 'product' && !combination.allow_out_of_stock_order) {
