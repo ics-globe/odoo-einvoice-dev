@@ -665,6 +665,10 @@ class Users(models.Model):
 
         return frozendict(context)
 
+    @tools.ormcache('self._uid')
+    def _get_company_ids(self):
+        return self.company_ids.ids
+
     @api.model
     def action_get(self):
         return self.sudo().env.ref('base.action_res_users_my').read()[0]
