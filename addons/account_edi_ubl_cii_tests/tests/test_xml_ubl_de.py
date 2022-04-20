@@ -9,8 +9,8 @@ class TestUBLDE(TestUBLCommon):
 
     @classmethod
     def setUpClass(cls,
-                   #chart_template_ref="l10n_de_skr03.l10n_de_chart_template",
-                   chart_template_ref=None,
+                   chart_template_ref="l10n_de_skr03.l10n_de_chart_template",
+                   #chart_template_ref=None,
                    edi_format_ref="account_edi_ubl_cii.ubl_de",
                    ):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
@@ -58,7 +58,7 @@ class TestUBLDE(TestUBLCommon):
             'partner_id': cls.company_data['company'].partner_id.id,
         })
 
-        """cls.invoice = cls.env['account.move'].create({
+        cls.invoice = cls.env['account.move'].create({
             'move_type': 'out_invoice',
             'journal_id': cls.journal.id,
             'partner_id': cls.partner_1.id,
@@ -74,7 +74,7 @@ class TestUBLDE(TestUBLCommon):
                 'discount': 20.0,
                 'tax_ids': [(6, 0, cls.tax_19.ids)],
             })],
-        })"""
+        })
 
     @classmethod
     def setup_company_data(cls, company_name, chart_template):
@@ -95,8 +95,8 @@ class TestUBLDE(TestUBLCommon):
 
     def test_export_pdf(self):
         # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
-        #self.invoice.action_post()
-        #self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_de.xml'])
+        self.invoice.action_post()
+        self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_de.xml'])
 
         # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
         invoice = self._generate_invoice(
@@ -224,15 +224,15 @@ class TestUBLDE(TestUBLCommon):
     ####################################################
 
     def test_import_invoice_xml(self):
-        """self._import_invoice_from_file(subfolder='test_files', filename='test_de_out_invoice.xml',
-                                       amount_total=3083.58, amount_tax=401.58, currency='USD')"""
+        self._import_invoice_from_file(subfolder='test_files', filename='test_de_out_invoice.xml',
+                                       amount_total=3083.58, amount_tax=401.58, currency='USD')
 
     def test_import_export_invoice_xml(self):
         """
         Test whether the elements which are only specific to ubl_de are correctly exported
         and imported in the xml file
         """
-        """partner = self.invoice.commercial_partner_id
+        partner = self.invoice.commercial_partner_id
         self.invoice.action_post()
         attachment = self.invoice._get_edi_attachment(self.edi_format)
         self.assertTrue(attachment)
@@ -250,4 +250,4 @@ class TestUBLDE(TestUBLCommon):
         action_vals = journal_id.with_context(default_move_type='in_invoice').create_invoice_from_attachment(
             attachment.ids)
         created_bill = self.env['account.move'].browse(action_vals['res_id'])
-        self.assertTrue(created_bill)"""
+        self.assertTrue(created_bill)

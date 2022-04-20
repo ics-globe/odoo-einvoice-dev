@@ -8,8 +8,8 @@ class TestUBLNL(TestUBLCommon):
 
     @classmethod
     def setUpClass(cls,
-                   #chart_template_ref="l10n_nl.l10nnl_chart_template",
-                   chart_template_ref=None,
+                   chart_template_ref="l10n_nl.l10nnl_chart_template",
+                   #chart_template_ref=None,
                    #edi_format_ref="account_edi_ubl_cii.ubl_nl",
                    edi_format_ref="l10n_nl_edi.edi_nlcius_1",
                    ):
@@ -64,7 +64,7 @@ class TestUBLNL(TestUBLCommon):
             'partner_id': cls.company_data['company'].partner_id.id,
         })
 
-        """cls.invoice = cls.env['account.move'].create({
+        cls.invoice = cls.env['account.move'].create({
             'move_type': 'out_invoice',
             'journal_id': cls.journal.id,
             'partner_id': cls.partner_1.id,
@@ -80,7 +80,7 @@ class TestUBLNL(TestUBLCommon):
                 'discount': 20.0,
                 'tax_ids': [(6, 0, cls.tax_19.ids)],
             })],
-        })"""
+        })
 
     @classmethod
     def setup_company_data(cls, company_name, chart_template):
@@ -147,7 +147,7 @@ class TestUBLNL(TestUBLCommon):
             ],
         )
         self.assertEqual(xml_filename[-10:], "nlcius.xml")
-        #self._import_invoice(invoice, xml_etree, xml_filename)
+        self._import_invoice(invoice, xml_etree, xml_filename)
 
     def test_export_import_refund(self):
         invoice, xml_etree, xml_filename = self._export_invoice(
@@ -199,7 +199,7 @@ class TestUBLNL(TestUBLCommon):
             ],
         )
         self.assertEqual(xml_filename[-10:], "nlcius.xml")
-        #self._import_invoice(invoice, xml_etree, xml_filename)
+        self._import_invoice(invoice, xml_etree, xml_filename)
 
     ####################################################
     # Test import
@@ -207,5 +207,5 @@ class TestUBLNL(TestUBLCommon):
 
     def test_import_invoice_xml(self):
         # TODO: add test files https://github.com/peppolautoriteit-nl/validation ?
-        """self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml',
-                                       amount_total=3083.58, amount_tax=401.58, currency='USD')"""
+        self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml',
+                                       amount_total=3083.58, amount_tax=401.58, currency='USD')

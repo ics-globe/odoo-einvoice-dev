@@ -8,8 +8,7 @@ class TestUBLBE(TestUBLCommon):
 
     @classmethod
     def setUpClass(cls,
-                   #chart_template_ref="l10n_be.l10nbe_chart_template",
-                   chart_template_ref=None,
+                   chart_template_ref="l10n_be.l10nbe_chart_template",
                    edi_format_ref="account_edi_ubl_cii.ubl_bis3",
                    ):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
@@ -81,23 +80,23 @@ class TestUBLBE(TestUBLCommon):
             'partner_id': cls.company_data['company'].partner_id.id,
         })
 
-        #cls.invoice = cls.env['account.move'].create({
-        #    'move_type': 'out_invoice',
-        #    'journal_id': cls.journal.id,
-        #    'partner_id': cls.partner_1.id,
-        #    'partner_bank_id': cls.acc_bank,
-        #    'invoice_date': '2017-01-01',
-        #    'date': '2017-01-01',
-        #    'currency_id': cls.currency_data['currency'].id,
-        #    'invoice_line_ids': [(0, 0, {
-        #        'product_id': cls.product_a.id,
-        #        'product_uom_id': cls.env.ref('uom.product_uom_dozen').id,
-        #        'price_unit': 275.0,
-        #        'quantity': 5,
-        #        'discount': 20.0,
-        #        'tax_ids': [(6, 0, cls.tax_21.ids)],
-        #    })],
-        #})
+        cls.invoice = cls.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'journal_id': cls.journal.id,
+            'partner_id': cls.partner_1.id,
+            'partner_bank_id': cls.acc_bank,
+            'invoice_date': '2017-01-01',
+            'date': '2017-01-01',
+            'currency_id': cls.currency_data['currency'].id,
+            'invoice_line_ids': [(0, 0, {
+                'product_id': cls.product_a.id,
+                'product_uom_id': cls.env.ref('uom.product_uom_dozen').id,
+                'price_unit': 275.0,
+                'quantity': 5,
+                'discount': 20.0,
+                'tax_ids': [(6, 0, cls.tax_21.ids)],
+            })],
+        })
 
     @classmethod
     def setup_company_data(cls, company_name, chart_template):
@@ -116,8 +115,8 @@ class TestUBLBE(TestUBLCommon):
 
     def test_export_xml(self):
         # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
-        #self.invoice.action_post()
-        #self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_bis3.xml'])
+        self.invoice.action_post()
+        self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_bis3.xml'])
 
         # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
         invoice = self._generate_invoice(
@@ -245,15 +244,15 @@ class TestUBLBE(TestUBLCommon):
     ####################################################
 
     def test_import_invoice_xml(self):
-        """self._import_invoice_from_file(subfolder='test_files', filename='test_be_out_invoice.xml',
-                                       amount_total=3164.22, amount_tax=482.22, currency='USD')"""
+        self._import_invoice_from_file(subfolder='test_files', filename='test_be_out_invoice.xml',
+                                       amount_total=3164.22, amount_tax=482.22, currency='USD')
 
     def test_import_export_invoice_xml(self):
         """
         Test whether the elements only specific to ubl_be are correctly exported
         and imported in the xml file
         """
-        """self.invoice.action_post()
+        self.invoice.action_post()
         attachment = self.invoice._get_edi_attachment(self.edi_format)
         self.assertTrue(attachment)
         xml_content = base64.b64decode(attachment.with_context(bin_size=False).datas)
@@ -276,7 +275,7 @@ class TestUBLBE(TestUBLCommon):
         action_vals = journal_id.with_context(default_move_type='in_invoice').create_invoice_from_attachment(
             attachment.ids)
         created_bill = self.env['account.move'].browse(action_vals['res_id'])
-        self.assertTrue(created_bill)"""
+        self.assertTrue(created_bill)
 
     ####################################################
     # Test Import
@@ -285,19 +284,19 @@ class TestUBLBE(TestUBLCommon):
     def test_open_peppol_xml_import(self):
         # Source: https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/rules/examples
         subfolder = 'test_files/peppol-bis-invoice-3'
-        #self._import_invoice_from_file(subfolder=subfolder, filename='Allowance-example.xml', amount_total=6125,
-        #                               amount_tax=1225)
-        #self._import_invoice_from_file(subfolder=subfolder, filename='base-creditnote-correction.xml',
-        #                               amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        #self._import_invoice_from_file(subfolder=subfolder, filename='base-example.xml',
-        #                               amount_total=1656.25, amount_tax=331.25)
-        #self._import_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
-        #                               amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        #self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
-        #                               amount_total=1200, amount_tax=0, currency='GBP')
-        #self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
-        #                               amount_total=3200, amount_tax=0, currency='SEK')
-        #self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
-        #                               amount_total=8550, amount_tax=1550)
-        #self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
-        #                               amount_total=1200, amount_tax=0, currency='GBP')
+        self._import_invoice_from_file(subfolder=subfolder, filename='Allowance-example.xml', amount_total=6125,
+                                       amount_tax=1225)
+        self._import_invoice_from_file(subfolder=subfolder, filename='base-creditnote-correction.xml',
+                                       amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
+        self._import_invoice_from_file(subfolder=subfolder, filename='base-example.xml',
+                                       amount_total=1656.25, amount_tax=331.25)
+        self._import_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
+                                       amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
+        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
+                                       amount_total=1200, amount_tax=0, currency='GBP')
+        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
+                                       amount_total=3200, amount_tax=0, currency='SEK')
+        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
+                                       amount_total=8550, amount_tax=1550)
+        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
+                                       amount_total=1200, amount_tax=0, currency='GBP')
