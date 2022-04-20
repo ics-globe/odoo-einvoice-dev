@@ -213,7 +213,7 @@
                             <field name="website_sale_hide_add_to_cart"/>
                         </div>
                         <div class="o_setting_right_pane">
-                            <label for="website_sale_hide_add_to_cart" string="Hide Add To Cart"/>
+                            <label for="website_sale_hide_add_to_cart" string="Hide Add To Cart When Price = 0"/>
                             <div class="text-muted">
                                 If product price equals 0, display 'Contact us' button
                             </div>
