@@ -43,6 +43,9 @@ Allow website visitors to chat with the collaborators. This module also brings a
             'im_livechat/static/src/legacy/public_livechat_chatbot.scss',
             'website_livechat/static/src/legacy/public_livechat.scss',
         ],
+        'website.assets_wysiwyg': [
+            'website_livechat/static/src/scss/website_livechat.edit_mode.scss',
+        ],
         'website.assets_editor': [
             'website_livechat/static/src/js/**/*',
         ],
