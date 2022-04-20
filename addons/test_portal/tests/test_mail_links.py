@@ -2,16 +2,16 @@ from collections import defaultdict
 from itertools import product
 
 from lxml import html
+from werkzeug import Response
 from werkzeug.test import Client
 from werkzeug.urls import url_encode, url_parse
-from werkzeug.wrappers import BaseResponse
 
 from odoo import http
-from odoo.tests import HttpCase
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo
 from odoo.tools import mute_logger
 
 
-class TestMailAccess(HttpCase):
+class TestMailAccess(HttpCaseWithUserDemo):
     def _cleanup(self, location):
         # we want the absolute path but not the absolute URL, strip out bullshit
         # scheme & domain, as well as fragment as Werkzeug's client doesn't
@@ -40,13 +40,12 @@ class TestMailAccess(HttpCase):
             params = {'access_token': '12345'}
 
         obj = Model.create(params)
-        c = Client(http.root, BaseResponse)
+        c = Client(http.root, Response)
         if login:
             self.authenticate(user, user)
             c.set_cookie('localhost', key='session_id', value=self.session.sid, httponly=True)
-        else:
-            self.env.cr.flush()
-            self.env.cr.clear()
+        self.env.cr.flush()
+        self.env.cr.clear()
         location = url = '/mail/view?' + url_encode({
             'model': model,
             'res_id': obj.id,
@@ -72,11 +71,25 @@ class TestMailAccess(HttpCase):
         'odoo.addons.base.models.ir_model', # on every ACL error ~15 lines
     )
     def test_mail_view_portal(self):
-        # (user, login, {(logged, token): final URL}
         OBJECT_URL = '/web#model={model}&id={id}&active_id={id}&cids=1'
         PORTAL_URL = '/my/thing?model={model}&res_id={id}{token}'
         NO_ACCESS = '/web#action=mail.action_discuss'
         PORTAL_ROOT = '/my' # portal user gets bounced from /web to /my
+        # Each case is a triplet of (model type, login, results) where the
+        # access context is a dict of (logged in, has token) mapping to a final
+        # URL.
+        #
+        # The model type indicates whether the model is portal-enabled
+        # (portal.mixin) or not.
+        #
+        # The login is used if the user gets bounced through `/web/login` during
+        # the flow execution in which case they will get logged in at that
+        # point, or if the `logged in` pre-set is selected, in which case they
+        # will get logged in before the process starts.
+        #
+        # For each case, the driver will perform the access flow through
+        # /mail/view in each of the 4 possible pre-set states then check if the
+        # URL it reaches at the end matches that specified for the preset state.
         cases = [
             ('not_portal', 'admin', defaultdict(lambda: OBJECT_URL)),
             # admin always gets backend unless unlogged w/ a token

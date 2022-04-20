@@ -2,7 +2,7 @@
     'name': "Portal Tests",
     'category': 'Hidden/Tests',
     'description': "Portal tests requiring specific testing models",
-    'depends': ['portal'],
+    'depends': ['base', 'portal'],
     'data': [
         'security/ir.model.access.csv',
     ],
