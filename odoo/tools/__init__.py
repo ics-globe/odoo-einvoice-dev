@@ -14,6 +14,7 @@ from .image import *
 from .sql import *
 from .float_utils import *
 from .mail import *
+from .html_sanitize import html_sanitize
 from .func import *
 from .debugger import *
 from .xml_utils import *

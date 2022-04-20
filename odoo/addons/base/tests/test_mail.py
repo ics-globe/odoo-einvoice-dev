@@ -15,6 +15,7 @@ from odoo.tools import (
     email_split, email_domain_normalize,
     misc, formataddr,
     prepend_html_content,
+    quote_email,
 )
 
 from . import test_mail_examples
@@ -26,9 +27,12 @@ class TestSanitizer(BaseCase):
     def test_basic_sanitizer(self):
         cases = [
             ("yop", "<p>yop</p>"),  # simple
-            ("lala<p>yop</p>xxx", "<p>lala</p><p>yop</p>xxx"),  # trailing text
+            ("<p>yop", "<p>yop</p>"),  # unclosed tag
+            ("<div><p>yop</div>", "<p>yop</p>"),  # unclosed tag
+            ("lala<p>yop</p>xxx", "lala<p>yop</p>xxx"),
             ("Merci à l'intérêt pour notre produit.nous vous contacterons bientôt. Merci",
-                u"<p>Merci à l'intérêt pour notre produit.nous vous contacterons bientôt. Merci</p>"),  # unicode
+             "<p>Merci à l'intérêt pour notre produit.nous vous contacterons bientôt. Merci</p>"),  # unicode
+            ("<p>yop", "<p>yop</p>"),
         ]
         for content, expected in cases:
             html = html_sanitize(content)
@@ -52,14 +56,9 @@ class TestSanitizer(BaseCase):
             ("<<SCRIPT>alert(\"XSS\");//<</SCRIPT>"),  # extraneous open brackets
             ("<SCRIPT SRC=http://ha.ckers.org/xss.js?< B >"),  # non-closing script tags
             ("<INPUT TYPE=\"IMAGE\" SRC=\"javascript:alert('XSS');\">"),  # input image
-            ("<BODY BACKGROUND=\"javascript:alert('XSS')\">"),  # body image
             ("<IMG DYNSRC=\"javascript:alert('XSS')\">"),  # img dynsrc
             ("<IMG LOWSRC=\"javascript:alert('XSS')\">"),  # img lowsrc
             ("<TABLE BACKGROUND=\"javascript:alert('XSS')\">"),  # table
-            ("<TABLE><TD BACKGROUND=\"javascript:alert('XSS')\">"),  # td
-            ("<DIV STYLE=\"background-image: url(javascript:alert('XSS'))\">"),  # div background
-            ("<DIV STYLE=\"background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028.1027\0058.1053\0053\0027\0029'\0029\">"),  # div background with unicoded exploit
-            ("<DIV STYLE=\"background-image: url(&#1;javascript:alert('XSS'))\">"),  # div background + extra characters
             ("<IMG SRC='vbscript:msgbox(\"XSS\")'>"),  # VBscrip in an image
             ("<BODY ONLOAD=alert('XSS')>"),  # event handler
             ("<BR SIZE=\"&{alert('XSS')}\>"),  # & javascript includes
@@ -67,8 +66,11 @@ class TestSanitizer(BaseCase):
             ("<LINK REL=\"stylesheet\" HREF=\"http://ha.ckers.org/xss.css\">"),  # remote style sheet
             ("<STYLE>@import'http://ha.ckers.org/xss.css';</STYLE>"),  # remote style sheet 2
             ("<META HTTP-EQUIV=\"Link\" Content=\"<http://ha.ckers.org/xss.css>; REL=stylesheet\">"),  # remote style sheet 3
-            ("<STYLE>BODY{-moz-binding:url(\"http://ha.ckers.org/xssmoz.xml#xss\")}</STYLE>"),  # remote style sheet 4
             ("<IMG STYLE=\"xss:expr/*XSS*/ession(alert('XSS'))\">"),  # style attribute using a comment to break up expression
+            ("<a href='javascript://test'> click </a>"),
+            ("<a href='javascript:/test'> click </a>"),
+            ("<a href='javascript:test'> click </a>"),
+            ("<a href='   javascript:test   '> click </a>"),
         ]
         for content in cases:
             html = html_sanitize(content)
@@ -77,6 +79,20 @@ class TestSanitizer(BaseCase):
 
         content = "<!--[if gte IE 4]><SCRIPT>alert('XSS');</SCRIPT><![endif]-->"  # down-level hidden block
         self.assertEqual(html_sanitize(content, silent=False), '')
+
+        cases = [
+            # Abuse JS / CSS / Attribute parsers
+            ("<div title='</div>'>test", """<div title="&lt;/div>">test</div>"""),
+            ("<div style='/*'> <p title='*/ onclick=alert(1)'/>", '<div style=""> <p title="*/ onclick=alert(1)"></p></div>'),
+            ("<noscript> <p title='</noscript> <div onclick=alert(1)>'/>", "<div>'/&gt;</div>"),
+            ("<style>test {} </style>", ""),
+            # XSS via data URI
+            ('<a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgiSGVsbG8iKTs8L3NjcmlwdD4="> click me </a>', '<a> click me </a>')
+        ]
+
+        for content, expected in cases:
+            html = html_sanitize(content, sanitize_style=False, sanitize_tags=True)
+            self.assertEqual(html, expected)
 
     def test_html(self):
         sanitized_html = html_sanitize(test_mail_examples.MISC_HTML_SOURCE)
@@ -88,7 +104,7 @@ class TestSanitizer(BaseCase):
     def test_sanitize_unescape_emails(self):
         not_emails = [
             '<blockquote cite="mid:CAEJSRZvWvud8c6Qp=wfNG6O1+wK3i_jb33qVrF7XyrgPNjnyUA@mail.gmail.com" type="cite">cat</blockquote>',
-            '<img alt="@github-login" class="avatar" src="/web/image/pi" height="36" width="36">']
+            '<img alt="@github-login" class="avatar" height="36" src="/web/image/pi" width="36">']
         for not_email in not_emails:
             sanitized = html_sanitize(not_email)
             left_part = not_email.split('>')[0]  # take only left part, as the sanitizer could add data information on node
@@ -96,46 +112,53 @@ class TestSanitizer(BaseCase):
             self.assertIn(left_part, sanitized)
 
     def test_style_parsing(self):
-        test_data = [
+        tests = [
             (
                 '<span style="position: fixed; top: 0px; left: 50px; width: 40%; height: 50%; background-color: red;">Coin coin </span>',
-                ['background-color:red', 'Coin coin'],
-                ['position', 'top', 'left']
-            ), (
-                """<div style='before: "Email Address; coincoin cheval: lapin";  
-   font-size: 30px; max-width: 100%; after: "Not sure
-    
-          this; means: anything ?#ùµ"
-    ; some-property: 2px; top: 3'>youplaboum</div>""",
-                ['font-size:30px', 'youplaboum'],
-                ['some-property', 'top', 'cheval']
-            ), (
+                ['background-color: red', 'Coin coin'],
+                ['position', 'top', 'left'],
+            ),
+            (
+                """
+                    <div style='before: "Email Address coincoin cheval lapin";
+                        font-size: 30px; max-width: 100%; after: "Not sure
+
+                          this means anything"
+                    ; some-property: 2px; top: 3'>youplaboum</div>
+                """,
+                ['font-size: 30px', 'youplaboum'],
+                ['some-property', 'top', 'cheval'],
+            ),
+            (
                 '<span style="width">Coincoin</span>',
                 [],
-                ['width']
+                ['width'],
             )
         ]
 
-        for test, in_lst, out_lst in test_data:
-            new_html = html_sanitize(test, sanitize_attributes=False, sanitize_style=True, strip_style=False, strip_classes=False)
+        params = {'sanitize_attributes': False, 'sanitize_style': True, 'strip_style': False, 'strip_classes': False}
+        for test, in_lst, out_lst in tests:
+            new_html = html_sanitize(test, **params)
             for text in in_lst:
                 self.assertIn(text, new_html)
             for text in out_lst:
                 self.assertNotIn(text, new_html)
 
         # style should not be sanitized if removed
-        new_html = html_sanitize(test_data[0][0], sanitize_attributes=False, strip_style=True, strip_classes=False)
-        self.assertEqual(new_html, u'<span>Coin coin </span>')
+        new_html = html_sanitize(tests[0][0], sanitize_attributes=False, strip_style=True, strip_classes=False)
+        self.assertEqual(new_html, '<span>Coin coin </span>')
 
     def test_style_class(self):
-        html = html_sanitize(test_mail_examples.REMOVE_CLASS, sanitize_attributes=True, sanitize_style=True, strip_classes=True)
+        params = {'sanitize_attributes': True, 'sanitize_style': True, 'strip_classes': True}
+        html = html_sanitize(test_mail_examples.REMOVE_CLASS, **params)
         for ext in test_mail_examples.REMOVE_CLASS_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.REMOVE_CLASS_OUT:
             self.assertNotIn(ext, html,)
 
     def test_style_class_only(self):
-        html = html_sanitize(test_mail_examples.REMOVE_CLASS, sanitize_attributes=False, sanitize_style=True, strip_classes=True)
+        params = {'sanitize_attributes': False, 'sanitize_style': True, 'strip_classes': True}
+        html = html_sanitize(test_mail_examples.REMOVE_CLASS, **params)
         for ext in test_mail_examples.REMOVE_CLASS_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.REMOVE_CLASS_OUT:
@@ -151,49 +174,53 @@ class TestSanitizer(BaseCase):
             'html_sanitize removed valid img')
         self.assertNotIn('</body></html>', html, 'html_sanitize did not remove extra closing tags')
 
+    def test_quote_escape(self):
+        src = 'éàè@$€£%~#'
+        self.assertIn(src, quote_email(src))
+
     def test_quote_blockquote(self):
-        html = html_sanitize(test_mail_examples.QUOTE_BLOCKQUOTE)
+        html = quote_email(test_mail_examples.QUOTE_BLOCKQUOTE)
         for ext in test_mail_examples.QUOTE_BLOCKQUOTE_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_BLOCKQUOTE_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s' % misc.html_escape(ext), html)
 
     def test_quote_thunderbird(self):
-        html = html_sanitize(test_mail_examples.QUOTE_THUNDERBIRD_1)
+        html = quote_email(test_mail_examples.QUOTE_THUNDERBIRD_1)
         for ext in test_mail_examples.QUOTE_THUNDERBIRD_1_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_THUNDERBIRD_1_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
 
     def test_quote_hotmail_html(self):
-        html = html_sanitize(test_mail_examples.QUOTE_HOTMAIL_HTML)
+        html = quote_email(test_mail_examples.QUOTE_HOTMAIL_HTML)
         for ext in test_mail_examples.QUOTE_HOTMAIL_HTML_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_HOTMAIL_HTML_OUT:
             self.assertIn(ext, html)
 
-        html = html_sanitize(test_mail_examples.HOTMAIL_1)
+        html = quote_email(test_mail_examples.HOTMAIL_1)
         for ext in test_mail_examples.HOTMAIL_1_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.HOTMAIL_1_OUT:
             self.assertIn(ext, html)
 
     def test_quote_outlook_html(self):
-        html = html_sanitize(test_mail_examples.QUOTE_OUTLOOK_HTML)
+        html = quote_email(test_mail_examples.QUOTE_OUTLOOK_HTML)
         for ext in test_mail_examples.QUOTE_OUTLOOK_HTML_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_OUTLOOK_HTML_OUT:
             self.assertIn(ext, html)
 
     def test_quote_thunderbird_html(self):
-        html = html_sanitize(test_mail_examples.QUOTE_THUNDERBIRD_HTML)
+        html = quote_email(test_mail_examples.QUOTE_THUNDERBIRD_HTML)
         for ext in test_mail_examples.QUOTE_THUNDERBIRD_HTML_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_THUNDERBIRD_HTML_OUT:
             self.assertIn(ext, html)
 
     def test_quote_yahoo_html(self):
-        html = html_sanitize(test_mail_examples.QUOTE_YAHOO_HTML)
+        html = quote_email(test_mail_examples.QUOTE_YAHOO_HTML)
         for ext in test_mail_examples.QUOTE_YAHOO_HTML_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.QUOTE_YAHOO_HTML_OUT:
@@ -220,50 +247,50 @@ class TestSanitizer(BaseCase):
             )
         ]
         for test, in_lst, out_lst in test_data:
-            new_html = html_sanitize(test)
+            new_html = quote_email(test)
             for text in in_lst:
                 self.assertIn(text, new_html)
             for text in out_lst:
-                self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(text), new_html)
+                self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(text), new_html)
 
     def test_quote_signature(self):
         test_data = [
             (
                 """<div>Hello<pre>--<br />Administrator</pre></div>""",
-                ["<pre data-o-mail-quote=\"1\">--", "<br data-o-mail-quote=\"1\">"],
+                ["<pre data-o-mail-quote=\"1\">--", '<br data-o-mail-quote="1">'],
             )
         ]
         for test, in_lst in test_data:
-            new_html = html_sanitize(test)
+            new_html = quote_email(test)
             for text in in_lst:
                 self.assertIn(text, new_html)
 
     def test_quote_gmail(self):
-        html = html_sanitize(test_mail_examples.GMAIL_1)
+        html = quote_email(test_mail_examples.GMAIL_1)
         for ext in test_mail_examples.GMAIL_1_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.GMAIL_1_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
 
     def test_quote_text(self):
-        html = html_sanitize(test_mail_examples.TEXT_1)
+        html = quote_email(test_mail_examples.TEXT_1)
         for ext in test_mail_examples.TEXT_1_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.TEXT_1_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
 
-        html = html_sanitize(test_mail_examples.TEXT_2)
+        html = quote_email(test_mail_examples.TEXT_2)
         for ext in test_mail_examples.TEXT_2_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.TEXT_2_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
 
     def test_quote_bugs(self):
-        html = html_sanitize(test_mail_examples.BUG1)
+        html = quote_email(test_mail_examples.BUG1)
         for ext in test_mail_examples.BUG_1_IN:
             self.assertIn(ext, html)
         for ext in test_mail_examples.BUG_1_OUT:
-            self.assertIn(u'<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
+            self.assertIn('<span data-o-mail-quote="1">%s</span>' % misc.html_escape(ext), html)
 
     def test_misc(self):
         # False / void should not crash
@@ -278,10 +305,101 @@ class TestSanitizer(BaseCase):
         self.assertNotIn('<title>404 - Not Found</title>', html)
         self.assertIn('<h1>404 - Not Found</h1>', html)
 
+        src = '<p> test </p>\n<p> test </p>\n<p> test </p>'
+        self.assertEqual(html_sanitize(src), src, 'Should have preserved the newlines')
+
+        src = 'test <a>click me</a>'
+        self.assertEqual(html_sanitize(src), '<p>%s</p>' % src)
+
+        # Check that some special characters are not escaped
+        src = 'éàè@$€£%~#'
+        self.assertEqual(html_sanitize(src), '<p>%s</p>' % src)
+
     def test_cid_with_at(self):
-        img_tag = '<img src="@">'
-        sanitized = html_sanitize(img_tag, sanitize_tags=False, strip_classes=True)
+        img_tag = '<img src="@" />'
+        sanitized = html_sanitize(img_tag, strip_classes=True)
         self.assertEqual(img_tag, sanitized, "img with can have cid containing @ and shouldn't be escaped")
+
+        src = '<img alt="Inline image 3" height="10" src="cid:ii_151b51a37e5eb7a6" width="10" />'
+        sanitized = html_sanitize(src)
+        self.assertIn('src', sanitized)
+        self.assertEqual(src, sanitized)
+
+    def test_sanitize_tags(self):
+        sources = [
+            ('<style>', ''),
+            ('</style>', ''),
+            ('<style/>', ''),
+            ('< style >', '<p>&lt; style &gt;</p>'),
+            ('<style onclick="alert(1)">', ''),
+            ('<p>&lt;style&gt;</p>', '<p>&lt;style&gt;</p>'),
+            ('<sty<style>le/>', '<p>le/&gt;</p>'),  # try to trick the "KILLED_TAG"
+            ('<sty&lt;style&gt;le/>', ''),
+            ('<style unknown_attr=""> style {} </style>', ''),
+            ('<style attr="bouh"> style {} </style> <p> test </p> <style/>', '<p> test </p>'),
+            ('<style> <p> test </p> </style> bouh', '<p>bouh</p>'),
+            ('<__<killed>__>', '<p>&lt;____&gt;</p>'),  # Treat it as a normal unknown tag
+            ('<__<kil<__<killed>__>led>__> <p> test </p> bouh', '&lt;____&gt;led&gt;__&gt; <p> test </p> bouh'),
+        ]
+        for style, expected in sources:
+            self.assertEqual(
+                html_sanitize(style),
+                expected,
+                'Should have removed the style tag')
+
+        # Those elements will be sanitized with "sanitize_tags=False"
+        sources = [
+            (
+                '<style unknown_attr="" onclick="alert(1)" title="ti"> style {} </style>',
+                '<style title="ti"> style {} </style>',
+            ), (
+                '<style> style {before: "<test>"} </style>',
+                '<style> style {before: "&lt;test&gt;"} </style>',
+            ),
+            ('<meta class="c" />', ''),
+        ]
+        for source, expected in sources:
+            self.assertEqual(
+                html_sanitize(source, sanitize_tags=False),
+                expected,
+                'Should have kept the HTML tags but removed the unsafe attributes')
+
+        style = '<style unknown_attr=""> {} </style> <p> test </p> <style> style </style>'
+        self.assertEqual(
+            html_sanitize(style),
+            '<p> test </p>',
+            'Should have removed the <style/> tag and kept the <p/> tag')
+
+        # Test "sanitize_form=True"
+        sources = [
+            (
+                "<form> </form> <style> style {} </style>",
+                "<style> style {} </style>"
+            ), (
+                "<unknown_tag> test </unknown_tag> <form> </form>",
+                "<unknown_tag> test </unknown_tag>",
+            ), (
+                "test <form> <input name='email'/> </form>",
+                "<p>test</p>",
+            ),
+        ]
+        for html, expected in sources:
+            self.assertEqual(
+                html_sanitize(html, sanitize_tags=False, sanitize_form=True),
+                expected,
+                'Should have removed the form and kept other tags')
+
+    def test_sanitize_attributes(self):
+        style = '<p unknown_attr="1" data-test-attribute="test" class="ok"> {} </p>'
+        self.assertEqual(
+            html_sanitize(style, sanitize_attributes=True),
+            '<p class="ok"> {} </p>',
+            'Should have removed the style tag')
+
+        self.assertEqual(
+            html_sanitize(style, sanitize_attributes=False),
+            '<p class="ok" data-test-attribute="test"> {} </p>',
+            'Should have removed unknow attributes but kept data attribute')
 
     # ms office is currently not supported, have to find a way to support it
     # def test_30_email_msoffice(self):

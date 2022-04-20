@@ -104,8 +104,7 @@ web: <a class="moz-txt-link-freetext" href="https://opener.am">https://opener.am
 </html>"""
 
 QUOTE_BLOCKQUOTE_IN = [u"""<blockquote cite="mid:CAEJSRZvWvud8c6Qp=wfNG6O1+wK3i_jb33qVrF7XyrgPNjnyUA@mail.gmail.com" type="cite" data-o-mail-quote-node="1" data-o-mail-quote="1">"""]
-QUOTE_BLOCKQUOTE_OUT = [u"""-- 
-Opener B.V. - Business solutions driven by open source collaboration
+QUOTE_BLOCKQUOTE_OUT = [u"""-- \nOpener B.V. - Business solutions driven by open source collaboration
 
 Stefan Rijnhart - Consultant/developer"""]
 
@@ -595,8 +594,8 @@ REMOVE_CLASS = u"""
 </div>
 """
 REMOVE_CLASS_IN = [
-    u'<div style="font-size:12pt; font-family:\'Times New Roman\'; color:#000000">',
-    u'An error occurred in a modal and I will send you back the html to try opening one on your end']
+    '<div style="FONT-SIZE: 12pt; FONT-FAMILY: \'Times New Roman\'; COLOR: #000000;">',
+    'An error occurred in a modal and I will send you back the html to try opening one on your end']
 REMOVE_CLASS_OUT = [
     u'<div class="modal-backdrop in">',
     u'<div class="modal-content openerp">',

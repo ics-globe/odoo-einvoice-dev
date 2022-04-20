@@ -27,7 +27,7 @@ from markupsafe import Markup
 from odoo import _, api, exceptions, fields, models, tools, registry, SUPERUSER_ID, Command
 from odoo.exceptions import MissingError
 from odoo.osv import expression
-from odoo.tools import is_html_empty
+from odoo.tools import is_html_empty, tag_quote
 from odoo.tools.misc import clean_context, split_every
 
 _logger = logging.getLogger(__name__)
@@ -1181,11 +1181,10 @@ class MailThread(models.AbstractModel):
             # with encoding declaration are not supported'.
             root = lxml.html.fromstring(body.encode('utf-8'))
 
-        postprocessed = False
         to_remove = []
         for node in root.iter():
+            tag_quote(node)
             if 'o_mail_notification' in (node.get('class') or '') or 'o_mail_notification' in (node.get('summary') or ''):
-                postprocessed = True
                 if node.getparent() is not None:
                     to_remove.append(node)
             if node.tag == 'img' and node.get('src', '').startswith('cid:'):
@@ -1193,12 +1192,10 @@ class MailThread(models.AbstractModel):
                 related_attachment = [attach for attach in attachments if attach[2] and attach[2].get('cid') == cid]
                 if related_attachment:
                     node.set('data-filename', related_attachment[0][0])
-                    postprocessed = True
 
         for node in to_remove:
             node.getparent().remove(node)
-        if postprocessed:
-            body = etree.tostring(root, pretty_print=False, encoding='unicode')
+        body = etree.tostring(root, pretty_print=False, encoding='unicode')
         return {'body': body, 'attachments': attachments}
 
     def _message_parse_extract_payload(self, message, save_original=False):

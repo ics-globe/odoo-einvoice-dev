@@ -1852,7 +1852,7 @@ class Html(_String):
 
     sanitize = True                     # whether value must be sanitized
     sanitize_tags = True                # whether to sanitize tags (only a white list of attributes is accepted)
-    sanitize_attributes = True          # whether to sanitize attributes (only a white list of attributes is accepted)
+    sanitize_attributes = True          # whether to extend the list of safe attributes or not
     sanitize_style = False              # whether to sanitize style attributes
     sanitize_form = True                # whether to sanitize forms
     strip_style = False                 # whether to strip style attributes (removed and therefore not sanitized)
