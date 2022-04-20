@@ -3,7 +3,7 @@
 
 import logging
 
-from odoo import models, tools
+from odoo import api, models, tools
 
 _logger = logging.getLogger(__name__)
 
@@ -11,6 +11,7 @@ _logger = logging.getLogger(__name__)
 class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
+    @api.model
     def _search_attachment_and_validate_xml(self, xml_content, xsd_name):
         """Try and validate the XML content with an XSD attachment.
         If the XSD attachment cannot be found in database, (re)load it.
@@ -25,6 +26,7 @@ class IrAttachment(models.Model):
             self._load_xsd_files()
             tools.xml_utils._check_with_xsd(xml_content, xsd_name, self.env)
 
+    @api.model
     def _load_xsd_files(self):
         """Load every XSD files and archive needed.
 
