@@ -416,64 +416,43 @@ class Stream:
 
     @classmethod
     def from_attachment(cls, attachment):
+        return cls.from_binary_object(attachment.raw)
+
+    @classmethod
+    def from_binary_object(cls, value):
         """ Create a :class:`~Stream`: from an attachment. """
         self = cls(
-            mimetype=attachment.mimetype,
-            download_name=attachment.name,
+            type=value.type,
+            mimetype=value.mimetype,
+            download_name=value.download_name,
             conditional=True,
-            etag=attachment.checksum,
+            etag=value.checksum,
             max_age=STATIC_CACHE,
+            path=value.path,
+            data=value.data,
+            url=value.url,
+            last_modified=value.last_modified,
+            size=value.size,
         )
 
-        if attachment.store_fname:
-            self.type = 'path'
-            self.path = werkzeug.security.safe_join(
-                os.path.abspath(config.filestore(request.db)),
-                attachment.store_fname
-            )
-            stat = os.stat(self.path)
-            self.last_modified = stat.st_mtime
-            self.size = stat.st_size
-
-        elif attachment.db_datas:
-            self.type = 'data'
-            self.data = attachment.raw
-            self.last_modified = attachment['__last_update']
-            self.size = len(self.data)
-
-        elif attachment.url:
+        if self.type == "url" and self.url:
             # When the URL targets a file located in an addon, assume it
             # is a path to the resource. It saves an indirection and
             # stream the file right away. [1:] is removeprefix('/')
             static_path = root.get_static_file(
-                attachment.url,
+                self.url,
                 host=request.httprequest.environ.get('HTTP_HOST', '')
             )
             if static_path:
                 self.type = 'path'
                 self.path = static_path
-            else:
-                self.type = 'url'
-                self.url = attachment.url
-
-        else:
-            self.type = 'data'
-            self.data = b''
-            self.size = 0
 
         return self
 
     @classmethod
     def from_binary_field(cls, record, field):
         """ Create a :class:`~Stream`: from a binary field. """
-        self = cls()
-        self.type = 'data'
-        self.data = base64.b64decode(record[field])
-        self.etag = request.env['ir.attachment']._compute_checksum(self.data)
-        self.last_modified = record['__last_update']  # better than nothing
-        self.max_age = STATIC_CACHE
-        self.size = len(self.data)
-        return self
+        return cls.from_binary_object(record[field])
 
     def get_response(self, as_attachment=None):
         """

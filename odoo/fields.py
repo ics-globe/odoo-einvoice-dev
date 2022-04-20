@@ -12,6 +12,7 @@ import binascii
 import enum
 import itertools
 import logging
+import os
 import warnings
 
 from markupsafe import Markup
@@ -21,7 +22,7 @@ import pytz
 from .tools import (
     float_repr, float_round, float_compare, float_is_zero, html_sanitize, human_size,
     pg_varchar, ustr, OrderedSet, pycompat, sql, date_utils, unique,
-    image_process, merge_sequences, SQL_ORDER_BY_TYPE,
+    image_process, merge_sequences, SQL_ORDER_BY_TYPE, lazy_property,
 )
 from .tools import DEFAULT_SERVER_DATE_FORMAT as DATE_FORMAT
 from .tools import DEFAULT_SERVER_DATETIME_FORMAT as DATETIME_FORMAT
@@ -2124,6 +2125,70 @@ class Datetime(Field):
         assert record, 'Record expected'
         return Datetime.to_string(Datetime.context_timestamp(record, Datetime.from_string(value)))
 
+
+class BinaryObject:
+    type: str = ''  # 'data' or 'path' or 'url'
+    data = None
+    path = None
+    url = None
+    mimetype = None
+    checksum = None
+    last_modified = None
+    size = None
+    download_name: str = ''
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+        if self.type == 'url':
+            path_match = re.match("^/(\w+)/(.+)$", self.url)
+            if path_match:
+                # if url is a /somehint server locally
+                module = path_match.group(1)
+                module_path = get_module_path(module)
+                module_resource_path = get_resource_path(module, path_match.group(2))
+                if module_path and module_resource_path:
+                    module_path = os.path.join(os.path.normpath(module_path), '') # join ensures the path ends with '/'
+                    module_resource_path = os.path.normpath(module_resource_path)
+                    if module_resource_path.startswith(module_path):
+                        # The local url is remplaced by the path
+                        self.path = module_resource_path
+                        self.type = 'path'
+
+        if self.type == 'path':
+            stat = os.stat(self.path)
+            self.last_modified = stat.st_mtime
+            self.size = stat.st_size
+        elif self.type == 'data':
+            self.data = self.data or b''
+            self.size = len(self.data)
+
+    @lazy_property
+    def content(self):
+        if self.type == 'data':
+            try:
+                return base64.b64decode(self.data or '')
+            except:
+                _logger.info("data is not encoding in base64", exc_info=True)
+                return self.data
+        elif self.type == 'path':
+            try:
+                with open(self.path, 'rb') as f:
+                    return f.read()
+            except (IOError, OSError):
+                _logger.info("_read_file reading %s", self.path, exc_info=True)
+        elif self.type == 'url':
+            raise NotImplementedError()
+
+    def __str__(self):
+        _logger.warning("__bytes__ reading %s", self.path)
+        return base64.b64encode(self.content)
+
+    def __bytes__(self):
+        _logger.warning("__bytes__ reading %s", self.path)
+        return bytes(self.content)
+
+
 # http://initd.org/psycopg/docs/usage.html#binary-adaptation
 # Received data is returned as buffer (in Python 2) or memoryview (in Python 3).
 _BINARY = memoryview
@@ -2168,6 +2233,8 @@ class Binary(Field):
             b'P',  # first 6 bits of '<' (0x3C) b64 encoded
             b'<',  # plaintext XML tag opening
         }
+        if isinstance(value, BinaryObject):
+            value = value.content
         if isinstance(value, str):
             value = value.encode()
         if value[:1] in magic_bytes:
@@ -2239,16 +2306,20 @@ class Binary(Field):
     def read(self, records):
         # values are stored in attachments, retrieve them
         assert self.attachment
+        res_model = records._name
+        res_field = self.name
         domain = [
-            ('res_model', '=', records._name),
-            ('res_field', '=', self.name),
+            ('res_model', '=', res_model),
+            ('res_field', '=', res_field),
             ('res_id', 'in', records.ids),
         ]
-        # Note: the 'bin_size' flag is handled by the field 'datas' itself
-        data = {
-            att.res_id: att.datas
-            for att in records.env['ir.attachment'].sudo().search(domain)
-        }
+        data = {}
+        for att in records.env['ir.attachment'].sudo().search(domain):
+            obj = att.raw
+            if not obj.download_name:
+                obj.download_name = f'{res_model}-{att.res_id}-{res_field}{att.mimetype and mimetypes.guess_extension(att.mimetype) or ""}'
+            data[att.res_id] = obj
+
         cache = records.env.cache
         for record in records:
             cache.set(record, self, data.get(record.id, False))
@@ -2379,6 +2450,8 @@ class Image(Binary):
         if self.readonly and not self.max_width and not self.max_height:
             # no need to process images for computed fields, or related fields
             return value
+        if isinstance(value, BinaryObject):
+            img = value.content
         try:
             img = base64.b64decode(value or '') or False
         except:

@@ -113,16 +113,6 @@ class IrAttachment(models.Model):
         return fname, full_path
 
     @api.model
-    def _file_read(self, fname):
-        full_path = self._full_path(fname)
-        try:
-            with open(full_path, 'rb') as f:
-                return f.read()
-        except (IOError, OSError):
-            _logger.info("_read_file reading %s", full_path, exc_info=True)
-        return b''
-
-    @api.model
     def _file_write(self, bin_value, checksum):
         fname, full_path = self._get_path(bin_value, checksum)
         if not os.path.exists(full_path):
@@ -220,17 +210,22 @@ class IrAttachment(models.Model):
 
     @api.depends('store_fname', 'db_datas')
     def _compute_raw(self):
+        """
+        :returns: BinaryObject
+        """
         for attach in self:
-            if attach.store_fname:
-                attach.raw = attach._file_read(attach.store_fname)
+            if attach.type == 'url':
+                attach.raw = fields.BinaryObject(type='url', url=attach.url, mimetype=attach.mimetype, checksum=attach.checksum, download_name=attach.name or attach.url, last_modified=attach['__last_update'])
+            elif attach.store_fname:
+                attach.raw = fields.BinaryObject(type='path', path=self._full_path(attach.store_fname), mimetype=attach.mimetype, checksum=attach.checksum, download_name=attach.name, last_modified=attach['__last_update'])
             else:
-                attach.raw = attach.db_datas
+                attach.raw = fields.BinaryObject(type='data', data=attach.db_datas, mimetype=attach.mimetype, checksum=attach.checksum, download_name=attach.name, last_modified=attach['__last_update'])
 
     def _inverse_raw(self):
-        self._set_attachment_data(lambda a: a.raw or b'')
+        self._set_attachment_data(lambda a: bytes(a.raw) if isinstance(a.raw, fields.BinaryObject) else a.raw or b'')
 
     def _inverse_datas(self):
-        self._set_attachment_data(lambda attach: base64.b64decode(attach.datas or b''))
+        self._set_attachment_data(lambda a: bytes(a.datas) if isinstance(a.datas, fields.BinaryObject) else base64.b64decode(a.datas or b''))
 
     def _set_attachment_data(self, asbytes):
         for attach in self:
@@ -615,6 +610,8 @@ class IrAttachment(models.Model):
                 if isinstance(raw, str):
                     # b64decode handles str input but raw needs explicit encoding
                     raw = raw.encode()
+                elif isinstance(raw, fields.BinaryObject):
+                    raw = raw.content
                 values.update(self._get_datas_related_values(
                     raw or base64.b64decode(datas or b''),
                     values['mimetype']

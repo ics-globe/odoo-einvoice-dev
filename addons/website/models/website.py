@@ -333,7 +333,7 @@ class Website(models.Model):
         } for feature in configurator_features]
         r['logo'] = False
         if company.logo and company.logo != company._get_logo():
-            r['logo'] = company.logo.decode('utf-8')
+            r['logo'] = bytes(company.logo).decode('utf-8')
         try:
             result = self._website_api_rpc('/api/website/1/configurator/industries', {'lang': self.get_current_website().default_lang_id.code})
             r['industries'] = result['industries']

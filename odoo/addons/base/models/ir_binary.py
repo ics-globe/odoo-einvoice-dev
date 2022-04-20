@@ -56,11 +56,11 @@ class IrBinary(models.AbstractModel):
         elif not field_def.attachment or field_def.compute or field_def.related:
             stream = Stream.from_binary_field(record, field)
         else:
-            field_attachment = self.env['ir.attachment'].sudo().search_read(
+            field_attachment = self.env['ir.attachment'].sudo().search(
                 domain=[('res_model', '=', record._name),
                         ('res_id', '=', record.id),
                         ('res_field', '=', field)],
-                fields=['name', 'raw', 'mimetype', 'checksum'],
+                # fields=['name', 'raw', 'mimetype', 'checksum'],
                 limit=1
             )
             if not field_attachment.exists():
