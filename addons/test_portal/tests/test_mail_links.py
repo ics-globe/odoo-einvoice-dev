@@ -72,7 +72,7 @@ class TestMailAccess(HttpCaseWithUserDemo):
     )
     def test_mail_view_portal(self):
         OBJECT_URL = '/web#model={model}&id={id}&active_id={id}&cids=1'
-        PORTAL_URL = '/my/thing?model={model}&res_id={id}{token}'
+        PORTAL_URL = '/my/thing{token}'
         NO_ACCESS = '/web#action=mail.action_discuss'
         PORTAL_ROOT = '/my' # portal user gets bounced from /web to /my
         # Each case is a triplet of (model type, login, results) where the
@@ -121,7 +121,7 @@ class TestMailAccess(HttpCaseWithUserDemo):
                     url = url_parse(url).replace(scheme='', netloc='').to_url()
                     tok = ''
                     if token and 'access_token' in obj._fields:
-                        tok = f'&access_token={obj.access_token}'
+                        tok = f'?access_token={obj.access_token}'
                     expected = result.format(model=obj._name, id=obj.id, token=tok)
                     self.assertEqual(url, expected)
 
@@ -135,16 +135,14 @@ class TestMailAccess(HttpCaseWithUserDemo):
         })
         with self.subTest("object=portal user=portal[acl+] logged"):
             obj, url, _ = self.do_flow('test_portal.portal', 'portal', login=True, token=False)
-            tok = f'&access_token={obj.access_token}'
             self.assertEqual(
                 self._cleanup(url),
-                PORTAL_URL.format(model=obj._name, id=obj.id, token=tok),
+                PORTAL_URL.format(token=f'?access_token={obj.access_token}'),
             )
 
         with self.subTest("object=portal user=portal[acl+]"):
             obj, url, _ = self.do_flow('test_portal.portal', 'portal', login=False, token=False)
-            tok = f'&access_token={obj.access_token}'
             self.assertEqual(
                 self._cleanup(url),
-                PORTAL_URL.format(model=obj._name, id=obj.id, token=tok),
+                PORTAL_URL.format(token=f'?access_token={obj.access_token}'),
             )
