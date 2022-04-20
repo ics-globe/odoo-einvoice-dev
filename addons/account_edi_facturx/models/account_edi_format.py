@@ -26,7 +26,7 @@ class AccountEdiFormat(models.Model):
 
     def _post_invoice_edi(self, invoices):
         self.ensure_one()
-        if self.code != 'facturx_1_0_05' or 'account_edi_ubl_cii' in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
+        if self.code != 'facturx_1_0_05' or hasattr(self, '_get_edi_ubl_cii_builder'):
             return super()._post_invoice_edi(invoices)
         res = {}
         for invoice in invoices:
@@ -119,13 +119,13 @@ class AccountEdiFormat(models.Model):
 
     def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         self.ensure_one()
-        if self._is_facturx(filename, tree) and 'account_edi_ubl_cii' not in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
+        if self._is_facturx(filename, tree) and not hasattr(self, '_get_edi_ubl_cii_builder'):
             return self._import_facturx(tree, self.env['account.move'])
         return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()
-        if self._is_facturx(filename, tree) and 'account_edi_ubl_cii' not in self.env['ir.module.module'].search([('state', '=', 'installed')]).mapped('name'):
+        if self._is_facturx(filename, tree) and not hasattr(self, '_get_edi_ubl_cii_builder'):
             return self._import_facturx(tree, invoice)
         return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 

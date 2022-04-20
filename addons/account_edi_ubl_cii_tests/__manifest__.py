@@ -10,7 +10,6 @@
         'l10n_de',
         'l10n_be',
         'l10n_no',
-        'l10n_lu',
     ],
     'data': [],
     'installable': True,

@@ -157,12 +157,12 @@ class AccountEdiXmlCII(models.AbstractModel):
         # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement
         for line_vals in template_values['invoice_line_vals_list']:
             line = line_vals['line']
-            uom_info = self._get_uom_info(line)
+            uom_info = self._get_uom_unece_code(line)
             line_vals['uom_code'] = uom_info or line.product_uom_id.name
             # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement / ApplicableTradeTax
             for tax_detail_vals in template_values['tax_details']['invoice_line_tax_details'][line]['tax_details'].values():
                 tax = tax_detail_vals['tax']
-                tax_detail_vals['tax_category_code'] = self._get_tax_info(invoice, tax)[0]
+                tax_detail_vals['tax_category_code'] = self._get_tax_unece_codes(invoice, tax)[0]
 
         # data used for ApplicableHeaderTradeSettlement / ApplicableTradeTax (at the end of the xml)
         for tax_detail_vals in template_values['tax_details']['tax_details'].values():
@@ -171,7 +171,7 @@ class AccountEdiXmlCII(models.AbstractModel):
             # if 0.0 is expected and -0.0 is given.
             tax_amount = tax_detail_vals['tax_amount_currency']
             tax_detail_vals['tax_amount'] = balance_sign * tax_amount if tax_amount != 0 else 0
-            tax_category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_info(invoice, tax)
+            tax_category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_unece_codes(invoice, tax)
             tax_detail_vals['tax_category_code'] = tax_category_code
             tax_detail_vals['tax_exemption_reason_code'] = tax_exemption_reason_code
             tax_detail_vals['tax_exemption_reason'] = tax_exemption_reason
@@ -188,7 +188,7 @@ class AccountEdiXmlCII(models.AbstractModel):
         # The only difference between XRechnung and Facturx is the following (but it only raises a warning when
         # providing the french id to XRechnung schemas.
         # TODO: this is a bit problematic since we have no way to specify which format we want from the interface
-        #  "_get_edi_peppol_builder". Ideally, the determination of the format should be separate from the
+        #  "_get_edi_ubl_cii_builder". Ideally, the determination of the format should be separate from the
         #  generation logic such that we can easily call the creation of one format.
         supplier = invoice.company_id.partner_id.commercial_partner_id
         if supplier.country_id.code == 'DE':

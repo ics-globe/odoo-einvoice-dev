@@ -7,22 +7,19 @@ import base64
 
 class AccountEdiFormat(models.Model):
     _name = 'account.edi.format'
-    _inherit = [
-        'account.edi.format',
-        'account.edi.common',
-    ]
+    _inherit = 'account.edi.format'
 
     ####################################################
     # Helpers
     ####################################################
 
     def _is_edi_peppol_customer_valid(self, customer):
-        return customer.country_id.code in self._get_eas_mapping()
+        return customer.country_id.code in self.env['account.edi.common']._get_eas_mapping()
 
-    def _get_edi_peppol_builder(self, company_country_code):
+    def _get_edi_ubl_cii_builder(self, company_country_code):
         self.ensure_one()
 
-        if self.code not in self._get_format_code_list():
+        if self.code not in self.env['account.edi.common']._get_format_code_list():
             return
 
         if self.code == 'ubl_20':
@@ -57,7 +54,7 @@ class AccountEdiFormat(models.Model):
                 },
             }
 
-        if self.code == 'ubl_bis3' and company_country_code in self._get_eas_mapping():
+        if self.code == 'ubl_bis3' and company_country_code in self.env['account.edi.common']._get_eas_mapping():
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_bis3'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
@@ -98,14 +95,12 @@ class AccountEdiFormat(models.Model):
                 },
             }
 
-    def _get_edi_peppol_info(self, company, customer=None):
+    def _get_edi_ubl_cii_info(self, company, customer=None):
         self.ensure_one()
 
         if not company.country_id:
             return
-        #if self.code == 'ubl_bis3' and customer is not None and not self._is_edi_peppol_customer_valid(customer):
-        #    return
-        return self._get_edi_peppol_builder(company.country_id.code.upper())
+        return self._get_edi_ubl_cii_builder(company.country_id.code.upper())
 
     def _infer_xml_builder_from_tree(self, tree):
         self.ensure_one()
@@ -135,19 +130,18 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code not in self._get_format_code_list():
+        if self.code not in self.env['account.edi.common']._get_format_code_list():
             return super()._is_required_for_invoice(invoice)
 
         if invoice.move_type not in ('out_invoice', 'out_refund'):
             return False
-        peppol_info = self._get_edi_peppol_info(invoice.company_id, customer=invoice.partner_id)
-        return bool(peppol_info)
+        return bool(self._get_edi_ubl_cii_info(invoice.company_id, customer=invoice.partner_id))
 
     def _is_compatible_with_journal(self, journal):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code not in self._get_format_code_list():
+        if self.code not in self.env['account.edi.common']._get_format_code_list():
             return super()._is_compatible_with_journal(journal)
 
         return super()._is_compatible_with_journal(journal)
@@ -156,8 +150,7 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        peppol_info = self._get_edi_peppol_info(journal.company_id)
-        if peppol_info:
+        if self._get_edi_ubl_cii_info(journal.company_id):
             return True
 
         return super()._is_enabled_by_default_on_journal(journal)
@@ -166,16 +159,16 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        peppol_info = self._get_edi_peppol_info(invoices.company_id, customer=invoices.partner_id)
+        ubl_cii_info = self._get_edi_ubl_cii_info(invoices.company_id, customer=invoices.partner_id)
 
-        if self.code not in self._get_format_code_list() or not peppol_info:
+        if self.code not in self.env['account.edi.common']._get_format_code_list() or not ubl_cii_info:
             return super()._post_invoice_edi(invoices)
 
         res = {}
         for invoice in invoices:
-            xml_content, errors = peppol_info['invoice_xml_builder']._export_invoice(invoice)
+            xml_content, errors = ubl_cii_info['invoice_xml_builder']._export_invoice(invoice)
             # DEBUG: export generated xml file
-            #with open(peppol_info['invoice_filename'](invoice), 'w+') as f:
+            #with open(ubl_cii_info['invoice_filename'](invoice), 'w+') as f:
             #    f.write(xml_content)
             if errors:
                 # don't block the user, but give him a warning in the chatter
@@ -183,12 +176,12 @@ class AccountEdiFormat(models.Model):
                 invoice.with_context(no_new_invoice=True).message_post(
                     body=
                     _("Warning, errors occured while creating the edi document (format: %s). The receiver might "
-                      "refuse it.", peppol_info['invoice_xml_builder']._description)
+                      "refuse it.", ubl_cii_info['invoice_xml_builder']._description)
                     + '<p> <li>' + "</li> <li>".join(errors) + '</li> <p>'
                 )
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
-            #response = self._check_xml_ecosio(invoice, xml_content, peppol_info['xml_format'])
+            #response = self._check_xml_ecosio(invoice, xml_content, ubl_cii_info['xml_format'])
             #print("Response: ", response['Result'])
 
             # remove existing (old) attachments
@@ -196,11 +189,11 @@ class AccountEdiFormat(models.Model):
                 ('res_model', '=', 'account.move'),
                 ('res_id', '=', invoice.id),
                 ('mimetype', '=', 'application/xml'),
-                ('name', '=', peppol_info['invoice_filename'](invoice)),
+                ('name', '=', ubl_cii_info['invoice_filename'](invoice)),
             ]).unlink()
 
             attachment = self.env['ir.attachment'].create({
-                'name': peppol_info['invoice_filename'](invoice),
+                'name': ubl_cii_info['invoice_filename'](invoice),
                 'datas': base64.encodebytes(xml_content.encode('utf-8')),
                 'res_model': 'account.move',
                 'res_id': invoice.id,
@@ -225,14 +218,14 @@ class AccountEdiFormat(models.Model):
     def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         # OVERRIDE
         self.ensure_one()
-        if self.code not in self._get_format_code_list():
+        if self.code not in self.env['account.edi.common']._get_format_code_list():
             return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
         invoice_xml_builder = None
         if journal:
-            peppol_info = self._get_edi_peppol_info(journal.company_id)
-            if peppol_info:
-                invoice_xml_builder = peppol_info['invoice_xml_builder']
+            ubl_cii_info = self._get_edi_ubl_cii_info(journal.company_id)
+            if ubl_cii_info:
+                invoice_xml_builder = ubl_cii_info['invoice_xml_builder']
         else:
             # infer the journal
             journal = self.env['account.journal'].search([
@@ -253,13 +246,13 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code not in self._get_format_code_list():
+        if self.code not in self.env['account.edi.common']._get_format_code_list():
             return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 
         invoice_xml_builder = None
-        peppol_info = self._get_edi_peppol_info(invoice.journal_id.company_id)
-        if peppol_info:
-            invoice_xml_builder = peppol_info['invoice_xml_builder']
+        ubl_cii_info = self._get_edi_ubl_cii_info(invoice.journal_id.company_id)
+        if ubl_cii_info:
+            invoice_xml_builder = ubl_cii_info['invoice_xml_builder']
 
         if invoice_xml_builder is not None:
             invoice = invoice_xml_builder._import_invoice(invoice.journal_id, filename, tree, invoice)

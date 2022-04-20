@@ -130,10 +130,10 @@ class AccountEdiCommon(models.AbstractModel):
     # UNIT OF MEASURE
     # -------------------------------------------------------------------------
 
-    def _get_uom_mapping(self):
+    def _get_uom_unece_mapping(self):
         return UOM_TO_UNECE_CODE
 
-    def _get_uom_info(self, line):
+    def _get_uom_unece_code(self, line):
         # list of codes: https://docs.peppol.eu/poacc/billing/3.0/codelist/UNECERec20/
         # or https://unece.org/fileadmin/DAM/cefact/recommendations/bkup_htm/add2c.htm (sorted by letter)
         # First attempt to cover most cases: convert units to their reference but then
@@ -147,7 +147,7 @@ class AccountEdiCommon(models.AbstractModel):
     # TAXES
     # -------------------------------------------------------------------------
 
-    def _get_tax_info(self, invoice, tax):
+    def _get_tax_unece_codes(self, invoice, tax):
         """
         Source: doc of Peppol (but the CEF norm is also used by factur-x, yet not detailed)
         https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-TaxTotal/cac-TaxSubtotal/cac-TaxCategory/cbc-TaxExemptionReasonCode/
@@ -217,7 +217,7 @@ class AccountEdiCommon(models.AbstractModel):
         """
         res = []
         for tax in taxes:
-            category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_info(invoice, tax)
+            category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_unece_codes(invoice, tax)
             res.append({
                 'id': category_code,
                 'percent': tax.amount if tax.amount_type == 'percent' else False,
@@ -493,7 +493,7 @@ class AccountEdiCommon(models.AbstractModel):
             billed_qty = float(quantity_node.text)
             uom_xml = quantity_node.attrib.get('unitCode')
             if uom_xml:
-                uom_infered = [odoo_uom for odoo_uom, uom_unece in self._get_uom_mapping().items() if
+                uom_infered = [odoo_uom for odoo_uom, uom_unece in self._get_uom_unece_mapping().items() if
                                uom_unece == uom_xml]
                 if uom_infered:
                     product_uom_id = self.env['uom.uom'].search([('name', '=', uom_infered[0])], limit=1)
