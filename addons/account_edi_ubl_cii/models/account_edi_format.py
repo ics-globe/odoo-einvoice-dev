@@ -26,7 +26,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_20'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_20.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'org.oasis-open:invoice:2.0',
                     'credit_note': 'org.oasis-open:creditnote:2.0',
                 },
@@ -36,7 +36,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_21'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_21.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'org.oasis-open:invoice:2.1',
                     'credit_note': 'org.oasis-open:creditnote:2.1',
                 },
@@ -48,7 +48,7 @@ class AccountEdiFormat(models.Model):
                 # page 45 -> ubl 2.1 for France seems also supported
                 'invoice_xml_builder': self.env['account.edi.xml.cii'],
                 'invoice_filename': lambda inv: "factur-x.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'de.xrechnung:cii:2.2.0',
                     'credit_note': 'de.xrechnung:cii:2.2.0',
                 },
@@ -58,7 +58,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_bis3'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'eu.peppol.bis3:invoice:3.13.0',
                     'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
                 },
@@ -68,7 +68,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_de'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_de.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'de.xrechnung:ubl-invoice:2.2.0',
                     'credit_note': 'de.xrechnung:ubl-creditnote:2.2.0',
                 },
@@ -78,7 +78,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_nl'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_nlcius.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'org.simplerinvoicing:invoice:2.0.3.3',
                     'credit_note': 'org.simplerinvoicing:creditnote:2.0.3.3',
                 },
@@ -89,7 +89,7 @@ class AccountEdiFormat(models.Model):
             return {
                 'invoice_xml_builder': self.env['account.edi.xml.ubl_no'],
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ehf3.xml",
-                'xml_format': {
+                'ecosio_format': {
                     'invoice': 'eu.peppol.bis3:invoice:3.13.0',
                     'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
                 },
@@ -181,7 +181,7 @@ class AccountEdiFormat(models.Model):
                 )
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
-            #response = self._check_xml_ecosio(invoice, xml_content, ubl_cii_info['xml_format'])
+            #response = self._check_xml_ecosio(invoice, xml_content, ubl_cii_info['ecosio_format'])
             #print("Response: ", response['Result'])
 
             # remove existing (old) attachments

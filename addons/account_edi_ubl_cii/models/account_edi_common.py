@@ -543,21 +543,21 @@ class AccountEdiCommon(models.AbstractModel):
     # Check xml using the free API from Ph. Helger, don't abuse it !
     # -------------------------------------------------------------------------
 
-    def _check_xml_ecosio(self, invoice, xml_content, xml_formats):
+    def _check_xml_ecosio(self, invoice, xml_content, ecosio_formats):
         # see https://peppol.helger.com/public/locale-en_US/menuitem-validation-ws2
         soap_client = Client('https://peppol.helger.com/wsdvs?wsdl')
         if invoice.move_type == 'out_invoice':
-            xml_format = xml_formats['invoice']
+            ecosio_format = ecosio_formats['invoice']
         elif invoice.move_type == 'out_refund':
-            xml_format = xml_formats['credit_note']
+            ecosio_format = ecosio_formats['credit_note']
         else:
             invoice.with_context(no_new_invoice=True).message_post(
                 body="ECOSIO: could not validate xml, formats only exist for invoice or credit notes"
             )
             return
-        if not xml_format:
+        if not ecosio_format:
             return
-        response = soap_client.service.validate(xml_content, xml_format)
+        response = soap_client.service.validate(xml_content, ecosio_format)
 
         report = []
         errors_cnt = 0
@@ -577,11 +577,11 @@ class AccountEdiCommon(models.AbstractModel):
 
         if errors_cnt == 0:
             invoice.with_context(no_new_invoice=True).message_post(
-                body=f"<font style='color:Green;'><strong>ECOSIO: All clear for format {xml_format}!</strong></font>"
+                body=f"<font style='color:Green;'><strong>ECOSIO: All clear for format {ecosio_format}!</strong></font>"
             )
         else:
             invoice.with_context(no_new_invoice=True).message_post(
-                body=f"<font style='color:Tomato;'><strong>ECOSIO ERRORS/WARNINGS for format {xml_format}</strong></font>: <ul> "
+                body=f"<font style='color:Tomato;'><strong>ECOSIO ERRORS/WARNINGS for format {ecosio_format}</strong></font>: <ul> "
                      + "\n".join(report) + " </ul>"
             )
         return response

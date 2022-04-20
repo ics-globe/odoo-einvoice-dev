@@ -107,6 +107,7 @@ class TestUBLBE(TestUBLCommon):
             chart_template=chart_template,
             country_id=cls.env.ref("base.be").id,
             vat="BE0246697724")
+        #TODO: setup journal here ?
         return res
 
     ####################################################
@@ -116,7 +117,7 @@ class TestUBLBE(TestUBLCommon):
     def test_export_xml(self):
         # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
         self.invoice.action_post()
-        self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_bis3.xml'])
+        self.assertEqual(self.invoice.edi_document_ids.mapped('name'), ['INV_2017_00001_ubl_bis3.xml'])
 
         # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
         invoice = self._generate_invoice(

@@ -73,7 +73,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals['endpoint_id'] = partner.vat
         vals['endpoint_id_attrs'] = {'schemeID': self._get_eas_mapping().get(partner.country_id.code)}
 
-        if partner.country_code == 'NO':
+        if partner.country_code == 'NO' and 'l10n_no_bronnoysund_number' in partner._fields:
             if not mva.is_valid(partner.vat):
                 raise ValidationError(_(
                     'The VAT number [%(wrong_vat)s] for %(record_label)s does not seem to be valid. \nNote: the expected format is %(expected_format)s',
@@ -82,7 +82,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
                     expected_format="NO995525829MVA",
                 ))
             vals.update({
-                'endpoint_id': partner.l10n_no_bronnoysund_number,  # TODO: need a bridge !
+                'endpoint_id': partner.l10n_no_bronnoysund_number,
                 'endpoint_id_attrs': {'schemeID': '0192'},
             })
         # [BR-NL-1] Dutch supplier registration number ( AccountingSupplierParty/Party/PartyLegalEntity/CompanyID );
@@ -90,8 +90,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # [BR-NL-10] At a Dutch supplier, for a Dutch customer ( AccountingCustomerParty ) the customer registration
         # number must be filled with Chamber of Commerce or OIN. SchemeID may only contain 106 (Chamber of
         # Commerce number) or 190 (OIN number).
-        if partner.country_code == 'NL':
-            endpoint = partner.l10n_nl_oin or partner.l10n_nl_kvk  # TODO: need a bridge !
+        if partner.country_code == 'NL' and ('l10n_nl_oin' in partner._fields or 'l10n_nl_kvk' in partner._fields):
+            endpoint = partner.l10n_nl_oin or partner.l10n_nl_kvk
             scheme = '0190' if partner.l10n_nl_oin else '0106'
             vals.update({
                 'endpoint_id': endpoint,

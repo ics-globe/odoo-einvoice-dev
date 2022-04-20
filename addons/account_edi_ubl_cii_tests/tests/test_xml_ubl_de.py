@@ -96,7 +96,7 @@ class TestUBLDE(TestUBLCommon):
     def test_export_pdf(self):
         # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
         self.invoice.action_post()
-        self.assertEqual(self.invoice.attachment_ids.mapped("name"), ['INV_2017_00001_ubl_de.xml'])
+        self.assertEqual(self.invoice.edi_document_ids.mapped('name'), ['INV_2017_00001_ubl_de.xml'])
 
         # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
         invoice = self._generate_invoice(
