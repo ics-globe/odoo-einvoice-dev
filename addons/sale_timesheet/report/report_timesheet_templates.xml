@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sale Order Timesheet Report for given timesheets -->
+    <template id="report_timesheet_sale_order">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-set="show_order" t-value="len(docs.mapped('id')) == 1"/>
+                <t t-set="show_project" t-value="true"/>
+                <t t-set="show_task" t-value="true"/>
+                <div class="page">
+                    <t t-foreach="docs" t-as="doc">
+                        <div class="oe_structure"/>
+                        <div class="row mt8">
+                            <div class="col-lg-12 col-12">
+                                <t t-if="doc.timesheet_ids">
+                                    <h1 class="my-4">
+                                        <t t-if="not show_order">
+                                            Order: <span t-field="doc.name"/>
+                                        </t>
+                                    </h1>
+                                    <h2>
+                                        <span>Timesheet Entries
+                                            <t t-if="show_order">
+                                                for the <t t-esc="doc.name"/> Order
+                                            </t>
+                                        </span>
+                                    </h2>
+                                    <t t-set="is_uom_day" t-value="doc.timesheet_ids and docs.timesheet_ids[0]._is_timesheet_encode_uom_day()"/>
+                                    <t t-set='lines' t-value='doc.timesheet_ids'/>
+                                    <t t-call="hr_timesheet.timesheet_table"/>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="timesheet_report_sale_order" model="ir.actions.report">
+        <field name="name">Timesheets</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_timesheet.report_timesheet_sale_order</field>
+        <field name="binding_model_id" ref="model_sale_order"/>
+    </record>
+
+    <!-- Invoice Timesheet Report for given timesheets -->
+    <template id="report_timesheet_account_move">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-set="show_invoice" t-value="len(docs.mapped('id')) == 1"/>
+                <t t-set="show_project" t-value="true"/>
+                <t t-set="show_task" t-value="true"/>
+                <div class="page">
+                    <t t-foreach="docs" t-as="doc">
+                        <div class="oe_structure"/>
+                        <div class="row mt8">
+                            <div class="col-lg-12 col-12">
+                                <t t-if="doc.timesheet_ids">
+                                    <h1 class="my-4">
+                                        <t t-if="not show_invoice">
+                                            Invoice: <span t-field="doc.name"/>
+                                        </t>
+                                    </h1>
+                                    <h2>
+                                        <span>Timesheet Entries
+                                            <t t-if="show_invoice">
+                                                for the <t t-esc="doc.name"/> Invoice
+                                            </t>
+                                        </span>
+                                    </h2>
+                                    <t t-set="is_uom_day" t-value="doc.timesheet_ids._is_timesheet_encode_uom_day()"/>
+                                    <t t-set='lines' t-value='doc.timesheet_ids'/>
+                                    <t t-call="hr_timesheet.timesheet_table"/>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="timesheet_report_account_move" model="ir.actions.report">
+        <field name="name">Timesheets</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_timesheet.report_timesheet_account_move</field>
+        <field name="binding_model_id" ref="model_account_move"/>
+    </record>
+</odoo>
