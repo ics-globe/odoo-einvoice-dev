@@ -1020,6 +1020,7 @@ DEP_STATES = STATES + [('unknown', 'Unknown')]
 class ModuleDependency(models.Model):
     _name = "ir.module.module.dependency"
     _description = "Module dependency"
+    _log_access = False  # inserts are done manually, create and write uid, dates are always null
 
     # the dependency name
     name = fields.Char(index=True)
