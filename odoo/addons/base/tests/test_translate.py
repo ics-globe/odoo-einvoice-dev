@@ -472,14 +472,31 @@ class TestTranslationWrite(TransactionCase):
 
         self.category.with_context(lang='fr_FR').write({'name': 'French Name'})
         self.category.with_context(lang='en_US').write({'name': 'English Name'})
-        translations = self.env['ir.translation'].search([
-            ('name', '=', 'res.partner.category,name'),
-            ('res_id', '=', self.category.id),
-        ], order='lang')
-        self.assertRecordValues(translations, [
-            {'src': 'English Name', 'value': 'English Name', 'lang': 'en_US'},
-            {'src': 'English Name', 'value': 'French Name', 'lang': 'fr_FR'}
-        ])
+
+        # read from the cache first
+        self.assertEqual(
+            self.category.with_context(lang='fr_FR').name, "French Name")
+        self.assertEqual(
+            self.category.with_context(lang='en_US').name, "English Name")
+
+        # force save to database and clear the cache: force a clean state
+        self.category.flush()
+        self.category.invalidate_cache()
+
+        # read from database
+        self.assertEqual(
+            self.category.with_context(lang='fr_FR').name, "French Name")
+        self.assertEqual(
+            self.category.with_context(lang='en_US').name, "English Name")
+
+        # translations = self.env['ir.translation'].search([
+        #     ('name', '=', 'res.partner.category,name'),
+        #     ('res_id', '=', self.category.id),
+        # ], order='lang')
+        # self.assertRecordValues(translations, [
+        #     {'src': 'English Name', 'value': 'English Name', 'lang': 'en_US'},
+        #     {'src': 'English Name', 'value': 'French Name', 'lang': 'fr_FR'}
+        # ])
 
     def test_04_fr_multi_no_en(self):
         self.env['res.lang']._activate_lang('fr_FR')
