@@ -8,19 +8,21 @@ const { Gui } = require('point_of_sale.Gui');
 
 var _t = core._t;
 
-function unexpectedDisconnect() {
+function StripeunexpectedDisconnect() {
   // In this function, your app should notify the user that the reader disconnected.
   // You can also include a way to attempt to reconnect to a reader.
   console.log("Disconnected from reader")
 }
 
-function fetchConnectionToken() {
+function StripefetchConnectionToken() {
     // Do not cache or hardcode the ConnectionToken.
     return rpc.query({
         model: 'pos.payment.method',
         method: 'stripe_connection_token',
     }, {
         silent: true,
+    }).catch(function (error) {
+        this._show_error(_t('error'));
     }).then(function (data) {
         console.log(data);
         return data.secret;
@@ -33,9 +35,10 @@ var PaymentStripe = PaymentInterface.extend({
     init: function (pos, payment_method) {
         this._super(...arguments);
         this.terminal = StripeTerminal.create({
-          onFetchConnectionToken: fetchConnectionToken,
-          onUnexpectedReaderDisconnect: unexpectedDisconnect,
+          onFetchConnectionToken: StripefetchConnectionToken,
+          onUnexpectedReaderDisconnect: StripeunexpectedDisconnect,
         });
+        this.discoverReaders();
     },
 
     discoverReaders() {
@@ -71,8 +74,9 @@ var PaymentStripe = PaymentInterface.extend({
     },
 
     send_payment_request: function (cid) {
-        this.discoverReaders();
-        /*
+        console.log('send_payment_request');
+/*        this.discoverReaders();
+        
         this._super.apply(this, arguments);
         this._reset_state();
         return this._stripe_pay();*/
@@ -136,7 +140,7 @@ var PaymentStripe = PaymentInterface.extend({
             'MessageType': 'Request',
             'SaleID': this._stripe_get_sale_id(config),
             'ServiceID': this.most_recent_service_id,
-            'POIID': this.payment_method.stripe_terminal_identifier
+            'POIID': this.payment_method.stripe_serial_number
         };
     },
 

@@ -21,23 +21,24 @@ class PosPaymentMethod(models.Model):
         return super(PosPaymentMethod, self)._get_payment_terminal_selection() + [('stripe', 'Stripe')]
 
     # Stripe
-    stripe_terminal_identifier = fields.Char(help='[Terminal model]-[Serial number], for example: P400Plus-123456789', copy=False)
+    stripe_serial_number = fields.Char(help='[Serial number], for example: WSC513105011295', copy=False)
+    stripe_location_id = fields.Char(string="Stripe location ID", help='', copy=False)
     stripe_test_mode = fields.Boolean(help='Run transactions in the test environment.')
 
     stripe_latest_response = fields.Char(help='Technical field used to buffer the latest asynchronous notification from Stripe.', copy=False, groups='base.group_erp_manager')
     stripe_latest_diagnosis = fields.Char(help='Technical field used to determine if the terminal is still connected.', copy=False, groups='base.group_erp_manager')
 
-    @api.constrains('stripe_terminal_identifier')
-    def _check_stripe_terminal_identifier(self):
+    @api.constrains('stripe_serial_number')
+    def _check_stripe_serial_number(self):
         for payment_method in self:
-            if not payment_method.stripe_terminal_identifier:
+            if not payment_method.stripe_serial_number:
                 continue
             existing_payment_method = self.search([('id', '!=', payment_method.id),
-                                                   ('stripe_terminal_identifier', '=', payment_method.stripe_terminal_identifier)],
+                                                   ('stripe_serial_number', '=', payment_method.stripe_serial_number)],
                                                   limit=1)
             if existing_payment_method:
                 raise ValidationError(_('Terminal %s is already used on payment method %s.')
-                                      % (payment_method.stripe_terminal_identifier, existing_payment_method.display_name))
+                                      % (payment_method.stripe_serial_number, existing_payment_method.display_name))
 
     def _get_stripe_endpoints(self):
         return {
@@ -59,7 +60,7 @@ class PosPaymentMethod(models.Model):
                     "MessageType": "Request",
                     "ServiceID": service_id,
                     "SaleID": pos_config_name,
-                    "POIID": self.stripe_terminal_identifier,
+                    "POIID": self.stripe_serial_number,
                 },
                 "DiagnosisRequest": {
                     "HostDiagnosisFlag": False

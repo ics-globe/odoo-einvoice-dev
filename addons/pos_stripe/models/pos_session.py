@@ -9,5 +9,5 @@ class PosSession(models.Model):
 
     def _loader_params_pos_payment_method(self):
         result = super()._loader_params_pos_payment_method()
-        result['search_params']['fields'].append('stripe_terminal_identifier')
+        result['search_params']['fields'].append('stripe_serial_number')
         return result
