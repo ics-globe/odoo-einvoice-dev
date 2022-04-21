@@ -1067,8 +1067,8 @@ var IconWidget = SearchableMediaWidget.extend({
             var $span = $('<span/>');
             $span.data(this.$media.data());
             // Classes will be restored from previous media but icons width
-            // must be unspecified.
-            this.$media.removeClass('w-25 w-50 w-75 w-100');
+            // must be unspecified and former image must not be saved.
+            this.$media.removeClass('w-25 w-50 w-75 w-100 o_modified_image_to_save');
             this.$media = $span;
             this.media = this.$media[0];
             style = style.replace(/\s*width:[^;]+/, '');
