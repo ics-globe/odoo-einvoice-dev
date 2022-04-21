@@ -1,5 +1,5 @@
 .o_DiscussSidebar {
-    width: $o-mail-chat-sidebar-width;
+    width: $o-mail-chat-sidebar-width; // To be paired with the values of the `searchPanel` component, still wip.
 
     @include media-breakpoint-up(xl) {
         width: $o-mail-chat-sidebar-width + 50px;
