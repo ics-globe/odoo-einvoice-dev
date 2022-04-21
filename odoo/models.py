@@ -6361,7 +6361,10 @@ Fields:
         :param str size: symbolic size for the number of records: ``'small'``, ``'medium'`` or ``'large'``
         """
         batch_size = 1000
-        min_size = self._populate_sizes[size]
+        if size.isdigit():
+            min_size = int(size)
+        else:
+            min_size = self._populate_sizes[size]
 
         record_count = 0
         create_values = []
@@ -6369,7 +6372,8 @@ Fields:
         field_generators = self._populate_factories()
         if not field_generators:
             return self.browse() # maybe create an automatic generator?
-            
+
+        _logger.info('Populating database for model %s', self._name)
         records_batches = []
         generator = populate.chain_factories(field_generators, self._name)
         while record_count <= min_size or not complete:
