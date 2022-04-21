@@ -339,7 +339,6 @@ class Page(models.Model):
             results = results.filtered(lambda result: filter_page(search, result, results))
         return results, count
 
-
 # this is just a dummy function to be used as ormcache key
 def _cached_response():
     pass
