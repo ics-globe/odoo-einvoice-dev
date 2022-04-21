@@ -20,3 +20,12 @@ class AccountEdiXmlUBLNO(models.AbstractModel):
 
     Thus, EHF 3 and Bis 3 are actually the same format. The specific rules for NO defined in Bis 3 are added in Bis 3.
     """
+
+    def generate(self):
+        pass
+        # TODO: refactor
+        #if foo:
+        #    return {
+        #    }
+        #else:
+        #    return False

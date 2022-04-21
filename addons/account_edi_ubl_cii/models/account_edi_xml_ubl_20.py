@@ -76,6 +76,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         }
 
     def _get_invoice_period_vals(self, invoice):
+        #TODO: rename add list
         """
         For now, we cannot fill this data from an invoice
         This corresponds to the 'delivery or invoice period'. For UBL Bis 3, in the case of intra-community supply,

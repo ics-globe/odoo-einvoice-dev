@@ -113,6 +113,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         return vals
 
     def _get_delivery_vals(self, invoice):
+        #TODO rename add list
         # OVERRIDE
         supplier = invoice.company_id.partner_id.commercial_partner_id
         customer = invoice.commercial_partner_id
@@ -122,26 +123,32 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
                              and supplier.country_id.code in economic_area
                              and supplier.country_id != customer.country_id)
 
+        # TODO
+        #if not intracom_delivery:
+        #    return {}
+        #else:
+        #    self._get_invoice_delivery_partner_id()
+
         delivery_date = None
         if 'partner_shipping_id' in invoice._fields:
-            partner_shipping_id = invoice.partner_shipping_id
+            partner_shipping = invoice.partner_shipping_id
         elif intracom_delivery:
             # need a default in this case
             # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
-            partner_shipping_id = customer
+            partner_shipping = customer
             # need a default also for the delivery_date
             # [BR-IC-11]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
             # shall not be blank.
             delivery_date = invoice.invoice_date
         else:
-            return
+            return {}
 
         return {
             'actual_delivery_date': delivery_date,
             'delivery_location': {
-                'DeliveryAddress_vals': self._get_partner_address_vals(partner_shipping_id),
+                'DeliveryAddress_vals': self._get_partner_address_vals(partner_shipping),
             },
         }
 
@@ -222,7 +229,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
 
-        vals['PartyType_template'] = 'account_edi_ubl_cii.ubl_bis3_PartyType'
+        #vals['PartyType_template'] = 'account_edi_ubl_cii.ubl_bis3_PartyType'
 
         vals['vals'].update({
             'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0',

@@ -166,6 +166,10 @@ class AccountEdiFormat(models.Model):
 
         res = {}
         for invoice in invoices:
+            # TODO refactor
+            # for i in invoice.journal_id.format_ids:
+            #     env['account.edi.format' + i.code].generate()
+
             xml_content, errors = ubl_cii_info['invoice_xml_builder']._export_invoice(invoice)
             # DEBUG: export generated xml file
             #with open(ubl_cii_info['invoice_filename'](invoice), 'w+') as f:
