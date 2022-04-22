@@ -1120,6 +1120,8 @@ const UnitUserValueWidget = UserValueWidget.extend({
             const numValue = parseFloat(v);
             if (isNaN(numValue)) {
                 return defaultValue;
+            } else if (params.noUnitConversion) {
+                return activeValue;
             } else {
                 const value = weUtils.convertNumericToUnit(numValue, params.unit, params.saveUnit, params.cssProperty, this.$target);
                 return `${this._floatToStr(value)}${params.saveUnit}`;
@@ -1134,7 +1136,7 @@ const UnitUserValueWidget = UserValueWidget.extend({
         const defaultValue = this._super(...arguments);
 
         const params = this._methodsParams;
-        if (!params.unit) {
+        if (!params.unit || params.noUnitConversion) {
             return defaultValue;
         }
 
