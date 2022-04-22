@@ -16,6 +16,7 @@ export class WebsiteEditorComponent extends Component {
             reloading: false,
             showWysiwyg: this.websiteContext.isPublicRootReady,
         });
+        this.wysiwygOptions = {};
 
         useChildSubEnv(legacyEnv);
 
@@ -33,6 +34,7 @@ export class WebsiteEditorComponent extends Component {
     wysiwygReady() {
         this.websiteContext.snippetsLoaded = true;
         this.state.reloading = false;
+        this.wysiwygOptions.invalidateSnippetCache = false;
     }
 
     willReload(widgetEl) {
@@ -46,11 +48,14 @@ export class WebsiteEditorComponent extends Component {
         this.state.reloading = true;
     }
 
-    async reload(snippetOptionSelector, url) {
+    async reload({ snippetOptionSelector, url, invalidateSnippetCache } = {}) {
         this.notificationService.add(this.env._t("Your modifications were saved to apply this option."), {
             title: this.env._t("Content saved."),
             type: 'success'
         });
+        if (invalidateSnippetCache) {
+            this.wysiwygOptions.invalidateSnippetCache = true;
+        }
         this.state.showWysiwyg = false;
         await this.props.reloadIframe(url);
         this.reloadSelector = snippetOptionSelector;
