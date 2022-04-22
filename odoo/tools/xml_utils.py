@@ -147,27 +147,37 @@ def cleanup_xml_node(xml_node_or_string, remove_blank_text=True, remove_blank_no
     return xml_node
 
 
-def load_xsd_from_url(env, url, xsd_name, force_reload=False, request_max_timeout=10, modify_xsd_content=None):
+def load_xsd_files_from_url(env, url, xsd_name, force_reload=False,
+                            request_max_timeout=10, xsd_name_prefix='', xsd_names=None, modify_xsd_content=None):
     """Load XSD file or ZIP archive and save it as ir.attachment.
 
     If the XSD file/archive has already been saved in database, then just return the attachment.
     In such a case, the attachment content can also be updated by force if desired.
+    If the attachment is a ZIP archive, then a force reload will also update all attachments from the archive.
 
-    The XSD file content can be modified by providing the modify_xsd_content function as argument.
-    Typically, this is used when XSD files depend on each other (with the schemaLocation attribute), but it can be used for any purpose.
+    When the attachment is a ZIP archive, every file inside will also be saved as attachments.
+    Filtering which file will be saved can be done by providing a list of `xsd_names`
+
+    The XSD files content can be modified by providing the `modify_xsd_content` function as argument.
+    Typically, this is used when XSD files depend on each other (with the schemaLocation attribute),
+    but it can be used for any purpose.
 
     :param odoo.api.Environment env: environment of calling module
     :param str url: URL of XSD file/ZIP archive
     :param str xsd_name: the name given to the XSD attachment
     :param bool force_reload: if True, reload the attachment from URL, even if it is already cached
     :param int request_max_timeout: maximum time (in seconds) before the request times out
+    :param str xsd_name_prefix: if provided, will be added as a prefix to every XSD file name
+    :param list | str xsd_names: if provided, will only save the XSD files with these names
     :param func modify_xsd_content: function that takes the xsd content as argument and returns a modified version of it
-    :rtype: odoo.api.ir.attachment
-    :return: the attachment or False if an error occurred (see warning logs)
+    :rtype: odoo.api.ir.attachment | bool
+    :return: the main attachment or False if an error occurred (see warning logs)
     """
     if not url.endswith(('.xsd', '.zip')):
         _logger.warning("The given URL (%s) needs to lead to an XSD file or a ZIP archive", url)
         return False
+
+    is_zip = url.endswith('.zip')
 
     fetched_attachment = env['ir.attachment'].search([('name', '=', xsd_name)])
     if fetched_attachment:
@@ -191,7 +201,7 @@ def load_xsd_from_url(env, url, xsd_name, force_reload=False, request_max_timeou
         return False
 
     content = response.content
-    if modify_xsd_content:
+    if modify_xsd_content and not is_zip:
         content = modify_xsd_content(content)
 
     if fetched_attachment:
@@ -202,34 +212,20 @@ def load_xsd_from_url(env, url, xsd_name, force_reload=False, request_max_timeou
         return fetched_attachment
 
     _logger.info("Saving XSD file as ir.attachment, with name: %s", xsd_name)
-    return env['ir.attachment'].create({
+    main_attachment = env['ir.attachment'].create({
         'name': xsd_name,
         'raw': content,
         'public': True,
     })
 
+    if not is_zip:
+        return main_attachment
 
-def unzip_and_save_all_xsd(env, zip_file, xsd_name_prefix='', xsd_names=None, modify_xsd_content=None):
-    """Unzip and save all XSD files as ir.attachment.
-
-    Some XSD files depend on others (and require them for some structure declarations for instance).
-    In order to resolve such XSD files (see :func:`_check_with_xsd` and :class:`odoo_resolver`), they all need to be saved as ir.attachment.
-
-    The XSD files content can be modified by providing the modify_xsd_content function as argument.
-    Typically, this is used when XSD files depend on each other (with the schemaLocation attribute), but it can be used for any purpose.
-
-    :param odoo.api.Environment env: environment of calling module
-    :param zip_file: ZIP archive containing XSD files
-    :param str xsd_name_prefix: if provided, will be added as a prefix to every XSD file name
-    :param list | str xsd_names: if provided, will only save the XSD files with these names
-    :param func modify_xsd_content: function that takes the xsd content as argument and returns a modified version of it
-    :return: True if all went well, False otherwise (an error occurred - check log warnings)
-    """
+    _logger.info("Unzipping loaded archive, with name %s", xsd_name)
     if xsd_names and not isinstance(xsd_names, list):
         xsd_names = [xsd_names]
 
-    raised_errors = False
-    archive = zipfile.ZipFile(BytesIO(zip_file))
+    archive = zipfile.ZipFile(BytesIO(content))
     for file_path in archive.namelist():
         if file_path.endswith('.xsd'):
             _, file_name = file_path.rsplit('/', 1)
@@ -241,8 +237,13 @@ def unzip_and_save_all_xsd(env, zip_file, xsd_name_prefix='', xsd_names=None, mo
                 file_name = f'{xsd_name_prefix}.{file_name}'
 
             attachment = env['ir.attachment'].search([('name', '=', file_name)])
-            if attachment:
+            if attachment and not force_reload:
                 continue
+
+            if force_reload:
+                _logger.info("Updating the content of ir.attachment with name: %s", file_name)
+            else:
+                _logger.info("Saving XSD file as ir.attachment, with name: %s", file_name)
             try:
                 content = archive.open(file_path).read()
                 if modify_xsd_content:
@@ -254,6 +255,5 @@ def unzip_and_save_all_xsd(env, zip_file, xsd_name_prefix='', xsd_names=None, mo
                 })
             except KeyError:
                 _logger.warning("Failed to retrieve XSD file with name %s from ZIP archive", file_name)
-                raised_errors = True
 
-    return not raised_errors
+    return fetched_attachment

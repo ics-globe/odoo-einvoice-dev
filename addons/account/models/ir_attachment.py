@@ -12,7 +12,7 @@ class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
     @api.model
-    def _search_attachment_and_validate_xml(self, xml_content, xsd_name):
+    def _search_attachment_and_validate_xml(self, xml_content, xsd_name, reload_files_function=None):
         """Try and validate the XML content with an XSD attachment.
         If the XSD attachment cannot be found in database, (re)load it.
 
@@ -23,13 +23,7 @@ class IrAttachment(models.Model):
         try:
             tools.xml_utils._check_with_xsd(xml_content, xsd_name, self.env)
         except FileNotFoundError:
-            self._load_xsd_files()
+            if not reload_files_function:
+                _logger.warning("You need to provide a function used to (re)load XSD files")
+            reload_files_function()
             tools.xml_utils._check_with_xsd(xml_content, xsd_name, self.env)
-
-    @api.model
-    def _load_xsd_files(self):
-        """Load every XSD files and archive needed.
-
-        To be overridden by modules that need to load XSD files, by using functions in :mod:`odoo.tools.xml_utils`.
-        """
-        return
