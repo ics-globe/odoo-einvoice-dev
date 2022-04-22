@@ -25,3 +25,19 @@ class MailMessage(models.Model):
             ('message_id', '!=', False)
         ])
         return [('id', 'in', ratings.mapped('message_id').ids)]
+
+    def message_format(self, format_reply=True):
+        message_values = super().message_format(format_reply)
+        message_rating_mixin = self.filtered(lambda messgae: issubclass(self.pool[messgae.model], self.pool['rating.mixin']))
+        if message_rating_mixin:
+            ratings = self.env['rating.rating'].sudo().search([('message_id', 'in', message_rating_mixin.ids), ('consumed', '=', True)])
+            rating_message_mapping = dict((r.message_id.id, r) for r in ratings)
+            for vals in message_values:
+                if vals['id'] in rating_message_mapping:
+                    rating = rating_message_mapping[vals['id']]
+                    vals['rating'] = [('insert-and-replace', {
+                        'id': rating.id,
+                        'ratingImageUrl': rating.rating_image_url,
+                        'ratingText': rating.rating_text,
+                    })]
+        return message_values

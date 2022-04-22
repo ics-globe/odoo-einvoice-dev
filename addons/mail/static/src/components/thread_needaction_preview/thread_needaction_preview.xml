@@ -40,11 +40,11 @@
                         </t>
                     </div>
                     <div class="o_ThreadNeedactionPreview_core d-flex align-items-baseline">
-                        <span class="o_ThreadNeedactionPreview_coreItem o_ThreadNeedactionPreview_inlineText text-truncate" t-att-class="{ 'o-empty': inlineLastNeedactionMessageAsOriginThreadBody.length === 0 }">
+                        <span class="o_ThreadNeedactionPreview_coreItem o_ThreadNeedactionPreview_inlineText text-truncate" t-att-class="{ 'o-empty': threadNeedactionPreviewView.isEmpty }">
                             <t t-if="threadNeedactionPreviewView.messageAuthorPrefixView">
                                 <MessageAuthorPrefix localId="threadNeedactionPreviewView.messageAuthorPrefixView.localId"/>
                             </t>
-                            <t t-esc="inlineLastNeedactionMessageAsOriginThreadBody"/>
+                            <span class="o_ThreadNeedactionPreview_messageBody" t-esc="threadNeedactionPreviewView.inlineLastNeedactionMessageAsOriginThreadBody"/>
                         </span>
                         <span class="o-autogrow"/>
                         <span class="o_ThreadNeedactionPreview_coreItem o_ThreadNeedactionPreview_markAsRead fa fa-check" title="Mark as Read" t-on-click="threadNeedactionPreviewView.onClickMarkAsRead" t-ref="markAsRead"/>
