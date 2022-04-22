@@ -6658,9 +6658,6 @@ Fields:
         """ Returns the filename of the placeholder to use,
             set on web/static/img by default, or the
             complete path to access it (eg: module/path/to/image.png).
-
-            If a falsy value is returned, "ir.http"._placeholder() will use
-            the default placeholder 'web/static/img/placeholder.png'.
         """
         return False
 
