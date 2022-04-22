@@ -75,8 +75,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'Contact_vals': self._get_partner_contact_vals(partner),
         }
 
-    def _get_invoice_period_vals(self, invoice):
-        #TODO: rename add list
+    def _get_invoice_period_vals_list(self, invoice):
         """
         For now, we cannot fill this data from an invoice
         This corresponds to the 'delivery or invoice period'. For UBL Bis 3, in the case of intra-community supply,
@@ -87,15 +86,15 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'end_date': None,
         }]
 
-    def _get_delivery_vals(self, invoice):
+    def _get_delivery_vals_list(self, invoice):
         # the data is optional, except for ubl bis3 (see the override, where we need to set a default delivery address)
         if 'partner_shipping_id' in invoice._fields:
-            return {
+            return [{
                 'actual_delivery_date': None,
-                'delivery_location': {
+                'Location_vals': {
                     'DeliveryAddress_vals': self._get_partner_address_vals(invoice.partner_shipping_id),
                 },
-            }
+            }]
 
     def _get_bank_address_vals(self, bank):
         return {
@@ -414,8 +413,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 'AccountingCustomerParty_vals': {
                     'Party_vals': self._get_partner_party_vals(customer, role='customer'),
                 },
-                'InvoicePeriod_vals': self._get_invoice_period_vals(invoice),
-                'Delivery_vals': self._get_delivery_vals(invoice),
+                'InvoicePeriod_vals_list': self._get_invoice_period_vals_list(invoice),
+                'Delivery_vals_list': self._get_delivery_vals_list(invoice),
                 'PaymentMeans_vals': self._get_invoice_payment_means_vals_list(invoice),
                 'PaymentTerms_vals': self._get_invoice_payment_terms_vals_list(invoice),
                 # allowances at the document level, the allowances on invoices (eg. discount) are on InvoiceLine_vals

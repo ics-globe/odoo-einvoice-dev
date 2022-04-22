@@ -17,30 +17,30 @@ FORMAT_CODE_LIST = [
     'ehf_3',
 ]
 
-#TODO: do it with the xmlid
+#TODO lacks certain UOM ! 2 missing
 UOM_TO_UNECE_CODE = {
-    'Units': 'C62',
-    'Dozens': 'DZN',
-    'g': 'GRM',
-    'oz': 'ONZ',
-    'lb': 'LBR',
-    'kg': 'KGM',
-    't': 'TNE',
-    'Hours': 'HUR',
-    'Days': 'DAY',
-    'mi': 'SMI',
-    'cm': 'CMT',
-    'in': 'INH',
-    'ft': 'FOT',
-    'm': 'MTR',
-    'km': 'KTM',
-    'in³': 'INQ',
-    'fl oz (US)': 'OZA',
-    'qt (US)': 'QT',
-    'L': 'LTR',
-    'gal (US)': 'GLL',
-    'ft³': 'FTQ',
-    'm³': 'MTQ',
+    'product_uom_unit': 'C62',
+    'product_uom_dozen': 'DZN',
+    'product_uom_kgm': 'KGM',
+    'product_uom_gram': 'GRM',
+    'product_uom_day': 'DAY',
+    'product_uom_hour': 'HUR',
+    'product_uom_ton': 'TNE',
+    'product_uom_meter': 'MTR',
+    'product_uom_km': 'KTM',
+    'product_uom_cm': 'CMT',
+    'product_uom_litre': 'LTR',
+    'product_uom_cubic_meter': 'MTQ',
+    'product_uom_lb': 'LBR',
+    'product_uom_oz': 'ONZ',
+    'product_uom_inch': 'INH',
+    'product_uom_foot': 'FOT',
+    'product_uom_mile': 'SMI',
+    'product_uom_floz': 'OZA',
+    'product_uom_qt': 'QT',
+    'product_uom_gal': 'GLL',
+    'product_uom_cubic_inch': 'INQ',
+    'product_uom_cubic_foot': 'FTQ',
 }
 
 COUNTRY_EAS = {
@@ -141,7 +141,10 @@ class AccountEdiCommon(models.AbstractModel):
         # is marked as 1000$ but quantity is 12 units and lineTotalAmount is 1000$ != 12*1000$ ...
         # Only solution is to have a big dictionary mapping the units and the unit codes
         # If no uom is found -> default to unit = C62
-        return UOM_TO_UNECE_CODE.get(line.product_uom_id.name, 'C62')
+        xmlid = line.product_uom_id.get_external_id()
+        if not xmlid:
+            return 'C62'
+        return UOM_TO_UNECE_CODE.get(xmlid[line.product_uom_id.id].split('.')[1], 'C62')
 
     # -------------------------------------------------------------------------
     # TAXES
@@ -486,17 +489,17 @@ class AccountEdiCommon(models.AbstractModel):
 
         # billed_qty (mandatory)
         billed_qty = 1
-        uom_xml = None
         product_uom_id = None
         quantity_node = tree.find(xpath_dict['billed_qty'])
         if quantity_node is not None:
             billed_qty = float(quantity_node.text)
             uom_xml = quantity_node.attrib.get('unitCode')
             if uom_xml:
-                uom_infered = [odoo_uom for odoo_uom, uom_unece in self._get_uom_unece_mapping().items() if
-                               uom_unece == uom_xml]
-                if uom_infered:
-                    product_uom_id = self.env['uom.uom'].search([('name', '=', uom_infered[0])], limit=1)
+                uom_infered_xmlid = [
+                    odoo_xmlid for odoo_xmlid, uom_unece in self._get_uom_unece_mapping().items() if uom_unece == uom_xml
+                ]
+                if uom_infered_xmlid:
+                    product_uom_id = self.env.ref('uom.' + uom_infered_xmlid[0])
 
         # allow_charge_amount
         allow_charge_amount = 0  # if positive: it's a discount, if negative: it's a charge

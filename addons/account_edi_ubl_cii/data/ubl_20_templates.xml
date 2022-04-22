@@ -280,7 +280,7 @@
             <cbc:DocumentCurrencyCode
                     t-att="vals.get('document_currency_code_attrs', {})"
                     t-esc="invoice.currency_id.name.upper()"/>
-            <t t-foreach="vals.get('InvoicePeriod_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('InvoicePeriod_vals_list', [])" t-as="foreach_vals">
                 <cac:InvoicePeriod>
                     <cbc:StartDate t-esc="foreach_vals.get('start_date')"/>
                     <cbc:EndDate t-esc="foreach_vals.get('end_date')"/>
@@ -311,17 +311,19 @@
                     </t>
                 </cac:Party>
             </cac:AccountingCustomerParty>
-            <cac:Delivery t-if="vals.get('Delivery_vals')">
-                <cbc:ActualDeliveryDate t-esc="vals['Delivery_vals'].get('actual_delivery_date')"/>
-                <cac:DeliveryLocation t-if="vals['Delivery_vals'].get('delivery_location')">
-                    <cac:Address>
-                        <t t-call="{{AddressType_template}}">
-                            <t t-set="vals"
-                               t-value="vals['Delivery_vals']['delivery_location'].get('DeliveryAddress_vals', {})"/>
-                        </t>
-                    </cac:Address>
-                </cac:DeliveryLocation>
-            </cac:Delivery>
+            <t t-foreach="vals.get('Delivery_vals_list', [])" t-as="foreach_vals">
+                <cac:Delivery>
+                    <cbc:ActualDeliveryDate t-esc="foreach_vals.get('actual_delivery_date')"/>
+                    <cac:DeliveryLocation>
+                        <cac:Address>
+                            <t t-call="{{AddressType_template}}">
+                                <t t-set="vals"
+                                   t-value="foreach_vals.get('Location_vals', {}).get('DeliveryAddress_vals', {})"/>
+                            </t>
+                        </cac:Address>
+                    </cac:DeliveryLocation>
+                </cac:Delivery>
+            </t>
             <!-- In UBL 2.0 PaymentMeans is only present for Invoice
             while in UBL 2.1, it is present for Invoice and CreditNote
             http://www.datypic.com/sc/ubl20/e-ns19_Invoice.html

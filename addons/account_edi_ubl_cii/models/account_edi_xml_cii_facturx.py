@@ -157,8 +157,8 @@ class AccountEdiXmlCII(models.AbstractModel):
         # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement
         for line_vals in template_values['invoice_line_vals_list']:
             line = line_vals['line']
-            uom_info = self._get_uom_unece_code(line)
-            line_vals['uom_code'] = uom_info or line.product_uom_id.name
+            uom_unece_code = self._get_uom_unece_code(line)
+            line_vals['uom_code'] = uom_unece_code
             # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement / ApplicableTradeTax
             for tax_detail_vals in template_values['tax_details']['invoice_line_tax_details'][line]['tax_details'].values():
                 tax = tax_detail_vals['tax']

@@ -112,8 +112,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             })
         return vals
 
-    def _get_delivery_vals(self, invoice):
-        #TODO rename add list
+    def _get_delivery_vals_list(self, invoice):
         # OVERRIDE
         supplier = invoice.company_id.partner_id.commercial_partner_id
         customer = invoice.commercial_partner_id
@@ -123,34 +122,29 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
                              and supplier.country_id.code in economic_area
                              and supplier.country_id != customer.country_id)
 
-        # TODO
-        #if not intracom_delivery:
-        #    return {}
-        #else:
-        #    self._get_invoice_delivery_partner_id()
+        if not intracom_delivery:
+            return []
 
-        delivery_date = None
+        # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
+        # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
+
+        # [BR-IC-11]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
+        # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
+        # shall not be blank.
+
         if 'partner_shipping_id' in invoice._fields:
             partner_shipping = invoice.partner_shipping_id
-        elif intracom_delivery:
-            # need a default in this case
-            # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
-            # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
-            partner_shipping = customer
-            # need a default also for the delivery_date
-            # [BR-IC-11]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
-            # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
-            # shall not be blank.
-            delivery_date = invoice.invoice_date
+        elif partner_id := invoice._get_invoice_delivery_partner_id():
+            partner_shipping = self.env['res.partner'].browse(partner_id)
         else:
-            return {}
+            partner_shipping = customer
 
-        return {
-            'actual_delivery_date': delivery_date,
-            'delivery_location': {
+        return [{
+            'actual_delivery_date': invoice.invoice_date,
+            'Location_vals': {
                 'DeliveryAddress_vals': self._get_partner_address_vals(partner_shipping),
             },
-        }
+        }]
 
     def _get_partner_address_vals(self, partner):
         # OVERRIDE
@@ -302,7 +296,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
             'cen_en16931_delivery_country_code': self._check_required_fields(
-                vals['vals']['Delivery_vals'], 'delivery_location',
+                vals['vals']['Delivery_vals_list'], 'delivery_location',
                 _("For intracommunity supply, the delivery address should be included.")
             ) if intracom_delivery else None,
 
@@ -310,10 +304,10 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
             # shall not be blank.
             'cen_en16931_delivery_date_invoicing_period': self._check_required_fields(
-                vals['vals']['Delivery_vals'], 'actual_delivery_date',
+                vals['vals']['Delivery_vals_list'], 'actual_delivery_date',
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) and self._check_required_fields(
-                vals['vals']['InvoicePeriod_vals'], ['start_date', 'end_date'],
+                vals['vals']['InvoicePeriod_vals_list'], ['start_date', 'end_date'],
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) if intracom_delivery else None,
         }
