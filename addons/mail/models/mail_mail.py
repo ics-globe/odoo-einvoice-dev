@@ -9,12 +9,15 @@ import psycopg2
 import smtplib
 import threading
 import re
+import pytz
 
 from collections import defaultdict
+from dateutil.parser import parse
 
 from odoo import _, api, fields, models
 from odoo import tools
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -123,6 +126,19 @@ class MailMail(models.Model):
     def cancel(self):
         return self.write({'state': 'cancel'})
 
+    @api.constrains('scheduled_date')
+    def _onchange_scheduled_date(self):
+        for record in self:
+            if not record.scheduled_date:
+                continue
+            try:
+                scheduled_date = parse(record.scheduled_date)
+                right_format_date = scheduled_date.strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
+                if record.scheduled_date != right_format_date:
+                    record.scheduled_date = right_format_date
+            except ValueError:
+                raise ValidationError(_('Incorrect date format for scheduled date'))
+
     @api.model
     def process_email_queue(self, ids=None):
         """Send immediately queued messages, committing after each
@@ -138,10 +154,13 @@ class MailMail(models.Model):
                                 messages to send (by default all 'outgoing'
                                 messages are sent).
         """
+        # scheduled_date is in local time in db => user_now has to be in local time for comparison
+        user_tz = pytz.timezone(self.env.context.get('tz') or self.env.user.tz or 'UTC')
+        user_now = user_tz.fromutc(datetime.datetime.now())
         filters = ['&',
                    ('state', '=', 'outgoing'),
                    '|',
-                   ('scheduled_date', '<', datetime.datetime.now()),
+                   ('scheduled_date', '<', user_now.strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)),
                    ('scheduled_date', '=', False)]
         if 'filters' in self._context:
             filters.extend(self._context['filters'])
