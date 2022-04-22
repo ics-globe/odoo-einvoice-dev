@@ -15,6 +15,17 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    def _get_xml_builder(self, format_code, company):
+        if format_code == 'ubl_bis3' and company.country_id.code in self.env['account.edi.common']._get_eas_mapping():
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
+                'ecosio_format': {
+                    'invoice': 'eu.peppol.bis3:invoice:3.13.0',
+                    'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
+                },
+            }
+
     def _get_country_vals(self, country):
         # OVERRIDE
         vals = super()._get_country_vals(country)

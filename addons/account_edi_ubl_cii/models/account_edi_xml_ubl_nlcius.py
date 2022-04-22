@@ -29,6 +29,17 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    def _get_xml_builder(self, format_code, company):
+        if format_code == 'nlcius_1' and company.country_id.code == 'NL':
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_nlcius.xml",
+                'ecosio_format': {
+                    'invoice': 'org.simplerinvoicing:invoice:2.0.3.3',
+                    'credit_note': 'org.simplerinvoicing:creditnote:2.0.3.3',
+                },
+            }
+
     def _get_tax_category_list(self, invoice, taxes):
         # OVERRIDE
         vals_list = super()._get_tax_category_list(invoice, taxes)

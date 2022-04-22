@@ -7,17 +7,6 @@ from odoo.tests.common import Form
 from zeep import Client
 from lxml import etree
 
-FORMAT_CODE_LIST = [
-    'facturx_1_0_05',
-    'ubl_bis3',
-    'ubl_de',
-    'nlcius_1',
-    'ubl_20',
-    'ubl_2_1',
-    'ehf_3',
-]
-
-#TODO lacks certain UOM ! 2 missing
 UOM_TO_UNECE_CODE = {
     'product_uom_unit': 'C62',
     'product_uom_dozen': 'DZN',
@@ -79,9 +68,7 @@ COUNTRY_EAS = {
     'SM': 9951,
     'TR': 9952,
     'VA': 9953,
-
     'SE': 9955,
-
     'FR': 9957,
 }
 
@@ -93,9 +80,6 @@ class AccountEdiCommon(models.AbstractModel):
     # -------------------------------------------------------------------------
     # HELPERS
     # -------------------------------------------------------------------------
-
-    def _get_format_code_list(self):
-        return FORMAT_CODE_LIST
 
     def format_float(self, amount, precision_digits):
         if amount is None:
@@ -136,11 +120,6 @@ class AccountEdiCommon(models.AbstractModel):
     def _get_uom_unece_code(self, line):
         # list of codes: https://docs.peppol.eu/poacc/billing/3.0/codelist/UNECERec20/
         # or https://unece.org/fileadmin/DAM/cefact/recommendations/bkup_htm/add2c.htm (sorted by letter)
-        # First attempt to cover most cases: convert units to their reference but then
-        # Problem: if we buy 1 dozen desks at 1000$/dozen, then in xml, net price per product
-        # is marked as 1000$ but quantity is 12 units and lineTotalAmount is 1000$ != 12*1000$ ...
-        # Only solution is to have a big dictionary mapping the units and the unit codes
-        # If no uom is found -> default to unit = C62
         xmlid = line.product_uom_id.get_external_id()
         if xmlid and line.product_uom_id.id in xmlid and len(xmlid[line.product_uom_id.id].split('.')) == 2:
             return UOM_TO_UNECE_CODE.get(xmlid[line.product_uom_id.id].split('.')[1], 'C62')
@@ -178,13 +157,16 @@ class AccountEdiCommon(models.AbstractModel):
 
         if customer.country_id.code == 'ES':
             if customer.zip[:2] in ['35', '38']:  # Canary
-                return 'L', None, None  # [BR-IG-10]-A VAT breakdown (BG-23) with VAT Category code (BT-118) "IGIC" shall not have a VAT exemption reason code (BT-121) or VAT exemption reason text (BT-120).
+                # [BR-IG-10]-A VAT breakdown (BG-23) with VAT Category code (BT-118) "IGIC" shall not have a VAT
+                # exemption reason code (BT-121) or VAT exemption reason text (BT-120).
+                return 'L', None, None
             if customer.zip[:2] in ['51', '52']:
                 return 'M', None, None  # Ceuta & Mellila
 
         if supplier.country_id == customer.country_id:
             if not tax or tax.amount == 0:
-                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'  # in theory, you should indicate the precise article
+                # in theory, you should indicate the precise law article
+                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'
             else:
                 return 'S', None, None  # standard VAT
 

@@ -16,6 +16,19 @@ class AccountEdiXmlCII(models.AbstractModel):
     _inherit = 'account.edi.common'
     _description = "Factur-x/XRechnung CII 2.2.0"
 
+    def _get_xml_builder(self, format_code, company):
+        # see https://communaute.chorus-pro.gouv.fr/wp-content/uploads/2017/08/20170630_Solution-portail_Dossier_Specifications_Fournisseurs_Chorus_Facture_V.1.pdf
+        # page 45 -> ubl 2.1 for France seems also supported
+        if format_code == 'facturx_1_0_05':
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: "factur-x.xml",
+                'ecosio_format': {
+                    'invoice': 'de.xrechnung:cii:2.2.0',
+                    'credit_note': 'de.xrechnung:cii:2.2.0',
+                },
+            }
+
     def _prepare_invoice_report(self, pdf_writer, edi_document):
         self.ensure_one()
         if self.code not in self._get_format_code_list():
@@ -187,9 +200,6 @@ class AccountEdiXmlCII(models.AbstractModel):
 
         # The only difference between XRechnung and Facturx is the following (but it only raises a warning when
         # providing the french id to XRechnung schemas.
-        # TODO: this is a bit problematic since we have no way to specify which format we want from the interface
-        #  "_get_edi_ubl_cii_builder". Ideally, the determination of the format should be separate from the
-        #  generation logic such that we can easily call the creation of one format.
         supplier = invoice.company_id.partner_id.commercial_partner_id
         if supplier.country_id.code == 'DE':
             template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"

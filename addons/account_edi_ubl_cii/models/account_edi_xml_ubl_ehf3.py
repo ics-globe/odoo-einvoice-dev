@@ -21,11 +21,13 @@ class AccountEdiXmlUBLNO(models.AbstractModel):
     Thus, EHF 3 and Bis 3 are actually the same format. The specific rules for NO defined in Bis 3 are added in Bis 3.
     """
 
-    def generate(self):
-        pass
-        # TODO: refactor
-        #if foo:
-        #    return {
-        #    }
-        #else:
-        #    return False
+    def _get_xml_builder(self, format_code, company):
+        if format_code == 'ehf_3' and company.country_id.code == 'NO':
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ehf3.xml",
+                'ecosio_format': {
+                    'invoice': 'eu.peppol.bis3:invoice:3.13.0',
+                    'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
+                },
+            }

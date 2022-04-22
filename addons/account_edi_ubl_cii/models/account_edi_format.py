@@ -4,6 +4,21 @@
 from odoo import _, models
 import base64
 
+# this is needed because the account.edi.format codes do not necessarily match
+# the suffix of the class used to generate the xml file (and it would be weird to
+# rename account.edi.xml.cii into account.edi.xml.facturx_1_0_05 + we would need to change it
+# everytime the code of the account.edi.format changes
+# TODO: in master, get rid of this by removing old account.edi.formats and creating new ones, with names matching
+#  the suffixes
+FORMAT_CODE_TO_CLASS_SUFFIX = {
+    'facturx_1_0_05': 'cii',
+    'ubl_20': 'ubl_20',
+    'ubl_2_1': 'ubl_21',
+    'ubl_bis3': 'ubl_bis3',
+    'ubl_de': 'ubl_de',
+    'nlcius_1': 'ubl_nl',
+    'ehf_3': 'ubl_no',
+}
 
 class AccountEdiFormat(models.Model):
     _name = 'account.edi.format'
@@ -12,95 +27,6 @@ class AccountEdiFormat(models.Model):
     ####################################################
     # Helpers
     ####################################################
-
-    def _is_edi_peppol_customer_valid(self, customer):
-        return customer.country_id.code in self.env['account.edi.common']._get_eas_mapping()
-
-    def _get_edi_ubl_cii_builder(self, company_country_code):
-        self.ensure_one()
-
-        if self.code not in self.env['account.edi.common']._get_format_code_list():
-            return
-
-        if self.code == 'ubl_20':
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_20'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_20.xml",
-                'ecosio_format': {
-                    'invoice': 'org.oasis-open:invoice:2.0',
-                    'credit_note': 'org.oasis-open:creditnote:2.0',
-                },
-            }
-
-        if self.code == 'ubl_2_1':
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_21'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_21.xml",
-                'ecosio_format': {
-                    'invoice': 'org.oasis-open:invoice:2.1',
-                    'credit_note': 'org.oasis-open:creditnote:2.1',
-                },
-            }
-
-        if self.code == 'facturx_1_0_05':
-            return {
-                # see https://communaute.chorus-pro.gouv.fr/wp-content/uploads/2017/08/20170630_Solution-portail_Dossier_Specifications_Fournisseurs_Chorus_Facture_V.1.pdf
-                # page 45 -> ubl 2.1 for France seems also supported
-                'invoice_xml_builder': self.env['account.edi.xml.cii'],
-                'invoice_filename': lambda inv: "factur-x.xml",
-                'ecosio_format': {
-                    'invoice': 'de.xrechnung:cii:2.2.0',
-                    'credit_note': 'de.xrechnung:cii:2.2.0',
-                },
-            }
-
-        if self.code == 'ubl_bis3' and company_country_code in self.env['account.edi.common']._get_eas_mapping():
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_bis3'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
-                'ecosio_format': {
-                    'invoice': 'eu.peppol.bis3:invoice:3.13.0',
-                    'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
-                },
-            }
-
-        if self.code == 'ubl_de' and company_country_code == 'DE':
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_de'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_de.xml",
-                'ecosio_format': {
-                    'invoice': 'de.xrechnung:ubl-invoice:2.2.0',
-                    'credit_note': 'de.xrechnung:ubl-creditnote:2.2.0',
-                },
-            }
-
-        if self.code == 'nlcius_1' and company_country_code == 'NL':
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_nl'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_nlcius.xml",
-                'ecosio_format': {
-                    'invoice': 'org.simplerinvoicing:invoice:2.0.3.3',
-                    'credit_note': 'org.simplerinvoicing:creditnote:2.0.3.3',
-                },
-            }
-
-        # a bit useless since bis 3 includes EHF3
-        if self.code == 'ehf_3' and company_country_code == 'NO':
-            return {
-                'invoice_xml_builder': self.env['account.edi.xml.ubl_no'],
-                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ehf3.xml",
-                'ecosio_format': {
-                    'invoice': 'eu.peppol.bis3:invoice:3.13.0',
-                    'credit_note': 'eu.peppol.bis3:creditnote:3.13.0',
-                },
-            }
-
-    def _get_edi_ubl_cii_info(self, company, customer=None):
-        self.ensure_one()
-
-        if not company.country_id:
-            return
-        return self._get_edi_ubl_cii_builder(company.country_id.code.upper())
 
     def _infer_xml_builder_from_tree(self, tree):
         self.ensure_one()
@@ -122,6 +48,14 @@ class AccountEdiFormat(models.Model):
                 return self.env['account.edi.xml.ubl_21']
         return
 
+    def _is_generation_possible(self, company):
+        """
+        Returns a boolean indicating whether it is possible to generate an xml file using one of the formats from this
+        module or not
+        """
+        format_class_suffix = FORMAT_CODE_TO_CLASS_SUFFIX.get(self.code)
+        return format_class_suffix and self.env['account.edi.xml.' + format_class_suffix]._get_xml_builder(self.code, company)
+
     ####################################################
     # Export: Account.edi.format override
     ####################################################
@@ -130,27 +64,18 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code not in self.env['account.edi.common']._get_format_code_list():
+        if not self._is_generation_possible(invoice.company_id):
             return super()._is_required_for_invoice(invoice)
 
         if invoice.move_type not in ('out_invoice', 'out_refund'):
             return False
-        return bool(self._get_edi_ubl_cii_info(invoice.company_id, customer=invoice.partner_id))
-
-    def _is_compatible_with_journal(self, journal):
-        # OVERRIDE
-        self.ensure_one()
-
-        if self.code not in self.env['account.edi.common']._get_format_code_list():
-            return super()._is_compatible_with_journal(journal)
-
-        return super()._is_compatible_with_journal(journal)
+        return True
 
     def _is_enabled_by_default_on_journal(self, journal):
         # OVERRIDE
         self.ensure_one()
 
-        if self._get_edi_ubl_cii_info(journal.company_id):
+        if self._is_generation_possible(journal.company_id):
             return True
 
         return super()._is_enabled_by_default_on_journal(journal)
@@ -159,20 +84,17 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        ubl_cii_info = self._get_edi_ubl_cii_info(invoices.company_id, customer=invoices.partner_id)
-
-        if self.code not in self.env['account.edi.common']._get_format_code_list() or not ubl_cii_info:
+        if not self._is_generation_possible(invoices[0].company_id):
             return super()._post_invoice_edi(invoices)
 
         res = {}
         for invoice in invoices:
-            # TODO refactor
-            # for i in invoice.journal_id.format_ids:
-            #     env['account.edi.format' + i.code].generate()
+            format_class_suffix = FORMAT_CODE_TO_CLASS_SUFFIX.get(self.code)
+            res = self.env['account.edi.xml.' + format_class_suffix]._get_xml_builder(self.code, invoice.company_id)
 
-            xml_content, errors = ubl_cii_info['invoice_xml_builder']._export_invoice(invoice)
+            xml_content, errors = res['export_invoice'](invoice)
             # DEBUG: export generated xml file
-            #with open(ubl_cii_info['invoice_filename'](invoice), 'w+') as f:
+            #with open(res['invoice_filename'](invoice), 'w+') as f:
             #    f.write(xml_content)
             if errors:
                 # don't block the user, but give him a warning in the chatter
@@ -180,12 +102,12 @@ class AccountEdiFormat(models.Model):
                 invoice.with_context(no_new_invoice=True).message_post(
                     body=
                     _("Warning, errors occured while creating the edi document (format: %s). The receiver might "
-                      "refuse it.", ubl_cii_info['invoice_xml_builder']._description)
+                      "refuse it.", self.env['account.edi.xml.' + format_class_suffix]._description)
                     + '<p> <li>' + "</li> <li>".join(errors) + '</li> <p>'
                 )
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
-            #response = self._check_xml_ecosio(invoice, xml_content, ubl_cii_info['ecosio_format'])
+            #response = self._check_xml_ecosio(invoice, xml_content, res['ecosio_format'])
             #print("Response: ", response['Result'])
 
             # remove existing (old) attachments
@@ -193,11 +115,11 @@ class AccountEdiFormat(models.Model):
                 ('res_model', '=', 'account.move'),
                 ('res_id', '=', invoice.id),
                 ('mimetype', '=', 'application/xml'),
-                ('name', '=', ubl_cii_info['invoice_filename'](invoice)),
+                ('name', '=', res['invoice_filename'](invoice)),
             ]).unlink()
 
             attachment = self.env['ir.attachment'].create({
-                'name': ubl_cii_info['invoice_filename'](invoice),
+                'name': res['invoice_filename'](invoice),
                 'datas': base64.encodebytes(xml_content.encode('utf-8')),
                 'res_model': 'account.move',
                 'res_id': invoice.id,
@@ -222,22 +144,18 @@ class AccountEdiFormat(models.Model):
     def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         # OVERRIDE
         self.ensure_one()
-        if self.code not in self.env['account.edi.common']._get_format_code_list():
-            return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
-        invoice_xml_builder = None
-        if journal:
-            ubl_cii_info = self._get_edi_ubl_cii_info(journal.company_id)
-            if ubl_cii_info:
-                invoice_xml_builder = ubl_cii_info['invoice_xml_builder']
-        else:
+        if not journal:
             # infer the journal
             journal = self.env['account.journal'].search([
                 ('company_id', '=', self.env.company.id), ('type', '=', 'purchase')
-            ])
-            journal.ensure_one()
-            # infer the xml builder
-            invoice_xml_builder = self._infer_xml_builder_from_tree(tree)
+            ], limit=1)
+
+        if not self._is_generation_possible(journal.company_id):
+            return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
+
+        # infer the xml builder
+        invoice_xml_builder = self._infer_xml_builder_from_tree(tree)
 
         if invoice_xml_builder is not None:
             invoice = invoice_xml_builder._import_invoice(journal, filename, tree)
@@ -250,13 +168,11 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if self.code not in self.env['account.edi.common']._get_format_code_list():
+        if not self._is_generation_possible(invoice.company_id):
             return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 
-        invoice_xml_builder = None
-        ubl_cii_info = self._get_edi_ubl_cii_info(invoice.journal_id.company_id)
-        if ubl_cii_info:
-            invoice_xml_builder = ubl_cii_info['invoice_xml_builder']
+        # infer the xml builder
+        invoice_xml_builder = self._infer_xml_builder_from_tree(tree)
 
         if invoice_xml_builder is not None:
             invoice = invoice_xml_builder._import_invoice(invoice.journal_id, filename, tree, invoice)

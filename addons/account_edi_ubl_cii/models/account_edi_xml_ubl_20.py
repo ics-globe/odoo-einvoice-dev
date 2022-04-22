@@ -14,6 +14,17 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    def _get_xml_builder(self, format_code, company):
+        if format_code == 'ubl_20':
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_20.xml",
+                'ecosio_format': {
+                    'invoice': 'org.oasis-open:invoice:2.0',
+                    'credit_note': 'org.oasis-open:creditnote:2.0',
+                },
+            }
+
     def _get_country_vals(self, country):
         return {
             'country': country,
@@ -234,7 +245,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         Allowances are distinguished from charges using the ChargeIndicator node with 'false' as value.
 
         Note that allowance charges do not exist for credit notes in UBL 2.0, so if we apply discount in Odoo
-        the net price will not be consistent with the unit price, but we cannot do anything about it ¯\_(ツ)_/¯
+        the net price will not be consistent with the unit price, but we cannot do anything about it
 
         :param line:    An invoice line.
         :return:        A list of python dictionaries.
@@ -373,30 +384,13 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'taxes_vals': taxes_vals,
 
             'format_float': self.format_float,
-
-            #'PartyNameType_template': 'account_edi_ubl_cii.ubl_20_PartyNameType',
-            #'CountryType_template': 'account_edi_ubl_cii.ubl_20_CountryType',
             'AddressType_template': 'account_edi_ubl_cii.ubl_20_AddressType',
-            #'PartyTaxSchemeType_template': 'account_edi_ubl_cii.ubl_20_PartyTaxSchemeType',
-            #'PartyLegalEntityType_template': 'account_edi_ubl_cii.ubl_20_PartyLegalEntityType',
             'ContactType_template': 'account_edi_ubl_cii.ubl_20_ContactType',
             'PartyType_template': 'account_edi_ubl_cii.ubl_20_PartyType',
-            #'PartyIdentificationType_template': 'account_edi_ubl_cii.ubl_20_PartyIdentificationType',
-            #'SupplierPartyType_template': 'account_edi_ubl_cii.ubl_20_SupplierPartyType',
-            #'CustomerPartyType_template': 'account_edi_ubl_cii.ubl_20_CustomerPartyType',
-            #'FinancialInstitutionType_template': 'account_edi_ubl_cii.ubl_20_FinancialInstitutionType',
-            #'BranchType_template': 'account_edi_ubl_cii.ubl_20_BranchType',
-            #'FinancialAccountType_template': 'account_edi_ubl_cii.ubl_20_FinancialAccountType',
             'PaymentMeansType_template': 'account_edi_ubl_cii.ubl_20_PaymentMeansType',
-            #'PaymentTermsType_template': 'account_edi_ubl_cii.ubl_20_PaymentTermsType',
             'TaxCategoryType_template': 'account_edi_ubl_cii.ubl_20_TaxCategoryType',
-            #'TaxSubtotalType_template': 'account_edi_ubl_cii.ubl_20_TaxSubtotalType',
             'TaxTotalType_template': 'account_edi_ubl_cii.ubl_20_TaxTotalType',
-            #'MonetaryTotalType_template': 'account_edi_ubl_cii.ubl_20_MonetaryTotalType',
-            #'ItemIdentificationType_template': 'account_edi_ubl_cii.ubl_20_ItemIdentificationType',
-            #'ItemType_template': 'account_edi_ubl_cii.ubl_20_ItemType',
             'AllowanceChargeType_template': 'account_edi_ubl_cii.ubl_20_AllowanceChargeType',
-            #'PriceType_template': 'account_edi_ubl_cii.ubl_20_PriceType',
             'InvoiceLineType_template': 'account_edi_ubl_cii.ubl_20_InvoiceLineType',
             'InvoiceType_template': 'account_edi_ubl_cii.ubl_20_InvoiceType',
 

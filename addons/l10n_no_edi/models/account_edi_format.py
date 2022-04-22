@@ -69,7 +69,7 @@ class AccountEdiFormat(models.Model):
 
     def _check_move_configuration(self, invoice):
         errors = super()._check_move_configuration(invoice)
-        if self.code != 'ehf_3' or hasattr(self, '_get_edi_ubl_cii_builder'):
+        if self.code != 'ehf_3' or hasattr(self, '_infer_xml_builder_from_tree'):
             return errors
 
         supplier = invoice.company_id.partner_id.commercial_partner_id
@@ -96,7 +96,7 @@ class AccountEdiFormat(models.Model):
 
     def _post_invoice_edi(self, invoices):
         self.ensure_one()
-        if self.code != 'ehf_3' or hasattr(self, '_get_edi_ubl_cii_builder'):
+        if self.code != 'ehf_3' or hasattr(self, '_infer_xml_builder_from_tree'):
             return super()._post_invoice_edi(invoices)
 
         invoice = invoices  # no batch ensure that there is only one invoice
@@ -105,12 +105,12 @@ class AccountEdiFormat(models.Model):
 
     def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
         self.ensure_one()
-        if self.code == 'ehf_3' and self._is_ehf_3(filename, tree) and not hasattr(self, '_get_edi_ubl_cii_builder'):
+        if self.code == 'ehf_3' and self._is_ehf_3(filename, tree) and not hasattr(self, '_infer_xml_builder_from_tree'):
             return self._decode_bis3(tree, self.env['account.move'])
         return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
         self.ensure_one()
-        if self.code == 'ehf_3' and self._is_ehf_3(filename, tree) and not hasattr(self, '_get_edi_ubl_cii_builder'):
+        if self.code == 'ehf_3' and self._is_ehf_3(filename, tree) and not hasattr(self, '_infer_xml_builder_from_tree'):
             return self._decode_bis3(tree, invoice)
         return super()._update_invoice_from_xml_tree(filename, tree, invoice)

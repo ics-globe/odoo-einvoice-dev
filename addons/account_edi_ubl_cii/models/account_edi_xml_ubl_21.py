@@ -11,6 +11,17 @@ class AccountEdiXmlUBL21(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    def _get_xml_builder(self, format_code, company):
+        if format_code == 'ubl_2_1':
+            return {
+                'export_invoice': self._export_invoice,
+                'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_21.xml",
+                'ecosio_format': {
+                    'invoice': 'org.oasis-open:invoice:2.1',
+                    'credit_note': 'org.oasis-open:creditnote:2.1',
+                },
+            }
+
     def _export_invoice_vals(self, invoice):
         # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
@@ -18,8 +29,6 @@ class AccountEdiXmlUBL21(models.AbstractModel):
         vals.update({
             'InvoiceType_template': 'account_edi_ubl_cii.ubl_21_InvoiceType',
             'InvoiceLineType_template': 'account_edi_ubl_cii.ubl_21_InvoiceLineType',
-            #'PaymentMeansType_template': 'account_edi_ubl_cii.ubl_20_PaymentMeansType',
-            #'PaymentMandateType_template': 'account_edi_ubl_cii.ubl_21_PaymentMandateType',
         })
 
         vals['vals'].update({
