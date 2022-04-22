@@ -18,7 +18,7 @@ class AccountEdiXmlUBL21(models.AbstractModel):
         vals.update({
             'InvoiceType_template': 'account_edi_ubl_cii.ubl_21_InvoiceType',
             'InvoiceLineType_template': 'account_edi_ubl_cii.ubl_21_InvoiceLineType',
-            #'PaymentMeansType_template': 'account_edi_ubl_cii.ubl_21_PaymentMeansType',
+            #'PaymentMeansType_template': 'account_edi_ubl_cii.ubl_20_PaymentMeansType',
             #'PaymentMandateType_template': 'account_edi_ubl_cii.ubl_21_PaymentMandateType',
         })
 

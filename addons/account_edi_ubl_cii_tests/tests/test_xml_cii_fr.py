@@ -160,15 +160,15 @@ class TestCIIFR(TestUBLCommon):
             self.partner_1,
             self.partner_2,
             xpaths='''
-            <xpath expr="./*[local-name()='ExchangedDocument']/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-            </xpath>
-            <xpath expr=".//*[local-name()='IssuerAssignedID']" position="replace">
-                    <IssuerAssignedID>___ignore___</IssuerAssignedID>
-            </xpath>
-            <xpath expr=".//*[local-name()='PaymentReference']" position="replace">
-                    <PaymentReference>___ignore___</PaymentReference>
-            </xpath>
+                <xpath expr="./*[local-name()='ExchangedDocument']/*[local-name()='ID']" position="replace">
+                        <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='IssuerAssignedID']" position="replace">
+                        <IssuerAssignedID>___ignore___</IssuerAssignedID>
+                </xpath>
+                <xpath expr=".//*[local-name()='PaymentReference']" position="replace">
+                        <PaymentReference>___ignore___</PaymentReference>
+                </xpath>
             ''',
             expected_file='test_fr_out_invoice.xml',
             export_file='export_out_invoice.xml',
@@ -206,12 +206,12 @@ class TestCIIFR(TestUBLCommon):
             self.partner_1,
             self.partner_2,
             xpaths='''
-            <xpath expr="./*[local-name()='ExchangedDocument']/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-            </xpath>
-            <xpath expr=".//*[local-name()='IssuerAssignedID']" position="replace">
-                    <IssuerAssignedID>___ignore___</IssuerAssignedID>
-            </xpath>
+                <xpath expr="./*[local-name()='ExchangedDocument']/*[local-name()='ID']" position="replace">
+                        <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='IssuerAssignedID']" position="replace">
+                        <IssuerAssignedID>___ignore___</IssuerAssignedID>
+                </xpath>
             ''',
             expected_file='test_fr_out_refund.xml',
             export_file='export_out_refund.xml',

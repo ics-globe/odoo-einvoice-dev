@@ -229,7 +229,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         return vals_list
 
     def _get_invoice_line_allowance_vals_list(self, line):
-        """ Method used to fill the cac:InvoiceLine/cac:AllowanceCharge node.
+        """ Method used to fill the cac:InvoiceLine>cac:AllowanceCharge node.
 
         Allowances are distinguished from charges using the ChargeIndicator node with 'false' as value.
 
@@ -415,7 +415,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 },
                 'InvoicePeriod_vals_list': self._get_invoice_period_vals_list(invoice),
                 'Delivery_vals_list': self._get_delivery_vals_list(invoice),
-                'PaymentMeans_vals': self._get_invoice_payment_means_vals_list(invoice),
+                'PaymentMeans_vals_list': self._get_invoice_payment_means_vals_list(invoice),
                 'PaymentTerms_vals': self._get_invoice_payment_terms_vals_list(invoice),
                 # allowances at the document level, the allowances on invoices (eg. discount) are on InvoiceLine_vals
                 'AllowanceCharge_vals': document_allowance_charge_vals_list,

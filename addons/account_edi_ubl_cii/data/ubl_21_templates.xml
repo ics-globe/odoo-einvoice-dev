@@ -45,9 +45,9 @@
                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                     t-esc="vals.get('buyer_reference')"/>
         </xpath>
-        <xpath expr="//*[local-name()='Delivery']" position="after">
+        <xpath expr="//*[@id='Delivery_foreach']" position="after">
             <t t-if="invoice.move_type == 'out_refund'">
-                <t t-foreach="vals.get('PaymentMeans_vals', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('PaymentMeans_vals_list', [])" t-as="foreach_vals">
                     <cac:PaymentMeans
                         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"

@@ -142,9 +142,9 @@ class AccountEdiCommon(models.AbstractModel):
         # Only solution is to have a big dictionary mapping the units and the unit codes
         # If no uom is found -> default to unit = C62
         xmlid = line.product_uom_id.get_external_id()
-        if not xmlid:
-            return 'C62'
-        return UOM_TO_UNECE_CODE.get(xmlid[line.product_uom_id.id].split('.')[1], 'C62')
+        if xmlid and line.product_uom_id.id in xmlid and len(xmlid[line.product_uom_id.id].split('.')) == 2:
+            return UOM_TO_UNECE_CODE.get(xmlid[line.product_uom_id.id].split('.')[1], 'C62')
+        return 'C62'
 
     # -------------------------------------------------------------------------
     # TAXES

@@ -280,7 +280,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # note: no need to check account_number, because it's a required field for a partner_bank
             'cen_en16931_payment_account_identifier': self._check_required_fields(
                 invoice, 'partner_bank_id'
-            ) if vals['vals']['PaymentMeans_vals'][0]['payment_means_code'] in (30, 58) else None,
+            ) if vals['vals']['PaymentMeans_vals_list'][0]['payment_means_code'] in (30, 58) else None,
             # [BR-62]-The Seller electronic address (BT-34) shall have a Scheme identifier.
             # if this fails, it might just be a missing country when mapping the country to the EAS code
             'cen_en16931_seller_EAS': self._check_required_fields(
@@ -296,7 +296,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
             'cen_en16931_delivery_country_code': self._check_required_fields(
-                vals['vals']['Delivery_vals_list'], 'delivery_location',
+                vals['vals']['Delivery_vals_list'][0], 'Location_vals',
                 _("For intracommunity supply, the delivery address should be included.")
             ) if intracom_delivery else None,
 
@@ -304,10 +304,10 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
             # shall not be blank.
             'cen_en16931_delivery_date_invoicing_period': self._check_required_fields(
-                vals['vals']['Delivery_vals_list'], 'actual_delivery_date',
+                vals['vals']['Delivery_vals_list'][0], 'actual_delivery_date',
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) and self._check_required_fields(
-                vals['vals']['InvoicePeriod_vals_list'], ['start_date', 'end_date'],
+                vals['vals']['InvoicePeriod_vals_list'][0], ['start_date', 'end_date'],
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) if intracom_delivery else None,
         }

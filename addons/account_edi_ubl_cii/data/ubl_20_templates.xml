@@ -311,7 +311,7 @@
                     </t>
                 </cac:Party>
             </cac:AccountingCustomerParty>
-            <t t-foreach="vals.get('Delivery_vals_list', [])" t-as="foreach_vals">
+            <t id="Delivery_foreach" t-foreach="vals.get('Delivery_vals_list', [])" t-as="foreach_vals">
                 <cac:Delivery>
                     <cbc:ActualDeliveryDate t-esc="foreach_vals.get('actual_delivery_date')"/>
                     <cac:DeliveryLocation>
@@ -329,7 +329,7 @@
             http://www.datypic.com/sc/ubl20/e-ns19_Invoice.html
             http://www.datypic.com/sc/ubl20/e-ns14_CreditNote.html -->
             <t t-if="invoice.move_type == 'out_invoice'">
-                <t t-foreach="vals.get('PaymentMeans_vals', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('PaymentMeans_vals_list', [])" t-as="foreach_vals">
                     <cac:PaymentMeans>
                         <t t-call="{{PaymentMeansType_template}}">
                             <t t-set="vals" t-value="foreach_vals"/>
