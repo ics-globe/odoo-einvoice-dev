@@ -430,6 +430,11 @@ body.editor_enable.editor_has_snippets {
             margin: 0 (-$o-we-dropzone-size/2);
         }
     }
+    &.bg-danger {
+        background-color: rgba($o-we-color-danger, 0.15) !important;
+        color: $o-we-color-danger !important;
+        border-color: $o-we-color-danger !important;
+    }
 }
 
 // MANIPULATORS
