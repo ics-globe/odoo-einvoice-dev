@@ -28,7 +28,7 @@
 </template>
 
 <!-- Event - Description -->
-<template id="event_description_full" name="Event Description" track="1">
+<template id="event_description_full" name="Event Description">
     <t t-call="website_event.event_details">
         <section class="bg-200 mt-n5">
             <div class="container overflow-hidden">

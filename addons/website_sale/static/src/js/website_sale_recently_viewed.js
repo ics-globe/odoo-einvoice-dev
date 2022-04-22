@@ -30,9 +30,6 @@ publicWidget.registry.productsRecentlyViewedUpdate = publicWidget.Widget.extend(
     _updateProductView: function ($input) {
         var productId = parseInt($input.val());
         var cookieName = 'seen_product_id_' + productId;
-        if (! parseInt(this.el.dataset.viewTrack, 10)) {
-            return; // Is not tracked
-        }
         if (utils.get_cookie(cookieName)) {
             return; // Already tracked in the last 30min
         }

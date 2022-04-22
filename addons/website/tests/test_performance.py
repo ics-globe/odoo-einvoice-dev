@@ -76,7 +76,6 @@ class TestWebsitePerformance(UtilPerf):
             'key': 'website.page_test_%s' % name,
             'is_published': True,
             'website_id': website.id,
-            'track': False,
         })
         menu = self.env['website.menu'].create({
             'name': name,
@@ -87,17 +86,7 @@ class TestWebsitePerformance(UtilPerf):
         })
         return (page, menu)
 
-    def test_10_perf_sql_queries_page(self):
-        # standard untracked website.page
-        self.assertEqual(self._get_url_hot_query(self.page.url), 6)
-        self.assertEqual(self._get_url_hot_query(self.page.url, cache=False), 11)
-        self.menu.unlink()
-        self.assertEqual(self._get_url_hot_query(self.page.url), 6)
-        self.assertEqual(self._get_url_hot_query(self.page.url, cache=False), 11)
-
     def test_15_perf_sql_queries_page(self):
-        # standard tracked website.page
-        self.page.track = True
         self.assertEqual(self._get_url_hot_query(self.page.url), 14)
         self.assertEqual(self._get_url_hot_query(self.page.url, cache=False), 19)
         self.menu.unlink()

@@ -133,6 +133,8 @@ class Http(models.AbstractModel):
 
     @classmethod
     def _register_website_track(cls, response):
+        if not hasattr(request, 'lang'):
+            return False
         if getattr(response, 'status_code', 0) != 200:
             return False
 
@@ -145,7 +147,7 @@ class Http(models.AbstractModel):
             template = response.qcontext.get('response_template')
 
         view = template and request.env['website'].get_template(template)
-        if view and view.track:
+        if view:
             request.env['website.visitor']._handle_webpage_dispatch(response, website_page)
 
         return False

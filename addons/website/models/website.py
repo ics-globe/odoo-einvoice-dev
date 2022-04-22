@@ -692,7 +692,6 @@ class Website(models.Model):
                 'url': page_url,
                 'website_id': website.id,  # remove it if only one website or not?
                 'view_id': view.id,
-                'track': True,
             }
             if page_values:
                 default_page_values.update(page_values)

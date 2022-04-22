@@ -407,9 +407,6 @@ class WebsiteSale(http.Controller):
             max_price=request.params.get('max_price'),
         )
 
-        # Needed to trigger the recently viewed product rpc
-        view_track = request.website.viewref("website_sale.product").track
-
         return {
             'search': search,
             'category': category,
@@ -421,7 +418,6 @@ class WebsiteSale(http.Controller):
             'main_object': product,
             'product': product,
             'add_qty': 1,
-            'view_track': view_track,
         }
 
     @http.route(['/shop/change_pricelist/<model("product.pricelist"):pricelist>'], type='http', auth="public", website=True, sitemap=False)

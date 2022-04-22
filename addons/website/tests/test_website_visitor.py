@@ -45,7 +45,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
                         </t>
                     </t>''',
             'key': 'test.base_view',
-            'track': False,
         })
         tracked_view = self.env['ir.ui.view'].create({
             'name': 'TrackedView',
@@ -56,7 +55,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
                         </t>
                     </t>''',
             'key': 'test.base_view',
-            'track': True,
         })
         tracked_view_2 = self.env['ir.ui.view'].create({
             'name': 'TrackedView2',
@@ -67,7 +65,6 @@ class WebsiteVisitorTests(MockVisitor, HttpCaseWithUserDemo):
                         </t>
                     </t>''',
             'key': 'test.base_view',
-            'track': True,
         })
         [self.untracked_page, self.tracked_page, self.tracked_page_2] = self.env['website.page'].create([
             {

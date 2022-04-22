@@ -232,7 +232,6 @@
             'website/static/src/js/menu/new_content.js',
             'website/static/src/js/menu/seo.js',
             'website/static/src/js/menu/translate.js',
-            'website/static/src/js/set_view_track.js',
             'website/static/src/js/tours/homepage.js',
             'website/static/src/js/tours/tour_utils.js',
             'website/static/src/js/widgets/ace.js',
