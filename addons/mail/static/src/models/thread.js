@@ -798,24 +798,6 @@ registerModel({
             });
         },
         /**
-         * Handles click on the avatar of the given member in the member list of
-         * this channel.
-         *
-         * @param {Partner} member
-         */
-        onClickMemberAvatar(member) {
-            member.openChat();
-        },
-        /**
-         * Handles click on the name of the given member in the member list of
-         * this channel.
-         *
-         * @param {Partner} member
-         */
-        onClickMemberName(member) {
-            member.openProfile();
-        },
-        /**
          * Opens this thread either as form view, in discuss app, or as a chat
          * window. The thread will be opened in an "active" matter, which will
          * interrupt current user flow.
@@ -1777,20 +1759,6 @@ registerModel({
          */
         async onClick() {
             await this.open();
-        },
-        /**
-         * Handles click on the "load more members" button.
-         */
-        async onClickLoadMoreMembers() {
-            const members = await this.messaging.rpc({
-                model: 'mail.channel',
-                method: 'load_more_members',
-                args: [[this.id]],
-                kwargs: {
-                    'known_member_ids': this.members.map(partner => partner.id),
-                },
-            });
-            this.update({ members });
         },
         onCurrentPartnerInactiveTypingTimeout() {
             this.unregisterCurrentPartnerIsTyping();

@@ -1214,7 +1214,7 @@ class Channel(models.Model):
             fields=['id', 'name', 'im_status'],
             limit=30
         )
-        return [('insert', partners)]
+        return partners
 
     def _get_avatar_cache_key(self):
         if not self.avatar_128:
