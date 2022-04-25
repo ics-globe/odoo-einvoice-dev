@@ -101,7 +101,7 @@ const FieldMailingFilter = FieldMany2One.extend({
      * @param {event} ev
      */
     _onFavoriteFilterDropdownShown(ev) {
-        const filterInput = ev.target.querySelector('input.o_mass_mailing_filter_name');
+        const filterInput = ev.currentTarget.querySelector('input.o_mass_mailing_filter_name');
         filterInput.value = '';
         filterInput.focus({ preventScroll: true });
     },
