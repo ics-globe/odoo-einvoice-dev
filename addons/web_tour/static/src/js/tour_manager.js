@@ -461,6 +461,10 @@ return core.Class.extend(mixins.EventDispatcherMixin, ServicesMixin, {
                     console.log(log);
                 });
                 console.log(document.body.parentElement.outerHTML);
+                // Also log iframes HTML
+                document.body.querySelectorAll('iframe:not(.o_technical_iframe)').forEach(iframeEl => {
+                    console.log(iframeEl.contentDocument.body.parentElement.outerHTML);
+                });
                 console.error(error); // will be displayed as error info
             } else {
                 console.log(_.str.sprintf("Tour %s succeeded", tour_name));
