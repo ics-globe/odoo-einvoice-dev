@@ -659,7 +659,7 @@
                                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
                                 <div class="js_product js_main_product mb-3">
                                     <div>
-                                        <t t-call="website_sale.product_price" />
+                                        <t t-call="website_sale.product_price"/>
                                         <small t-if="combination_info['base_unit_price']"
                                                class="ml-1 text-muted o_base_unit_price_wrapper d-none" groups="website_sale.group_show_uom_price">
                                             <t t-call='website_sale.base_unit_price'/>
@@ -679,7 +679,7 @@
                                         </t>
                                     </t>
                                     <p t-if="True" class="css_not_available_msg alert alert-warning">This combination does not exist.</p>
-                                    <div id="o_wsale_cta_wrapper" class="d-flex flex-wrap align-items-center">
+                                    <div id="o_wsale_cta_wrapper" t-attf-class="{{'d-flex' if combination_info['price'] else 'd-none'}} flex-wrap align-items-center">
                                         <t t-set="hasQuantities" t-value="false"/>
                                         <t t-set="hasBuyNow" t-value="false"/>
                                         <t t-set="ctaSizeBig" t-value="not hasQuantities or not hasBuyNow"/>
@@ -694,7 +694,7 @@
                                     </div>
                                     <t t-if="website.hide_add_to_cart">
                                         <div id="contact_us_wrapper"
-                                             t-attf-class="d-none oe_structure oe_structure_solo #{_div_classes}">
+                                             t-attf-class="{{'d-none' if combination_info['price'] else 'd-flex'}} oe_structure oe_structure_solo #{_div_classes}">
                                             <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
                                                 <div class="container">
                                                     <a t-att-href="website.contact_us_button_url"
@@ -857,7 +857,7 @@
     </template>
 
     <template id="product_price">
-        <div itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" class="product_price d-inline-block mt-2 mb-3">
+        <div itemprop="offers" itemscope="itemscope" itemtype="http://schema.org/Offer" t-attf-class="product_price mt-2 mb-3 {{'d-inline-block' if combination_info['price'] else 'd-none'}}">
             <h3 class="css_editable_mode_hidden">
                 <span class="oe_price" style="white-space: nowrap;" t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                 <span itemprop="price" style="display:none;" t-esc="combination_info['price']"/>
