@@ -421,6 +421,10 @@
         }
     }
 
+    .o_kanban_record.oe_module_vignette .dropdown-toggle {
+        visibility: visible;
+    }
+
     // Kanban Grouped Layout
     &.o_kanban_grouped {
         min-height: 100%;
