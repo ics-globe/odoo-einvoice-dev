@@ -149,7 +149,7 @@ QUnit.module("ActionManager", (hooks) => {
         // open a new dialog form
         await doAction(webClient, 5, { onClose });
 
-        await click(target, ".modal-header button.close");
+        await click(target, ".modal-header button.btn-close");
         await nextTick();
         await legacyExtraNextTick();
         assert.containsNone(target, ".modal");

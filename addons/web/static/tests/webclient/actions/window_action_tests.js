@@ -2123,7 +2123,7 @@ QUnit.module("ActionManager", (hooks) => {
             );
 
             await testUtils.dom.click(
-                document.querySelector(".modal.o_technical_modal button.close")
+                document.querySelector(".modal.o_technical_modal button.btn-close")
             );
             assert.containsNone(
                 document.body,

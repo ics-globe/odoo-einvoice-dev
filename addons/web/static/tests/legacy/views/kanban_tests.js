@@ -3981,7 +3981,7 @@ QUnit.module('Views', {
             'the name should be "xmo"');
         await testUtils.fields.editInput($('.modal .o_form_editable input'), 'ged'); // change the value
         nbRPCs = 0;
-        await testUtils.dom.click($('.modal-header .close'));
+        await testUtils.dom.click($('.modal-header .btn-close'));
         assert.containsNone(document.body, '.modal');
         assert.strictEqual(kanban.$('.o_kanban_group[data-id=5] .o_column_title').text(), 'xmo',
             'title of the column should still be "xmo"');
