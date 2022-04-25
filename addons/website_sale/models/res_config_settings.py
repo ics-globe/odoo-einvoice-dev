@@ -47,7 +47,7 @@ class ResConfigSettings(models.TransientModel):
     enabled_buy_now_button = fields.Boolean(string="Buy Now")
 
     account_on_checkout = fields.Selection(related='website_id.account_on_checkout', readonly=False)
-    website_sale_hide_add_to_cart = fields.Boolean(string="Hide 'Add To Cart' when price = 0", related='website_id.hide_add_to_cart', readonly=False)
+    website_sale_hide_add_to_cart = fields.Boolean(string="Prevent Sale of Zero Priced Product", related='website_id.hide_add_to_cart', readonly=False)
     website_sale_contact_us_button_url = fields.Char(string="Button URL", related='website_id.contact_us_button_url', readonly=False)
 
     @api.depends('website_id')
