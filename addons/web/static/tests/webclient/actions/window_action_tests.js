@@ -2017,7 +2017,7 @@ QUnit.module("ActionManager", (hooks) => {
                     resolve();
                 });
             });
-            $(actionButton).mouseenter();
+            actionButton.dispatchEvent(new Event("mouseover"));
             await tooltipProm;
             assert.containsN(document.body, ".tooltip", 1);
             await click(actionButton);
