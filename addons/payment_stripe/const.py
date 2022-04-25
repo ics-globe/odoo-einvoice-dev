@@ -34,3 +34,54 @@ HANDLED_WEBHOOK_EVENTS = [
     'payment_intent.succeeded',
     'setup_intent.succeeded',
 ]
+
+# Countries supported by stripe
+# This set is sorted and taken from https://stripe.com/global page
+STRIPE_SUPPORTED_COUNTRIES = {
+    'AE',
+    'AT',
+    'AU',
+    'BE',
+    'BG',
+    'BR',
+    'CA',
+    'CH',
+    'CY',
+    'CZ',
+    'DE',
+    'DK',
+    'EE',
+    'ES',
+    'FI',
+    'FR',
+    'GB',
+    'GI',  # Beta
+    'GR',
+    'HK',
+    'HR',  # Beta
+    'HU',
+    'ID',  # Beta
+    'IE',
+    'IT',
+    'JP',
+    'LI',  # Beta
+    'LT',
+    'LU',
+    'LV',
+    'MT',
+    'MX',
+    'MY',
+    'NL',
+    'NO',
+    'NZ',
+    'PH',  # Beta
+    'PL',
+    'PT',
+    'RO',
+    'SE',
+    'SG',
+    'SI',
+    'SK',
+    'TH',  # Beta
+    'US',
+}

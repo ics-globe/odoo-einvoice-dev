@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models
-from odoo.addons.website_payment.const import STRIPE_SUPPORTED_COUNTRIES
+from odoo.addons.payment_stripe.const import STRIPE_SUPPORTED_COUNTRIES
 
 
 class ResCountry(models.Model):

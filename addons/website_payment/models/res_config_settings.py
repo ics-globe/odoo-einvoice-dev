@@ -60,12 +60,8 @@ class ResConfigSettings(models.TransientModel):
             }
         stripe = self.env.ref('payment.payment_acquirer_stripe')
         stripe.button_immediate_install()
-        # Create a new env including the freshly installed module
-        new_env = api.Environment(self.env.cr, self.env.uid, self.env.context)
-        # Configure Stripe
-        new_stripe = new_env.ref('payment.payment_acquirer_stripe')
-        menu_id = new_env.ref('website.menu_website_website_settings').id
-        return new_stripe.action_stripe_connect_account(menu_id=menu_id)
+        # This will make sure that a new request is made between the installation and the call to `action_stripe_connect_account`.
+        return self.env['ir.actions.actions']._for_xml_id('website_payment.action_stripe_connect_account')
 
     def action_configure_first_provider(self):
         self.ensure_one()
