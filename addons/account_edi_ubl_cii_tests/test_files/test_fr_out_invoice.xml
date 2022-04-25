@@ -25,6 +25,12 @@
       <ram:SpecifiedLineTradeAgreement>
         <ram:GrossPriceProductTradePrice>
           <ram:ChargeAmount>990.00</ram:ChargeAmount>
+          <ram:AppliedTradeAllowanceCharge>
+            <ram:ChargeIndicator>
+              <udt:Indicator>false</udt:Indicator>
+            </ram:ChargeIndicator>
+            <ram:ActualAmount>99.00</ram:ActualAmount>
+          </ram:AppliedTradeAllowanceCharge>
         </ram:GrossPriceProductTradePrice>
         <ram:NetPriceProductTradePrice>
           <ram:ChargeAmount>891.00</ram:ChargeAmount>
@@ -159,7 +165,7 @@
       <ram:PaymentReference>INV/2017/01/0002</ram:PaymentReference>
       <ram:InvoiceCurrencyCode>USD</ram:InvoiceCurrencyCode>
       <ram:SpecifiedTradeSettlementPaymentMeans>
-        <ram:TypeCode>30</ram:TypeCode>
+        <ram:TypeCode>42</ram:TypeCode>
         <ram:PayeePartyCreditorFinancialAccount>
           <ram:ProprietaryID>FR15001559627230</ram:ProprietaryID>
         </ram:PayeePartyCreditorFinancialAccount>

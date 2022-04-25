@@ -65,7 +65,7 @@ class AccountEdiXmlCII(models.AbstractModel):
             ),
             # [BR-DE-4] The element "Seller post code" (BT-38) must be transmitted. (only mandatory in Germany ?)
             'seller_post_code': self._check_required_fields(
-                vals['record']['commercial_partner_id'], 'zip'
+                vals['record']['company_id']['partner_id']['commercial_partner_id'], 'zip'
             ),
             # [BR-CO-26]-In order for the buyer to automatically identify a supplier, the Seller identifier (BT-29),
             # the Seller legal registration identifier (BT-30) and/or the Seller VAT identifier (BT-31) shall be present.
@@ -156,6 +156,9 @@ class AccountEdiXmlCII(models.AbstractModel):
         tax_details = invoice._prepare_edi_tax_details()
         balance_sign = -1 if invoice.is_inbound() else 1
 
+        seller_siret = 'siret' in invoice.company_id._fields and invoice.company_id.siret or invoice.company_id.company_registry
+        buyer_siret = 'siret' in invoice.commercial_partner_id._fields and invoice.commercial_partner_id.siret
+
         template_values = {
             **invoice._prepare_edi_vals_to_export(),
             'tax_details': tax_details,
@@ -165,29 +168,34 @@ class AccountEdiXmlCII(models.AbstractModel):
             'scheduled_delivery_time': self._get_scheduled_delivery_time(invoice),
             'intracom_delivery': False,
             'ExchangedDocument_vals': self._get_exchanged_document_vals(invoice),
+            'seller_specified_legal_organization': seller_siret,
+            'buyer_specified_legal_organization': buyer_siret,
         }
 
         # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement
         for line_vals in template_values['invoice_line_vals_list']:
             line = line_vals['line']
-            uom_unece_code = self._get_uom_unece_code(line)
-            line_vals['uom_code'] = uom_unece_code
+            line_vals['unece_uom_code'] = self._get_uom_unece_code(line)
             # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement / ApplicableTradeTax
             for tax_detail_vals in template_values['tax_details']['invoice_line_tax_details'][line]['tax_details'].values():
                 tax = tax_detail_vals['tax']
-                tax_detail_vals['tax_category_code'] = self._get_tax_unece_codes(invoice, tax)[0]
+                tax_detail_vals['unece_tax_category_code'] = self._get_tax_unece_codes(invoice, tax)[0]
+                tax_detail_vals['amount_type'] = tax.amount_type
+                tax_detail_vals['amount'] = tax.amount
 
         # data used for ApplicableHeaderTradeSettlement / ApplicableTradeTax (at the end of the xml)
         for tax_detail_vals in template_values['tax_details']['tax_details'].values():
             tax = tax_detail_vals['tax']
+            tax_detail_vals['amount_type'] = tax.amount_type
+            tax_detail_vals['amount'] = tax.amount
             # /!\ -0.0 == 0.0 in python but not in XSLT, so it can raise a fatal error when validating the XML
             # if 0.0 is expected and -0.0 is given.
-            tax_amount = tax_detail_vals['tax_amount_currency']
-            tax_detail_vals['tax_amount'] = balance_sign * tax_amount if tax_amount != 0 else 0
+            amount_currency = tax_detail_vals['tax_amount_currency']
+            tax_detail_vals['calculated_amount'] = balance_sign * amount_currency if amount_currency != 0 else 0
             tax_category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_unece_codes(invoice, tax)
-            tax_detail_vals['tax_category_code'] = tax_category_code
-            tax_detail_vals['tax_exemption_reason_code'] = tax_exemption_reason_code
-            tax_detail_vals['tax_exemption_reason'] = tax_exemption_reason
+            tax_detail_vals['unece_tax_category_code'] = tax_category_code
+            tax_detail_vals['exemption_reason'] = tax_exemption_reason
+            tax_detail_vals['exemption_reason_code'] = tax_exemption_reason_code
 
             if tax_category_code == 'K':
                 template_values['intracom_delivery'] = True

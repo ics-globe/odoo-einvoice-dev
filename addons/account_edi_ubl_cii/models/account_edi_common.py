@@ -524,6 +524,13 @@ class AccountEdiCommon(models.AbstractModel):
         if billed_qty * price_unit != 0 and price_subtotal is not None:
             invoice_line_form.discount = 100 * (1 - price_subtotal / (billed_qty * price_unit))
 
+        # Sometimes, the xml received is very bad: unit price = 0, qty = 1, but price_subtotal = -200
+        # for instance, when filling a down payment as an invoice line. The equation in the docstring is not
+        # respected, and the result will not be correct, so we just follow the simple rule below:
+        if net_price_unit == 0 and price_subtotal != net_price_unit * (billed_qty / basis_qty) - allow_charge_amount:
+            invoice_line_form.price_unit = price_subtotal / billed_qty
+
+
     # -------------------------------------------------------------------------
     # Check xml using the free API from Ph. Helger, don't abuse it !
     # -------------------------------------------------------------------------

@@ -85,13 +85,6 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals['endpoint_id_attrs'] = {'schemeID': self._get_eas_mapping().get(partner.country_id.code)}
 
         if partner.country_code == 'NO' and 'l10n_no_bronnoysund_number' in partner._fields:
-            if not mva.is_valid(partner.vat):
-                raise ValidationError(_(
-                    'The VAT number [%(wrong_vat)s] for %(record_label)s does not seem to be valid. \nNote: the expected format is %(expected_format)s',
-                    wrong_vat=partner.vat,
-                    record_label=partner.name,
-                    expected_format="NO995525829MVA",
-                ))
             vals.update({
                 'endpoint_id': partner.l10n_no_bronnoysund_number,
                 'endpoint_id_attrs': {'schemeID': '0192'},

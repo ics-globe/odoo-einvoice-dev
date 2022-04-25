@@ -35,34 +35,41 @@
                                 t-esc="format_monetary(line.price_unit, 2)"/>
                             <ram:BasisQuantity
                                 t-if="line_vals.get('basis_qty')"
-                                t-att-unitCode="line_vals.get('uom_code')"
+                                t-att-unitCode="line_vals.get('unece_uom_code')"
                                 t-esc="line_vals.get('basis_qty')"/>
+                            <!-- Discount. -->
+                            <ram:AppliedTradeAllowanceCharge t-if="line.discount">
+                                <ram:ChargeIndicator>
+                                    <udt:Indicator>false</udt:Indicator>
+                                </ram:ChargeIndicator>
+                                <ram:ActualAmount t-esc="format_monetary(line_vals['price_discount_unit'], 2)"/>
+                            </ram:AppliedTradeAllowanceCharge>
                         </ram:GrossPriceProductTradePrice>
                         <!-- Line unit price, with discount applied -->
                         <ram:NetPriceProductTradePrice>
                             <ram:ChargeAmount
-                                t-esc="format_monetary(line.price_subtotal/line.quantity if line.quantity else 0, 2)"/>
+                                t-esc="format_monetary(line_vals['price_subtotal_unit'], 2)"/>
                             <ram:BasisQuantity
                                 t-if="line_vals.get('basis_qty')"
-                                t-att-unitCode="line_vals.get('uom_code')"
+                                t-att-unitCode="line_vals.get('unece_uom_code')"
                                 t-esc="line_vals.get('basis_qty')"/>
                         </ram:NetPriceProductTradePrice>
                     </ram:SpecifiedLineTradeAgreement>
 
                     <!-- Quantity. -->
                     <ram:SpecifiedLineTradeDelivery>
-                        <ram:BilledQuantity t-att-unitCode="line_vals.get('uom_code')"
-                            t-esc="line.quantity"/> <!-- /!\ The quantity is the line.quantity since we keep the uom_code ! -->
+                        <ram:BilledQuantity
+                                t-att-unitCode="line_vals.get('unece_uom_code')"
+                                t-esc="line.quantity"/> <!-- /!\ The quantity is the line.quantity since we keep the unece_uom_code ! -->
                     </ram:SpecifiedLineTradeDelivery>
 
                     <ram:SpecifiedLineTradeSettlement>
                         <t t-foreach="tax_details['invoice_line_tax_details'][line]['tax_details'].values()"
                            t-as="tax_detail_vals">
-                            <t t-set="tax" t-value="tax_detail_vals.get('tax')"/>
-                            <ram:ApplicableTradeTax t-if="tax.amount_type == 'percent'">
+                            <ram:ApplicableTradeTax t-if="tax_detail_vals['amount_type'] == 'percent'">
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:CategoryCode t-esc="tax_detail_vals.get('tax_category_code')"/>
-                                <ram:RateApplicablePercent t-esc="tax.amount"/>
+                                <ram:CategoryCode t-esc="tax_detail_vals['unece_tax_category_code']"/>
+                                <ram:RateApplicablePercent t-esc="tax_detail_vals['amount']"/>
                             </ram:ApplicableTradeTax>
                         </t>
 
@@ -97,10 +104,9 @@
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 <!-- Contact. -->
                 <ram:Name t-if="partner.name" t-esc="partner.name"/>
-                <ram:SpecifiedLegalOrganization>
+                <ram:SpecifiedLegalOrganization t-if="specified_legal_organization_val">
                     <ram:ID t-att-schemeID="str('0002')"
-                            t-if="partner.company_id and 'siret' in partner.company_id._fields and partner.company_id.siret"
-                            t-esc="partner.company_id.siret"/>
+                            t-esc="specified_legal_organization_val"/>
                 </ram:SpecifiedLegalOrganization>
                 <!-- Address. -->
                 <t t-call="account_edi_ubl_cii.account_invoice_address_facturx_export_22"/>
@@ -169,6 +175,7 @@
                             <!-- Address. -->
                             <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
                                 <t t-set="partner" t-value="record.company_id.partner_id"/>
+                                <t t-set="specified_legal_organization_val" t-value="seller_specified_legal_organization"/>
                             </t>
 
                             <!-- VAT. -->
@@ -182,6 +189,7 @@
                             <!-- Address. -->
                             <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
                                 <t t-set="partner" t-value="record.commercial_partner_id"/>
+                                <t t-set="specified_legal_organization_val" t-value="buyer_specified_legal_organization"/>
                             </t>
 
                             <!-- VAT. -->
@@ -192,7 +200,7 @@
 
                         <!-- Reference. -->
                         <ram:BuyerOrderReferencedDocument>
-                            <ram:IssuerAssignedID t-esc="'%s: %s' % (record.name, record.payment_reference) if record.payment_reference else record.name"/>
+                            <ram:IssuerAssignedID t-esc="record.payment_reference if record.payment_reference else record.name"/>
                         </ram:BuyerOrderReferencedDocument>
                         <ram:ContractReferencedDocument>
                             <ram:IssuerAssignedID t-esc="record.ref"/>
@@ -207,7 +215,7 @@
                                 <t t-if="'partner_shipping_id' in record._fields and record.partner_shipping_id"
                                    t-set="partner" t-value="record.partner_shipping_id"/>
                                 <t t-else=""
-                                   t-set="partner" t-value="record.partner_id"/>
+                                   t-set="partner" t-value="record.commercial_partner_id"/>
                             </t>
                         </ram:ShipToTradeParty>
 
@@ -227,7 +235,7 @@
 
                         <!-- Bank account. -->
                         <ram:SpecifiedTradeSettlementPaymentMeans t-if="record.partner_bank_id.sanitized_acc_number">
-                            <ram:TypeCode>30</ram:TypeCode>
+                            <ram:TypeCode>42</ram:TypeCode>
                             <ram:PayeePartyCreditorFinancialAccount>
                                 <ram:IBANID
                                     t-if="record.partner_bank_id.sanitized_acc_number == 'iban'"
@@ -243,20 +251,18 @@
                             <t t-set="tax" t-value="tax_detail_vals.get('tax')"/>
                             <ram:ApplicableTradeTax>
                                 <ram:CalculatedAmount
-                                    t-esc="format_monetary(tax_detail_vals.get('tax_amount'), 2)"/>
+                                    t-esc="format_monetary(tax_detail_vals.get('calculated_amount'), 2)"/>
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:ExemptionReason
-                                        t-esc="tax_detail_vals.get('tax_exemption_reason')"/>
+                                <ram:ExemptionReason t-esc="tax_detail_vals.get('exemption_reason')"/>
                                 <ram:BasisAmount
-                                    t-esc="format_monetary(balance_multiplicator * tax_detail_vals.get('base_amount_currency'), 2)"/>
-                                <ram:CategoryCode t-esc="tax_detail_vals.get('tax_category_code')"/>
-                                <ram:ExemptionReasonCode
-                                        t-esc="tax_detail_vals.get('tax_exemption_reason_code')"/>
+                                    t-esc="format_monetary(balance_multiplicator * tax_detail_vals['base_amount_currency'], 2)"/>
+                                <ram:CategoryCode t-esc="tax_detail_vals['unece_tax_category_code']"/>
+                                <ram:ExemptionReasonCode t-esc="tax_detail_vals['exemption_reason_code']"/>
                                 <!-- 5 = Tax is exigible on the date on the invoice -->
                                 <ram:DueDateTypeCode>5</ram:DueDateTypeCode>
                                 <ram:RateApplicablePercent
-                                    t-if="tax.amount_type == 'percent'"
-                                    t-esc="tax.amount"/>
+                                    t-if="tax_detail_vals['amount_type'] == 'percent'"
+                                    t-esc="tax_detail_vals['amount']"/>
                             </ram:ApplicableTradeTax>
                         </t>
 

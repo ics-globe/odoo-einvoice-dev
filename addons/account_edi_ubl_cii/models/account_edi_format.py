@@ -107,7 +107,7 @@ class AccountEdiFormat(models.Model):
                 )
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
-            #response = self._check_xml_ecosio(invoice, xml_content, res['ecosio_format'])
+            #response = self.env['account.edi.common']._check_xml_ecosio(invoice, xml_content, res['ecosio_format'])
             #print("Response: ", response['Result'])
 
             # remove existing (old) attachments
