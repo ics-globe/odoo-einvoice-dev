@@ -36,6 +36,14 @@ return session.is_bound.then(function () {
         const disabled = session.tour_disable || device.isMobile;
         var tour_manager = new TourManager(rootWidget, consumed_tours, disabled);
 
+        // The tests can be loaded inside an iframe. The tour manager should
+        // not run in that context, as it will already run in its parent
+        // window.
+        const isInIframe = window.frameElement && window.frameElement.classList.contains('o_iframe');
+        if (isInIframe) {
+            return tour_manager;
+        }
+
         function _isTrackedNode(node) {
             if (node.classList) {
                 return !untrackedClassnames
@@ -140,18 +148,48 @@ return session.is_bound.then(function () {
         });
 
         // Now that the observer is configured, we have to start it when needed.
+        const observerOptions = {
+            attributes: true,
+            childList: true,
+            subtree: true,
+            attributeOldValue: true,
+            characterData: true,
+        };
+
         var start_service = (function () {
             return function (observe) {
                 return new Promise(function (resolve, reject) {
                     tour_manager._register_all(observe).then(function () {
                         if (observe) {
-                            observer.observe(document.body, {
-                                attributes: true,
-                                childList: true,
-                                subtree: true,
-                                attributeOldValue: true,
-                                characterData: true,
+                            observer.observe(document.body, observerOptions);
+
+                            // If an iframe is added during the tour, its DOM
+                            // mutations should also be observed to update the
+                            // tour manager.
+                            const findIframe = mutations => {
+                                for (const mutation of mutations) {
+                                    for (const addedNode of Array.from(mutation.addedNodes)) {
+                                        if (addedNode.nodeType === Node.ELEMENT_NODE) {
+                                            if (addedNode.classList.contains('o_iframe') && !addedNode.classList.contains('o_technical_iframe')) {
+                                                return addedNode;
+                                            }
+                                            const iframeChildEl = addedNode.querySelector('.o_iframe:not(.o_technical_iframe)');
+                                            if (iframeChildEl) {
+                                                return iframeChildEl;
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+                            const iframeObserver = new MutationObserver(mutations => {
+                                const iframeEl = findIframe(mutations);
+                                if (iframeEl) {
+                                    iframeEl.addEventListener('load', () => {
+                                        observer.observe(iframeEl.contentDocument.body, observerOptions);
+                                    });
+                                }
                             });
+                            iframeObserver.observe(document.body, { childList: true, subtree: true });
                         }
                         resolve();
                     });
