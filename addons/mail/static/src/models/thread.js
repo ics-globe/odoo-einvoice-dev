@@ -5,6 +5,7 @@ import { attr, many, one } from '@mail/model/model_field';
 import { clear, insert, insertAndReplace, link, replace, unlink, unlinkAll } from '@mail/model/model_field_command';
 import { OnChange } from '@mail/model/model_onchange';
 import throttle from '@mail/utils/throttle';
+
 import Timer from '@mail/utils/timer';
 import { cleanSearchTerm } from '@mail/utils/utils';
 import * as mailUtils from '@mail/js/utils';
@@ -1161,6 +1162,13 @@ registerModel({
          * @private
          * @returns {FieldCommand}
          */
+        _computeChannelOwner() {
+            return this.model === 'mail.channel' ? insertAndReplace({ id: this.id }) : clear();
+        },
+        /**
+         * @private
+         * @returns {FieldCommand}
+         */
         _computeComposer() {
             if (this.model === 'mail.box') {
                 return clear();
@@ -1910,6 +1918,12 @@ registerModel({
             isCausal: true,
             readonly: true,
             required: true,
+        }),
+        channelOwner: one('Channel', {
+            compute: '_computeChannelOwner',
+            inverse: 'thread',
+            isCausal: true,
+            readonly: true,
         }),
         channel_type: attr(),
         /**
