@@ -1049,7 +1049,7 @@ const Wysiwyg = Widget.extend({
             if (options.forceOpen || !this.linkTools) {
                 const $btn = this.toolbar.$el.find('#create-link');
                 if (!this.linkTools || ![options.link, ...wysiwygUtils.ancestors(options.link)].includes(this.linkTools.$link[0])) {
-                    const { link } = Link.getOrCreateLink({
+                    const { link, linkCreated } = Link.getOrCreateLink({
                         containerNode: this.odooEditor.editable,
                         startNode: options.link || this.lastMediaClicked,
                     });
@@ -1057,7 +1057,7 @@ const Wysiwyg = Widget.extend({
                         return
                     }
                     const linkToolsData = Object.assign({}, this.options.defaultDataForLinkTools);
-                    this.linkTools = new weWidgets.LinkTools(this, {wysiwyg: this, noFocusUrl: options.noFocusUrl}, this.odooEditor.editable, linkToolsData, $btn, link );
+                    this.linkTools = new weWidgets.LinkTools(this, {wysiwyg: this, noFocusUrl: options.noFocusUrl, canUnwrapOnDestroy: linkCreated}, this.odooEditor.editable, linkToolsData, $btn, link );
                 }
                 this.linkTools.noFocusUrl = options.noFocusUrl;
                 const _onMousedown = ev => {

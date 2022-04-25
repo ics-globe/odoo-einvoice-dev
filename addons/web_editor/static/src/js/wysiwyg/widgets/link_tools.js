@@ -30,6 +30,7 @@ const LinkTools = Link.extend({
      */
     init: function (parent, options, editable, data, $button, link) {
         this._link = link;
+        this._initialHref = this._link.getAttribute('href');
         this._observer = new MutationObserver(() =>{
             this._setLinkContent = false;
             this._observer.disconnect();
@@ -56,7 +57,7 @@ const LinkTools = Link.extend({
         }
         $(this.options.wysiwyg.odooEditor.document).find('.oe_edited_link').removeClass('oe_edited_link');
         const $contents = this.$link.contents();
-        if (!this.$link.attr('href') && !this.colorCombinationClass) {
+        if (this.options.canUnwrapOnDestroy && !this.$link.attr('href') && !this.colorCombinationClass) {
             $contents.unwrap();
         }
         this.$button.removeClass('active');
