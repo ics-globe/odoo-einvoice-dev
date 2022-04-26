@@ -63,17 +63,9 @@
                                     <t t-if="company.city">
                                         <span t-if="not company.zip">|</span> <span t-field="company.city"/>
                                     </t>
-                                    <t t-if="company.country_id">
-                                        <span>|</span> <span t-field="company.country_id.name"/>
-                                    </t>
                                     <hr class="company_invoice_line" />
-                                    <div t-if="address">
-                                        <t t-out="address"/>
-                                    </div>
-                                    <div t-else="fallback_address">
-                                        <t t-esc="fallback_address"
-                                           t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}' />
-                                    </div>
+                                    <div t-field="o.partner_id"
+                                         t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
                                 </div>
                             </td>
                             <td>
@@ -93,7 +85,7 @@
                                 <td>
                                     <div class="shipping_address">
                                         <strong><t t-esc="doc_address[0]"/></strong>
-                                        <div t-esc="doc_address[1]" t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True}'/>
+                                        <div t-esc="doc_address[1]" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
                                     </div>
                                 </td>
                             </t>
