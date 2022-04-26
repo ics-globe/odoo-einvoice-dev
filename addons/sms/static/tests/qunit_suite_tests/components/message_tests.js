@@ -2,13 +2,12 @@
 
 import { insert, insertAndReplace } from '@mail/model/model_field_command';
 import { makeDeferred } from '@mail/utils/deferred';
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     afterNextRender,
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('sms', {}, function () {
 QUnit.module('components', {}, function () {
@@ -113,8 +112,8 @@ QUnit.test('Notification Error', async function (assert) {
         notification_type: 'sms',
         res_partner_id: resPartnerId1,
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action, options }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action, options) {
             assert.step('do_action');
             assert.strictEqual(
                 action,
@@ -127,8 +126,11 @@ QUnit.test('Notification Error', async function (assert) {
                 "action should have correct message id"
             );
             openResendActionDef.resolve();
+        },
     });
-    const { createThreadViewComponent, messaging } = await start({ env: { bus } });
+    const { createThreadViewComponent, messaging } = await start({
+        services: { action: actionServiceInterceptor },
+    });
     const threadViewer = messaging.models['ThreadViewer'].create({
         hasThreadView: true,
         qunitTest: insertAndReplace(),

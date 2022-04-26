@@ -156,11 +156,6 @@ registerModel({
          * The id of the action which opened discuss.
          */
         actionId: attr(),
-        /**
-         * Used to push state when changing active thread.
-         * The actionManager passed to the discuss widget.
-         */
-        actionManager: attr(),
         discuss: one('Discuss', {
             inverse: 'discussView',
             readonly: true,

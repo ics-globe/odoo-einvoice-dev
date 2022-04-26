@@ -9,6 +9,7 @@ import {
     startServer,
 } from '@mail/../tests/helpers/test_utils';
 
+import { makeFakeLocalizationService } from "@web/../tests/helpers/mock_services";
 import { file, dom } from 'web.test_utils';
 const { createFile, inputFiles } = file;
 const { triggerEvent } = dom;
@@ -236,12 +237,10 @@ QUnit.test('open chat from "new message" chat window should open chat in place o
     const imSearchDef = makeDeferred();
     patchUiSize({ width: 1920 });
     const { click, createMessagingMenuComponent } = await start({
-        async mockRPC(route, args) {
-            const res = await this._super(...arguments);
+        mockRPC(route, args) {
             if (args.method === 'im_search') {
                 imSearchDef.resolve();
             }
-            return res;
         }
     });
     await createMessagingMenuComponent();
@@ -386,12 +385,10 @@ QUnit.test('new message autocomplete should automatically select first result', 
     pyEnv['res.users'].create({ partner_id: resPartnerId1 });
     const imSearchDef = makeDeferred();
     const { click, createMessagingMenuComponent } = await start({
-        async mockRPC(route, args) {
-            const res = await this._super(...arguments);
+        mockRPC(route, args) {
             if (args.method === 'im_search') {
                 imSearchDef.resolve();
             }
-            return res;
         },
     });
     await createMessagingMenuComponent();
@@ -514,7 +511,6 @@ QUnit.test('chat window: fold', async function (assert) {
             if (args.method === 'channel_fold') {
                 assert.step(`rpc:${args.method}/${args.kwargs.state}`);
             }
-            return this._super(...arguments);
         },
     });
     await createMessagingMenuComponent();
@@ -566,7 +562,6 @@ QUnit.test('chat window: open / close', async function (assert) {
             if (args.method === 'channel_fold') {
                 assert.step(`rpc:channel_fold/${args.kwargs.state}`);
             }
-            return this._super(...arguments);
         },
     });
     await createMessagingMenuComponent();
@@ -737,7 +732,6 @@ QUnit.test('chat window: close on ESCAPE', async function (assert) {
             if (args.method === 'channel_fold') {
                 assert.step(`rpc:channel_fold/${args.kwargs.state}`);
             }
-            return this._super(...arguments);
         },
     });
     assert.containsOnce(
@@ -2019,7 +2013,6 @@ QUnit.test('chat window does not fetch messages if hidden', async function (asse
                 const { channel_id } = args;
                 assert.step(`rpc:/mail/channel/messages:${channel_id}`);
             }
-            return this._super(...arguments);
         },
     });
 
@@ -2286,21 +2279,16 @@ QUnit.test('Textual representations of shift previous/next operations are correc
         },
     ]);
     await start({
-        env: {
-            _t: Object.assign((s => s), {
-                database: {
-                    parameters: {
-                        code: "en_US",
-                        date_format: '%m/%d/%Y',
-                        decimal_point: ".",
-                        direction: 'rtl',
-                        grouping: [],
-                        thousands_sep: ",",
-                        time_format: '%H:%M:%S',
-                    },
-                },
+        services: {
+            localization: makeFakeLocalizationService({
+                dateFormat: '%m/%d/%Y',
+                timeFormat: '%H:%M:%S',
+                direction: 'rtl',
+                grouping: [],
+                thousandsSep: ',',
+                decimalPoint: '.',
             }),
-        }
+        },
     });
 
     assert.strictEqual(

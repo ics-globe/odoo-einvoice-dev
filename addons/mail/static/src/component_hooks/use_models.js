@@ -2,7 +2,7 @@
 
 import { Listener } from '@mail/model/model_listener';
 
-const { onRendered, onWillDestroy, onWillRender, useComponent } = owl;
+const { Component, onRendered, onWillDestroy, onWillRender, useComponent, useSubEnv } = owl;
 
 /**
  * This hook provides support for automatically re-rendering when used records
@@ -15,6 +15,8 @@ const { onRendered, onWillDestroy, onWillRender, useComponent } = owl;
  */
 export function useModels() {
     const component = useComponent();
+    // ensure the environment is the new one.
+    useSubEnv(Component.wowlEnv);
     const { modelManager } = component.env.services.messaging;
     Object.defineProperty(component, 'messaging', {
         get: () => modelManager.messaging,

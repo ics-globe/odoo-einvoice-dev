@@ -1,8 +1,7 @@
 /** @odoo-module **/
 
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import { start, startServer } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('snailmail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -189,8 +188,8 @@ QUnit.test('grouped notifications by document model', async function (assert) {
             notification_type: 'snail', // expected failure type for snailmail message
         },
     ]);
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
             assert.step('do_action');
             assert.strictEqual(
                 action.name,
@@ -227,9 +226,12 @@ QUnit.test('grouped notifications by document model', async function (assert) {
                 JSON.stringify([['message_ids.snailmail_error', '=', true]]),
                 "action should have 'message_has_sms_error' as domain"
             );
+        },
     });
 
-    const { createNotificationListComponent } = await start({ env: { bus } });
+    const { createNotificationListComponent } = await start({
+        services: { action: actionServiceInterceptor },
+     });
     await createNotificationListComponent();
 
     assert.containsOnce(

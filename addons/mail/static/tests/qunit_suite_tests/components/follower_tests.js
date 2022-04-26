@@ -2,13 +2,12 @@
 
 import { insert, replace } from '@mail/model/model_field_command';
 import { makeDeferred } from '@mail/utils/deferred';
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     createRootMessagingComponent,
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('mail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -125,8 +124,8 @@ QUnit.test('click on partner follower details', async function (assert) {
     assert.expect(7);
 
     const openFormDef = makeDeferred();
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
             assert.step('do_action');
             assert.strictEqual(
                 action.res_id,
@@ -144,10 +143,13 @@ QUnit.test('click on partner follower details', async function (assert) {
                 "The redirect action should be of type 'ir.actions.act_window'"
             );
             openFormDef.resolve();
+        },
     });
     const pyEnv = await startServer();
     const resPartnerId1 = pyEnv['res.partner'].create();
-    const { messaging, target } = await start({ env: { bus } });
+    const { messaging, target } = await start({
+        services: { action: actionServiceInterceptor },
+    });
     const thread = messaging.models['Thread'].create({
         id: resPartnerId1,
         model: 'res.partner',
@@ -198,7 +200,6 @@ QUnit.test('click on edit follower', async function (assert) {
             if (route.includes('/mail/read_subscription_data')) {
                 assert.step('fetch_subtypes');
             }
-            return this._super(...arguments);
         },
     });
     const thread = messaging.models['Thread'].create({
@@ -248,7 +249,6 @@ QUnit.test('edit follower and close subtype dialog', async function (assert) {
                     res_model: 'res.partner'
                 }];
             }
-            return this._super(...arguments);
         },
     });
     const thread = messaging.models['Thread'].create({

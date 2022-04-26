@@ -1,8 +1,7 @@
 /** @odoo-module **/
 
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import { afterNextRender, start, startServer } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('mail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -38,7 +37,6 @@ QUnit.test('mark as read', async function (assert) {
                     "should mark all as read the correct thread"
                 );
             }
-            return this._super(...arguments);
         },
     });
     await createMessagingMenuComponent();
@@ -98,7 +96,6 @@ QUnit.test('click on preview should mark as read and open the thread', async fun
                     "should mark all as read the correct thread"
                 );
             }
-            return this._super(...arguments);
         },
     });
     await createMessagingMenuComponent();
@@ -150,8 +147,8 @@ QUnit.test('click on expand from chat window should close the chat window and op
         notification_type: 'inbox',
         res_partner_id: pyEnv.currentPartnerId,
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
             assert.step('do_action');
             assert.strictEqual(
                 action.res_id,
@@ -163,9 +160,12 @@ QUnit.test('click on expand from chat window should close the chat window and op
                 'res.partner',
                 "should redirect to the model of the thread"
             );
+        },
     });
     const { afterEvent, click, createMessagingMenuComponent } = await start({
-        env: { bus },
+        services: {
+            action: actionServiceInterceptor,
+        },
     });
     await createMessagingMenuComponent();
     await afterNextRender(() => afterEvent({
@@ -233,7 +233,6 @@ QUnit.test('[technical] opening a non-channel chat window should not call channe
                 console.error(message);
                 throw Error(message);
             }
-            return this._super(...arguments);
         },
     });
     await createMessagingMenuComponent();

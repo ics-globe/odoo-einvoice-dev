@@ -1,12 +1,11 @@
 /** @odoo-module **/
 
 import { insert, replace } from '@mail/model/model_field_command';
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('mail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -104,8 +103,8 @@ QUnit.test('click on "add followers" button', async function (assert) {
         res_id: resPartnerId1,
         res_model: 'res.partner',
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action, options }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action, options) {
             assert.step('action:open_view');
             assert.strictEqual(
                 action.context.default_res_model,
@@ -128,9 +127,14 @@ QUnit.test('click on "add followers" button', async function (assert) {
                 "The 'add followers' action should be of type 'ir.actions.act_window'"
             );
             pyEnv['res.partner'].write([action.context.default_res_id], { message_follower_ids: [mailFollowerId1] });
-            options.on_close();
+            options.onClose();
+        },
     });
-    const { click, createFollowerListMenuComponent, messaging } = await start({ env: { bus } });
+    const { click, createFollowerListMenuComponent, messaging } = await start({
+        services: {
+            action: actionServiceInterceptor,
+        },
+    });
     const thread = messaging.models['Thread'].create({
         hasWriteAccess: true,
         id: resPartnerId1,
@@ -209,7 +213,6 @@ QUnit.test('click on remove follower', async function (assert) {
                     "message_unsubscribe should be called with right argument"
                 );
             }
-            return this._super(...arguments);
         },
     });
     const thread = messaging.models['Thread'].create({
@@ -274,14 +277,13 @@ QUnit.test('Hide "Add follower" and subtypes edition/removal buttons except own 
         },
     ]);
     const { click, createChatterContainerComponent } = await start({
-        async mockRPC(route, args) {
+        async mockRPC(route, args, performRPC) {
             if (route === '/mail/thread/data') {
                 // mimic user with no write access
-                const res = await this._super(...arguments);
+                const res = await performRPC(route, args);
                 res['hasWriteAccess'] = false;
                 return res;
             }
-            return this._super(...arguments);
         },
     });
     await createChatterContainerComponent({
@@ -340,14 +342,13 @@ QUnit.test('Show "Add follower" and subtypes edition/removal buttons on all foll
         },
     ]);
     const { click, createChatterContainerComponent } = await start({
-        async mockRPC(route, args) {
+        async mockRPC(route, args, performRPC) {
             if (route === '/mail/thread/data') {
                 // mimic user with write access
-                const res = await this._super(...arguments);
+                const res = await performRPC(...arguments);
                 res['hasWriteAccess'] = true;
                 return res;
             }
-            return this._super(...arguments);
         },
     });
     await createChatterContainerComponent({

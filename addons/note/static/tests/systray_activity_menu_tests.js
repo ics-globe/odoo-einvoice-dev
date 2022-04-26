@@ -11,10 +11,10 @@ QUnit.module("ActivityMenu");
 QUnit.test('note activity menu widget: create note from activity menu', async function (assert) {
     assert.expect(15);
 
-    const { widget } = await start();
+    const { widget: activityMenu } = await start({
+        widget: ActivityMenu,
+    });
 
-    const activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
     assert.hasClass(activityMenu.$el, 'o_mail_systray_item',
         'should be the instance of widget');
     await testUtils.nextTick();

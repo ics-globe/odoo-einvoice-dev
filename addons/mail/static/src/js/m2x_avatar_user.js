@@ -45,7 +45,7 @@ const M2XAvatarMixin = {
      * @returns {Promise}
      */
     async _openChat(params) {
-        const messaging = await Component.env.services.messaging.get();
+        const messaging = await Component.wowlEnv.services.messaging.get();
         return messaging.openChat(params);
     },
 };

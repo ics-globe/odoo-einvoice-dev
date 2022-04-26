@@ -29,10 +29,9 @@ QUnit.test('activity menu widget:today meetings', async function (assert) {
             attendee_ids: [calendarAttendeeId1],
         },
     ]);
-    const { widget } = await start();
-
-    const activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
+    const { widget: activityMenu } = await start({
+        widget: ActivityMenu,
+    });
 
     assert.hasClass(activityMenu.$el, 'o_mail_systray_item', 'should be the instance of widget');
 

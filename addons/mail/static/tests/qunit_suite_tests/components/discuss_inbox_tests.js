@@ -1,13 +1,12 @@
 /** @odoo-module **/
 
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     afterNextRender,
     nextAnimationFrame,
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('mail', {}, function () {
 QUnit.module('components', {}, function () {
@@ -348,7 +347,6 @@ QUnit.test('"reply to" composer should log note if message replied to is a note'
                     "should set subtype_xmlid as 'note'"
                 );
             }
-            return this._super(...arguments);
         },
         waitUntilEvent: {
             eventName: 'o-thread-view-hint-processed',
@@ -415,7 +413,6 @@ QUnit.test('"reply to" composer should send message if message replied to is not
                     "should set subtype_xmlid as 'comment'"
                 );
             }
-            return this._super(...arguments);
         },
         waitUntilEvent: {
             eventName: 'o-thread-view-hint-processed',
@@ -601,11 +598,14 @@ QUnit.test('click on (non-channel/non-partner) origin thread link should redirec
         notification_type: 'inbox',
         res_partner_id: pyEnv.currentPartnerId,
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action, options, originalDoAction) {
             // Callback of doing an action (action manager).
             // Expected to be called on click on origin thread link,
             // which redirects to form view of record related to origin thread
+            if (action.tag === 'mail.action_discuss') {
+                return originalDoAction(action, options);
+            }
             assert.step('do-action');
             assert.strictEqual(
                 action.type,
@@ -627,11 +627,11 @@ QUnit.test('click on (non-channel/non-partner) origin thread link should redirec
                 resFakeId1,
                 "action should open view with id of resFake1 (id of message origin thread)"
             );
+            return Promise.resolve();
+        },
     });
     await this.start({
-        env: {
-            bus,
-        },
+        services: { action: actionServiceInterceptor },
         waitUntilEvent: {
             eventName: 'o-thread-view-hint-processed',
             message: "should wait until inbox displayed its messages",

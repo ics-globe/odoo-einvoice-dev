@@ -5,18 +5,15 @@ import { data } from 'mail.discuss_public_channel_template';
 // ensure components are registered beforehand.
 import '@mail/components/dialog_manager/dialog_manager';
 import '@mail/components/discuss_public_view/discuss_public_view';
-import { MessagingService } from '@mail/services/messaging/messaging';
+import { messagingService } from '@mail/services/messaging_service';
+import { makeMessagingValuesProviderService } from '@mail/services/messaging_values_provider_service';
+import { wowlEnvProviderService } from '@mail/services/wowl_env_provider_service';
 import { getMessagingComponent } from '@mail/utils/messaging_component';
 
 import { processTemplates } from '@web/core/assets';
 import { MainComponentsContainer } from '@web/core/main_components_container';
 import { registry } from '@web/core/registry';
 import { makeEnv, startServices } from '@web/env';
-import { session } from '@web/session';
-
-import * as AbstractService from 'web.AbstractService';
-import { serviceRegistry as legacyServiceRegistry } from 'web.core';
-import * as legacyEnv from 'web.env';
 import {
     makeLegacyCrashManagerService,
     makeLegacyDialogMappingService,
@@ -25,6 +22,10 @@ import {
     makeLegacySessionService,
     mapLegacyEnvToWowlEnv,
 } from '@web/legacy/utils';
+import { session } from '@web/session';
+
+import * as AbstractService from 'web.AbstractService';
+import * as legacyEnv from 'web.env';
 import * as legacySession from 'web.session';
 
 const { Component, mount, whenReady } = owl;
@@ -40,6 +41,13 @@ Component.env = legacyEnv;
     serviceRegistry.add('legacy_notification', makeLegacyNotificationService(Component.env));
     serviceRegistry.add('legacy_crash_manager', makeLegacyCrashManagerService(Component.env));
     serviceRegistry.add('legacy_dialog_mapping', makeLegacyDialogMappingService(Component.env));
+    serviceRegistry.add('messaging', messagingService);
+    serviceRegistry.add('messagingValuesProvider', makeMessagingValuesProviderService({ autofetchPartnerImStatus: false }));
+    serviceRegistry.add('wowlEnvProviderService', wowlEnvProviderService);
+
+    registry.category('main_components').add('DialogManager', {
+        Component: getMessagingComponent('DialogManager'),
+    });
     await legacySession.is_bound;
     Object.assign(odoo, {
         info: {
@@ -57,24 +65,12 @@ Component.env = legacyEnv;
     ]);
     mapLegacyEnvToWowlEnv(Component.env, env);
     odoo.isReady = true;
-    legacyServiceRegistry.add('messaging', MessagingService.extend({
-        messagingValues: {
-            autofetchPartnerImStatus: false,
-        },
-    }));
     await mount(MainComponentsContainer, document.body, { env, templates, dev: env.debug });
-    createAndMountDiscussPublicView(templates);
+    createAndMountDiscussPublicView(env, templates);
 })();
 
-async function createAndMountDiscussPublicView(templates) {
-    const messaging = await Component.env.services.messaging.get();
-    // needed by the attachment viewer
-    const DialogManager = getMessagingComponent('DialogManager');
-    await mount(DialogManager, document.body, {
-        templates,
-        env: Component.env,
-        dev: Component.env.isDebug(),
-    });
+async function createAndMountDiscussPublicView(env, templates) {
+    const messaging = await env.services.messaging.get();
     messaging.models['Thread'].insert(messaging.models['Thread'].convertData(data.channelData));
     const discussPublicView = messaging.models['DiscussPublicView'].create(data.discussPublicViewData);
     if (discussPublicView.shouldDisplayWelcomeViewInitially) {
@@ -85,8 +81,8 @@ async function createAndMountDiscussPublicView(templates) {
     const DiscussPublicView = getMessagingComponent('DiscussPublicView');
     await mount(DiscussPublicView, document.body, {
         templates,
-        env: Component.env,
-        dev: Component.env.isDebug(),
+        env,
+        dev: !!env.debug,
         props: {
             record: discussPublicView,
         },

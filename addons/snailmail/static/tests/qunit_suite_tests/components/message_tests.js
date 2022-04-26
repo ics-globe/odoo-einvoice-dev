@@ -1,13 +1,12 @@
 /** @odoo-module **/
 
 import { insert, insertAndReplace } from '@mail/model/model_field_command';
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     afterNextRender,
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
-
-import Bus from 'web.Bus';
 
 QUnit.module('snailmail', {}, function () {
 QUnit.module('components', {}, async function() {
@@ -274,7 +273,6 @@ QUnit.test('No Price Available', async function (assert) {
             if (args.method === 'cancel_letter' && args.model === 'mail.message' && args.args[0][0] === mailMessageId1) {
                 assert.step(args.method);
             }
-            return this._super(...arguments);
         },
     });
     const threadViewer = messaging.models['ThreadViewer'].create({
@@ -368,7 +366,6 @@ QUnit.test('Credit Error', async function (assert) {
             if (args.method === 'send_letter' && args.model === 'mail.message' && args.args[0][0] === mailMessageId1) {
                 assert.step(args.method);
             }
-            return this._super(...arguments);
         },
     });
     const threadViewer = messaging.models['ThreadViewer'].create({
@@ -467,7 +464,6 @@ QUnit.test('Trial Error', async function (assert) {
             if (args.method === 'send_letter' && args.model === 'mail.message' && args.args[0][0] === mailMessageId1) {
                 assert.step(args.method);
             }
-            return this._super(...arguments);
         },
     });
     const threadViewer = messaging.models['ThreadViewer'].create({
@@ -561,8 +557,8 @@ QUnit.test('Format Error', async function (assert) {
         notification_type: 'snail',
         res_partner_id: resPartnerId1,
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action, options }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action, options) {
             assert.step('do_action');
             assert.strictEqual(
                 action,
@@ -574,8 +570,11 @@ QUnit.test('Format Error', async function (assert) {
                 mailMessageId1,
                 "action should have correct message id"
             );
+        },
     });
-    const { createThreadViewComponent, messaging } = await start({ env: { bus } });
+    const { createThreadViewComponent, messaging } = await start({
+        services: { action: actionServiceInterceptor },
+    });
     const threadViewer = messaging.models['ThreadViewer'].create({
         hasThreadView: true,
         qunitTest: insertAndReplace(),
@@ -636,8 +635,8 @@ QUnit.test('Missing Required Fields', async function (assert) {
     const snailMailLetterId1 = pyEnv['snailmail.letter'].create({
         message_id: mailMessageId1,
     });
-    const bus = new Bus();
-    bus.on('do-action', null, ({ action, options }) => {
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action, options) {
             assert.step('do_action');
             assert.strictEqual(
                 action,
@@ -649,10 +648,11 @@ QUnit.test('Missing Required Fields', async function (assert) {
                 snailMailLetterId1,
                 "action should have correct letter id"
             );
+        },
     });
 
     const { createThreadViewComponent, messaging } = await start({
-        env: { bus },
+        services: { action: actionServiceInterceptor },
     });
     const threadViewer = messaging.models['ThreadViewer'].create({
         hasThreadView: true,

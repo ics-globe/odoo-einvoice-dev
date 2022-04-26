@@ -1,11 +1,15 @@
 /** @odoo-module **/
 
 import ActivityMenu from '@mail/js/systray/systray_activity_menu';
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import {
     start,
     startServer,
 } from '@mail/../tests/helpers/test_utils';
 
+import { patchWithCleanup } from "@web/../tests/helpers/utils";
+
+import session from 'web.session';
 import testUtils from 'web.test_utils';
 import { date_to_str } from 'web.time';
 
@@ -26,25 +30,21 @@ QUnit.module('systray_activity_menu_tests.js', {
             { date_deadline: date_to_str(tomorrow), res_id: mailTestActivityIds[2],  res_model: 'mail.test.activity' },
             { date_deadline: date_to_str(yesterday), res_id: mailTestActivityIds[3], res_model: 'mail.test.activity' },
         ]);
-        this.session = {
-            uid: 10,
-        };
+        patchWithCleanup(session, { uid: 10 });
     },
 });
 
 QUnit.test('activity menu widget: menu with no records', async function (assert) {
     assert.expect(1);
 
-    const { widget } = await start({
+    const { widget: activityMenu } = await start({
+        widget: ActivityMenu,
         mockRPC: function (route, args) {
             if (args.method === 'systray_get_activities') {
                 return Promise.resolve([]);
             }
-            return this._super(route, args);
         },
     });
-    const activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
     await testUtils.nextTick();
     assert.containsOnce(activityMenu, '.o_no_activity');
 });
@@ -52,9 +52,15 @@ QUnit.test('activity menu widget: menu with no records', async function (assert)
 QUnit.test('activity menu widget: activity menu with 2 models', async function (assert) {
     assert.expect(10);
 
-    const { widget } = await start();
-    var activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
+            assert.deepEqual(action.context, context, "wrong context value");
+        },
+    });
+    const { widget: activityMenu } = await start({
+        services: { action: actionServiceInterceptor },
+        widget: ActivityMenu,
+    });
     await testUtils.nextTick();
     assert.hasClass(activityMenu.$el, 'o_mail_systray_item', 'should be the instance of widget');
     // the assertion below has not been replace because there are includes of ActivityMenu that modify the length.
@@ -63,10 +69,6 @@ QUnit.test('activity menu widget: activity menu with 2 models', async function (
     assert.strictEqual(parseInt(activityMenu.el.innerText), 5, "widget should have 5 notification counter");
 
     var context = {};
-    testUtils.mock.intercept(activityMenu, 'do_action', function (event) {
-        assert.deepEqual(event.data.action.context, context, "wrong context value");
-    }, true);
-
     // case 1: click on "late"
     context = {
         force_search_count: 1,
@@ -103,11 +105,22 @@ QUnit.test('activity menu widget: activity menu with 2 models', async function (
 QUnit.test('activity menu widget: activity view icon', async function (assert) {
     assert.expect(14);
 
-    const { widget } = await start({
-        session: this.session,
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
+            if (action.name) {
+                assert.ok(action.domain, "should define a domain on the action");
+                assert.deepEqual(action.domain, [["activity_ids.user_id", "=", 10]],
+                    "should set domain to user's activity only");
+                assert.step('do_action:' + action.name);
+            } else {
+                assert.step('do_action:' + action);
+            }
+        },
     });
-    var activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
+    const { widget: activityMenu } = await start({
+        services: { action: actionServiceInterceptor },
+        widget: ActivityMenu,
+    });
     await testUtils.nextTick();
     assert.containsN(activityMenu, '.o_mail_activity_action', 2,
                        "widget should have 2 activity view icons");
@@ -121,17 +134,6 @@ QUnit.test('activity menu widget: activity view icon', async function (assert) {
     assert.strictEqual($second.data('model_name'), "mail.test.activity",
                        "Second activity action should link to 'mail.test.activity'");
     assert.hasClass($second, 'fa-clock-o', "should display the activity action icon");
-
-    testUtils.mock.intercept(activityMenu, 'do_action', function (ev) {
-        if (ev.data.action.name) {
-            assert.ok(ev.data.action.domain, "should define a domain on the action");
-            assert.deepEqual(ev.data.action.domain, [["activity_ids.user_id", "=", 10]],
-                "should set domain to user's activity only");
-            assert.step('do_action:' + ev.data.action.name);
-        } else {
-            assert.step('do_action:' + ev.data.action);
-        }
-    }, true);
 
     // click on the "mail.test.activity" activity icon
     await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
@@ -155,10 +157,10 @@ QUnit.test('activity menu widget: activity view icon', async function (assert) {
 QUnit.test('activity menu widget: close on messaging menu click', async function (assert) {
     assert.expect(2);
 
-    const { click, createMessagingMenuComponent, widget } = await start();
+    const { click, createMessagingMenuComponent, widget: activityMenu } = await start({
+        widget: ActivityMenu,
+    });
     await createMessagingMenuComponent();
-    const activityMenu = new ActivityMenu(widget);
-    await activityMenu.appendTo($('#qunit-fixture'));
     await testUtils.nextTick();
 
     await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));

@@ -1,16 +1,30 @@
 /** @odoo-module **/
 
-import { ChatWindowService } from '@mail/services/chat_window_service/chat_window_service';
-import { DialogService } from '@mail/services/dialog_service/dialog_service';
-import { MessagingService } from '@mail/services/messaging/messaging';
-import { SystrayService } from '@mail/services/systray_service/systray_service';
-import { DiscussWidget } from '@mail/widgets/discuss/discuss';
+// ensure components are registered beforehand.
+import '@mail/components/chat_window_manager/chat_window_manager';
+import '@mail/components/dialog_manager/dialog_manager';
+import { DiscussContainer } from '@mail/components/discuss_container/discuss_container';
+import { messagingService } from '@mail/services/messaging_service';
+import { makeMessagingValuesProviderService } from '@mail/services/messaging_values_provider_service';
+import { systrayService } from '@mail/services/systray_service';
+import { wowlEnvProviderService } from '@mail/services/wowl_env_provider_service';
+import { getMessagingComponent } from '@mail/utils/messaging_component';
 
-import { serviceRegistry, action_registry } from 'web.core';
+import { registry } from '@web/core/registry';
 
-serviceRegistry.add('chat_window', ChatWindowService);
-serviceRegistry.add('dialog', DialogService);
-serviceRegistry.add('messaging', MessagingService);
-serviceRegistry.add('systray_service', SystrayService);
+const serviceRegistry = registry.category('services');
+serviceRegistry.add('messaging', messagingService);
+serviceRegistry.add('messagingValuesProvider', makeMessagingValuesProviderService());
+serviceRegistry.add('systray_service', systrayService);
+serviceRegistry.add('wowlEnvProviderService', wowlEnvProviderService);
 
-action_registry.add('mail.widgets.discuss', DiscussWidget);
+registry.category('actions').add('mail.action_discuss', DiscussContainer);
+
+const mainComponentRegistry = registry.category('main_components');
+mainComponentRegistry.add('ChatWindowManager', {
+    Component: getMessagingComponent('ChatWindowManager'),
+});
+mainComponentRegistry.add('DialogManager', {
+    Component: getMessagingComponent('DialogManager'),
+});
+
