@@ -40,99 +40,21 @@ class PosPaymentMethod(models.Model):
                 raise ValidationError(_('Terminal %s is already used on payment method %s.')
                                       % (payment_method.stripe_serial_number, existing_payment_method.display_name))
 
-    def _get_stripe_endpoints(self):
-        return {
-            'terminal_request': 'https://terminal-api-%s.adyen.com/async',
-        }
+    def _get_stripe_secret_key(self):
+        stripe_secret_key = self.env['payment.acquirer'].search([('provider', '=', 'stripe')], limit=1).stripe_secret_key
 
-    def _is_write_forbidden(self, fields):
-        whitelisted_fields = set(('stripe_latest_response', 'stripe_latest_diagnosis'))
-        return super(PosPaymentMethod, self)._is_write_forbidden(fields - whitelisted_fields)
+        if not stripe_secret_key:
+            raise ValidationError(_('Stripe connect empty.'))
 
-    def _stripe_diagnosis_request_data(self, pos_config_name):
-        service_id = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
-        return {
-            "SaleToPOIRequest": {
-                "MessageHeader": {
-                    "ProtocolVersion": "3.0",
-                    "MessageClass": "Service",
-                    "MessageCategory": "Diagnosis",
-                    "MessageType": "Request",
-                    "ServiceID": service_id,
-                    "SaleID": pos_config_name,
-                    "POIID": self.stripe_serial_number,
-                },
-                "DiagnosisRequest": {
-                    "HostDiagnosisFlag": False
-                }
-            }
-        }
-
-    def get_latest_stripe_status(self, pos_config_name):
-        self.ensure_one()
-
-        # Poll the status of the terminal if there's no new
-        # notification we received. This is done so we can quickly
-        # notify the user if the terminal is no longer reachable due
-        # to connectivity issues.
-        self.proxy_stripe_request(self._stripe_diagnosis_request_data(pos_config_name))
-
-        latest_response = self.sudo().stripe_latest_response
-        latest_response = json.loads(latest_response) if latest_response else False
-
-        return {
-            'latest_response': latest_response,
-            'last_received_diagnosis_id': self.sudo().stripe_latest_diagnosis,
-        }
-
-    def proxy_stripe_request(self, data, operation=False):
-        ''' Necessary because stripe's endpoints don't have CORS enabled '''
-        if data['SaleToPOIRequest']['MessageHeader']['MessageCategory'] == 'Payment': # Clear only if it is a payment request
-            self.sudo().stripe_latest_response = ''  # avoid handling old responses multiple times
-
-        if not operation:
-            operation = 'terminal_request'
-
-        return self._proxy_stripe_request_direct(data, operation)
-
-    def _proxy_stripe_request_direct(self, data, operation):
-        self.ensure_one()
-        TIMEOUT = 10
-
-        payment_acquirer_stripe = self.env['payment.acquirer'].search([('provider', '=', 'stripe')], limit=1)
-        payment_acquirer_stripe._get_stripe_secret_key()
-
-        _logger.info('request to stripe\n%s', pprint.pformat(data))
-
-        environment = 'test' if self.stripe_test_mode else 'live'
-        endpoint = self._get_stripe_endpoints()[operation] % environment
-        headers = {
-            'x-api-key': self.stripe_api_key,
-        }
-        req = requests.post(endpoint, json=data, headers=headers, timeout=TIMEOUT)
-
-        # Authentication error doesn't return JSON
-        if req.status_code == 401:
-            return {
-                'error': {
-                    'status_code': req.status_code,
-                    'message': req.text
-                }
-            }
-
-        return req.json()
+        return stripe_secret_key
 
     @api.model
     def stripe_connection_token(self):
         TIMEOUT = 10
-        payment_acquirer_stripe = self.env['payment.acquirer'].search([('provider', '=', 'stripe')], limit=1)
 
         endpoint = 'https://api.stripe.com/v1/terminal/connection_tokens'
 
-        if not payment_acquirer_stripe.stripe_secret_key:
-            raise ValidationError(_('Stripe connect empty.'))
-
-        req = requests.post(endpoint, auth=(payment_acquirer_stripe.stripe_secret_key, ''), timeout=TIMEOUT)
+        req = requests.post(endpoint, auth=(self._get_stripe_secret_key(), ''), timeout=TIMEOUT)
 
         if req.status_code == 401:
             return {
@@ -142,5 +64,47 @@ class PosPaymentMethod(models.Model):
                 }
             }
 
+        print(req.json())
+        return req.json()
+
+    @api.model
+    def stripe_payment_intent(self, currency, amount):
+        TIMEOUT = 10
+        # For Terminal payments, the 'payment_method_types' parameter must include
+        # 'card_present' and the 'capture_method' must be set to 'manual'
+
+        endpoint = 'https://api.stripe.com/v1/payment_intents'
+
+        data = ("currency=%s&amount=%s&payment_method_types[]=card_present&capture_method=manual") % (currency, int(amount * 100))
+        req = requests.post(endpoint, data=data, auth=(self._get_stripe_secret_key(), ''), timeout=TIMEOUT)
+
+        if req.status_code == 401:
+            return {
+                'error': {
+                    'status_code': req.status_code,
+                    'message': req.text
+                }
+            }
+
+        print(req.json())
+        return req.json()
+
+    @api.model
+    def stripe_capture_payment(self, paymentIntentId):
+        TIMEOUT = 10
+
+        endpoint = ('https://api.stripe.com/v1/payment_intents/%s/capture') % (paymentIntentId)
+
+        req = requests.post(endpoint, auth=(self._get_stripe_secret_key(), ''), timeout=TIMEOUT)
+
+        if req.status_code == 401:
+            return {
+                'error': {
+                    'status_code': req.status_code,
+                    'message': req.text
+                }
+            }
+
+        print('stripe_capture_payment')
         print(req.json())
         return req.json()

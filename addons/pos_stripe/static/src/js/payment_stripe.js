@@ -29,8 +29,6 @@ function StripefetchConnectionToken() {
     });
 }
 
-console.log('test');
-
 var PaymentStripe = PaymentInterface.extend({
     init: function (pos, payment_method) {
         this._super(...arguments);
@@ -46,58 +44,167 @@ var PaymentStripe = PaymentInterface.extend({
       const config = {};
       var self = this;
 
-      this.terminal.discoverReaders(config).then(function(discoverResult) {
+    this.terminal.discoverReaders(config).then(function(discoverResult) {
         if (discoverResult.error) {
-          console.log('Failed to discover: ', discoverResult.error);
+            console.log('Failed to discover: ', discoverResult.error);
         } else if (discoverResult.discoveredReaders.length === 0) {
-          console.log('No available readers.');
+            console.log('No available readers.');
         } else {
-          // You should show the list of discoveredReaders to the
-          // cashier here and let them select which to connect to (see below).
-          self.connectReader(discoverResult);
-          console.log(discoverResult);
+            // You should show the list of discoveredReaders to the
+            // cashier here and let them select which to connect to (see below).
+            //self.connectReader(discoverResult);
+            self.pos.discoveredReaders = JSON.stringify(discoverResult.discoveredReaders);
+            // Need to stringify all Readers to avoid to put the array into a proxy Object not interpretable
+            // for the Stripe SDK
+            console.log(discoverResult);
         }
+        });
+    },
+
+    checkReader(resolve, reject) {
+        var self = this;
+        console.log('connectReader');
+        console.log(this.terminal.getConnectionStatus());
+        console.log(self.pos.connectedReader);
+        console.log(this.payment_method.stripe_serial_number);
+        // Because the reader can only connect to one instance of the SDK at a time.
+        // We need the disconnect this reader if we want to use another one
+        if (
+            self.pos.connectedReader != this.payment_method.stripe_serial_number &&
+            this.terminal.getConnectionStatus() == 'connected'
+            ) {
+            this.terminal.disconnectReader().then(function(disconnectResult) {
+                if (disconnectResult.error) {
+                console.log('Failed to disconnect: ', disconnectResult.error);
+                reject();
+                } else {
+                console.log('Disconnected to reader ');
+                self.connectReader(resolve, reject);
+                }
+            });
+        } else if (this.terminal.getConnectionStatus() == 'not_connected') {
+            self.connectReader(resolve, reject);
+        } else {resolve();}
+    },
+
+    connectReader(resolve, reject) {
+        var self = this;
+        var discoveredReaders = JSON.parse(this.pos.discoveredReaders);
+        for (const selectedReader of discoveredReaders) {
+            if (selectedReader.serial_number == this.payment_method.stripe_serial_number) {
+                this.terminal.connectReader(selectedReader).then(function(connectResult) {
+                    if (connectResult.error) {
+                    console.log('Failed to connect: ', connectResult.error);
+                    reject();
+                    } else {
+                    console.log('Connected to reader: ', connectResult.reader.label);
+                    self.pos.connectedReader = self.payment_method.stripe_serial_number;
+                    resolve();
+                    }
+                });
+            }
+        }
+    },
+
+    collect_payment(currency, amount) {
+        var self = this;
+        var line = this.pos.get_order().selected_paymentline;
+        this.fetch_payment_intent_client_secret(currency, amount).then(function(client_secret) {
+            console.log('client_secret');
+            console.log(client_secret);
+          self.terminal.collectPaymentMethod(client_secret).then(function(result) {
+          if (result.error) {
+            console.log('result: ', result.error);
+          } else {
+              console.log('terminal.collectPaymentMethod', result.paymentIntent);
+              self.terminal.processPayment(result.paymentIntent).then(function(result) {
+              if (result.error) {
+                console.log(result.error);
+              } else if (result.paymentIntent) {
+                  var paymentIntentId = result.paymentIntent.id;
+                  console.log('terminal.processPayment', result.paymentIntent);
+                  self.capture_payment(result.paymentIntent.id).then(function(result) {
+                    console.log('result');
+                    console.log(result);
+                    console.log(line);
+                    line.set_payment_status('done');
+                    line.transaction_id = ('test1');
+                    line.card_type = ('test2');
+                    line.cardholder_name = ('test3');
+                    line.set_receipt_info('test4');
+                    line.set_cashier_receipt('test5');
+                    console.log(line);
+                    
+                  });
+              }
+            });
+          }
+        });
       });
     },
 
-    connectReader(discoverResult) {
-      // Just select the first reader here.
-      var selectedReader = discoverResult.discoveredReaders[0];
+    capture_payment(paymentIntentId) {
+        return rpc.query({
+            model: 'pos.payment.method',
+            method: 'stripe_capture_payment',
+            args: [paymentIntentId],
+        }, {
+            silent: true,
+        }).catch(function (error) {
+            this._show_error(_t('error'));
+        }).then(function (data) {
+            console.log(data);
+            return data;
+        });
+    },
 
-      this.terminal.connectReader(selectedReader).then(function(connectResult) {
-        if (connectResult.error) {
-          console.log('Failed to connect: ', connectResult.error);
-        } else {
-          console.log('Connected to reader: ', connectResult.reader.label);
-        }
-      });
+    fetch_payment_intent_client_secret(currency, amount) {
+        return rpc.query({
+            model: 'pos.payment.method',
+            method: 'stripe_payment_intent',
+            args: [currency, amount],
+        }, {
+            silent: true,
+        }).catch(function (error) {
+            this._show_error(_t('error'));
+        }).then(function (data) {
+            console.log(data);
+            return data.client_secret;
+        });
     },
 
     send_payment_request: function (cid) {
         console.log('send_payment_request');
+        var self = this;
+        var line = this.pos.get_order().selected_paymentline;
+        line.set_payment_status('pending');
+        var connected_reader = new Promise(function(resolve, reject) {
+            self.checkReader(resolve, reject);
+        });
+        connected_reader.finally(function () {
+                self.collect_payment(self.pos.currency.name, line.amount);
+            });
+        //this.collect_payment(this.pos.currency.name, line.amount);
+
 /*        this.discoverReaders();
         
         this._super.apply(this, arguments);
         this._reset_state();
         return this._stripe_pay();*/
     },
+
     send_payment_cancel: function (order, cid) {
         this._super.apply(this, arguments);
         // set only if we are polling
         this.was_cancelled = !!this.polling;
         return this._stripe_cancel();
     },
+
     close: function () {
         this._super.apply(this, arguments);
     },
 
     // private methods
-    _reset_state: function () {
-        this.was_cancelled = false;
-        this.last_diagnosis_service_id = false;
-        this.remaining_polls = 4;
-        clearTimeout(this.polling);
-    },
 
     _handle_odoo_connection_failure: function (data) {
         // handle timeout
@@ -127,54 +234,6 @@ var PaymentStripe = PaymentInterface.extend({
     _stripe_get_sale_id: function () {
         var config = this.pos.config;
         return _.str.sprintf('%s (ID: %s)', config.display_name, config.id);
-    },
-
-    _stripe_common_message_header: function () {
-        var config = this.pos.config;
-        this.most_recent_service_id = Math.floor(Math.random() * Math.pow(2, 64)).toString(); // random ID to identify request/response pairs
-        this.most_recent_service_id = this.most_recent_service_id.substring(0, 10); // max length is 10
-
-        return {
-            'ProtocolVersion': '3.0',
-            'MessageClass': 'Service',
-            'MessageType': 'Request',
-            'SaleID': this._stripe_get_sale_id(config),
-            'ServiceID': this.most_recent_service_id,
-            'POIID': this.payment_method.stripe_serial_number
-        };
-    },
-
-    _stripe_pay_data: function () {
-        var order = this.pos.get_order();
-        var config = this.pos.config;
-        var line = order.selected_paymentline;
-        var data = {
-            'SaleToPOIRequest': {
-                'MessageHeader': _.extend(this._stripe_common_message_header(), {
-                    'MessageCategory': 'Payment',
-                }),
-                'PaymentRequest': {
-                    'SaleData': {
-                        'SaleTransactionID': {
-                            'TransactionID': order.uid,
-                            'TimeStamp': moment().format(), // iso format: '2018-01-10T11:30:15+00:00'
-                        }
-                    },
-                    'PaymentTransaction': {
-                        'AmountsReq': {
-                            'Currency': this.pos.currency.name,
-                            'RequestedAmount': line.amount,
-                        }
-                    }
-                }
-            }
-        };
-
-        if (config.stripe_ask_customer_for_tip) {
-            data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToAcquirerData = "tenderOption=AskGratuity";
-        }
-
-        return data;
     },
 
     _stripe_pay: function () {
@@ -386,7 +445,7 @@ var PaymentStripe = PaymentInterface.extend({
 
     _show_error: function (msg, title) {
         if (!title) {
-            title =  _t('Adyen Error');
+            title =  _t('Stripe Error');
         }
         Gui.showPopup('ErrorPopup',{
             'title': title,
