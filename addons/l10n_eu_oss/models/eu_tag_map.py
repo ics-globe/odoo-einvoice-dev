@@ -170,7 +170,7 @@ EU_TAG_MAP = {
         'refund_tax_tag': None,
     },
     # Portugal
-    'l10n_pt.pt_chart_template': {
+    'l10n_pt_account.pt_chart_template': {
         'invoice_base_tag': None,
         'invoice_tax_tag': None,
         'refund_base_tag': None,
