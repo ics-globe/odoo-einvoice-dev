@@ -56,7 +56,8 @@ class MailActivityMixin(models.AbstractModel):
     activity_state = fields.Selection([
         ('overdue', 'Overdue'),
         ('today', 'Today'),
-        ('planned', 'Planned')], string='Activity State',
+        ('planned', 'Planned'),
+        ('schedule an activity', 'schedule an activity')], string='Activity State',
         compute='_compute_activity_state',
         search='_search_activity_state',
         groups="base.group_user",
@@ -127,7 +128,7 @@ class MailActivityMixin(models.AbstractModel):
             elif 'planned' in states:
                 record.activity_state = 'planned'
             else:
-                record.activity_state = False
+                record.activity_state = 'schedule an activity'
 
     def _search_activity_state(self, operator, value):
         all_states = {'overdue', 'today', 'planned', False}

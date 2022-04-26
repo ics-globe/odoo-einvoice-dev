@@ -26,6 +26,18 @@
                     background-color: #ffffff !important;
                 }
             }
+            img {
+                border-radius: 50%;
+                &.o_satisfied {
+                    border: 3px solid #008818;
+                }
+                &.o_okay {
+                    border: 3px solid #f7931e;
+                }
+                &.o_dissatisfied {
+                    border: 3px solid #d23f3a;
+                }
+            }
         }
     }
 }

@@ -7,6 +7,9 @@
             <search string="Search Update">
                 <field name="name"/>
                 <field name="project_id" invisible="1"/>
+                <field name="user_id"/>
+                <field name="description"/>
+                <field name="status"/>
             </search>
         </field>
     </record>
