@@ -80,3 +80,6 @@ $theme-colors: map-merge((
         "light":      $light,
         "dark":       $dark
 ), $theme-colors);
+
+// Prefix for :root CSS variables
+$variable-prefix: '' !default;
