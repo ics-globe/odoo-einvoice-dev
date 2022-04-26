@@ -8,7 +8,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from odoo import http, _
 from odoo.http import request
 from odoo.osv import expression
-from odoo.tools import consteq, plaintext2html
+from odoo.tools import consteq, is_html_empty, plaintext2html
 from odoo.addons.mail.controllers.main import MailController
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.exceptions import AccessError, MissingError, UserError
@@ -197,7 +197,9 @@ class PortalChatter(http.Controller):
                 domain = expression.AND([Message._get_search_domain_share(), domain])
             Message = request.env['mail.message'].sudo()
         return {
-            'messages': Message.search(domain, limit=limit, offset=offset).portal_message_format(),
+            'messages': Message.search(domain, limit=limit, offset=offset)
+                               .filtered(lambda m: m.attachment_ids or not is_html_empty(m.body))
+                               .portal_message_format(),
             'message_count': Message.search_count(domain)
         }
 
