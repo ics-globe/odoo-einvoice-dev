@@ -311,6 +311,28 @@ class IrSequence(models.Model):
         """
         return self.get_id(code, 'code')
 
+    @staticmethod
+    def _create_secure_sequence(record, name='secure_sequence_id'):
+        """This function creates a no_gap sequence on the record given in args
+        which will ensure a unique number is given to all models that inherit
+        from hash.mixin in such a way that we can always find the previous record
+        in that secure sequence."""
+        record.ensure_one()
+        if record[name]:
+            return
+        vals = {
+            'name': _('Securisation of %s - %s') % (record.id, name),
+            'code': 'SECUR%s-%s' % (record.id, name),
+            'implementation': 'no_gap',
+            'prefix': '',
+            'suffix': '',
+            'padding': 0,
+            'company_id': record.company_id.id if record._name != 'res.company' else record.id
+        }
+        seq = record.env['ir.sequence'].create(vals)
+        record.write({name: seq.id})
+        return seq.id
+
 
 class IrSequenceDateRange(models.Model):
     _name = 'ir.sequence.date_range'

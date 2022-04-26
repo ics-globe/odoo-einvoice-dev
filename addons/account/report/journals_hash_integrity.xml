@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="report_journals_hash_integrity" primary="True" inherit_id="base_hash.report_hash_integrity">
+            <xpath expr="//div[@id='hash_config_review']" position="after">
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table table-bordered" style="table-layout: fixed" id="hash_config_table">
+                            <thead style="display: table-row-group">
+                                <tr>
+                                    <th class="text-center" style="width: 30%" scope="col">Journal</th>
+                                    <th class="text-center" style="width: 20%" scope="col">Inalterability check</th>
+                                    <th class="text-center" style="width: 50%" scope="col">Coverage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="data['results']" t-as="result">
+                                    <tr>
+                                        <td>
+                                            [<span t-esc="result['journal_code']"/>] <span t-esc="result['journal_name']"/>
+                                        </td>
+                                        <td class="text-center"><span t-esc="result['restricted_by_hash_table']"/></td>
+                                        <td><span t-esc="result['msg']"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <p style="page-break-before:always;"> </p>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//th[@id='header_first_hash']" position="before">
+                <th class="text-center" style="width: 20%" scope="col">Journal</th>
+            </xpath>
+            <xpath expr="//td[@id='row_first_hash']" position="before">
+                <td><span t-esc="result['journal_code']"/></td>
+            </xpath>
+        </template>
+    </data>
+</odoo>

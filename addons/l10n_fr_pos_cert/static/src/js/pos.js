@@ -38,19 +38,19 @@ Registries.Model.extend(PosGlobalState, L10nFrPosGlobalState);
 const L10nFrOrder = (Order) => class L10nFrOrder extends Order {
     constructor() {
         super(...arguments);
-        this.l10n_fr_hash = this.l10n_fr_hash || false;
+        this.inalterable_hash = this.inalterable_hash || false;
         this.save_to_db();
     }
     export_for_printing() {
       var result = super.export_for_printing(...arguments);
-      result.l10n_fr_hash = this.get_l10n_fr_hash();
+      result.inalterable_hash = this.get_inalterable_hash();
       return result;
     }
-    set_l10n_fr_hash (l10n_fr_hash){
-      this.l10n_fr_hash = l10n_fr_hash;
+    set_inalterable_hash (inalterable_hash){
+      this.inalterable_hash = inalterable_hash;
     }
-    get_l10n_fr_hash() {
-      return this.l10n_fr_hash;
+    get_inalterable_hash() {
+      return this.inalterable_hash;
     }
     wait_for_push_order() {
       var result = super.wait_for_push_order(...arguments);

@@ -1,0 +1,150 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_hash
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.3alpha1+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-24 15:51+0000\n"
+"PO-Revision-Date: 2022-03-24 15:51+0000\n"
+"Last-Translator: Ricardo Gomes Rodrigues (rigr-odoo) <rigr@odoo.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Configuration review"
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/report/hash_integrity_template.py:0
+#, python-format
+msgid "Corrupted data on record with id %s."
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Data consistency check"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Date:"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "First Entry"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "First Hash"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model,name:base_hash.model_report_base_hash_report_hash_integrity_mixin
+msgid "Get hash integrity result as PDF."
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Hash Integrity Result"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model,name:base_hash.model_hash_mixin
+msgid "Hash Mixin"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model.fields,field_description:base_hash.field_hash_mixin__inalterable_hash
+msgid "Inalterability Hash"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model.fields,field_description:base_hash.field_hash_mixin__secure_sequence_number
+msgid "Inalteralbility No Gap Sequence #"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model.fields,field_description:base_hash.field_hash_mixin__is_hash_computed
+msgid "Is Hash Computed"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Last Entry"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid "Last Hash"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model.fields,field_description:base_hash.field_secure_sequence_mixin__secure_sequence_id
+msgid "Secure Sequence"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model,name:base_hash.model_secure_sequence_mixin
+msgid "Secure Sequence Mixin"
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/models/secure_sequence_mixin.py:0
+#, python-format
+msgid "Securisation of %s - %s"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model.fields,help:base_hash.field_secure_sequence_mixin__secure_sequence_id
+msgid "Sequence to use to ensure the securisation of data"
+msgstr ""
+
+#. module: base_hash
+#: model:ir.model,name:base_hash.model_sub_hash_mixin
+msgid "Sub Hash Mixin"
+msgstr ""
+
+#. module: base_hash
+#: model_terms:ir.ui.view,arch_db:base_hash.report_hash_integrity
+msgid ""
+"The hash chain is compliant: it is not possible to alter the\n"
+"                                            data without breaking the hash chain for subsequent parts."
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/report/hash_integrity_template.py:0
+#, python-format
+msgid "The integrity check has not been verified ."
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/report/hash_integrity_template.py:0
+#, python-format
+msgid ""
+"There isn't any order flagged for data inalterability yet for the company "
+"%s. This mechanism only runs for point of sale orders generated after the "
+"installation of the module France - Certification CGI 286 I-3 bis. - POS"
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/models/hash_mixin.py:0
+#: code:addons/base_hash/models/hash_mixin.py:0
+#, python-format
+msgid ""
+"You cannot edit the following fields due to restrict mode being activated on"
+" the parent: %s."
+msgstr ""
+
+#. module: base_hash
+#: code:addons/base_hash/models/hash_mixin.py:0
+#, python-format
+msgid "You cannot modify the inalterable hash of a document."
+msgstr ""

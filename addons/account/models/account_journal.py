@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, Command, fields, models, _
+from odoo.addons.base.models.ir_sequence import IrSequence
 from odoo.osv import expression
 from odoo.exceptions import UserError, ValidationError
 from odoo.addons.base.models.res_bank import sanitize_account_number
@@ -575,8 +576,8 @@ class AccountJournal(models.Model):
             for journal in self.filtered(lambda r: r.type == 'bank' and not r.bank_account_id):
                 journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
         for record in self:
-            if record.restrict_mode_hash_table and not record.secure_sequence_id:
-                record._create_secure_sequence(['secure_sequence_id'])
+            if record.restrict_mode_hash_table:
+                IrSequence._create_secure_sequence(record)
 
         return result
 
@@ -740,28 +741,6 @@ class AccountJournal(models.Model):
                 'view_mode': 'tree, kanban, form',
             })
         return action_vals
-
-    def _create_secure_sequence(self, sequence_fields):
-        """This function creates a no_gap sequence on each journal in self that will ensure
-        a unique number is given to all posted account.move in such a way that we can always
-        find the previous move of a journal entry on a specific journal.
-        """
-        for journal in self:
-            vals_write = {}
-            for seq_field in sequence_fields:
-                if not journal[seq_field]:
-                    vals = {
-                        'name': _('Securisation of %s - %s') % (seq_field, journal.name),
-                        'code': 'SECUR%s-%s' % (journal.id, seq_field),
-                        'implementation': 'no_gap',
-                        'prefix': '',
-                        'suffix': '',
-                        'padding': 0,
-                        'company_id': journal.company_id.id}
-                    seq = self.env['ir.sequence'].create(vals)
-                    vals_write[seq_field] = seq.id
-            if vals_write:
-                journal.write(vals_write)
 
     # -------------------------------------------------------------------------
     # REPORTING METHODS

@@ -74,8 +74,8 @@
             <field name="name">Hash integrity result PDF</field>
             <field name="model">res.company</field>
             <field name="report_type">qweb-pdf</field>
-            <field name="report_name">account.report_hash_integrity</field>
-            <field name="report_file">account.report_hash_integrity</field>
+            <field name="report_name">account.report_journals_hash_integrity</field>
+            <field name="report_file">account.report_journals_hash_integrity</field>
         </record>
 
     </data>

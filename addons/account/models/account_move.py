@@ -4,13 +4,12 @@ from odoo import api, fields, models, Command, _
 from odoo.exceptions import RedirectWarning, UserError, ValidationError, AccessError
 from odoo.tools import float_compare, date_utils, email_split, email_re, is_html_empty, sql
 from odoo.tools.misc import format_amount, formatLang, format_date, get_lang
+from odoo.addons.base.models.ir_sequence import IrSequence
 
 from datetime import date, timedelta
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import zip_longest
-from hashlib import sha256
-from json import dumps
 
 import ast
 import json
@@ -42,7 +41,7 @@ PAYMENT_STATE_SELECTION = [
 
 class AccountMove(models.Model):
     _name = "account.move"
-    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin', 'sequence.mixin']
+    _inherit = ['portal.mixin', 'mail.thread', 'mail.activity.mixin', 'sequence.mixin', 'hash.mixin']
     _description = "Journal Entry"
     _order = 'date desc, name desc, id desc'
     _mail_post_access = 'read'
@@ -380,11 +379,7 @@ class AccountMove(models.Model):
         compute='_compute_partner_credit_warning',
         groups="account.group_account_invoice,account.group_account_readonly")
 
-    # ==== Hash Fields ====
     restrict_mode_hash_table = fields.Boolean(related='journal_id.restrict_mode_hash_table')
-    secure_sequence_number = fields.Integer(string="Inalteralbility No Gap Sequence #", readonly=True, copy=False)
-    inalterable_hash = fields.Char(string="Inalterability Hash", readonly=True, copy=False)
-    string_to_hash = fields.Char(compute='_compute_string_to_hash', readonly=True)
 
     # We neeed the btree index for unicity constraint (on field) AND this one for human searches
     def _auto_init(self):
@@ -2131,10 +2126,6 @@ class AccountMove(models.Model):
 
     def write(self, vals):
         for move in self:
-            if (move.restrict_mode_hash_table and move.state == "posted" and set(vals).intersection(INTEGRITY_HASH_MOVE_FIELDS)):
-                raise UserError(_("You cannot edit the following fields due to restrict mode being activated on the journal: %s.") % ', '.join(INTEGRITY_HASH_MOVE_FIELDS))
-            if (move.restrict_mode_hash_table and move.inalterable_hash and 'inalterable_hash' in vals) or (move.secure_sequence_number and 'secure_sequence_number' in vals):
-                raise UserError(_('You cannot overwrite the values ensuring the inalterability of the accounting.'))
             if (move.posted_before and 'journal_id' in vals and move.journal_id.id != vals['journal_id']):
                 raise UserError(_('You cannot edit the journal of an account move if it has been posted once.'))
             if (move.name and move.name != '/' and 'journal_id' in vals and move.journal_id.id != vals['journal_id']):
@@ -2168,13 +2159,6 @@ class AccountMove(models.Model):
             posted_move._check_fiscalyear_lock_date()
             posted_move.line_ids._check_tax_lock_date()
 
-        if ('state' in vals and vals.get('state') == 'posted'):
-            for move in self.filtered(lambda m: m.restrict_mode_hash_table and not(m.secure_sequence_number or m.inalterable_hash)).sorted(lambda m: (m.date, m.ref or '', m.id)):
-                new_number = move.journal_id.secure_sequence_id.next_by_id()
-                vals_hashing = {'secure_sequence_number': new_number,
-                                'inalterable_hash': move._get_new_hash(new_number)}
-                res |= super(AccountMove, move).write(vals_hashing)
-
         # Ensure the move is still well balanced.
         if 'line_ids' in vals and self._context.get('check_move_validity', True):
             self._check_balanced()
@@ -2182,6 +2166,41 @@ class AccountMove(models.Model):
         self._synchronize_business_models(set(vals.keys()))
 
         return res
+
+    @api.depends('state', 'restrict_mode_hash_table')
+    def _compute_must_hash(self):
+        for move in self:
+            move.must_hash = move.state == 'posted' and move.restrict_mode_hash_table
+
+    @staticmethod
+    def _get_fields_used_by_hash():
+        fields_used = ['date', 'journal_id', 'company_id']
+        fields_used.extend([f'line_ids.{subfield}' for subfield in AccountMoveLine._get_fields_used_by_hash()])
+        return fields_used
+
+    @staticmethod
+    def _get_sorting_key():
+        return 'invoice_date'
+
+    def _get_secure_sequence(self):
+        self.ensure_one()
+        IrSequence._create_secure_sequence(self.journal_id)
+        return self.journal_id.secure_sequence_id
+
+    def _get_previous_hash(self):
+        """ Returns the hash to write on journal entries when they get posted"""
+        self.ensure_one()
+        #get the only one exact previous move in the securisation sequence
+        prev_move = self.search([('state', '=', 'posted'),
+                                 ('company_id', '=', self.company_id.id),
+                                 ('journal_id', '=', self.journal_id.id),
+                                 ('secure_sequence_number', '!=', 0),
+                                 ('secure_sequence_number', '=', int(self.secure_sequence_number) - 1)])
+        if prev_move and len(prev_move) != 1:
+            raise UserError(
+               _('An error occurred when computing the inalterability. Impossible to get the unique previous posted journal entry.'))
+
+        return prev_move.inalterable_hash if prev_move else ''
 
     @api.ondelete(at_uninstall=False)
     def _unlink_forbid_parts_of_chain(self):
@@ -2985,51 +3004,6 @@ class AccountMove(models.Model):
             'context': ctx,
         }
 
-    def _get_new_hash(self, secure_seq_number):
-        """ Returns the hash to write on journal entries when they get posted"""
-        self.ensure_one()
-        #get the only one exact previous move in the securisation sequence
-        prev_move = self.search([('state', '=', 'posted'),
-                                 ('company_id', '=', self.company_id.id),
-                                 ('journal_id', '=', self.journal_id.id),
-                                 ('secure_sequence_number', '!=', 0),
-                                 ('secure_sequence_number', '=', int(secure_seq_number) - 1)])
-        if prev_move and len(prev_move) != 1:
-            raise UserError(
-               _('An error occurred when computing the inalterability. Impossible to get the unique previous posted journal entry.'))
-
-        #build and return the hash
-        return self._compute_hash(prev_move.inalterable_hash if prev_move else u'')
-
-    def _compute_hash(self, previous_hash):
-        """ Computes the hash of the browse_record given as self, based on the hash
-        of the previous record in the company's securisation sequence given as parameter"""
-        self.ensure_one()
-        hash_string = sha256((previous_hash + self.string_to_hash).encode('utf-8'))
-        return hash_string.hexdigest()
-
-    def _compute_string_to_hash(self):
-        def _getattrstring(obj, field_str):
-            field_value = obj[field_str]
-            if obj._fields[field_str].type == 'many2one':
-                field_value = field_value.id
-            return str(field_value)
-
-        for move in self:
-            values = {}
-            for field in INTEGRITY_HASH_MOVE_FIELDS:
-                values[field] = _getattrstring(move, field)
-
-            for line in move.line_ids:
-                for field in INTEGRITY_HASH_LINE_FIELDS:
-                    k = 'line_%d_%s' % (line.id, field)
-                    values[k] = _getattrstring(line, field)
-            #make the json serialization canonical
-            #  (https://tools.ietf.org/html/draft-staykov-hu-json-canonical-form-00)
-            move.string_to_hash = dumps(values, sort_keys=True,
-                                                ensure_ascii=True, indent=None,
-                                                separators=(',',':'))
-
     def action_invoice_print(self):
         """ Print the invoice and mark it as sent, so that we can see more
             easily the next step of the workflow
@@ -3378,6 +3352,7 @@ class AccountMoveLine(models.Model):
     _description = "Journal Item"
     _order = "date desc, move_name desc, id"
     _check_company_auto = True
+    _inherit = ['sub.hash.mixin']
 
     # ==== Business fields ====
     move_id = fields.Many2one('account.move', string='Journal Entry',
@@ -3937,6 +3912,14 @@ class AccountMoveLine(models.Model):
             ('tax_ids.tax_exigibility', '!=', 'on_payment'), # So: exigible if at least one tax from tax_ids isn't on_payment
         ]
 
+    def _get_hash_parent(self):
+        self.ensure_one()
+        return self.move_id
+
+    @staticmethod
+    def _get_fields_used_by_hash():
+        return 'debit', 'credit', 'account_id', 'partner_id'
+
     def belongs_to_refund(self):
         """ Tells whether or not this move line corresponds to a refund operation.
         """
@@ -4476,8 +4459,6 @@ class AccountMoveLine(models.Model):
 
         for line in self:
             if line.parent_state == 'posted':
-                if line.move_id.restrict_mode_hash_table and set(vals).intersection(INTEGRITY_HASH_LINE_FIELDS):
-                    raise UserError(_("You cannot edit the following fields due to restrict mode being activated on the journal: %s.") % ', '.join(INTEGRITY_HASH_LINE_FIELDS))
                 if any(key in vals for key in ('tax_ids', 'tax_line_ids')):
                     raise UserError(_('You cannot modify the taxes related to a posted journal item, you should reset the journal entry to draft to do so.'))
 

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-from odoo import api, fields, models
+from odoo import models, api
 
 
 class ReportPosHashIntegrity(models.AbstractModel):
@@ -13,7 +12,7 @@ class ReportPosHashIntegrity(models.AbstractModel):
         if data:
             data.update(self.env.company._check_pos_hash_integrity())
         else:
-            data = self.env.company._check_hash_pos_integrity()
+            data = self.env.company._check_pos_hash_integrity()
         return {
             'doc_ids' : docids,
             'doc_model' : self.env['res.company'],

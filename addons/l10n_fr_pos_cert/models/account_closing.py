@@ -87,8 +87,8 @@ class AccountClosing(models.Model):
             cumulative_total += previous_closing.cumulative_total
 
         domain = [('company_id', '=', company.id), ('state', 'in', ('paid', 'done', 'invoiced'))]
-        if first_order.l10n_fr_secure_sequence_number is not False and first_order.l10n_fr_secure_sequence_number is not None:
-            domain = AND([domain, [('l10n_fr_secure_sequence_number', '>', first_order.l10n_fr_secure_sequence_number)]])
+        if first_order.secure_sequence_number is not False and first_order.secure_sequence_number is not None:
+            domain = AND([domain, [('secure_sequence_number', '>', first_order.secure_sequence_number)]])
         elif date_start:
             #the first time we compute the closing, we consider only from the installation of the module
             domain = AND([domain, [('date_order', '>=', date_start)]])
@@ -106,7 +106,7 @@ class AccountClosing(models.Model):
         return {'total_interval': total_interval,
                 'cumulative_total': cumulative_total,
                 'last_order_id': last_order.id,
-                'last_order_hash': last_order.l10n_fr_secure_sequence_number,
+                'last_order_hash': last_order.secure_sequence_number,
                 'date_closing_stop': interval_dates['date_stop'],
                 'date_closing_start': date_start,
                 'name': interval_dates['name_interval'] + ' - ' + interval_dates['date_stop'][:10]}
@@ -158,7 +158,7 @@ class AccountClosing(models.Model):
         res_company = self.env['res.company'].search([])
         account_closings = self.env['account.sale.closing']
         for company in res_company.filtered(lambda c: c._is_accounting_unalterable()):
-            new_sequence_number = company.l10n_fr_closing_sequence_id.next_by_id()
+            new_sequence_number = company.l10n_fr_pos_cert_sequence_id.next_by_id()
             values = self._compute_amounts(frequency, company)
             values['frequency'] = frequency
             values['company_id'] = company.id
