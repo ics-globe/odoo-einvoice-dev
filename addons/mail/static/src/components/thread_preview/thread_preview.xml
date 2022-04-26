@@ -36,7 +36,7 @@
                         <t t-if="threadPreviewView.thread.rtcSessions.length > 0">
                             <span class="o_ThreadPreview_callIndicator fa fa-volume-up mx-2" t-att-class="{ 'o-isCalling': threadPreviewView.thread.rtc }"/>
                         </t>
-                        <span class="o-autogrow"/>
+                        <span class="flex-grow-1"/>
                         <t t-if="threadPreviewView.thread.lastMessage and threadPreviewView.thread.lastMessage.date">
                             <span class="o_ThreadPreview_date" t-att-class="{ 'o-muted': threadPreviewView.thread.localMessageUnreadCounter === 0 }">
                                 <t t-esc="threadPreviewView.thread.lastMessage.date.fromNow()"/>
@@ -50,7 +50,7 @@
                             </t>
                             <t t-esc="inlineLastMessageBody"/>
                         </span>
-                        <span class="o-autogrow"/>
+                        <span class="flex-grow-1"/>
                         <t t-if="threadPreviewView.thread.localMessageUnreadCounter > 0">
                             <span class="o_ThreadPreview_coreItem o_ThreadPreview_markAsRead fa fa-check" title="Mark as Read" t-on-click="threadPreviewView.onClickMarkAsRead" t-ref="markAsRead"/>
                         </t>

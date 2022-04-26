@@ -13,7 +13,7 @@
                 <div class="o_DiscussSidebarMailbox_item o_DiscussSidebarMailbox_name">
                     <t t-esc="mailbox.displayName"/>
                 </div>
-                <div class="o-autogrow o_DiscussSidebarMailbox_item"/>
+                <div class="flex-grow-1 o_DiscussSidebarMailbox_item"/>
                 <t t-if="mailbox.counter > 0">
                     <div class="o_DiscussSidebarMailbox_counter o_DiscussSidebarMailbox_item badge badge-pill">
                         <t t-esc="mailbox.counter"/>

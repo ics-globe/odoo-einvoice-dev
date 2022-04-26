@@ -20,7 +20,7 @@
                 <span class="o_DiscussSidebarCategoryItem_item o_DiscussSidebarCategoryItem_name ml-3 text-truncate" t-att-class="{ 'o-item-unread': categoryItem.isUnread }">
                     <t t-esc="categoryItem.channel.displayName"/>
                 </span>
-                <div class="o-autogrow o_DiscussSidebarCategoryItem_item"/>
+                <div class="flex-grow-1 o_DiscussSidebarCategoryItem_item"/>
                 <div class="o_DiscussSidebarCategoryItem_item o_DiscussSidebarCategoryItem_commands">
                     <t t-if="categoryItem.hasSettingsCommand">
                         <div class="o_DiscussSidebarCategoryItem_command o_DiscussSidebarCategoryItem_commandSettings fa fa-cog" t-on-click="categoryItem.onClickCommandSettings" title="Channel settings" role="img"/>
