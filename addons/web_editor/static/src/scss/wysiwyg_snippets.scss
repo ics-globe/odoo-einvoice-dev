@@ -1518,6 +1518,11 @@ body.editor_enable.editor_has_snippets {
             we-list, we-list > div, we-list we-select {
                 margin-top: 0;
             }
+            &, we-list {
+                > div {
+                    display: block;
+                }
+            }
         }
 
         //----------------------------------------------------------------------
