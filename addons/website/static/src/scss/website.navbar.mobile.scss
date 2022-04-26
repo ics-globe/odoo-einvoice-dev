@@ -11,7 +11,7 @@
         // boostrap values.
         // --------------------------------------------------------------------
         $-bg: darken($o-brand-odoo, 10%);
-        $-color: color-yiq($-bg);
+        $-color: color-contrast($-bg);
         $-font-size-base: 16px;
         $-font-size-lg: 18px;
         $-entry-hover-bg: rgba(invert($-color), .08);
