@@ -198,8 +198,6 @@
             'website/static/src/systray_items/*.scss',
             'website/static/src/js/new_content_form.js',
             'website/static/src/js/utils.js',
-            'website/static/src/client_actions/configurator/configurator.js',
-            'website/static/src/client_actions/configurator/configurator.scss',
             'website/static/src/components/translator/*',
             'website/static/src/js/website_page_list.js',
         ],
