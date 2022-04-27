@@ -884,7 +884,7 @@ class Website(models.Model):
         self.ensure_one()
         if request.endpoint:
             path = self._get_canonical_url_localized_cached(
-                request.httprequest.path,
+                hasattr(request, 'rerouting') and request.rerouting[0] or request.httprequest.path,
                 dict(request.endpoint_arguments),
                 lang.code
             )
