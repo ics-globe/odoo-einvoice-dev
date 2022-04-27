@@ -1438,9 +1438,7 @@ class StockMove(models.Model):
         StockMove = self.env['stock.move']
         assigned_moves_ids = OrderedSet()
         partially_available_moves_ids = OrderedSet()
-        # Read the `reserved_availability` field of the moves out of the loop to prevent unwanted
-        # cache invalidation when actually reserving the move.
-        reserved_availability = {move: move.reserved_availability for move in self}
+        reserved_availability = {move: sum(move.move_line_ids.mapped('product_qty')) for move in self}
         roundings = {move: move.product_id.uom_id.rounding for move in self}
         move_line_vals_list = []
         # Once the quantities are assigned, we want to find a better destination location thanks
@@ -1448,8 +1446,10 @@ class StockMove(models.Model):
         moves_to_redirect = OrderedSet()
         for move in self.filtered(lambda m: m.state in ['confirmed', 'waiting', 'partially_available']):
             rounding = roundings[move]
-            missing_reserved_uom_quantity = move.product_uom_qty - reserved_availability[move]
-            missing_reserved_quantity = move.product_uom._compute_quantity(missing_reserved_uom_quantity, move.product_id.uom_id, rounding_method='HALF-UP')
+            missing_reserved_quantity = move.product_qty - reserved_availability[move]
+            if float_is_zero(missing_reserved_quantity, precision_rounding=move.product_uom.rounding):
+                assigned_moves_ids.add(move.id)
+                continue
             if move._should_bypass_reservation():
                 # create the move line(s) but do not impact quants
                 if move.move_orig_ids:
