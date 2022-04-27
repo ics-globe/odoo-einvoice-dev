@@ -802,7 +802,7 @@ class MailCase(MockEmail):
                         self.assertMailMail(
                             partners, 'exception',
                             author=message.author_id if message.author_id else message.email_from,
-                            email_values={'body_content': mbody},
+                            email_values=email_values,
                             mail_message=message
                         )
                     else:
