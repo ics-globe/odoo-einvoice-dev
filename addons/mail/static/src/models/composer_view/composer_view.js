@@ -288,6 +288,7 @@ function factory(dependencies) {
             body = this._generateEmojisOnHtml(body);
             const postData = {
                 attachment_ids: composer.attachments.map(attachment => attachment.id),
+                attachment_tokens: composer.attachments.map(attachment => attachment.accessToken),
                 body,
                 message_type: 'comment',
                 partner_ids: composer.recipients.map(partner => partner.id),
@@ -437,6 +438,7 @@ function factory(dependencies) {
             let data = {
                 body: body,
                 attachment_ids: composer.attachments.concat(this.messageViewInEditing.message.attachments).map(attachment => attachment.id),
+                attachment_tokens: composer.attachments.concat(this.messageViewInEditing.message.attachments).map(attachment => attachment.accessToken),
             };
             try {
                 composer.update({ isPostingMessage: true });
