@@ -71,14 +71,20 @@ class BaseAutomation(models.Model):
         string="On Change Fields Trigger",
         help="Fields that trigger the onchange.",
     )
-    trigger_field_ids = fields.Many2many('ir.model.fields', string='Trigger Fields',
-                                        help="The action will be triggered if and only if one of these fields is updated."
-                                             "If empty, all fields are watched.")
+    trigger_field_ids = fields.Many2many(
+        'ir.model.fields', string='Trigger Fields',
+        compute='_compute_trigger_field_ids', readonly=False, store=True,
+        help="The action will be triggered if and only if one of these fields is updated. If empty, all fields are watched.")
     least_delay_msg = fields.Char(compute='_compute_least_delay_msg')
 
     # which fields have an impact on the registry and the cron
     CRITICAL_FIELDS = ['model_id', 'active', 'trigger', 'on_change_field_ids']
     RANGE_FIELDS = ['trg_date_range', 'trg_date_range_type']
+
+    @api.depends('model_id')
+    def _compute_trigger_field_ids(self):
+        for action in self.filtered('trigger_field_ids'):
+            action.trigger_field_ids = action.trigger_field_ids.filtered(lambda field: field.model_id == action.model_id)
 
     @api.onchange('model_id')
     def onchange_model_id(self):

@@ -29,8 +29,8 @@ class ServerActions(models.Model):
     partner_ids = fields.Many2many('res.partner', string='Add Followers')
     # Template
     template_id = fields.Many2one(
-        'mail.template', 'Email Template', ondelete='set null',
-        domain="[('model_id', '=', model_id)]",
+        'mail.template', 'Email Template', domain="[('model_id', '=', model_id)]",
+        compute='_compute_template_id', ondelete='set null', readonly=False, store=True,
     )
     # Next Activity
     activity_type_id = fields.Many2one(
@@ -51,6 +51,12 @@ class ServerActions(models.Model):
         help="Use 'Specific User' to always assign the same user on the next activity. Use 'Generic User From Record' to specify the field name of the user to choose on the record.")
     activity_user_id = fields.Many2one('res.users', string='Responsible')
     activity_user_field_name = fields.Char('User field name', help="Technical name of the user on the record", default="user_id")
+
+    @api.depends('model_id')
+    def _compute_template_id(self):
+        for action in self.filtered('template_id'):
+            if action.model_id != action.template_id.model_id:
+                action.template_id = False
 
     @api.onchange('activity_date_deadline_range')
     def _onchange_activity_date_deadline_range(self):
