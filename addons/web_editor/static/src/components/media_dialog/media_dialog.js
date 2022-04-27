@@ -45,10 +45,9 @@ export const TABS = {
     },
 };
 
-export class MediaDialog extends Dialog {
+export class MediaDialog extends Component {
     setup() {
-        super.setup();
-        this.size = 'modal-xl';
+        this.size = 'xl';
         this.contentClass = 'o_select_media_dialog';
         this.title = this.env._t("Select a media");
 
@@ -170,13 +169,13 @@ export class MediaDialog extends Dialog {
                 this.props.save(elements[0]);
             }
         }
-        this.close();
+        this.props.close();
     }
 }
-MediaDialog.bodyTemplate = 'web_editor.MediaDialogBody';
-MediaDialog.footerTemplate = 'web_editor.MediaDialogFooter';
+MediaDialog.template = 'web_editor.MediaDialog';
 MediaDialog.components = {
     ...Object.keys(TABS).map(key => TABS[key].Component),
+    Dialog,
 };
 
 export class MediaDialogWrapper extends Component {
@@ -184,16 +183,7 @@ export class MediaDialogWrapper extends Component {
         this.dialogs = useWowlService('dialog');
 
         useEffect(() => {
-            this.dialogs.add(MediaDialog, {
-                ...this.props,
-                close: () => {
-                    if (this.props.close) {
-                        this.props.close();
-                    }
-                    this.destroy();
-
-                },
-            });
+            this.dialogs.add(MediaDialog, this.props);
         }, () => []);
     }
 }

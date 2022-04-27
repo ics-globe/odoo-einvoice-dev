@@ -73,14 +73,13 @@ PageDependencies.props = {
     mode: String,
 };
 
-export class DeletePageDialog extends WebsiteDialog {
+export class DeletePageDialog extends Component {
     setup() {
-        super.setup();
-
         this.orm = useService('orm');
         this.website = useService('website');
         this.title = this.env._t("Delete Page");
-        this.primaryTitle = this.env._t("Ok");
+        this.deleteButton = this.env._t("Ok");
+        this.cancelButton = this.env._t("Cancel");
 
         this.state = useState({
             confirm: false,
@@ -91,28 +90,29 @@ export class DeletePageDialog extends WebsiteDialog {
         this.state.confirm = checked;
     }
 
-    async primaryClick() {
+    async onClickDelete() {
         await this.orm.unlink("website.page", [
             this.props.pageId,
         ]);
         this.website.goToWebsite();
-        this.close();
+        this.props.close();
         this.props.onClose();
     }
 }
-DeletePageDialog.components = {PageDependencies, CheckBox};
-DeletePageDialog.bodyTemplate = 'website.DeletePageContent';
-DeletePageDialog.footerTemplate = 'website.DeletePageAction';
+DeletePageDialog.components = {
+    PageDependencies,
+    CheckBox,
+    WebsiteDialog
+};
+DeletePageDialog.template = 'website.DeletePageDialog';
 DeletePageDialog.props = {
-    ...WebsiteDialog.props,
     pageId: Number,
     onClose: Function,
+    close: Function,
 };
 
-export class DuplicatePageDialog extends WebsiteDialog {
+export class DuplicatePageDialog extends Component {
     setup() {
-        super.setup();
-
         this.orm = useService('orm');
         this.website = useService('website');
 
@@ -121,7 +121,7 @@ export class DuplicatePageDialog extends WebsiteDialog {
         });
     }
 
-    async primaryClick() {
+    async duplicate() {
         if (this.state.name) {
             const res = await this.orm.call(
                 'website.page',
@@ -130,11 +130,12 @@ export class DuplicatePageDialog extends WebsiteDialog {
             );
             this.website.goToWebsite({path: res});
         }
-        this.close();
         this.props.onClose();
     }
 }
-DuplicatePageDialog.bodyTemplate = xml`
+DuplicatePageDialog.components = {WebsiteDialog};
+DuplicatePageDialog.template = xml`
+<WebsiteDialog close="props.close" primaryClick="() => this.duplicate()">
     <div class="form-group row">
         <label class="col-form-label col-md-3">
             Page Name
@@ -143,10 +144,12 @@ DuplicatePageDialog.bodyTemplate = xml`
             <input type="text" t-model="state.name" class="form-control" required="required"/>
         </div>
     </div>
+</WebsiteDialog>
 `;
 DuplicatePageDialog.props = {
-    ...WebsiteDialog.props,
     onClose: Function,
+    close: Function,
+    pageId: Number,
 };
 
 export class PagePropertiesDialogWrapper extends Component {
