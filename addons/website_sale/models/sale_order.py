@@ -118,7 +118,7 @@ class SaleOrder(models.Model):
         if not product or not product._is_add_to_cart_allowed():
             raise UserError(_("The given product does not exist therefore it cannot be added to cart."))
 
-        if product.lst_price == 0 and product.website_id.hide_add_to_cart:
+        if product.lst_price == 0 and product.website_id.prevent_zero_price_sale:
             raise UserError(_("The given product does not have a price therefore it cannot be added to cart."))
 
         if line_id is not False:

@@ -79,7 +79,7 @@ class Website(models.Model):
         ],
         default='optional')
 
-    hide_add_to_cart = fields.Boolean(string="Hide 'Add To Cart' when price = 0")
+    prevent_zero_price_sale = fields.Boolean(string="Hide 'Add To Cart' when price = 0")
     contact_us_button_url = fields.Char(string="Contact Us Button URL", default="/contactus")
 
     @api.depends('all_pricelist_ids')
