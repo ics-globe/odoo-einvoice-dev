@@ -62,9 +62,8 @@ class AccountMove(models.Model):
     date = fields.Date(
         string='Date',
         index=True,
-        readonly=True,
-        compute='_compute_date', store=True, required=True, precompute=True,
-        states={'draft': [('readonly', False)]},
+        compute='_compute_date', store=True, required=True, readonly=False, precompute=True,
+        states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
         copy=False,
         tracking=True,
     )
@@ -84,6 +83,12 @@ class AccountMove(models.Model):
     move_type = fields.Selection(
         selection=[
             ('entry', 'Journal Entry'),
+            ('out_invoice', 'Customer Invoice'),
+            ('out_refund', 'Customer Credit Note'),
+            ('in_invoice', 'Vendor Bill'),
+            ('in_refund', 'Vendor Credit Note'),
+            ('out_receipt', 'Sales Receipt'),
+            ('in_receipt', 'Purchase Receipt'),
         ],
         string='Type',
         required=True,
@@ -301,74 +306,6 @@ class AccountMove(models.Model):
                     'message': "%s\n\n%s" % (changed, detected)
                 }}
 
-    @api.model
-    def _get_tax_grouping_key_from_tax_line(self, tax_line):
-        ''' Create the dictionary based on a tax line that will be used as key to group taxes together.
-        /!\ Must be consistent with '_get_tax_grouping_key_from_base_line'.
-        :param tax_line:    An account.move.line being a tax line (with 'tax_repartition_line_id' set then).
-        :return:            A dictionary containing all fields on which the tax will be grouped.
-        '''
-        return {
-            'tax_repartition_line_id': tax_line.tax_repartition_line_id.id,
-            'group_tax_id': tax_line.group_tax_id.id,
-            'account_id': tax_line.account_id.id,
-            'currency_id': tax_line.currency_id.id,
-            'analytic_tag_ids': [(6, 0, tax_line.tax_line_id.analytic and tax_line.analytic_tag_ids.ids or [])],
-            'analytic_account_id': tax_line.tax_line_id.analytic and tax_line.analytic_account_id.id,
-            'tax_ids': [(6, 0, tax_line.tax_ids.ids)],
-            'tax_tag_ids': [(6, 0, tax_line.tax_tag_ids.ids)],
-            'partner_id': tax_line.partner_id.id,
-        }
-
-    @api.model
-    def _get_tax_grouping_key_from_base_line(self, base_line, tax_vals):
-        ''' Create the dictionary based on a base line that will be used as key to group taxes together.
-        /!\ Must be consistent with '_get_tax_grouping_key_from_tax_line'.
-        :param base_line:   An account.move.line being a base line (that could contains something in 'tax_ids').
-        :param tax_vals:    An element of compute_all(...)['taxes'].
-        :return:            A dictionary containing all fields on which the tax will be grouped.
-        '''
-        tax_repartition_line = self.env['account.tax.repartition.line'].browse(tax_vals['tax_repartition_line_id'])
-        account = base_line._get_default_tax_account(tax_repartition_line) or base_line.account_id
-        return {
-            'tax_repartition_line_id': tax_vals['tax_repartition_line_id'],
-            'group_tax_id': tax_vals['group'].id if tax_vals['group'] else False,
-            'account_id': account.id,
-            'currency_id': base_line.currency_id.id,
-            'analytic_tag_ids': [(6, 0, tax_vals['analytic'] and base_line.analytic_tag_ids.ids or [])],
-            'analytic_account_id': tax_vals['analytic'] and base_line.analytic_account_id.id,
-            'tax_ids': [(6, 0, tax_vals['tax_ids'])],
-            'tax_tag_ids': [(6, 0, tax_vals['tag_ids'])],
-            'partner_id': base_line.partner_id.id,
-        }
-
-    def _get_tax_force_sign(self):
-        """ The sign must be forced to a negative sign in case the balance is on credit
-            to avoid negatif taxes amount.
-            Example - Customer Invoice :
-            Fixed Tax  |  unit price  |   discount   |  amount_tax  | amount_total |
-            -------------------------------------------------------------------------
-                0.67   |      115      |     100%     |    - 0.67    |      0
-            -------------------------------------------------------------------------"""
-        self.ensure_one()
-        return -1 if self.move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-
-    def _preprocess_taxes_map(self, taxes_map):
-        """ Useful in case we want to pre-process taxes_map """
-        return taxes_map
-
-    @api.model
-    def _get_base_amount_to_display(self, base_amount, tax_rep_ln, parent_tax_group=None):
-        """ The base amount returned for taxes by compute_all has is the balance
-        of the base line. For inbound operations, positive sign is on credit, so
-        we need to invert the sign of this amount before displaying it.
-        """
-        source_tax = parent_tax_group or tax_rep_ln.tax_id
-        if (tax_rep_ln.document_type == 'invoice' and source_tax.type_tax_use == 'sale') \
-           or (tax_rep_ln.document_type == 'refund' and source_tax.type_tax_use == 'purchase'):
-            return -base_amount
-        return base_amount
-
     # -------------------------------------------------------------------------
     # COMPUTE METHODS
     # -------------------------------------------------------------------------
@@ -415,7 +352,7 @@ class AccountMove(models.Model):
                     return max(original_date, today)
         return original_date
 
-    @api.depends('invoice_date', 'highest_name', 'company_id')
+    @api.depends('invoice_date', 'company_id')
     def _compute_date(self):
         for move in self:
             if not move.invoice_date:
@@ -423,7 +360,7 @@ class AccountMove(models.Model):
                 continue
             has_tax = bool(move.line_ids.tax_ids or move.line_ids.tax_tag_ids)
             accounting_date = move._get_accounting_date(move.invoice_date, has_tax)
-            if accounting_date != move.date:
+            if accounting_date and accounting_date != move.date:
                 move.date = accounting_date
 
     @api.depends('move_type')
@@ -549,7 +486,6 @@ class AccountMove(models.Model):
             for move in batch['records']:
                 move.name = batch['format'].format(**batch['format_values'])
                 batch['format_values']['seq'] += 1
-            batch['records']._compute_split_sequence()
 
         self.filtered(lambda m: not m.name).name = '/'
 
@@ -615,37 +551,6 @@ class AccountMove(models.Model):
 
         for record in self:
             record.type_name = type_name_mapping[record.move_type]
-
-    def _inverse_amount_total(self):
-        return
-        for move in self:
-            if len(move.line_ids) != 2 or move.is_invoice(include_receipts=True):
-                continue
-
-            to_write = []
-
-            amount_currency = abs(move.amount_total)
-            balance = move.currency_id._convert(amount_currency, move.company_currency_id, move.company_id, move.date)
-
-            for line in move.line_ids:
-                if not line.currency_id.is_zero(balance - abs(line.balance)):
-                    to_write.append((1, line.id, {
-                        'debit': line.balance > 0.0 and balance or 0.0,
-                        'credit': line.balance < 0.0 and balance or 0.0,
-                        'amount_currency': line.balance > 0.0 and amount_currency or -amount_currency,
-                    }))
-
-            move.write({'line_ids': to_write})
-
-    def _get_domain_matching_suspense_moves(self):
-        self.ensure_one()
-        domain = self.env['account.move.line']._get_suspense_moves_domain()
-        domain += ['|', ('partner_id', '=?', self.partner_id.id), ('partner_id', '=', False)]
-        if self.is_inbound():
-            domain.append(('balance', '=', -self.amount_residual))
-        else:
-            domain.append(('balance', '=', self.amount_residual))
-        return domain
 
     def _get_reconciled_vals(self, partial, amount, counterpart_line):
         if counterpart_line.move_id.ref:
@@ -744,9 +649,7 @@ class AccountMove(models.Model):
         self._cr.execute('''
             WITH error_moves AS (
                 SELECT line.move_id,
-                       ROUND(SUM(line.debit - line.credit), currency.decimal_places) balance,
-                       bool_or((not is_storno) AND (credit + debit < 0)) negative_normal,
-                       bool_or((is_storno) AND (credit + debit > 0)) positive_storno
+                       ROUND(SUM(line.balance), currency.decimal_places) balance
                   FROM account_move_line line
                   JOIN account_move move ON move.id = line.move_id
                   JOIN account_journal journal ON journal.id = move.journal_id
@@ -758,25 +661,19 @@ class AccountMove(models.Model):
             SELECT *
               FROM error_moves
              WHERE balance !=0
-                OR negative_normal
-                OR positive_storno
         ''', [tuple(self.ids)])
 
         query_res = self._cr.fetchall()
         if query_res:
             from pprint import pprint
-            pprint([(line.debit, line.credit) for line in self.line_ids])
+            pprint([(line.debit, line.credit, line.name) for line in self.line_ids])
             error_msg = _("There was a problem with the following move(s):\n")
             for move in query_res:
-                id_, balance, negative_normal, positive_storno = move
+                id_, balance = move
                 error_msg += _("- Move with id %i\n", id_)
                 if balance != 0.0:
                     error_msg += _("\tCannot create unbalanced journal entry. The balance is equal to %s\n",
                                    format_amount(self.env, balance, self.currency_id))
-                if negative_normal:
-                    error_msg += _("\tThe debit and credit should be positive and only one can be set\n")
-                if positive_storno:
-                    error_msg += _("\tThe debit and credit should be negative and only one can be set\n")
             raise UserError(error_msg)
 
     def _check_fiscalyear_lock_date(self):
@@ -824,7 +721,6 @@ class AccountMove(models.Model):
         if any('state' in vals and vals.get('state') == 'posted' for vals in vals_list):
             raise UserError(_('You cannot create a move already in the posted state. Please create a draft move and post it after.'))
         move_ids = super(AccountMove, self).create(vals_list)
-        move_ids._recompute_dynamic_lines(recompute_taxes=True)
         move_ids._check_balanced()
         return move_ids
 
@@ -858,9 +754,6 @@ class AccountMove(models.Model):
         # if move.state != 'posted':
         #     ctx['tracking_disable'] = True
         res = super(AccountMove, self.with_context(**ctx)).write(vals)
-        if "line_ids" in vals or "invoice_line_ids" in vals:
-            self._recompute_dynamic_lines(recompute_taxes='invoice_line_ids' in vals)
-        # self._recompute_dynamic_lines(recompute_taxes=True)  # TODO what about journal entries?
 
         # You can't change the date of a not-locked move to a locked period.
         # You can't post a new journal entry inside a locked period.
@@ -879,7 +772,7 @@ class AccountMove(models.Model):
         if 'line_ids' in vals and self._context.get('check_move_validity', True):
             self._check_balanced()
 
-        # self._synchronize_business_models(set(vals.keys()))
+        self._synchronize_business_models(set(vals.keys()))
         return res
 
     @api.ondelete(at_uninstall=False)
@@ -1111,9 +1004,8 @@ class AccountMove(models.Model):
                 del line_vals['tax_tag_invert']
 
             line_vals.update({
-                'balance': line_vals.pop('credit') - line_vals.pop('debit'),
+                'balance': -line_vals.pop('balance'),
             })
-            line_vals.pop('amount_currency', None)  # todo copy=False?
 
             if not is_refund:
                 continue
@@ -1189,9 +1081,7 @@ class AccountMove(models.Model):
             move_vals_list.append(move.with_context(move_reverse_cancel=cancel)._reverse_move_vals(default_values, cancel=cancel))
 
         reverse_moves = self.env['account.move'].create(move_vals_list)
-        # for move, reverse_move in zip(self, reverse_moves.with_context(check_move_validity=False)):
-        #     reverse_move._recompute_dynamic_lines()
-        # reverse_moves._check_balanced()
+        reverse_moves._check_balanced()
 
         # Reconcile moves together to cancel the previous one.
         if cancel:
@@ -1284,7 +1174,7 @@ class AccountMove(models.Model):
         for move in self:
             if move.state == 'posted':
                 raise UserError(_('The entry %s (id %s) is already posted.') % (move.name, move.id))
-            if not move.line_ids.filtered(lambda line: not line.display_type):
+            if not move.line_ids.filtered(lambda line: line.display_type not in ('line_section', 'line_note')):
                 raise UserError(_('You need to add a line before posting.'))
             if move.auto_post and move.date > fields.Date.context_today(self):
                 date_msg = move.date.strftime(get_lang(self.env).date_format)

@@ -27,6 +27,7 @@
                                         <field name="account_id" options="{'no_create': True}" domain="[('company_id', '=', company_id)]" readonly="1"/>
                                         <field name="debit" readonly="1"/>
                                         <field name="credit" readonly="1"/>
+                                        <field name="balance" readonly="1"/>
                                         <field name="quantity" readonly="1"/>
                                     </group>
                                     <group string="Accounting Documents">
@@ -60,6 +61,7 @@
                                     </group>
                                     <group string="Currency" groups="base.group_multi_currency">
                                         <field name="currency_id" invisible="1"/>
+                                        <field name="currency_rate" invisible="1"/>
                                         <field name="amount_currency"/>
                                     </group>
                                     <group string="Product" attrs="{'invisible': [('product_id', '=', False)]}">
@@ -165,7 +167,9 @@
                     <field name="tax_ids" widget="many2many_tags" width="0.5" optional="show"/>
                     <field name="debit" sum="Total Debit"/>
                     <field name="credit" sum="Total Credit"/>
+                    <field name="balance" sum="Total Balance"/>
                     <field name="amount_currency" groups="base.group_multi_currency" optional="hide"/>
+                    <field name="currency_rate" invisible="1"/>
                     <field name="currency_id" readonly="1" groups="base.group_multi_currency" optional="hide" string="Original Currency"/>
                     <field name="tax_tag_ids" widget="many2many_tags" width="0.5" optional="hide"/>
                     <field name="matching_number" optional="show"/>
@@ -918,6 +922,7 @@
                                         <!-- Others fields -->
                                         <field name="partner_id" invisible="1"/>
                                         <field name="amount_currency" invisible="1"/>
+                                        <field name="currency_rate" invisible="1"/>
                                         <field name="currency_id" invisible="1"/>
                                         <field name="date" invisible="1"/>
                                         <field name="date_maturity" invisible="1"/>
@@ -990,6 +995,7 @@
                                         <!-- Others fields -->
                                         <field name="partner_id" invisible="1"/>
                                         <field name="amount_currency" invisible="1"/>
+                                        <field name="currency_rate" invisible="1"/>
                                         <field name="currency_id" invisible="1"/>
                                         <field name="date" invisible="1"/>
                                         <field name="date_maturity" invisible="1"/>
@@ -1116,6 +1122,7 @@
                                         <field name="credit"
                                                sum="Total Credit"
                                                attrs="{'invisible': [('display_type', 'in', ('line_section', 'line_note'))]}"/>
+                                        <field name="balance" invisible="1"/>
 
                                         <field name="tax_tag_ids"
                                                widget="many2many_tags"
@@ -1151,6 +1158,7 @@
                                         <field name="price_subtotal" invisible="1"/>
                                         <field name="price_total" invisible="1"/>
 
+                                        <field name="currency_rate" invisible="1"/>
                                         <field name="sequence" invisible="1"/>
                                         <field name="move_name" invisible="1"/>
                                         <field name="date" invisible="1"/>
@@ -1179,9 +1187,11 @@
                                         <field name="amount_currency" groups="base.group_multi_currency"/>
                                         <field name="company_currency_id" invisible="1"/>
                                         <field name="company_id" invisible="1"/>
+                                        <field name="currency_rate" invisible="1"/>
                                         <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                                         <field name="debit" sum="Total Debit"/>
                                         <field name="credit" sum="Total Credit"/>
+                                        <field name="balance" invisible="1"/>
                                         <field name="tax_ids" string="Taxes Applied" widget="many2many_tags" options="{'no_create': True}"/>
                                         <field name="date_maturity" required="0" invisible="context.get('view_no_maturity', False)"/>
                                       </group>

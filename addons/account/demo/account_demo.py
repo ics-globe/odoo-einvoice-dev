@@ -315,7 +315,7 @@ class AccountChartTemplate(models.Model):
             for move in created - self.env.ref(f'account.{cid}_demo_invoice_extract'):
                 try:
                     move.action_post()
-                except (UserError, ValidationError):
+                except Exception:
                     _logger.exception('Error while posting demo data')
         elif created._name == 'account.bank.statement':
             created.button_post()

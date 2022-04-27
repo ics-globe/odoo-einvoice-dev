@@ -1,5 +1,5 @@
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from itertools import zip_longest
 from markupsafe import Markup
 import re
@@ -15,6 +15,7 @@ from odoo.tools import (
     format_date,
     formatLang,
     is_html_empty,
+    get_lang,
 )
 
 
@@ -35,8 +36,8 @@ def format_rf_reference(number):
     )
 
 
-class AccountInvoice(models.Model):
-    _inherit = 'account.move'
+class AccountInvoice(models.AbstractModel):
+    _name = 'account.invoice'
 
     # /!\ invoice_line_ids is just a subset of line_ids.
     invoice_line_ids = fields.One2many(
@@ -48,17 +49,18 @@ class AccountInvoice(models.Model):
         domain=[('exclude_from_invoice_tab', '=', False)],
         states={'draft': [('readonly', False)]},
     )
-    move_type = fields.Selection(
-        selection_add=[
-            ('out_invoice', 'Customer Invoice'),
-            ('out_refund', 'Customer Credit Note'),
-            ('in_invoice', 'Vendor Bill'),
-            ('in_refund', 'Vendor Credit Note'),
-            ('out_receipt', 'Sales Receipt'),
-            ('in_receipt', 'Purchase Receipt'),
-        ],
-        ondelete={key: 'set default' for key in TYPE_REVERSE_MAP},
-    )
+    # move_type = fields.Selection(
+    #     selection_add=[
+    #         ('out_invoice', 'Customer Invoice'),
+    #         ('out_refund', 'Customer Credit Note'),
+    #         ('in_invoice', 'Vendor Bill'),
+    #         ('in_refund', 'Vendor Credit Note'),
+    #         ('out_receipt', 'Sales Receipt'),
+    #         ('in_receipt', 'Purchase Receipt'),
+    #     ],
+    #     ondelete={key: 'set default' for key in TYPE_REVERSE_MAP if key != 'entry'},
+    # )
+    company_id = fields.Many2one('res.company')   # compatibility for field definition
 
     # === Date fields === #
     invoice_date = fields.Date(
@@ -81,8 +83,8 @@ class AccountInvoice(models.Model):
         comodel_name='account.payment.term',
         string='Payment Terms',
         compute='_compute_invoice_payment_term_id', store=True, readonly=False, precompute=True,
-        check_company=True,
         states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
+        check_company=True,
     )
 
     # === Partner fields === #
@@ -119,9 +121,9 @@ class AccountInvoice(models.Model):
     fiscal_position_id = fields.Many2one(
         'account.fiscal.position',
         string='Fiscal Position',
-        states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
         check_company=True,
         compute='_compute_fiscal_position', store=True, readonly=False, precompute=True,
+        states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
         domain="[('company_id', '=', company_id)]",
         ondelete="restrict",
         help="Fiscal positions are used to adapt taxes and accounts for particular "
@@ -427,7 +429,7 @@ class AccountInvoice(models.Model):
         'line_ids.debit',
         'line_ids.credit',
         'line_ids.currency_id',
-        'line_ids.amount_currency',
+        'line_ids.currency_rate',
         'line_ids.amount_residual',
         'line_ids.amount_residual_currency',
         'line_ids.payment_id.state',
@@ -491,6 +493,28 @@ class AccountInvoice(models.Model):
             move.amount_total_signed = abs(total) if move.move_type == 'entry' else -total
             move.amount_residual_signed = total_residual
             move.amount_total_in_currency_signed = abs(move.amount_total) if move.move_type == 'entry' else -(sign * move.amount_total)
+
+
+    def _inverse_amount_total(self):
+        return
+        for move in self:
+            if len(move.line_ids) != 2 or move.is_invoice(include_receipts=True):
+                continue
+
+            to_write = []
+
+            amount_currency = abs(move.amount_total)
+            balance = move.currency_id._convert(amount_currency, move.company_currency_id, move.company_id, move.date)
+
+            for line in move.line_ids:
+                if not line.currency_id.is_zero(balance - abs(line.balance)):
+                    to_write.append((1, line.id, {
+                        'debit': line.balance > 0.0 and balance or 0.0,
+                        'credit': line.balance < 0.0 and balance or 0.0,
+                        'amount_currency': line.balance > 0.0 and amount_currency or -amount_currency,
+                    }))
+
+            move.write({'line_ids': to_write})
 
     @api.depends('amount_total', 'amount_residual')
     def _compute_payment_state(self):
@@ -614,7 +638,7 @@ class AccountInvoice(models.Model):
             reconciled_vals.append(self._get_reconciled_vals(partial, amount, counterpart_line))
         return reconciled_vals
 
-    @api.depends('line_ids.amount_currency', 'line_ids.tax_base_amount', 'line_ids.tax_line_id', 'partner_id', 'currency_id', 'amount_total', 'amount_untaxed')
+    @api.depends('line_ids.currency_rate', 'line_ids.tax_base_amount', 'line_ids.tax_line_id', 'partner_id', 'currency_id', 'amount_total', 'amount_untaxed')
     def _compute_tax_totals(self):
         """ Computed field used for custom widget's rendering.
             Only set on invoices.
@@ -837,6 +861,16 @@ class AccountInvoice(models.Model):
             else:
                 move.bank_partner_id = move.company_id.partner_id
 
+    def _get_domain_matching_suspense_moves(self):
+        self.ensure_one()
+        domain = self.env['account.move.line']._get_suspense_moves_domain()
+        domain += ['|', ('partner_id', '=?', self.partner_id.id), ('partner_id', '=', False)]
+        if self.is_inbound():
+            domain.append(('balance', '=', -self.amount_residual))
+        else:
+            domain.append(('balance', '=', self.amount_residual))
+        return domain
+
     def _compute_has_matching_suspense_amount(self):
         for r in self:
             res = False
@@ -936,8 +970,6 @@ class AccountInvoice(models.Model):
                         if not move.currency_id.is_zero(delta_amount):
                             first_tax_line.amount_currency = first_tax_line.amount_currency - delta_amount * sign
 
-            move._recompute_dynamic_lines()
-
     # -------------------------------------------------------------------------
     # CONSTRAINT METHODS
     # -------------------------------------------------------------------------
@@ -994,7 +1026,6 @@ class AccountInvoice(models.Model):
         a different country than the one allowed by the fiscal country or the fiscal position.
         This contrains ensure such account.move cannot be kept, as they could generate inconsistencies in the reports.
         """
-        self._compute_tax_country_id() # We need to ensure this field has been computed, as we use it in our check
         for record in self:
             amls = record.line_ids
             impacted_countries = amls.tax_ids.country_id | amls.tax_line_id.country_id | amls.tax_tag_ids.country_id
@@ -1052,167 +1083,17 @@ class AccountInvoice(models.Model):
     # DYNAMIC LINES
     # -------------------------------------------------------------------------
 
-    def _recompute_tax_lines(self, recompute_tax_base_amount=False):
-        """ Compute the dynamic tax lines of the journal entry.
-
-        :param recompute_tax_base_amount: Flag forcing only the recomputation of the `tax_base_amount` field.
+    @api.model
+    def _get_base_amount_to_display(self, base_amount, tax_rep_ln, parent_tax_group=None):
+        """ The base amount returned for taxes by compute_all has is the balance
+        of the base line. For inbound operations, positive sign is on credit, so
+        we need to invert the sign of this amount before displaying it.
         """
-        self.ensure_one()
-
-        def _serialize_tax_grouping_key(grouping_dict):
-            ''' Serialize the dictionary values to be used in the taxes_map.
-            :param grouping_dict: The values returned by '_get_tax_grouping_key_from_tax_line' or '_get_tax_grouping_key_from_base_line'.
-            :return: A string representing the values.
-            '''
-            return '-'.join(str(v) for v in grouping_dict.values())
-
-        def _compute_base_line_taxes(base_line):
-            ''' Compute taxes amounts both in company currency / foreign currency as the ratio between
-            amount_currency & balance could not be the same as the expected currency rate.
-            The 'amount_currency' value will be set on compute_all(...)['taxes'] in multi-currency.
-            :param base_line:   The account.move.line owning the taxes.
-            :return:            The result of the compute_all method.
-            '''
-            move = base_line.move_id
-
-            if move.is_invoice(include_receipts=True):
-                handle_price_include = True
-                sign = -1 if move.is_inbound() else 1
-                quantity = base_line.quantity
-                is_refund = move.move_type in ('out_refund', 'in_refund')
-                price_unit_wo_discount = sign * base_line.price_unit * (1 - (base_line.discount / 100.0))
-            else:
-                handle_price_include = False
-                quantity = 1.0
-                tax_type = base_line.tax_ids[0].type_tax_use if base_line.tax_ids else None
-                is_refund = (tax_type == 'sale' and base_line.debit) or (tax_type == 'purchase' and base_line.credit)
-                price_unit_wo_discount = base_line.amount_currency
-
-            return base_line.tax_ids._origin.with_context(force_sign=move._get_tax_force_sign()).compute_all(
-                price_unit_wo_discount,
-                currency=base_line.currency_id,
-                quantity=quantity,
-                product=base_line.product_id,
-                partner=base_line.partner_id,
-                is_refund=is_refund,
-                handle_price_include=handle_price_include,
-                include_caba_tags=move.always_tax_exigible,
-            )
-
-        taxes_map = {}
-
-        # ==== Add tax lines ====
-        to_remove = self.env['account.move.line']
-        for line in self.line_ids.filtered('tax_repartition_line_id'):
-            grouping_dict = self._get_tax_grouping_key_from_tax_line(line)
-            grouping_key = _serialize_tax_grouping_key(grouping_dict)
-            if grouping_key in taxes_map:
-                # A line with the same key does already exist, we only need one
-                # to modify it; we have to drop this one.
-                to_remove += line
-            else:
-                taxes_map[grouping_key] = {
-                    'tax_line': line,
-                    'amount': 0.0,
-                    'tax_base_amount': 0.0,
-                    'grouping_dict': False,
-                }
-
-        if not recompute_tax_base_amount:
-            to_remove.unlink()
-            # self.line_ids -= to_remove
-
-        # ==== Mount base lines ====
-        for line in self.line_ids.filtered(lambda line: not line.tax_repartition_line_id):
-            # Don't call compute_all if there is no tax.
-            if not line.tax_ids:
-                if not recompute_tax_base_amount:
-                    line.tax_tag_ids = [(5, 0, 0)]
-                continue
-
-            compute_all_vals = _compute_base_line_taxes(line)
-
-            # Assign tags on base line
-            if not recompute_tax_base_amount:
-                line.tax_tag_ids = compute_all_vals['base_tags'] or [(5, 0, 0)]
-
-            for tax_vals in compute_all_vals['taxes']:
-                grouping_dict = self._get_tax_grouping_key_from_base_line(line, tax_vals)
-                grouping_key = _serialize_tax_grouping_key(grouping_dict)
-
-                tax_repartition_line = self.env['account.tax.repartition.line'].browse(tax_vals['tax_repartition_line_id'])
-                tax = tax_repartition_line.tax_id
-
-                taxes_map_entry = taxes_map.setdefault(grouping_key, {
-                    'tax_line': None,
-                    'amount': 0.0,
-                    'tax_base_amount': 0.0,
-                    'grouping_dict': False,
-                })
-                taxes_map_entry['amount'] += tax_vals['amount']
-                taxes_map_entry['tax_base_amount'] += self._get_base_amount_to_display(tax_vals['base'], tax_repartition_line, tax_vals['group'])
-                taxes_map_entry['grouping_dict'] = grouping_dict
-
-        # ==== Pre-process taxes_map ====
-        taxes_map = self._preprocess_taxes_map(taxes_map)
-
-        # ==== Process taxes_map ====
-        for taxes_map_entry in taxes_map.values():
-            # The tax line is no longer used in any base lines, drop it.
-            if taxes_map_entry['tax_line'] and not taxes_map_entry['grouping_dict']:
-                if not recompute_tax_base_amount:
-                    # self.line_ids -= taxes_map_entry['tax_line']
-                    taxes_map_entry['tax_line'].unlink()
-                continue
-
-            currency = self.env['res.currency'].browse(taxes_map_entry['grouping_dict']['currency_id'])
-
-            # Don't create tax lines with zero balance.
-            if currency.is_zero(taxes_map_entry['amount']):
-                if taxes_map_entry['tax_line'] and not recompute_tax_base_amount:
-                    taxes_map_entry['tax_line'].unlink()
-                continue
-
-            # tax_base_amount field is expressed using the company currency.
-            tax_base_amount = currency._convert(taxes_map_entry['tax_base_amount'], self.company_currency_id, self.company_id, self.date or fields.Date.context_today(self))
-
-            # Recompute only the tax_base_amount.
-            if recompute_tax_base_amount:
-                if taxes_map_entry['tax_line']:
-                    taxes_map_entry['tax_line'].tax_base_amount = tax_base_amount
-                continue
-
-            balance = currency._convert(
-                taxes_map_entry['amount'],
-                self.company_currency_id,
-                self.company_id,
-                self.date or fields.Date.context_today(self),
-            )
-            currency_id = taxes_map_entry['grouping_dict']['currency_id']
-            to_write_on_line = {
-                # 'amount_currency': taxes_map_entry['amount'],
-                'currency_id': currency_id,
-                'balance': balance,
-                'tax_base_amount': tax_base_amount,
-            }
-
-            if taxes_map_entry['tax_line']:
-                # Update an existing tax line.
-                taxes_map_entry['tax_line'].update(to_write_on_line)
-            else:
-                # Create a new tax line.
-                tax_repartition_line_id = taxes_map_entry['grouping_dict']['tax_repartition_line_id']
-                tax_repartition_line = self.env['account.tax.repartition.line'].browse(tax_repartition_line_id)
-                tax = tax_repartition_line.tax_id
-                taxes_map_entry['tax_line'] = self.env['account.move.line'].create({
-                    **to_write_on_line,
-                    'name': tax.name,
-                    'move_id': self.id,
-                    'company_id': line.company_id.id,
-                    'company_currency_id': line.company_currency_id.id,
-                    'tax_base_amount': tax_base_amount,
-                    **taxes_map_entry['grouping_dict'],
-                })
+        source_tax = parent_tax_group or tax_rep_ln.tax_id
+        if (tax_rep_ln.document_type == 'invoice' and source_tax.type_tax_use == 'sale') \
+           or (tax_rep_ln.document_type == 'refund' and source_tax.type_tax_use == 'purchase'):
+            return -base_amount
+        return base_amount
 
     def _recompute_cash_rounding_lines(self):
         ''' Handle the cash rounding feature on invoices.
@@ -1253,7 +1134,6 @@ class AccountInvoice(models.Model):
             rounding_line_vals = {
                 'balance': diff_balance,
                 'quantity': 1.0,
-                # 'amount_currency': diff_amount_currency,
                 'partner_id': self.partner_id.id,
                 'move_id': self.id,
                 'currency_id': self.currency_id.id,
@@ -1293,7 +1173,6 @@ class AccountInvoice(models.Model):
             # Create or update the cash rounding line.
             if cash_rounding_line:
                 cash_rounding_line.update({
-                    # 'amount_currency': rounding_line_vals['amount_currency'],
                     'balance': rounding_line_vals['debit'] - rounding_line_vals['credit'],
                     'account_id': rounding_line_vals['account_id'],
                 })
@@ -1331,146 +1210,139 @@ class AccountInvoice(models.Model):
 
         _apply_cash_rounding(self, diff_balance, diff_amount_currency, existing_cash_rounding_line)
 
-    def _recompute_payment_terms_lines(self):
-        ''' Compute the dynamic payment term lines of the journal entry.'''
-        self.ensure_one()
-        self = self.with_company(self.company_id)
-        today = fields.Date.context_today(self)
-        self = self.with_company(self.journal_id.company_id)
+    @contextmanager
+    def _sync_tax_lines(self):
+        def existing():
+            return {line.tax_key: line for line in self.line_ids if line.tax_key}
 
-        def _get_payment_terms_computation_date(self):
-            ''' Get the date from invoice that will be used to compute the payment terms.
-            :param self:    The current account.move record.
-            :return:        A datetime.date object.
-            '''
-            if self.invoice_payment_term_id and False:
-                return self.invoice_date or today
-            else:
-                return self.invoice_date_due or self.invoice_date or today
+        existing_before = existing()
+        yield
+        existing_after = existing()
 
-        def _get_payment_terms_account(self, payment_terms_lines):
-            ''' Get the account from invoice that will be set as receivable / payable account.
-            :param self:                    The current account.move record.
-            :param payment_terms_lines:     The current payment terms lines.
-            :return:                        An account.account record.
-            '''
-            if payment_terms_lines:
-                # Retrieve account from previous payment terms lines in order to allow the user to set a custom one.
-                return payment_terms_lines[0].account_id
-            elif self.partner_id:
-                # Retrieve account from partner.
-                if self.is_sale_document(include_receipts=True):
-                    return self.partner_id.property_account_receivable_id
+        needed = {}
+        for line in self.line_ids:
+            for key, values in line.compute_all_tax.items():
+                if key not in needed:
+                    needed[key] = dict(values)
                 else:
-                    return self.partner_id.property_account_payable_id
+                    needed[key]['balance'] += values['balance']
+
+        to_delete = {
+            line.id
+            for key, line in existing_before.items()
+            if key not in needed and existing_after.get(key) == line
+        }
+        if to_delete:
+            self.env['account.move.line'].browse(to_delete).unlink()
+
+        # TODO recycle to_delete in to_create to save ids
+        to_create = {
+            key: values
+            for key, values in needed.items()
+            if key not in existing_after
+        }
+        if to_create:
+            self.env['account.move.line'].create([
+                {**key, **values, 'display_type': 'tax'}
+                for key, values in to_create.items()
+            ])
+
+        to_write = {
+            existing_after[key]: values['balance']
+            for key, values in needed.items()
+            if key in existing_before and existing_after[key].balance != values['balance']
+        }
+        if to_write:
+            for line, balance in to_write.items():
+                line.balance = balance
+
+    @contextmanager
+    def _sync_term_lines(self):
+        def existing():
+            map = defaultdict(dict)
+            for line in self.line_ids:
+                if line.display_type == 'payment_term':
+                    map[line.move_id][fields.Date.to_date(line.date_maturity)] = line
+            return map
+
+        existing_before = existing()
+        yield
+        existing_after = existing()
+        needed = defaultdict(dict)
+        for move in self.filtered(lambda move: move.is_invoice()):
+            if move.invoice_payment_term_id:
+                date_ref = move.invoice_date or fields.Date.today()
+                for date, amount in move.invoice_payment_term_id.compute(
+                    move.amount_total_signed,
+                    date_ref=date_ref,
+                    currency=self.currency_id,
+                ):
+                    needed[move][fields.Date.to_date(date)] = amount
             else:
-                # Search new account.
-                domain = [
-                    ('company_id', '=', self.company_id.id),
-                    ('internal_type', '=', 'receivable' if self.move_type in ('out_invoice', 'out_refund', 'out_receipt') else 'payable'),
-                ]
-                return self.env['account.account'].search(domain, limit=1)
+                date_ref = move.invoice_date_due or move.invoice_date or fields.Date.today()
+                needed[move][fields.Date.to_date(date_ref)] = move.amount_total_signed
 
-        def _compute_payment_terms(self, date, total_balance, total_amount_currency):
-            ''' Compute the payment terms.
-            :param self:                    The current account.move record.
-            :param date:                    The date computed by '_get_payment_terms_computation_date'.
-            :param total_balance:           The invoice's total in company's currency.
-            :param total_amount_currency:   The invoice's total in invoice's currency.
-            :return:                        A list <to_pay_company_currency, to_pay_invoice_currency, due_date>.
-            '''
-            if self.invoice_payment_term_id:
-                to_compute = self.invoice_payment_term_id.compute(total_balance, date_ref=date, currency=self.company_id.currency_id)
-                if self.currency_id == self.company_id.currency_id:
-                    # Single-currency.
-                    return [(b[0], b[1], b[1]) for b in to_compute]
-                else:
-                    # Multi-currencies.
-                    to_compute_currency = self.invoice_payment_term_id.compute(total_amount_currency, date_ref=date, currency=self.currency_id)
-                    return [(b[0], b[1], ac[1]) for b, ac in zip(to_compute, to_compute_currency)]
-            else:
-                return [(fields.Date.to_string(date), total_balance, total_amount_currency)]
+        to_delete = {
+            line.id
+            for move, values in existing_before.items()
+            for date, line in values.items()
+            if date not in needed[move]
+        }
+        if to_delete:
+            self.env['account.move.line'].browse(to_delete).unlink()
 
-        def _compute_diff_payment_terms_lines(self, existing_terms_lines, account, to_compute):
-            ''' Process the result of the '_compute_payment_terms' method and creates/updates corresponding invoice lines.
-            :param self:                    The current account.move record.
-            :param existing_terms_lines:    The current payment terms lines.
-            :param account:                 The account.account record returned by '_get_payment_terms_account'.
-            :param to_compute:              The list returned by '_compute_payment_terms'.
-            '''
-            # As we try to update existing lines, sort them by due date.
-            existing_terms_lines = existing_terms_lines.sorted(lambda line: line.date_maturity or today)
-            existing_terms_lines_index = 0
+        to_create = {
+            (move, date): amount
+            for move, values in needed.items()
+            for date, amount in values.items()
+            if date not in existing_after[move]
+        }
+        if to_create:
+            self.env['account.move.line'].create([{
+                'move_id': move.id,
+                'display_type': 'payment_term',
+                'name': move.payment_reference or '',
+                'balance': -amount,
+                'date_maturity': date,
+            } for (move, date), amount in to_create.items()])
 
-            # Recompute amls: update existing line or create new one for each payment term.
-            new_terms_lines = self.env['account.move.line']
-            for date_maturity, balance, amount_currency in to_compute:
-                currency = self.journal_id.company_id.currency_id
-                if currency and currency.is_zero(balance) and len(to_compute) > 1:
-                    continue
+        to_write = {
+            existing_after[move][date]: amount
+            for move, values in needed.items()
+            for date, amount in values.items()
+            if date in existing_after[move] and existing_after[move][date].balance != amount
+        }
+        if to_write:
+            for line, amount in to_write.items():
+                line.balance = amount
 
-                if existing_terms_lines_index < len(existing_terms_lines):
-                    # Update existing line.
-                    candidate = existing_terms_lines[existing_terms_lines_index]
-                    existing_terms_lines_index += 1
-                    candidate.update({
-                        'date_maturity': date_maturity,
-                        # 'amount_currency': -amount_currency,
-                        'balance': -balance,
-                    })
-                else:
-                    # Create new line.
-                    candidate = self.env['account.move.line'].create({
-                        'name': self.payment_reference or '',
-                        'balance': -balance,
-                        'quantity': 1.0,
-                        # 'amount_currency': -amount_currency,
-                        'date_maturity': date_maturity,
-                        'move_id': self.id,
-                        'currency_id': self.currency_id.id,
-                        'account_id': account.id,
-                        'partner_id': self.commercial_partner_id.id,
-                    })
-                new_terms_lines += candidate
-            return new_terms_lines
+    @contextmanager
+    def _sync_dynamic_lines(self):
+        if self.env.context.get('_sync_dynamic_lines'):
+            yield
+            return
+        self = self.with_context(_sync_dynamic_lines=True)
 
-        existing_terms_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
-        other_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
-        company_currency_id = (self.company_id or self.env.company).currency_id
-        total_balance = sum(other_lines.mapped(lambda l: company_currency_id.round(l.balance)))
-        total_amount_currency = sum(other_lines.mapped('amount_currency'))
+        with ExitStack() as stack:
+            stack.enter_context(self._sync_term_lines())
+            stack.enter_context(self._sync_tax_lines())
+            yield
 
-        computation_date = _get_payment_terms_computation_date(self)
-        account = _get_payment_terms_account(self, existing_terms_lines)
-        to_compute = _compute_payment_terms(self, computation_date, total_balance, total_amount_currency)
-        new_terms_lines = _compute_diff_payment_terms_lines(self, existing_terms_lines, account, to_compute)
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        # from pprint import pprint
+        # print(['create', vals_list])
+        with moves._sync_dynamic_lines():
+            pass
+        return moves
 
-        # Remove old terms lines that are no longer needed.
-        # self.line_ids -= existing_terms_lines - new_terms_lines
-        (existing_terms_lines - new_terms_lines).unlink()
-
-        if new_terms_lines:
-            self.payment_reference = new_terms_lines[-1].name or ''
-            self.invoice_date_due = new_terms_lines[-1].date_maturity
-
-    def _recompute_dynamic_lines(self, recompute_taxes=False, recompute_tax_base_amount=False):
-        ''' Recompute all lines that depend of others.
-
-        For example, tax lines depends of base lines (lines having tax_ids set). This is also the case of cash rounding
-        lines that depend of base lines or tax lines depending the cash rounding strategy. When a payment term is set,
-        this method will auto-balance the move with payment term lines.
-
-        :param recompute_taxes: Force the computation of taxes.
-        '''
-        for move in self:
-            if recompute_taxes:
-                move._recompute_tax_lines()
-            if recompute_tax_base_amount:
-                move._recompute_tax_lines(recompute_tax_base_amount=True)
-            if move.is_invoice(include_receipts=True):
-                move._recompute_cash_rounding_lines()
-                move._recompute_payment_terms_lines()
-
+    def write(self, vals):
+        # from pprint import pprint
+        # print(['write', vals])
+        with self._sync_dynamic_lines():
+            res = super().write(vals)
+        return res
 
     # -------------------------------------------------------------------------
     # MOVE EXTENSIONS
@@ -1996,3 +1868,8 @@ class AccountInvoice(models.Model):
         the default one. For example please review the l10n_ar module """
         self.ensure_one()
         return 'account.report_invoice_document'
+
+
+class AccountMove(models.AbstractModel):
+    _name = 'account.move'
+    _inherit = ['account.invoice', 'account.move']

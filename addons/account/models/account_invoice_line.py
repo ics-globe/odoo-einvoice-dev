@@ -1,11 +1,17 @@
+from collections import defaultdict
+from contextlib import contextmanager
+from locale import currency
 from odoo import api, fields, models, Command, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import html_escape
+from odoo.tools import html_escape, frozendict
 from odoo.tools.misc import formatLang, format_date, get_lang
 
 
-class AccountInvoiceLine(models.Model):
-    _inherit = "account.move.line"
+class AccountInvoiceLine(models.AbstractModel):
+    _name = "account.invoice.line"
+
+    currency_id = fields.Many2one('res.currency')  # compatibility for field definition
+    # account_id = fields.Many2one(compute='_compute_account_id', store=True, readonly=False, precompute=True)
 
     display_type = fields.Selection(
         selection=[
@@ -16,6 +22,7 @@ class AccountInvoiceLine(models.Model):
             ('line_note', 'Note'),
             ('rounding', "Rounding"),
         ],
+        default='product',
     )
     exclude_from_invoice_tab = fields.Boolean(
         compute='_compute_exclude_from_invoice_tab',
@@ -83,6 +90,8 @@ class AccountInvoiceLine(models.Model):
         check_company=True,
         help="Taxes that apply on the base amount",
     )
+    tax_key = fields.Binary(compute='_compute_tax_key')
+    compute_all_tax = fields.Binary(compute='_compute_all_tax')
 
     # ==== Analytic fields ====
     analytic_line_ids = fields.One2many(
@@ -113,6 +122,7 @@ class AccountInvoiceLine(models.Model):
         help="You can check this box to mark this journal item as a litigation with the "
              "associated partner",
     )
+
     def _inverse_product_id(self):
         for line in self:
             fiscal_position = line.move_id.fiscal_position_id
@@ -124,6 +134,71 @@ class AccountInvoiceLine(models.Model):
             elif line.move_id.is_purchase_document(include_receipts=True):
                 # In invoice.
                 line.account_id = accounts['expense'] or line.account_id
+
+    @api.depends('display_type')
+    def _compute_account_id(self):
+        term_lines = self.filtered(lambda line: not line.account_id and line.display_type == 'payment_term')
+        if term_lines:
+            moves = term_lines.move_id
+            self.env.cr.execute(f"""
+                SELECT DISTINCT ON (line.move_id)
+                       'account.move' AS model,
+                       line.move_id AS id,
+                       NULL AS type,
+                       line.account_id AS account_id
+                  FROM account_move_line line
+                 WHERE line.move_id = ANY(%(move_ids)s)
+                   AND line.display_type = 'payment_term'
+
+                UNION ALL
+
+                SELECT DISTINCT ON (property.company_id, property.name)
+                       'res.partner' AS model,
+                       COALESCE(
+                           SUBSTR(property.res_id, {len('res.partner') + 2})::integer,
+                           company.partner_id
+                       ) AS id,
+                       CASE
+                           WHEN property.name = 'property_account_receivable_id' THEN 'receivable'
+                           ELSE 'payable'
+                       END AS type,
+                       SUBSTR(property.value_reference, {len('account.account') + 2})::integer AS account_id
+                  FROM ir_property property
+                  JOIN res_company company ON property.company_id = company.id
+                 WHERE property.name IN ('property_account_receivable_id', 'property_account_payable_id')
+                   AND property.company_id = ANY(%(company_ids)s)
+                   AND (property.res_id = ANY(%(partners)s) OR property.res_id IS NULL)
+
+                UNION ALL
+
+                SELECT DISTINCT ON (account.company_id, account.internal_type)
+                       'res.company' AS model,
+                       account.company_id AS id,
+                       account.internal_type AS type,
+                       account.id AS account_id
+                  FROM account_account account
+                 WHERE account.company_id = ANY(%(company_ids)s)
+                   AND account.internal_type IN ('receivable', 'payable')
+            """, {
+                'company_ids': moves.company_id.ids,
+                'move_ids': moves.ids,
+                'partners': [f'res.partner,{pid}' for pid in moves.commercial_partner_id.ids],
+            })
+            accounts = {
+                (model, id, internal_type): account_id
+                for model, id, internal_type, account_id in self.env.cr.fetchall()
+            }
+            for line in term_lines:
+                internal_type = 'receivable' if line.move_id.is_inbound() else 'payable'
+                move = line.move_id
+                line.account_id = (
+                    accounts.get(('account.move', move.id, None))
+                    or accounts.get(('res.partner', move.commercial_partner_id.id, internal_type))
+                    or accounts.get(('res.partner', move.company_id.partner_id.id, internal_type))
+                    or accounts.get(('res.company', move.company_id.id, internal_type))
+                )
+        super()._compute_account_id()
+
 
     @api.depends('display_type')
     def _compute_exclude_from_invoice_tab(self):
@@ -138,9 +213,6 @@ class AccountInvoiceLine(models.Model):
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
         for line in self:
-            if not line.move_id.is_invoice(include_receipts=True):
-                line.amount_currency = line.amount_currency or (line.debit - line.credit)  # todo _compute_amount_currency_notused
-                continue
             if line.exclude_from_invoice_tab:
                 continue
 
@@ -224,7 +296,6 @@ class AccountInvoiceLine(models.Model):
 
         return product_price_unit
 
-
     @api.depends('product_id', 'product_uom_id')
     def _compute_tax_ids(self):
         for line in self:
@@ -269,6 +340,54 @@ class AccountInvoiceLine(models.Model):
 
         return tax_ids
 
+    @api.depends('tax_ids', 'currency_id', 'partner_id', 'account_id', 'group_tax_id', 'analytic_tag_ids', 'analytic_account_id')
+    def _compute_tax_key(self):
+        for line in self:
+            if line.tax_repartition_line_id:
+                line.tax_key = frozendict({
+                    'tax_repartition_line_id': line.tax_repartition_line_id.id,
+                    'group_tax_id': line.group_tax_id.id,
+                    'account_id': line.account_id.id,
+                    'currency_id': line.currency_id.id,
+                    'analytic_tag_ids': [(6, 0, line.analytic_tag_ids.ids or [])],
+                    'analytic_account_id': line.analytic_account_id.id,
+                    'tax_ids': [(6, 0, line.tax_ids.ids)],
+                    'tax_tag_ids': [(6, 0, line.tax_tag_ids.ids)],
+                    'partner_id': line.partner_id.id,
+                    'move_id': line.move_id.id,
+                })
+            else:
+                line.tax_key = False
+
+    @api.depends('tax_ids', 'currency_id', 'partner_id', 'analytic_tag_ids', 'analytic_account_id', 'balance', 'partner_id', 'move_id.partner_id')
+    def _compute_all_tax(self):
+        for line in self:
+            compute_all = line.tax_ids.with_context(force_sign=-1 if line.move_id.is_inbound() else 1).compute_all(
+                line.price_unit or -line.balance,
+                currency=line.currency_id,
+                quantity=line.quantity,
+                product=line.product_id,
+                partner=line.move_id.partner_id or line.partner_id,
+                is_refund=line.move_id.move_type in ('in_refund', 'out_refund'),
+                handle_price_include=line.move_id.is_invoice(),
+                include_caba_tags=line.move_id.always_tax_exigible,
+            )
+            line.compute_all_tax = {frozendict({
+                'tax_repartition_line_id': tax['tax_repartition_line_id'],
+                'group_tax_id': tax['group'] and tax['group'].id or False,
+                'account_id': tax['account_id'] or line.account_id.id,
+                'currency_id': line.currency_id.id,
+                'analytic_tag_ids': [(6, 0, tax['analytic'] and line.analytic_tag_ids.ids or [])],
+                'analytic_account_id': tax['analytic'] and line.analytic_account_id.id,
+                'tax_ids': [(6, 0, tax['tax_ids'])],
+                'tax_tag_ids': [(6, 0, tax['tag_ids'])],
+                'partner_id': (line.move_id or line).partner_id.id,
+                'move_id': line.move_id.id,
+            }): {
+                'name': tax['name'],
+                'balance': -tax['amount']
+            } for tax in compute_all['taxes']}
+
     @api.depends('product_id', 'account_id', 'partner_id', 'date')
     def _compute_analytic_account_id(self):
         for record in self:
@@ -298,42 +417,6 @@ class AccountInvoiceLine(models.Model):
                 )
                 if rec:
                     record.analytic_tag_ids = rec.analytic_tag_ids
-
-    def _get_fields_onchange_subtotal(self, price_subtotal=None, move_type=None, currency=None, company=None, date=None):
-        self.ensure_one()
-        return self._get_fields_onchange_subtotal_model(
-            price_subtotal=price_subtotal or self.price_subtotal,
-            move_type=move_type or self.move_id.move_type,
-            currency=currency or self.currency_id,
-            company=company or self.move_id.company_id,
-            date=date or self.move_id.date,
-        )
-
-    def _get_fields_onchange_subtotal_model(self, price_subtotal, move_type, currency, company, date):
-        ''' This method is used to recompute the values of 'amount_currency', 'debit', 'credit' due to a change made
-        in some business fields (affecting the 'price_subtotal' field).
-
-        :param price_subtotal:  The untaxed amount.
-        :param move_type:       The type of the move.
-        :param currency:        The line's currency.
-        :param company:         The move's company.
-        :param date:            The move's date.
-        :return:                A dictionary containing 'debit', 'credit', 'amount_currency'.
-        '''
-        if move_type in self.move_id.get_outbound_types():
-            sign = 1
-        elif move_type in self.move_id.get_inbound_types():
-            sign = -1
-        else:
-            sign = 1
-
-        amount_currency = price_subtotal * sign
-        balance = currency._convert(amount_currency, company.currency_id, company, date or fields.Date.context_today(self))
-        return {
-            # 'amount_currency': amount_currency,
-            'currency_id': currency.id,
-            'balance': balance,
-        }
 
     def _get_price_total_and_subtotal(self, price_unit=None, quantity=None, discount=None, currency=None, product=None, partner=None, taxes=None, move_type=None):
         self.ensure_one()
@@ -381,119 +464,6 @@ class AccountInvoiceLine(models.Model):
         if currency:
             res = {k: currency.round(v) for k, v in res.items()}
         return res
-
-    def _set_price_and_tax_after_fpos(self):
-        self.ensure_one()
-        return
-        # Manage the fiscal position after that and adapt the price_unit.
-        # E.g. mapping a price-included-tax to a price-excluded-tax must
-        # remove the tax amount from the price_unit.
-        # However, mapping a price-included tax to another price-included tax must preserve the balance but
-        # adapt the price_unit to the new tax.
-        # E.g. mapping a 10% price-included tax to a 20% price-included tax for a price_unit of 110 should preserve
-        # 100 as balance but set 120 as price_unit.
-        if self.tax_ids and self.move_id.fiscal_position_id and self.move_id.fiscal_position_id.tax_ids:
-            price_subtotal = self._get_price_total_and_subtotal()['price_subtotal']
-            self.tax_ids = self.move_id.fiscal_position_id.map_tax(self.tax_ids._origin)
-            accounting_vals = self._get_fields_onchange_subtotal(
-                price_subtotal=price_subtotal,
-                currency=self.move_id.company_currency_id)
-            amount_currency = accounting_vals['amount_currency']
-            business_vals = self._get_fields_onchange_balance(amount_currency=amount_currency)
-            if 'price_unit' in business_vals:
-                self.price_unit = business_vals['price_unit']
-
-    def _get_fields_onchange_balance(self, quantity=None, discount=None, amount_currency=None, move_type=None, currency=None, taxes=None, price_subtotal=None, force_computation=False):
-        self.ensure_one()
-        return self._get_fields_onchange_balance_model(
-            quantity=quantity or self.quantity,
-            discount=discount or self.discount,
-            amount_currency=amount_currency or self.amount_currency,
-            move_type=move_type or self.move_id.move_type,
-            currency=currency or self.currency_id or self.move_id.currency_id,
-            taxes=taxes or self.tax_ids,
-            price_subtotal=price_subtotal or self.price_subtotal,
-            force_computation=force_computation,
-        )
-
-    @api.model
-    def _get_fields_onchange_balance_model(self, quantity, discount, amount_currency, move_type, currency, taxes, price_subtotal, force_computation=False):
-        ''' This method is used to recompute the values of 'quantity', 'discount', 'price_unit' due to a change made
-        in some accounting fields such as 'balance'.
-
-        This method is a bit complex as we need to handle some special cases.
-        For example, setting a positive balance with a 100% discount.
-
-        :param quantity:        The current quantity.
-        :param discount:        The current discount.
-        :param amount_currency: The new balance in line's currency.
-        :param move_type:       The type of the move.
-        :param currency:        The currency.
-        :param taxes:           The applied taxes.
-        :param price_subtotal:  The price_subtotal.
-        :return:                A dictionary containing 'quantity', 'discount', 'price_unit'.
-        '''
-        if move_type in self.move_id.get_outbound_types():
-            sign = 1
-        elif move_type in self.move_id.get_inbound_types():
-            sign = -1
-        else:
-            sign = 1
-        amount_currency *= sign
-
-        # Avoid rounding issue when dealing with price included taxes. For example, when the price_unit is 2300.0 and
-        # a 5.5% price included tax is applied on it, a balance of 2300.0 / 1.055 = 2180.094 ~ 2180.09 is computed.
-        # However, when triggering the inverse, 2180.09 + (2180.09 * 0.055) = 2180.09 + 119.90 = 2299.99 is computed.
-        # To avoid that, set the price_subtotal at the balance if the difference between them looks like a rounding
-        # issue.
-        if not force_computation and currency.is_zero(amount_currency - price_subtotal):
-            return {}
-
-        taxes = taxes.flatten_taxes_hierarchy()
-        if taxes and any(tax.price_include for tax in taxes):
-            # Inverse taxes. E.g:
-            #
-            # Price Unit    | Taxes         | Originator Tax    |Price Subtotal     | Price Total
-            # -----------------------------------------------------------------------------------
-            # 110           | 10% incl, 5%  |                   | 100               | 115
-            # 10            |               | 10% incl          | 10                | 10
-            # 5             |               | 5%                | 5                 | 5
-            #
-            # When setting the balance to -200, the expected result is:
-            #
-            # Price Unit    | Taxes         | Originator Tax    |Price Subtotal     | Price Total
-            # -----------------------------------------------------------------------------------
-            # 220           | 10% incl, 5%  |                   | 200               | 230
-            # 20            |               | 10% incl          | 20                | 20
-            # 10            |               | 5%                | 10                | 10
-            force_sign = -1 if move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-            taxes_res = taxes._origin.with_context(force_sign=force_sign).compute_all(amount_currency, currency=currency, handle_price_include=False)
-            for tax_res in taxes_res['taxes']:
-                tax = self.env['account.tax'].browse(tax_res['id'])
-                if tax.price_include:
-                    amount_currency += tax_res['amount']
-
-        discount_factor = 1 - (discount / 100.0)
-        if amount_currency and discount_factor:
-            # discount != 100%
-            vals = {
-                'quantity': quantity or 1.0,
-                'price_unit': amount_currency / discount_factor / (quantity or 1.0),
-            }
-        elif amount_currency and not discount_factor:
-            # discount == 100%
-            vals = {
-                'quantity': quantity or 1.0,
-                'discount': 0.0,
-                'price_unit': amount_currency / (quantity or 1.0),
-            }
-        elif not discount_factor:
-            # balance of line is 0, but discount  == 100% so we display the normal unit_price
-            vals = {}
-        else:
-            # balance is 0, so unit price is 0 as well
-            vals = {'price_unit': 0.0}
-        return vals
 
     # -------------------------------------------------------------------------
     # ANALYTIC
@@ -598,12 +568,46 @@ class AccountInvoiceLine(models.Model):
                 values['name'] = ''
             # Don't copy restricted fields of notes
             if line.display_type in ('line_section', 'line_note'):
-                # values['amount_currency'] = 0
                 values['debit'] = 0
                 values['credit'] = 0
                 values['account_id'] = False
             if self._context.get('include_business_fields'):
                 line._copy_data_extend_business_fields(values)
+        return res
+
+    @contextmanager
+    def _sync_invoice(self, create=False):
+        def values():
+            return {
+                line: {
+                    'price_subtotal': line.price_subtotal,
+                }
+                for line in self.filtered(lambda l: l.move_id.is_invoice())
+            }
+        before = values() if not create else {line: {} for line in self}
+        yield
+        after = values()
+
+        for line in self.filtered(lambda l: l.move_id.is_invoice()):
+            if line.display_type == 'product' and before[line].get('price_subtotal') != after[line]['price_subtotal']:
+                line.balance = -after[line]['price_subtotal']
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # from pprint import pprint
+        # print(['create', vals_list])
+        moves = self.env['account.move'].browse({vals['move_id'] for vals in vals_list})
+        with moves._sync_dynamic_lines():
+            lines = super().create(vals_list)
+            with lines.with_context(check_move_validity=False)._sync_invoice(create=True):
+                pass
+        return lines
+
+    def write(self, vals):
+        # from pprint import pprint
+        # print(['write', vals])
+        with self.move_id._sync_dynamic_lines(), self.with_context(check_move_validity=False)._sync_invoice():
+            res = super().write(vals)
         return res
 
     # -------------------------------------------------------------------------
@@ -621,7 +625,6 @@ class AccountInvoiceLine(models.Model):
         not_paid_invoices.filtered(lambda move:
             move.payment_state in ('paid', 'in_payment')
         ).action_invoice_paid()
-        print(self, results)
         return results
 
     # -------------------------------------------------------------------------
@@ -641,3 +644,8 @@ class AccountInvoiceLine(models.Model):
             return (tax_type == 'sale' and self.debit) or (tax_type == 'purchase' and self.credit)
 
         return self.move_id.move_type in ('in_refund', 'out_refund')
+
+
+class AccountMoveLine(models.AbstractModel):
+    _name = 'account.move.line'
+    _inherit = ['account.invoice.line', 'account.move.line']

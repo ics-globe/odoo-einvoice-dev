@@ -313,7 +313,6 @@ class TestAccountMove(AccountTestInvoicingCommon):
         # lines[3] = 'move 2 counterpart line'
         draft_moves.action_post()
         lines = draft_moves.mapped('line_ids').sorted('balance')
-        print(lines.mapped(lambda l: (l.debit, l.credit)))
 
         (lines[0] + lines[2]).reconcile()
 
@@ -382,6 +381,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         move_form = Form(self.env['account.move'])
         # Rate 1:3
         move_form.date = fields.Date.from_string('2016-01-01')
+        move_form.name = '/'
 
         # New line that should get 400.0 as debit.
         with move_form.line_ids.new() as line_form:
@@ -418,11 +418,9 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # === Change the date to change the currency conversion's rate ===
 
-        print('do it')
         with Form(move) as move_form:
             move_form.date = fields.Date.from_string('2017-01-01')
-            print('save')
-        print('done')
+            move_form.name = '/'
 
         self.assertRecordValues(
             move.line_ids.sorted('debit'),
@@ -560,7 +558,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
                 'credit': 0.0,
             }
         ])
-        
+
         reversed_move.is_storno = True
 
         self.assertRecordValues(reversed_move.line_ids, [

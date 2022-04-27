@@ -141,8 +141,8 @@ class AccountAccount(models.Model):
         self.env['account.payment.method.line'].flush(['payment_method_id', 'payment_account_id'])
 
         self._cr.execute('''
-            SELECT 
-                account.id, 
+            SELECT
+                account.id,
                 journal.id
             FROM account_journal journal
             JOIN res_company company ON company.id = journal.company_id
@@ -151,11 +151,11 @@ class AccountAccount(models.Model):
             AND journal.currency_id != company.currency_id
             AND account.currency_id != journal.currency_id
             AND account.id IN %(accounts)s
-            
+
             UNION ALL
-            
-            SELECT 
-                account.id, 
+
+            SELECT
+                account.id,
                 journal.id
             FROM account_journal journal
             JOIN res_company company ON company.id = journal.company_id
@@ -167,11 +167,11 @@ class AccountAccount(models.Model):
             AND account.currency_id != journal.currency_id
             AND apm.payment_type = 'inbound'
             AND account.id IN %(accounts)s
-            
+
             UNION ALL
-            
-            SELECT 
-                account.id, 
+
+            SELECT
+                account.id,
                 journal.id
             FROM account_journal journal
             JOIN res_company company ON company.id = journal.company_id
@@ -491,16 +491,15 @@ class AccountAccount(models.Model):
     def _toggle_reconcile_to_true(self):
         '''Toggle the `reconcile´ boolean from False -> True
 
-        Note that: lines with debit = credit = amount_currency = 0 are set to `reconciled´ = True
+        Note that: lines with debit = credit are set to `reconciled´ = True
         '''
         if not self.ids:
             return None
         query = """
             UPDATE account_move_line SET
-                reconciled = CASE WHEN debit = 0 AND credit = 0 AND amount_currency = 0
-                    THEN true ELSE false END,
-                amount_residual = (debit-credit),
-                amount_residual_currency = amount_currency
+                reconciled = CASE WHEN balance = 0 THEN true ELSE false END,
+                amount_residual = balance,
+                amount_residual_currency = balance * currency_rate
             WHERE full_reconcile_id IS NULL and account_id IN %s
         """
         self.env.cr.execute(query, [tuple(self.ids)])

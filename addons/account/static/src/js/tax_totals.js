@@ -108,13 +108,13 @@ TaxGroupComponent.template = 'account.TaxGroupComponent';
 class TaxTotalsComponent extends AbstractFieldOwl {
     constructor(...args) {
         super(...args);
-        this.totals = useState({value: this.value ? JSON.parse(this.value) : null});
+        this.totals = useState({value: this.value ? this.value : null});
         this.allowTaxEdition = this.nodeOptions['allowTaxEdition'];
     }
 
     willUpdateProps(nextProps) {
         // We only reformat tax groups if there are changed
-        this.totals.value = JSON.parse(nextProps.record.data[this.props.fieldName]);
+        this.totals.value = nextProps.record.data[this.props.fieldName];
     }
 
     _onKeydown(ev) {
