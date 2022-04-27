@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- TODO: remove the formats, use the existing ones -->
+        <!--
+        In master, after removing the old modules, create the formats here
+        TODO: name of the formats: make a distinction between facturx and xrechnung
+            since the constraints are not the same... ? (for instance: XRechnung requires a reference on the buyer
+            but not facturx (except in some cases for chorus pro), XRechnung requires ram:DefinedTradeContact, ...)
+            For now: XRechnung in CII is not supported but Facturx is (Germany can still use XRechnung in UBL)-->
         <!--
         <record id="facturx_cii" model="account.edi.format">
-            <field name="name">Factur-X/XRechnung CII (new)</field>
+            <field name="name">Factur-X CII (France)</field>
             <field name="code">facturx_cii</field>
         </record>
         -->
@@ -15,31 +20,25 @@
         </record>
 
         <record id="ubl_de" model="account.edi.format">
-            <field name="name">Factur-X/XRechnung UBL</field>
+            <field name="name">XRechnung UBL (Germany)</field>
             <field name="code">ubl_de</field>
         </record>
 
         <!--
         <record id="ubl_nl" model="account.edi.format">
-            <field name="name">NLCIUS UBL (new)</field>
+            <field name="name">NLCIUS (Netherlands)</field>
             <field name="code">ubl_nl</field>
         </record>
 
-
         <record id="ubl_no" model="account.edi.format">
-            <field name="name">EHF Billing/Fakturering 3.0 (new)</field>
+            <field name="name">EHF Billing/Fakturering 3.0 (Norway)</field>
             <field name="code">ubl_no</field>
         </record>
 
         <record id="ubl_21" model="account.edi.format">
-            <field name="name">UBL 2.1 (new)</field>
+            <field name="name">UBL 2.1</field>
             <field name="code">ubl_21</field>
         </record>
         -->
-
-        <record id="ubl_20" model="account.edi.format">
-            <field name="name">UBL 2.0</field>
-            <field name="code">ubl_20</field>
-        </record>
     </data>
 </odoo>

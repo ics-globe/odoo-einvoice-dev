@@ -22,6 +22,7 @@ class AccountEdiXmlUBLNO(models.AbstractModel):
     """
 
     def _get_xml_builder(self, format_code, company):
+        # the EDI option will only appear on the journal of norvegian companies
         if format_code == 'ehf_3' and company.country_id.code == 'NO':
             return {
                 'export_invoice': self._export_invoice,

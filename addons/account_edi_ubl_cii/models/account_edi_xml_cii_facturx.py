@@ -29,28 +29,6 @@ class AccountEdiXmlCII(models.AbstractModel):
                 },
             }
 
-    def _prepare_invoice_report(self, pdf_writer, edi_document):
-        self.ensure_one()
-        if self.code not in self._get_format_code_list():
-            return super()._prepare_invoice_report(pdf_writer, edi_document)
-        if not edi_document.attachment_id:
-            return
-
-        pdf_writer.embed_odoo_attachment(edi_document.attachment_id, subtype='text/xml')
-        if not pdf_writer.is_pdfa and str2bool(
-                self.env['ir.config_parameter'].sudo().get_param('edi.use_pdfa', 'False')):
-            try:
-                pdf_writer.convert_to_pdfa()
-            except Exception as e:
-                _logger.exception("Error while converting to PDF/A: %s", e)
-            metadata_template = self.env.ref('account_edi_ubl_cii.account_invoice_pdfa_3_facturx_metadata_22',
-                                             raise_if_not_found=False)
-            if metadata_template:
-                pdf_writer.add_file_metadata(metadata_template._render({
-                    'title': edi_document.move_id.name,
-                    'date': fields.Date.context_today(self),
-                }).encode())
-
     def _export_invoice_constraints(self, invoice, vals):
         constraints = self._invoice_constraints_common(invoice)
         constraints.update({
@@ -83,9 +61,11 @@ class AccountEdiXmlCII(models.AbstractModel):
             ),
             # [BR-DE-15] The element "Buyer reference" (BT-10) must be transmitted
             # (required only for certain buyers in France when using Chorus pro, it's the "service executant")
-            'buyer_reference': self._check_required_fields(
-                vals['record']['commercial_partner_id'], 'ref'
-            ),
+            #TODO: should we enforce this ? annoying to always have the warning while it's not always necessary
+            # alternatively, we could just send a custom message like "In some cases, this field is required [...]"
+            #'buyer_reference': self._check_required_fields(
+            #    vals['record']['commercial_partner_id'], 'ref'
+            #),
             # [BR-DE-6] The element "Seller contact telephone number" (BT-42) must be transmitted.
             'seller_phone': self._check_required_fields(
                 vals['record']['company_id']['partner_id']['commercial_partner_id'], ['phone', 'mobile'],
@@ -206,13 +186,13 @@ class AccountEdiXmlCII(models.AbstractModel):
                 template_values['billing_start'] = min(date_range)
                 template_values['billing_end'] = max(date_range)
 
-        # The only difference between XRechnung and Facturx is the following (but it only raises a warning when
-        # providing the french id to XRechnung schemas.
-        supplier = invoice.company_id.partner_id.commercial_partner_id
-        if supplier.country_id.code == 'DE':
-            template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
-        else:
-            template_values['document_context_id'] = "urn:cen.eu:en16931:2017"
+        # TODO: One of the difference between XRechnung and Facturx is the following. Submitting a Facturx to XRechnung
+        #   validator raises a warning, but submitting a XRechnung to Facturx raises an error. Thus, it's safer
+        #   to always use the french tag
+        #supplier = invoice.company_id.partner_id.commercial_partner_id
+        #if supplier.country_id.code == 'DE':
+        #    template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
+        template_values['document_context_id'] = "urn:cen.eu:en16931:2017"
 
         return template_values
 

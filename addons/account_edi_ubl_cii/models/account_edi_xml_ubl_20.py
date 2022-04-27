@@ -597,75 +597,20 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         # Taxes
         taxes = []
-        for tax_subtotal_el in tree.findall('./{*}TaxTotal/{*}TaxSubtotal'):
-            taxable_amount_el = tax_subtotal_el.find('./{*}TaxableAmount')
-            tax_amount_el = tax_subtotal_el.find('./{*}TaxAmount')
 
-            # Process only subtotals having the same currency as the invoice.
-            if taxable_amount_el.attrib.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
-                continue
-            if tax_amount_el.attrib.get('currencyID', '').upper() != invoice_form.currency_id.name.upper():
-                continue
-
-            tax_categ_el = tax_subtotal_el.find('./{*}TaxCategoryType') or tax_subtotal_el.find('./{*}TaxCategory')
-            tax_categ_id_el = tax_categ_el.find('./{*}ID')
-            tax_categ_percent_el = tax_categ_el.find('./{*}Percent')
-
-            if tax_categ_percent_el is not None:
-                tax = self.env['account.tax'].search([
-                    ('company_id', '=', journal.company_id.id),
-                    ('amount', '=', float(tax_categ_percent_el.text)),
-                    ('amount_type', '=', 'percent'),
-                    ('type_tax_use', '=', 'sale'),
-                ], limit=1)
-                if tax:
-                    taxes.append(tax)
-                else:
-                    logs.append(_(
-                        "Could not retrieve the tax: %s %% for line '%s'.",
-                        float(tax_categ_percent_el.text),
-                        invoice_line_form.name)
-                    )
-            elif all(x is not None for x in (tax_categ_id_el, taxable_amount_el, tax_amount_el)):
-                if tax_categ_id_el.text.upper() == 'S':
-                    amount = float(tax_amount_el.text) / float(taxable_amount_el.text)
-                elif tax_categ_id_el.text.upper() == 'Z':
-                    amount = 0.0
-                else:
-                    continue
-
-                tax = self.env['account.tax'].search([
-                    ('company_id', '=', journal.company_id.id),
-                    ('amount', '=', amount),
-                    ('amount_type', '=', 'percent'),
-                    ('type_tax_use', '=', 'sale'),
-                ], limit=1)
-                if tax:
-                    taxes.append(tax)
-                else:
-                    logs.append(_(
-                        "Could not retrieve the tax: %s %% for line '%s'.",
-                        float(tax_categ_percent_el.text),
-                        invoice_line_form.name)
-                    )
-
-        if not taxes:
-            tax_categ_percent_el = tree.find('./{*}Item/{*}ClassifiedTaxCategory/{*}Percent')
-            if tax_categ_percent_el is not None:
-                tax = self.env['account.tax'].search([
-                    ('company_id', '=', journal.company_id.id),
-                    ('amount', '=', float(tax_categ_percent_el.text)),
-                    ('amount_type', '=', 'percent'),
-                    ('type_tax_use', '=', 'sale'),
-                ], limit=1)
-                if tax:
-                    taxes.append(tax)
-                else:
-                    logs.append(_(
-                        "Could not retrieve the tax: %s %% for line '%s'.",
-                        float(tax_categ_percent_el.text),
-                        invoice_line_form.name)
-                    )
+        tax_nodes = tree.findall('.//{*}Item/{*}ClassifiedTaxCategory/{*}Percent')
+        for tax_node in tax_nodes:
+            tax = self.env['account.tax'].search([
+                ('company_id', '=', journal.company_id.id),
+                ('amount', '=', float(tax_node.text)),
+                ('amount_type', '=', 'percent'),
+                ('type_tax_use', '=', 'sale'),
+            ], limit=1)
+            if tax:
+                taxes.append(tax)
+            else:
+                logs.append(
+                    _("Could not retrieve the tax: %s %% for line '%s'.", float(tax_node.text), invoice_line_form.name))
 
         invoice_line_form.tax_ids.clear()
         for tax in taxes:

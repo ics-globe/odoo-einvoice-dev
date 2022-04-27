@@ -140,8 +140,9 @@ class TestUBLCommon(AccountEdiTestCommon):
 
     def _export_invoice(self, seller, buyer, xpaths='', expected_file='', export_file=False, **invoice_kwargs):
         invoice = self._generate_invoice(seller, buyer, **invoice_kwargs)
+        # this is needed for formats not enabled by default on the journal
+        invoice.journal_id.edi_format_ids += self.edi_format
         invoice.action_post()
-
         attachment = invoice._get_edi_attachment(self.edi_format)
         self.assertTrue(attachment)
         xml_filename = attachment.name

@@ -16,6 +16,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _get_xml_builder(self, format_code, company):
+        # if a the company country is not in the EAS mapping, nothing is generated
         if format_code == 'ubl_bis3' and company.country_id.code in self.env['account.edi.common']._get_eas_mapping():
             return {
                 'export_invoice': self._export_invoice,
@@ -268,7 +269,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         intracom_delivery = (vals['customer'].country_id in self.env.ref('base.europe').country_ids
                              and vals['supplier'].country_id in self.env.ref('base.europe').country_ids
                              and vals['customer'].country_id != vals['supplier'].country_id)
-        return {
+
+        constraints = {
             # [BR-S-02]-An Invoice that contains an Invoice line (BG-25) where the Invoiced item VAT category code
             # (BT-151) is "Standard rated" shall contain the Seller VAT Identifier (BT-31), the Seller tax registration
             # identifier (BT-32) and/or the Seller tax representative VAT identifier (BT-63).
@@ -315,6 +317,13 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) if intracom_delivery else None,
         }
+
+        for line in invoice.line_ids:
+            if len(line.tax_ids) > 1:
+                # [UBL-SR-48]-Invoice lines shall have one and only one classified tax category.
+                constraints.update({'cen_en16931_tax_line': _("Each invoice line shall have one and only one tax.")})
+
+        return constraints
 
     def _invoice_constraints_peppol_en16931_ubl(self, invoice, vals):
         """

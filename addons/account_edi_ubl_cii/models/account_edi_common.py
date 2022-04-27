@@ -294,6 +294,32 @@ class AccountEdiCommon(models.AbstractModel):
             else:
                 body = "<strong>Format used to import the invoice: " + str(self._description) + "</strong>"
             invoice.with_context(no_new_invoice=True).message_post(body=body)
+
+        # === Import the embedded PDF in the xml if some are found ===
+
+        attachments = self.env['ir.attachment']
+        additional_docs = tree.findall('./{*}AdditionalDocumentReference')
+        for document in additional_docs:
+            attachment_name = document.find('{*}ID')
+            attachment_data = document.find('{*}Attachment/{*}EmbeddedDocumentBinaryObject')
+            if attachment_name is not None and attachment_data is not None \
+                    and attachment_data.attrib.get('mimeCode') == 'application/pdf':
+                text = attachment_data.text
+                # Normalize the name of the file : some e-fff emitters put the full path of the file
+                # (Windows or Linux style) and/or the name of the xml instead of the pdf.
+                # Get only the filename with a pdf extension.
+                name = attachment_name.text.split('\\')[-1].split('/')[-1].split('.')[0] + '.pdf'
+                attachments |= self.env['ir.attachment'].create({
+                    'name': name,
+                    'res_id': invoice.id,
+                    'res_model': 'account.move',
+                    'datas': text + '=' * (len(text) % 3),  # Fix incorrect padding
+                    'type': 'binary',
+                    'mimetype': 'application/pdf',
+                })
+        if attachments:
+            invoice.with_context(no_new_invoice=True).message_post(attachment_ids=attachments.ids)
+
         return invoice
 
     def _import_fill_invoice_allowance_charge(self, tree, invoice_form, journal, qty_factor):

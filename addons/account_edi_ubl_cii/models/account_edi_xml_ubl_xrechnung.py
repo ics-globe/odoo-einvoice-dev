@@ -12,6 +12,7 @@ class AccountEdiXmlUBLDE(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _get_xml_builder(self, format_code, company):
+        # the EDI option will only appear on the journal of german companies
         if format_code == 'ubl_de' and company.country_id.code == 'DE':
             return {
                 'export_invoice': self._export_invoice,

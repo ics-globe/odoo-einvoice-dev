@@ -30,6 +30,7 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _get_xml_builder(self, format_code, company):
+        # the EDI option will only appear on the journal of netherlands companies
         if format_code == 'nlcius_1' and company.country_id.code == 'NL':
             return {
                 'export_invoice': self._export_invoice,
@@ -86,6 +87,6 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
         })
 
         # [BR-NL-24] Use of previous invoice date ( IssueDate ) is not recommended.
-        # vals['vals'].pop('issue_date')  # careful, this causes other errors...
+        # vals['vals'].pop('issue_date')  # careful, this causes other errors from the validator...
 
         return vals

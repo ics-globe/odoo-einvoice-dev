@@ -9,3 +9,4 @@ from . import account_edi_xml_ubl_bis3
 from . import account_edi_xml_ubl_xrechnung
 from . import account_edi_xml_ubl_nlcius
 from . import account_edi_xml_ubl_ehf3
+from . import ir_actions_report
