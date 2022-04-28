@@ -9,4 +9,6 @@
     <string>Create %(name)s</string>
     <string>Search Projects...</string>
     <string>Log Email Into Task</string>
+    <string>The Contact needs to exist to create Tasks.</string>
+    <string>No Projects Found</string>
 </ressources>
