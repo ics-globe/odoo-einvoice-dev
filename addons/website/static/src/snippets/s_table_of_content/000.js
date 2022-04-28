@@ -20,6 +20,7 @@ const TableOfContent = publicWidget.Widget.extend({
      * @override
      */
     destroy() {
+        this._scrollingElement.scrollspy('dispose');
         this.$target.css('top', '');
         this.$target.find('.s_table_of_content_navbar').css('top', '');
         this._super(...arguments);
@@ -42,7 +43,8 @@ const TableOfContent = publicWidget.Widget.extend({
         const $mainNavBar = $('#oe_main_menu_navbar');
         position += $mainNavBar.length ? $mainNavBar.outerHeight() : 0;
         position += isHorizontalNavbar ? this.$target.outerHeight() : 0;
-        $().getScrollingElement().scrollspy({target: '.s_table_of_content_navbar', method: 'offset', offset: position + 100, alwaysKeepFirstActive: true});
+        this._scrollingElement = $().getScrollingElement();
+        this._scrollingElement.scrollspy({target: this.$target.find('.s_table_of_content_navbar'), method: 'offset', offset: position + 100, alwaysKeepFirstActive: true});
     },
 });
 
