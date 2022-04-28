@@ -297,7 +297,9 @@ class Lead(models.Model):
                 if lead.user_id and lead.team_id.company_id:
                     proposal = lead.team_id.company_id
                 elif lead.user_id:
-                    proposal = lead.user_id.company_id & self.env.companies
+                    proposal = self.env.company & lead.user_id.company_ids
+                    if not proposal:
+                        proposal = lead.user_id.company_id & self.env.companies
                 elif lead.team_id:
                     proposal = lead.team_id.company_id
                 else:

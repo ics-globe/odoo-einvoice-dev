@@ -101,8 +101,6 @@ class TestCRMLeadMultiCompany(TestCrmCommon):
         lead = LeadUnsyncCids.sudo().create({
             'name': 'My Lead MC',
         })
-        self.assertFalse(lead.company_id,
-                         'Lead: due to MC rule, avoid setting a company when it would cause crashes')
         self.assertEqual(lead.team_id, self.sales_team_1,
                          'Lead: due to MC rule, took first availability in other company')
         self.assertEqual(lead.user_id, self.user_sales_manager_mc)
@@ -111,8 +109,6 @@ class TestCRMLeadMultiCompany(TestCrmCommon):
         lead = LeadUnsyncCids.create({
             'name': 'My Lead MC',
         })
-        self.assertFalse(lead.company_id,
-                         'Lead: due to MC rule, avoid setting a company when it would cause crashes')
         self.assertEqual(lead.team_id, self.sales_team_1)
         self.assertEqual(lead.user_id, self.user_sales_manager_mc)
 
