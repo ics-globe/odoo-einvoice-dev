@@ -996,7 +996,7 @@ class Field(MetaField('DummyField', (object,), {})):
         if column['udt_name'] == self.column_type[0]:
             return
         if column['is_nullable'] == 'NO':
-            sql.drop_not_null(cr, model._table, self.name)
+            sql.drop_not_null(model._cr, model._table, self.name)
         sql.convert_column(model._cr, model._table, self.name, self.column_type[1], column['udt_name'])
 
     def update_db_notnull(self, model, column):
@@ -1605,8 +1605,8 @@ class _String(Field):
 
 
 
-    def write(self, records, value):
-        pass
+    # def write(self, records, value):
+    #     pass
 
     def _description_translate(self, env):
         return bool(self.translate)

@@ -4052,7 +4052,7 @@ Fields:
                                 # src: <form><h1>First</h1><h2>Second</h2></form>
                                 # tfield.get(lang): <form><h1>Premier</h1><h2>Deuxième</h2></form>
                                 # val: <form><h1>Première</h1><h3>Deuxième</h3></form>
-                                val = field.translate(tfield.get(lang), src, val)
+                                val = field.translate(tfield.get(self.env.lang), src, val)
                                 # val: <form><h1>Première</h1><h3>Second</h3></form>
                             for lang in tfield.keys():
                                 # FP TODO 7: speed optimization: don't parse en_US for each lang
@@ -4682,7 +4682,7 @@ Fields:
         if self.env.lang:
             # TODO VSC check the quoting, check also 'en' vs 'en_US'
             # TODO VSC there is a big discution about the fallback language, for now we use en_US
-            return 'COALESCE("%s"."%s"->>"%s", "%s"."%s"->>"en")' % (alias, 'value', self.env.lang, table_alias, field)
+            return 'COALESCE("%s"."%s"->>"%s", "%s"."%s"->>"en")' % (table_alias, field, self.env.lang, table_alias, field)
         return '"%s"."%s"' % (table_alias, field)
 
     @api.model
