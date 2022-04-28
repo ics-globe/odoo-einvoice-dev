@@ -197,7 +197,7 @@ class DescriptionScreen extends Component {
         let matches = this.state.industries.filter((val, index) => {
             // To match, every term should be contained in either the label or a
             // synonym
-            for (const candidate of [val.label, ...(val.synonyms || '').split(/[|,\n]+/)]) {
+            for (const candidate of [val.lowerCaseLabel, ...(val.synonyms || '').split(/[|,\n]+/)]) {
                 if (terms.every(term => candidate.includes(term))) {
                     return true;
                 }
@@ -582,11 +582,16 @@ async function getInitialState(services) {
         industries: results.industries,
         logo: results.logo ? 'data:image/png;base64,' + results.logo : false,
     };
-    r.industries = r.industries.map((industry, index) => ({
-        ...industry,
-        wordCount: industry.label.split(" ").length,
-        hitCountOrder: index,
-    }));
+    r.industries = r.industries.map((industry, index) => {
+        // Keep original label for display.
+        industry.lowerCaseLabel = industry.label.toLowerCase();
+        industry.synonyms = (industry.synonyms || "").toLowerCase();
+        return {
+            ...industry,
+            wordCount: industry.label.split(" ").length,
+            hitCountOrder: index,
+        };
+    });
 
     // Load palettes from the current CSS
     const palettes = {};
