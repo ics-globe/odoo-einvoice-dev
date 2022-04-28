@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, _
-from odoo.exceptions import ValidationError
 
 from stdnum.no import mva
 

@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from odoo.addons.account_edi.tests.common import AccountEdiTestCommon
 from odoo import fields
 from odoo.modules.module import get_resource_path
+from odoo.tools.misc import file_open
 
 class TestUBLCommon(AccountEdiTestCommon):
 
@@ -151,11 +152,11 @@ class TestUBLCommon(AccountEdiTestCommon):
 
         # DEBUG: uncomment to get the generated xml and then, be able to submit it online for validation.
         #if export_file:
-        #    with open(export_file, 'wb+') as f:
+        #    with file_open(export_file, 'wb+') as f:
         #        f.write(xml_content)
 
         expected_file_path = get_resource_path('account_edi_ubl_cii_tests', 'test_files', expected_file)
-        expected_etree = self.get_xml_tree_from_string(open(expected_file_path, "r").read())
+        expected_etree = self.get_xml_tree_from_string(file_open(expected_file_path, "r").read())
 
         modified_etree = self.with_applied_xpath(
             expected_etree,
