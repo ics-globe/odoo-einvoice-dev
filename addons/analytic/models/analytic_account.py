@@ -14,13 +14,22 @@ class AccountAnalyticDistribution(models.Model):
 
     account_id = fields.Many2one('account.analytic.account', string='Analytic Account', required=True)
     percentage = fields.Float(string='Percentage', required=True, default=100.0)
-    name = fields.Char(string='Name', related='account_id.name', readonly=False)
+    name = fields.Char(string='Name', readonly=True, compute="_compute_name")
     tag_id = fields.Many2one('account.analytic.tag', string="Parent tag", required=True)
 
     _sql_constraints = [
         ('check_percentage', 'CHECK(percentage >= 0 AND percentage <= 100)',
          'The percentage of an analytic distribution should be between 0 and 100.')
     ]
+
+    @api.depends('percentage', 'account_id.name')
+    def _compute_name(self):
+        for distrib in self:
+            if distrib.percentage == 100:
+                distrib.name = distrib.account_id.name
+            else:
+                distrib.name = "%s : %d%%" % (distrib.account_id.name, distrib.percentage)
+
 
 class AccountAnalyticTag(models.Model):
     _name = 'account.analytic.tag'
@@ -31,6 +40,53 @@ class AccountAnalyticTag(models.Model):
     active_analytic_distribution = fields.Boolean('Analytic Distribution')
     analytic_distribution_ids = fields.One2many('account.analytic.distribution', 'tag_id', string="Analytic Accounts")
     company_id = fields.Many2one('res.company', string='Company')
+
+
+class AccountAnalyticPlan(models.Model):
+    _name = 'account.analytic.plan'
+    _description = 'Analytic Plans'
+    _parent_store = True
+    _rec_name = 'complete_name'
+
+    name = fields.Char(required=True)
+    parent_id = fields.Many2one('account.analytic.plan', string="Parent", ondelete='cascade', domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
+    parent_path = fields.Char(index='btree', unaccent=False)
+    children_ids = fields.One2many('account.analytic.plan', 'parent_id', string="Childrens")
+    complete_name = fields.Char('Complete Name', compute='_compute_complete_name', recursive=True, store=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    default_applicability = fields.Selection([
+        ('optional', 'Optional'),
+        ('mandatory', 'Mandatory'),
+        ('unavailable', 'Unavailable'),
+    ], string="Default Applicability", required=True, default='optional', readonly=False)
+    account_ids = fields.One2many('account.analytic.account', 'plan_id', string="Accounts")
+
+    @api.depends('name', 'parent_id.complete_name')
+    def _compute_complete_name(self):
+        for plan in self:
+            if plan.parent_id:
+                plan.complete_name = '%s / %s' % (plan.parent_id.complete_name, plan.name)
+            else:
+                plan.complete_name = plan.name
+
+    def action_view_analytical_accounts(self):
+        self.ensure_one()
+        result = {
+            "type": "ir.actions.act_window",
+            "res_model": "account.analytic.account",
+            "domain": [('id', 'in', self.account_ids.ids)],
+            "name": "Analytical Accounts",
+            'view_mode': 'list,form',
+        }
+        return result
+
+    @api.model
+    def default_get(self, default_fields):
+        values = super(AccountAnalyticPlan, self).default_get(default_fields)
+        if self.env.context.get('default_applicability'):
+            values['default_applicability'] = self.env.context['default_applicability']
+        return values
+
 
 class AccountAnalyticGroup(models.Model):
     _name = 'account.analytic.group'
@@ -53,6 +109,7 @@ class AccountAnalyticGroup(models.Model):
                 group.complete_name = '%s / %s' % (group.parent_id.complete_name, group.name)
             else:
                 group.complete_name = group.name
+
 
 class AccountAnalyticAccount(models.Model):
     _name = 'account.analytic.account'
@@ -79,6 +136,13 @@ class AccountAnalyticAccount(models.Model):
             if 'credit' in fields:
                 line['credit'] = sum(accounts.mapped('credit'))
         return res
+
+    @api.model
+    def default_get(self, default_fields):
+        values = super(AccountAnalyticAccount, self).default_get(default_fields)
+        if self.env.context.get('active_model') == 'account.analytic.plan' and self.env.context.get('active_id'):
+            values['plan_id'] = self.env.context['active_id']
+        return values
 
     @api.depends('line_ids.amount')
     def _compute_debit_credit_balance(self):
@@ -128,7 +192,7 @@ class AccountAnalyticAccount(models.Model):
     code = fields.Char(string='Reference', index='btree', tracking=True)
     active = fields.Boolean('Active', help="If the active field is set to False, it will allow you to hide the account without removing it.", default=True)
 
-    group_id = fields.Many2one('account.analytic.group', string='Group', check_company=True)
+    plan_id = fields.Many2one('account.analytic.plan', string='Plan', check_company=True, default=lambda self: self.env['account.analytic.account'].search([('id', '=', '1')]), required=True)
 
     line_ids = fields.One2many('account.analytic.line', 'account_id', string="Analytic Lines")
 
@@ -177,7 +241,7 @@ class AccountAnalyticLine(models.Model):
     tag_ids = fields.Many2many('account.analytic.tag', 'account_analytic_line_tag_rel', 'line_id', 'tag_id', string='Tags', copy=True, check_company=True)
     company_id = fields.Many2one('res.company', string='Company', required=True, readonly=True, default=lambda self: self.env.company)
     currency_id = fields.Many2one(related="company_id.currency_id", string="Currency", readonly=True, store=True, compute_sudo=True)
-    group_id = fields.Many2one('account.analytic.group', related='account_id.group_id', store=True, readonly=True, compute_sudo=True)
+    plan_id = fields.Many2one('account.analytic.plan', related='account_id.plan_id', store=True, readonly=True, compute_sudo=True)
     category = fields.Selection([('other', 'Other')], default='other')
 
     @api.constrains('company_id', 'account_id')

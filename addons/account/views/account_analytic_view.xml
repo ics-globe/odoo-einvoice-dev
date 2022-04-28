@@ -69,6 +69,37 @@
             </field>
         </record>
 
+        <record id="account_analytic_plan_form_view_inherit_account" model="ir.ui.view">
+            <field name="name">account.analytic.plan.form</field>
+            <field name="model">account.analytic.plan</field>
+            <field name="inherit_id" ref="analytic.account_analytic_plan_form_view"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//notebook" position="inside">
+                        <page string="Applicability" name="applicability">
+                            <field name="applicability_ids"/>
+                        </page>
+                    </xpath>/
+                    <xpath expr="//field[@name='children_ids']" position="attributes">
+                        <attribute name="context">{'default_applicability': default_applicability, 'applicability_ids': applicability_ids}</attribute>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <record id="account_analytic_applicability_tree_view" model="ir.ui.view">
+            <field name="name">account.analytic.applicability.tree</field>
+            <field name="model">account.analytic.applicability</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="domain"/>
+                    <field name="account_code"/>
+                    <field name="categ_id"/>
+                    <field name="applicability"/>
+                </tree>
+            </field>
+        </record>
+
         <record id="account_analytic_account_view_form_inherit" model="ir.ui.view">
             <field name="name">account.analytic.account.form.inherit</field>
             <field name="model">account.analytic.account</field>

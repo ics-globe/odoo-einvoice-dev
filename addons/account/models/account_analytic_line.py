@@ -79,6 +79,54 @@ class AccountAnalyticAccount(models.Model):
         }
         return result
 
+
+class AccountAnalyticPlan(models.Model):
+    _inherit = 'account.analytic.plan'
+
+    applicability_ids = fields.One2many('account.analytic.applicability', 'analytic_plan_id', string='Applicability')
+
+    @api.model
+    def get_applicability(self, domain=None, account_id=None, categ_id=None):
+        best_index = 0
+        res = self.default_applicability
+        for rec in self.applicability_ids:
+            index = 0
+            if rec.domain == domain: index += 1
+            if rec.account_code and account_id in self.env['account.account'].search([('code', 'ilike', rec.account_code + '%')]): index +=1
+            if rec.categ_id == categ_id: index += 1
+            if index > best_index:
+                res = rec.applicability
+                best_index = index
+        return res
+
+    @api.model
+    def default_get(self, default_fields):
+        values = super().default_get(default_fields)
+        if self.env.context.get('applicability_ids'):
+            values['applicability_ids'] = self.env.context['applicability_ids']
+        return values
+
+
+class AccountAnalyticApplicability(models.Model):
+    _name = 'account.analytic.applicability'
+    _description = "Analytic Plan's Applicabilities"
+
+    analytic_plan_id = fields.Many2one('account.analytic.plan')
+    account_code = fields.Char(string='Account Code', default='')
+    categ_id = fields.Many2one('product.category', string='Product Category')
+    domain = fields.Selection([
+        ('sale', 'Sales'),
+        ('purchase', 'Purchase'),
+        ('general', 'Miscellaneous'),
+    ], required=True, string='Domain')
+    applicability = fields.Selection([
+        ('optional', 'Optional'),
+        ('mandatory', 'Mandatory'),
+        ('unavailable', 'Unavailable'),
+    ], required=True, string="Applicability")
+
+
+
 class AccountAnalyticTag(models.Model):
     _inherit = 'account.analytic.tag'
 

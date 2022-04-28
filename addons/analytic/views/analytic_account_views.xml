@@ -60,6 +60,62 @@
             </field>
         </record>
 
+        <record id="account_analytic_plan_form_view" model="ir.ui.view">
+            <field name="name">account.analytic.plan.form</field>
+            <field name="model">account.analytic.plan</field>
+            <field name="arch" type="xml">
+                <form string="Analytic Account Plans">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_analytical_accounts" type="object" class="oe_stat_button" icon="fa-money">
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="default_applicability"/>
+                            </group>
+                            <group>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Subplans" name="subplans">
+                                <field name="children_ids" context="{'default_applicability': default_applicability}"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="account_analytic_plan_tree_view" model="ir.ui.view">
+            <field name="name">account.analytic.plan.tree</field>
+            <field name="model">account.analytic.plan</field>
+            <field name="arch" type="xml">
+                <tree string="Analytic Account Plans">
+                    <field name="name"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="account_analytic_plan_action" model="ir.actions.act_window">
+            <field name="name">Analytic Account Plans</field>
+            <field name="res_model">account.analytic.plan</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('parent_id', '=', False)]</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                  Click to add a new analytic account plan.
+              </p>
+            </field>
+        </record>
+
         <record id="account_analytic_group_form_view" model="ir.ui.view">
             <field name="name">account.analytic.group.form</field>
             <field name="model">account.analytic.group</field>
@@ -109,10 +165,11 @@
             <field name="name">account.analytic.line.tree</field>
             <field name="model">account.analytic.line</field>
             <field name="arch" type="xml">
-                <tree string="Analytic Entries">
+                <tree string="Analytic Items" multi_edit="1">
                     <field name="date" optional="show"/>
                     <field name="name"/>
                     <field name="account_id"/>
+                    <field name="plan_id"/>
                     <field name="currency_id" invisible="1"/>
                     <field name="unit_amount" sum="Quantity" optional="hide"/>
                     <field name="product_uom_id" optional="hide"/>
@@ -132,10 +189,12 @@
                     <field name="name"/>
                     <field name="date"/>
                     <field name="account_id"/>
+                    <field name="plan_id"/>
                     <field name="tag_ids"/>
                     <filter string="Date" name="date" date="date"/>
                     <group string="Group By..." expand="0" name="groupby">
-                        <filter string="Analytic Account" name="account_id" context="{'group_by': 'account_id'}"/>
+                        <filter string="Analytic Plan" name="analytic_plan" context="{'group_by': 'plan_id'}"/>
+                        <filter string="Analytic Account" name="analytic_account" context="{'group_by': 'account_id'}"/>
                         <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
                         <filter string="Category" name='category' context="{'group_by': 'category'}"/>
                     </group>
@@ -201,7 +260,7 @@
                                 <field name="code"/>
                             </group>
                             <group>
-                                <field name="group_id"/>
+                                <field name="plan_id"/>
                                 <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
                                 <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
                             </group>
@@ -220,10 +279,11 @@
             <field name="model">account.analytic.account</field>
             <field eval="8" name="priority"/>
             <field name="arch" type="xml">
-                <tree string="Analytic Accounts">
+                <tree string="Analytic Accounts" multi_edit="1">
                     <field name="name" string="Name"/>
                     <field name="code"/>
                     <field name="partner_id"/>
+                    <field name="plan_id"/>
                     <field name="active" invisible="1"/>
                     <field name="company_id" groups="base.group_multi_company"/>
                     <field name="debit" sum="Debit"/>
@@ -311,10 +371,10 @@
             <field name="model">account.analytic.line</field>
             <field name="priority">1</field>
             <field name="arch" type="xml">
-                <form string="Analytic Entry">
+                <form string="Analytic Item">
                 <sheet>
                     <group>
-                        <group name="analytic_entry" string="Analytic Entry">
+                        <group name="analytic_item" string="Analytic Item">
                             <field name="name"/>
                             <field name="account_id"/>
                             <field name="tag_ids" widget="many2many_tags"/>
@@ -338,7 +398,7 @@
             <field name="name">account.analytic.line.graph</field>
             <field name="model">account.analytic.line</field>
             <field name="arch" type="xml">
-                <graph string="Analytic Entries" sample="1">
+                <graph string="Analytic Items" sample="1">
                     <field name="account_id"/>
                     <field name="unit_amount" type="measure"/>
                     <field name="amount" type="measure"/>
@@ -350,7 +410,7 @@
             <field name="name">account.analytic.line.pivot</field>
             <field name="model">account.analytic.line</field>
             <field name="arch" type="xml">
-                <pivot string="Analytic Entries" sample="1">
+                <pivot string="Analytic Items" sample="1">
                     <field name="account_id" type="row"/>
                     <field name="unit_amount" type="measure"/>
                     <field name="amount" type="measure"/>
@@ -401,6 +461,8 @@
             <field name="res_model">account.analytic.line</field>
             <field name="view_mode">tree,kanban,form,graph,pivot</field>
             <field name="view_id" ref="view_account_analytic_line_tree"/>
+            <field name="context">{'search_default_group_by_analytic_plan': 1,
+                                    'search_default_group_by_analytic_account': 2}</field>
             <field name="search_view_id" ref="analytic.view_account_analytic_line_filter"/>
             <field name="help" type="html">
               <p class="o_view_nocontent_empty_folder">
