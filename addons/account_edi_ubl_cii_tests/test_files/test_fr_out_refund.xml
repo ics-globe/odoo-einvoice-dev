@@ -123,7 +123,7 @@
           <ram:PostcodeCode>75000</ram:PostcodeCode>
           <ram:LineOne>Rue Jean Jaurès, 42</ram:LineOne>
           <ram:CityName>Paris</ram:CityName>
-          <ram:CountryID>FR</ram:CountryID>
+          <ram:CountryID>US</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">FR05677404089</ram:ID>
@@ -135,7 +135,7 @@
           <ram:PostcodeCode>52330</ram:PostcodeCode>
           <ram:LineOne>Rue Charles de Gaulle</ram:LineOne>
           <ram:CityName>Colombey-les-Deux-Églises</ram:CityName>
-          <ram:CountryID>FR</ram:CountryID>
+          <ram:CountryID>US</ram:CountryID>
         </ram:PostalTradeAddress>
         <ram:SpecifiedTaxRegistration>
           <ram:ID schemeID="VA">FR35562153452</ram:ID>
@@ -152,7 +152,7 @@
           <ram:PostcodeCode>52330</ram:PostcodeCode>
           <ram:LineOne>Rue Charles de Gaulle</ram:LineOne>
           <ram:CityName>Colombey-les-Deux-Églises</ram:CityName>
-          <ram:CountryID>FR</ram:CountryID>
+          <ram:CountryID>US</ram:CountryID>
         </ram:PostalTradeAddress>
       </ram:ShipToTradeParty>
       <ram:ActualDeliverySupplyChainEvent>

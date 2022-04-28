@@ -110,9 +110,6 @@ class AccountEdiFormat(models.Model):
             res = self.env['account.edi.xml.' + format_class_suffix]._get_xml_builder(self.code, invoice.company_id)
 
             xml_content, errors = res['export_invoice'](invoice)
-            # DEBUG: export generated xml file
-            #with open(res['invoice_filename'](invoice), 'w+') as f:
-            #    f.write(xml_content)
 
             # DEBUG: send directly to the test platform (the one used by ecosio)
             #response = self.env['account.edi.common']._check_xml_ecosio(invoice, xml_content, res['ecosio_format'])

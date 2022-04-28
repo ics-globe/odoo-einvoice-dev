@@ -501,7 +501,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
         narration = ""
         note_node = tree.find('./{*}Note')
-        if note_node is not None:
+        if note_node is not None and note_node.text:
             narration += note_node.text + "\n"
 
         payment_terms_node = tree.find('./{*}PaymentTerms/{*}Note')  # e.g. 'Payment within 10 days, 2% discount'
@@ -599,6 +599,10 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         taxes = []
 
         tax_nodes = tree.findall('.//{*}Item/{*}ClassifiedTaxCategory/{*}Percent')
+        if not tax_nodes:
+            for elem in tree.findall('.//{*}TaxTotal'):
+                tax_nodes += elem.findall('.//{*}TaxSubtotal/{*}Percent')
+
         for tax_node in tax_nodes:
             tax = self.env['account.tax'].search([
                 ('company_id', '=', journal.company_id.id),

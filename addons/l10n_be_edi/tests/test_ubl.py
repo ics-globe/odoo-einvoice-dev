@@ -85,12 +85,7 @@ class TestL10nBeEdi(AccountEdiTestCommon):
                         <Language>
                             <LocaleCode>en_US</LocaleCode>
                         </Language>
-                        <PostalAddress>
-                            <Country>
-                                <IdentificationCode>BE</IdentificationCode>
-                                <Name>Belgium</Name>
-                            </Country>
-                        </PostalAddress>
+                        <PostalAddress/>
                         <Contact>
                             <Name>company_1_data</Name>
                         </Contact>

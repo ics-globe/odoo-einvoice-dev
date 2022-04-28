@@ -6,10 +6,9 @@
     'depends': [
         'l10n_generic_coa',
         'account_edi_ubl_cii',
-        'l10n_fr',
         'l10n_be',
         'l10n_de',
-        'l10n_nl',
+        'l10n_nl_edi',
     ],
     'data': [],
     'installable': True,
