@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import math
+
 import re
 from odoo import api, fields, Command, models, _
 from odoo.exceptions import UserError, ValidationError
@@ -500,6 +502,37 @@ Or send your receipts at <a href="mailto:%(email)s?subject=Lunch%%20with%%20cust
                 body=_('%(user)s confirms this expense is not a duplicate with similar expense.', user=self.env.user.name),
                 author_id=root
             )
+
+    def action_split_wizard(self):
+        self.ensure_one()
+        half_price = self.total_amount / 2
+        price_round_up = math.floor(half_price * 100) / 100
+        price_round_down = math.ceil(half_price * 100) / 100
+        # sgv todo .. pass expense_id too
+        splits = self.env['hr.expense.split'].create([{
+            'name': self.name,
+            'product_id': self.product_id.id,
+            'total_amount': price,
+            'tax_ids': self.tax_ids.ids,
+            'currency_id': self.currency_id.id,
+            'company_id': self.company_id.id,
+            'analytic_account_id': self.analytic_account_id.id,
+            'employee_id': self.employee_id.id,
+            'expense_id': self.id,
+            } for price in [price_round_up, price_round_down]])
+        wizard = self.env['hr.expense.split.wizard'].create({
+            'expense_split_line_ids': splits.ids,
+            'expense_id': self.id,
+        })
+        return {
+            'name': _('Expense split'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'hr.expense.split.wizard',
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': self.env.context,
+        }
 
     # ----------------------------------------
     # Business
