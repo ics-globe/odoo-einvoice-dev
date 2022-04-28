@@ -209,9 +209,6 @@ class AccountTestInvoicingCommon(TransactionCase):
 
         chart_template.try_loading(company=company, install_demo=False)
 
-        if company.account_fiscal_country_id and not company.country_id:
-            company.country_id = company.account_fiscal_country_id
-
         # The currency could be different after the installation of the chart template.
         if kwargs.get('currency_id'):
             company.write({'currency_id': kwargs['currency_id']})
