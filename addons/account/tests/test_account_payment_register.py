@@ -193,6 +193,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'writeoff_account_id': self.company_data['default_account_revenue'].id,
             'writeoff_label': 'writeoff',
             'payment_method_line_id': self.inbound_payment_method_line.id,
+            'currency_id': self.currency_data['currency'].id,
         })._create_payments()
 
         self.assertRecordValues(payments, [{
@@ -236,6 +237,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'writeoff_account_id': self.company_data['default_account_revenue'].id,
             'writeoff_label': 'writeoff',
             'payment_method_line_id': self.inbound_payment_method_line.id,
+            'currency_id': self.currency_data['currency'].id,
         })._create_payments()
 
         self.assertRecordValues(payments, [{
