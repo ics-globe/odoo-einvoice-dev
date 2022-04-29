@@ -33,34 +33,15 @@ async function getFormViewInfo({ list, activeField, viewService, userService }) 
     return formViewInfo;
 }
 
-export function useActiveActions({
-    fieldName,
-    isMany2Many,
-    getRecord,
-    getRemove,
-    optionsExtractor,
-}) {
-    const activeActions = {};
-
-    let record = getRecord();
-    let removeRecord = getRemove();
-    const activeField = record.activeFields[fieldName];
+function prepareActiveActions({ activeField, isMany2Many, optionsExtractor }) {
     const viewMode = activeField.viewMode;
-
     let { options, views } = activeField;
     if (optionsExtractor) {
         options = optionsExtractor(activeField);
     }
     const subViewInfo = views[viewMode];
 
-    owl.onWillRender(() => {
-        record = getRecord();
-        removeRecord = getRemove();
-        Object.keys(activeActions).forEach((k) => delete activeActions[k]);
-        Object.assign(activeActions, compute());
-    });
-
-    function compute() {
+    function compute(record, remove) {
         // activeActions computed by getActiveActions is of the form
         // interface ActiveActions {
         //     edit: Boolean;
@@ -85,7 +66,6 @@ export function useActiveActions({
 
         let canDelete = "delete" in options ? evalDomain(options.delete, evalContext) : true;
         canDelete = canDelete && (viewMode ? subViewInfo.activeActions.delete : true);
-        const deleteFn = removeRecord;
 
         let canLink = "link" in options ? evalDomain(options.link, evalContext) : true;
         let canUnlink = "unlink" in options ? evalDomain(options.unlink, evalContext) : true;
@@ -97,11 +77,11 @@ export function useActiveActions({
             Object.assign(result, { canLink, canUnlink, canWrite });
         }
         if ((isMany2Many && canUnlink) || (!isMany2Many && canDelete)) {
-            result.onDelete = deleteFn;
+            result.onDelete = remove;
         }
         return result;
     }
-    return activeActions;
+    return compute;
 }
 
 function makeCrud(model, isMany2Many) {
@@ -125,28 +105,35 @@ export function useX2M({ getRecord, fieldName, isMany2Many, optionsExtractor }) 
     const env = owl.useEnv();
 
     let record = getRecord();
-    const model = record.model;
     let list = record.data[fieldName];
+    const model = record.model;
 
-    let { remove, saveToList, update } = makeCrud(model, isMany2Many);
-
-    owl.onWillUpdateProps(() => {
-        record = getRecord();
-        list = record.data[fieldName];
-    });
+    const { remove, saveToList, update } = makeCrud(model, isMany2Many);
 
     const activeField = record.activeFields[fieldName];
     const viewMode = activeField.viewMode;
 
     const editable = viewMode && activeField.views[viewMode].editable;
 
-    const activeActions = useActiveActions({
-        fieldName,
-        getRecord,
-        getRemove: () => remove.bind(null, list),
+    const computeActiveActions = prepareActiveActions({
+        activeField,
         isMany2Many,
         optionsExtractor,
     });
+    const activeActions = {};
+    owl.onWillUpdateProps((nextProps) => {
+        record = getRecord(nextProps);
+        list = record.data[fieldName];
+    });
+
+    owl.onWillRender(() => {
+        Object.keys(activeActions).forEach((k) => delete activeActions[k]);
+        Object.assign(
+            activeActions,
+            computeActiveActions(record, (record) => remove(list, record))
+        );
+    });
+
     const addDialog = useOwnedDialogs();
 
     async function openRecord(record, mode) {
