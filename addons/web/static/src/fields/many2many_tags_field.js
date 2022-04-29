@@ -12,6 +12,7 @@ import { Domain } from "@web/core/domain";
 import { useService } from "@web/core/utils/hooks";
 import { sprintf } from "@web/core/utils/strings";
 import { usePopover } from "@web/core/popover/popover_hook";
+import { useX2M } from "@web/fields/x2m_utils";
 
 const { Component, useState } = owl;
 
@@ -30,6 +31,23 @@ export class Many2ManyTagsField extends Component {
         this.orm = useService("orm");
         this.previousColorsMap = {};
         this.popover = usePopover();
+        const optionsExtractor = (activeField) => {
+            const attrs = activeField.attrs;
+            const options = {};
+            if ("can_create" in attrs) {
+                options.create = JSON.parse(attrs.can_create);
+            }
+            if ("can_write" in attrs) {
+                options.write = JSON.parse(attrs.can_write);
+            }
+            return options;
+        };
+        this.X2Many = useX2M({
+            getRecord: () => this.props.record,
+            fieldName: this.props.name,
+            isMany2Many: true,
+            optionsExtractor,
+        });
     }
     get tags() {
         return this.props.value.records.map((record) => ({
@@ -134,6 +152,14 @@ export class Many2ManyTagsField extends Component {
                 unselectable: true,
             });
         }
+
+        options.push({
+            label: this.env._t("Search More"),
+            action: () => {
+                this.X2Many.selectCreate();
+            },
+            unselectable: true,
+        });
 
         return options;
     }

@@ -1151,7 +1151,7 @@ QUnit.module("Fields", (hooks) => {
         assert.verifySteps(["world"]);
     });
 
-    QUnit.skipWOWL("widget many2many_tags", async function (assert) {
+    QUnit.test("widget many2many_tags", async function (assert) {
         assert.expect(1);
         serverData.models.turtle.records[0].partner_ids = [2];
 
@@ -1170,61 +1170,63 @@ QUnit.module("Fields", (hooks) => {
         });
 
         assert.deepEqual(
-            $(target)
-                .find(".o_field_many2manytags.o_field_widget .badge .o_badge_text")
-                .attr("title"),
+            $(target).find(".o_field_many2many_tags.o_field_widget .badge").attr("title"),
             "second record",
             "the title should be filled in"
         );
     });
 
-    QUnit.skipWOWL("many2many tags widget: select multiple records", async function (assert) {
+    QUnit.test("many2many tags widget: select multiple records", async function (assert) {
         assert.expect(5);
         for (var i = 1; i <= 10; i++) {
-            this.data.partner_type.records.push({ id: 100 + i, display_name: "Partner" + i });
+            serverData.models.partner_type.records.push({
+                id: 100 + i,
+                display_name: "Partner" + i,
+            });
         }
-        var form = await createView({
-            View: FormView,
-            model: "partner",
-            data: this.data,
+
+        serverData.views = {
+            "partner_type,false,list": '<tree><field name="display_name"/></tree>',
+            "partner_type,false,search": '<search><field name="display_name"/></search>',
+        };
+
+        await makeView({
+            type: "form",
+            resModel: "partner",
+            serverData,
             arch:
                 '<form string="Partners">' +
                 '<field name="display_name"/>' +
                 '<field name="timmy" widget="many2many_tags"/>' +
                 "</form>",
-            res_id: 1,
-            archs: {
-                "partner_type,false,list": '<tree><field name="display_name"/></tree>',
-                "partner_type,false,search": '<search><field name="display_name"/></search>',
-            },
+            resId: 1,
         });
-        await testUtils.form.clickEdit(form);
-        await testUtils.fields.many2one.clickOpenDropdown("timmy");
-        await testUtils.fields.many2one.clickItem("timmy", "Search More");
+        await clickEdit(target);
+        await selectDropdownItem(target, "timmy", "Search More");
         assert.ok($(".modal .o_list_view"), "should have open the modal");
 
         // + 1 for the select all
         assert.containsN(
             $(document),
             ".modal .o_list_view .o_list_record_selector input",
-            this.data.partner_type.records.length + 1,
+            serverData.models.partner_type.records.length + 1,
             "Should have record selector checkboxes to select multiple records"
         );
         //multiple select tag
-        await testUtils.dom.click($(".modal .o_list_view thead .o_list_record_selector input"));
+        await click($(".modal .o_list_view thead .o_list_record_selector input")[0]);
+        await nextTick();
         assert.ok(
             !$(".modal .o_select_button").prop("disabled"),
             "select button should be enabled"
         );
-        await testUtils.dom.click($(".o_select_button"));
+        await click($(".o_select_button")[0]);
         assert.containsNone($(document), ".modal .o_list_view", "should have closed the modal");
         assert.containsN(
-            form,
-            '.o_field_many2manytags[name="timmy"] .badge',
-            this.data.partner_type.records.length,
+            target,
+            '.o_field_many2many_tags[name="timmy"] .badge',
+            serverData.models.partner_type.records.length,
             "many2many tag should now contain 12 records"
         );
-        form.destroy();
     });
 
     QUnit.skipWOWL(
