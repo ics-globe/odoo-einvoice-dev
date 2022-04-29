@@ -7,7 +7,10 @@ from odoo.addons.account_edi.tests.common import AccountEdiTestCommon
 from odoo import fields
 from odoo.modules.module import get_resource_path
 from odoo.tools.misc import file_open
+from odoo.tests import tagged
 
+
+@tagged('post_install_l10n', 'post_install', '-at_install')
 class TestUBLCommon(AccountEdiTestCommon):
 
     @classmethod
