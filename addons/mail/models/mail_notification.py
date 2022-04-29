@@ -111,12 +111,17 @@ class MailNotification(models.Model):
     # DISCUSS
     # ------------------------------------------------------------
 
+    def _is_display_notification(self):
+        """ Returns whether the notification should be displayed or not in the web client """
+        self.ensure_one()
+        if self.notification_status in ['bounce', 'exception', 'canceled'] or self.res_partner_id.partner_share:
+            return True
+        subtype = self.mail_message_id.subtype_id
+        return not subtype or subtype.display_notification
+
     def _filtered_for_web_client(self):
         """Returns only the notifications to show on the web client."""
-        return self.filtered(lambda n:
-            n.notification_type != 'inbox' and
-            (n.notification_status in ['bounce', 'exception', 'canceled'] or n.res_partner_id.partner_share)
-        )
+        return self.filtered(lambda n: n._is_display_notification())
 
     def _notification_format(self):
         """Returns the current notifications in the format expected by the web
