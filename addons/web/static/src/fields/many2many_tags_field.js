@@ -153,13 +153,15 @@ export class Many2ManyTagsField extends Component {
             });
         }
 
-        options.push({
-            label: this.env._t("Search More"),
-            action: () => {
-                this.X2Many.selectCreate();
-            },
-            unselectable: true,
-        });
+        if (records.length > this.props.limit) {
+            options.push({
+                label: this.env._t("Search More"),
+                action: () => {
+                    this.X2Many.selectCreate();
+                },
+                unselectable: true,
+            });
+        }
 
         return options;
     }
@@ -231,6 +233,7 @@ Many2ManyTagsField.template = "web.Many2ManyTagsField";
 Many2ManyTagsField.defaultProps = {
     canEditColor: true,
     canQuickCreate: true,
+    limit: 7,
 };
 Many2ManyTagsField.props = {
     ...standardFieldProps,
@@ -241,6 +244,7 @@ Many2ManyTagsField.props = {
     relation: { type: String },
     domain: { type: Domain },
     context: { type: Object },
+    limit: { type: Number, optional: true },
 };
 Many2ManyTagsField.RECORD_COLORS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 Many2ManyTagsField.displayName = _lt("Tags");
@@ -259,6 +263,7 @@ Many2ManyTagsField.extractProps = (fieldName, record, attrs) => {
         domain: record.getFieldDomain(fieldName),
         context: record.getFieldContext(fieldName),
         canQuickCreate: !attrs.options.no_quick_create,
+        limit: attrs.limit,
     };
 };
 
