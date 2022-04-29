@@ -168,11 +168,12 @@ class ProductTemplate(models.Model):
         sales_prices = pricelist._get_products_price(self, 1.0)
         show_discount = pricelist.discount_policy == 'without_discount'
 
-        base_sales_prices = None
-        if show_discount:
-            base_sales_prices = self.price_compute(
-                'list_price', currency=pricelist.currency_id)
+        base_sales_prices = self.price_compute('list_price', currency=pricelist.currency_id)
 
+        # This is a structure that contains whether a product template has a pricelist for it
+        pricelist_contains_templates = {sale_price[0]: base_sale_price[1] != sale_price[1]
+                                        for sale_price, base_sale_price
+                                        in zip(sales_prices.items(), base_sales_prices.items())}
         res = {}
         for template in self:
             price_reduce = sales_prices[template.id]
@@ -189,14 +190,22 @@ class ProductTemplate(models.Model):
             template_price_vals = {
                 'price_reduce': price_reduce
             }
-
-            if show_discount:
+            base_price = None
+            if template.compare_list_price:
+                # The base_price becomes the compare list price and the price_reduce becomes the price
+                base_price = template.compare_list_price
+                if not pricelist_contains_templates[template.id]:
+                    price_reduce = base_sales_prices[template.id]
+                    template_price_vals.update(price_reduce=price_reduce)
+            elif show_discount and pricelist_contains_templates[template.id]:
                 base_price = base_sales_prices[template.id]
-                if base_price != price_reduce:
-                    base_price = self.env['account.tax']._fix_tax_included_price_company(
-                        base_price, product_taxes, taxes, self.env.company)
-                    base_price = taxes.compute_all(base_price, pricelist.currency_id, 1, template, partner_sudo)[tax_display]
-                    template_price_vals['base_price'] = base_price
+
+            if base_price and base_price != price_reduce:
+                base_price = self.env['account.tax']._fix_tax_included_price_company(
+                    base_price, product_taxes, taxes, self.env.company)
+                base_price = taxes.compute_all(base_price, pricelist.currency_id, 1, template, partner_sudo)[
+                    tax_display]
+                template_price_vals['base_price'] = base_price
 
             res[template.id] = template_price_vals
 
