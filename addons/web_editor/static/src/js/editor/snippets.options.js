@@ -2441,13 +2441,16 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
     }),
     // Data-attributes that will be read into `this.options` on init and not
     // transfered to inner buttons.
-    configAttributes: ['model', 'fields', 'limit', 'domain', 'callWith', 'createMethod'],
+    configAttributes: [
+        'model', 'fields', 'limit', 'domain', 'callWith', 'createMethod', 'filterInModel', 'filterInField'
+    ],
 
     /**
      * @override
      */
     init(parent, title, options, $target) {
         this.afterSearch = [];
+        this.allowedIDsInDomain = false;
         this.displayNameCache = {};
         this._rpcCache = {};
         const {dataAttributes} = options;
@@ -2562,6 +2565,41 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
             this.createInput.setValue('');
         }
         return this._super(...arguments);
+    },
+    /**
+     * Updates the domain with defined inclusive filter to make sure that only
+     * records that are linked to specific records are retrieved.
+     * Filtering-in is configured with
+     *   * a `filterInModel` attribute, the linked model
+     *   * a `filterInField` attribute, field of the linked model holding
+     *   allowed values for this widget
+     *
+     * @param {integer[]} linkedRecordsIds
+     * @returns {Promise}
+     */
+    async setFilterInDomainIds(linkedRecordsIds) {
+        if (this.options.filterInField && this.options.domain.length) {
+            const allowedIds = new Set();
+            if (linkedRecordsIds) {
+                const parentRecordsData = await this._rpc({
+                    model: this.options.filterInModel,
+                    method: 'search_read',
+                    fields: [this.options.filterInField],
+                    domain: [['id', 'in', linkedRecordsIds]],
+                });
+                parentRecordsData.forEach(record => {
+                    record[this.options.filterInField].forEach(item => allowedIds.add(item));
+                });
+            }
+            if (this.allowedIDsInDomain) {
+                this.options.domain.pop();
+                this.allowedIDsInDomain = false;
+            }
+            if (allowedIds.size) {
+                this.options.domain.push(['id', 'in', [...allowedIds]]);
+                this.allowedIDsInDomain = true;
+            }
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -2762,7 +2800,7 @@ const Many2oneUserValueWidget = SelectUserValueWidget.extend({
 });
 
 const Many2manyUserValueWidget = UserValueWidget.extend({
-    configAttributes: ['model', 'recordId', 'm2oField', 'createMethod', 'fakem2m'],
+    configAttributes: ['model', 'recordId', 'm2oField', 'createMethod', 'fakem2m', 'filterIn'],
 
     /**
      * @override
@@ -2775,6 +2813,12 @@ const Many2manyUserValueWidget = UserValueWidget.extend({
                 delete dataAttributes[attr];
             }
         });
+        this.filterIn = options.filterIn !== undefined;
+        if (this.filterIn) {
+            // Transfer filter-in values to child m2o.
+            dataAttributes.filterInModel = options.model;
+            dataAttributes.filterInField = options.m2oField;
+        }
         return this._super(...arguments);
     },
     /**
@@ -2843,6 +2887,19 @@ const Many2manyUserValueWidget = UserValueWidget.extend({
         // the correct width
         this.listWidget.el.querySelector('we-select').style.position = 'static';
         this.el.style.position = 'relative';
+    },
+    /**
+     * Only allow to fetch/select records which are linked (via `m2oField`) to the
+     * specified records.
+     *
+     * @param {integer[]} linkedRecordsIds
+     * @returns {Promise}
+     * @see Many2oneUserValueWidget.setFilterInDomainIds
+     */
+    async setFilterInDomainIds(linkedRecordsIds) {
+        if (this.filterIn) {
+            return this.listWidget.createWidget.setFilterInDomainIds(linkedRecordsIds);
+        }
     },
     /**
      * @override
