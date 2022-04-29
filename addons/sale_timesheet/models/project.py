@@ -523,8 +523,28 @@ class ProjectTask(models.Model):
         billable_tasks = self.filtered('allow_billable')
         (self - billable_tasks).update({'sale_line_id': False})
         super(ProjectTask, billable_tasks)._compute_sale_line()
-        for task in billable_tasks.filtered(lambda t: not t.sale_line_id):
-            task.sale_line_id = task._get_last_sol_of_customer()
+        billable_tasks_without_sale_line_id = billable_tasks.filtered(lambda t: not t.sale_line_id)
+        tasks_for_last_sol_of_customer = billable_tasks_without_sale_line_id._get_tasks_for_last_sol_of_customer()
+        for tasks in tasks_for_last_sol_of_customer.values():
+            sale_line = tasks[0]._get_last_sol_of_customer()
+            tasks.sale_line_id = sale_line
+
+    def _get_tasks_for_last_sol_of_customer(self):
+        """ Gets a dict with keys being the different possible set of values that would result in a different
+            result of `_get_last_sol_of_customer` and with values being the `project.task` that correspond to those sets
+            of values.
+        """
+        tasks_for_last_sol_of_customer = defaultdict(lambda: self.env['project.task'])
+        for task in self:
+            is_billable = not self.commercial_partner_id or not self.allow_billable
+            domain_elements = (task.company_id.id, task.commercial_partner_id.id)
+            should_check_order_id = self.project_id.pricing_type != 'task_rate'\
+                and self.project_sale_order_id \
+                and self.commercial_partner_id == self.project_id.partner_id.commercial_partner_id
+
+            last_sol_of_customer_params = (is_billable, *domain_elements, should_check_order_id)
+            tasks_for_last_sol_of_customer[last_sol_of_customer_params] |= task
+        return tasks_for_last_sol_of_customer
 
     @api.depends('project_id.sale_line_employee_ids')
     def _compute_is_project_map_empty(self):
