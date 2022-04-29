@@ -86,7 +86,7 @@ class TestUBLCommon(AccountEdiTestCommon):
         invoice = self._create_empty_vendor_bill()
         invoice.move_type = move_type
         invoice_count = len(self.env['account.move'].search([]))
-        self.update_invoice_from_file('account_edi_ubl_cii_tests', subfolder, filename, invoice)
+        self.update_invoice_from_file('l10n_account_edi_ubl_cii_tests', subfolder, filename, invoice)
 
         self.assertEqual(len(self.env['account.move'].search([])), invoice_count)
 
@@ -94,7 +94,7 @@ class TestUBLCommon(AccountEdiTestCommon):
         self.assertEqual(invoice.amount_tax, amount_tax)
         self.assertEqual(invoice.currency_id.name, currency)
 
-        self.create_invoice_from_file('account_edi_ubl_cii_tests', subfolder, filename)
+        self.create_invoice_from_file('l10n_account_edi_ubl_cii_tests', subfolder, filename)
 
         self.assertEqual(invoice.amount_total, amount_total)
         self.assertEqual(invoice.amount_tax, amount_tax)
@@ -155,7 +155,7 @@ class TestUBLCommon(AccountEdiTestCommon):
         #    with file_open(export_file, 'wb+') as f:
         #        f.write(xml_content)
 
-        expected_file_path = get_resource_path('account_edi_ubl_cii_tests', 'test_files', expected_file)
+        expected_file_path = get_resource_path('l10n_account_edi_ubl_cii_tests', 'test_files', expected_file)
         expected_etree = self.get_xml_tree_from_string(file_open(expected_file_path, "r").read())
 
         modified_etree = self.with_applied_xpath(

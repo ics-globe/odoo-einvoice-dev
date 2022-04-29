@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo.addons.account_edi_ubl_cii_tests.tests.common import TestUBLCommon
+from odoo.addons.l10n_account_edi_ubl_cii_tests.tests.common import TestUBLCommon
 from odoo.tests import tagged
 
 @tagged('post_install', '-at_install')
@@ -8,8 +8,8 @@ class TestCIIFR(TestUBLCommon):
 
     @classmethod
     def setUpClass(cls,
-                   #chart_template_ref="l10n_fr.l10n_fr_pcg_chart_template",
-                   chart_template_ref=None,
+                   chart_template_ref="l10n_fr.l10n_fr_pcg_chart_template",
+                   #chart_template_ref=None,
                    edi_format_ref="account_edi_facturx.edi_facturx_1_0_05",
                    ):
         """
@@ -25,7 +25,7 @@ class TestCIIFR(TestUBLCommon):
             'zip': "75000",
             'city': "Paris",
             'vat': 'FR05677404089',
-            'country_id': cls.env.ref('base.us').id,
+            'country_id': cls.env.ref('base.fr').id,
             'bank_ids': [(0, 0, {'acc_number': 'FR15001559627230'})],
             'phone': '+1 (650) 555-0111',
             'email': "partner1@yourcompany.com",
@@ -38,7 +38,7 @@ class TestCIIFR(TestUBLCommon):
             'zip': "52330",
             'city': "Colombey-les-Deux-Églises",
             'vat': 'FR35562153452',
-            'country_id': cls.env.ref('base.us').id,
+            'country_id': cls.env.ref('base.fr').id,
             'bank_ids': [(0, 0, {'acc_number': 'FR90735788866632'})],
             'ref': 'buyer_ref',
         })
@@ -48,7 +48,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 21,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         # remove this tax, otherwise, at import, this tax with children taxes is selected and the total is wrong
@@ -60,7 +60,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 20,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         cls.tax_12 = cls.env['account.tax'].create({
@@ -68,7 +68,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 12,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         cls.tax_55 = cls.env['account.tax'].create({
@@ -76,7 +76,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 5.5,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         cls.tax_10 = cls.env['account.tax'].create({
@@ -84,7 +84,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 10,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         cls.tax_0 = cls.env['account.tax'].create({
@@ -92,7 +92,7 @@ class TestCIIFR(TestUBLCommon):
             'amount_type': 'percent',
             'amount': 0,
             'type_tax_use': 'sale',
-            #'country_id': cls.env.ref('base.fr').id,
+            'country_id': cls.env.ref('base.fr').id,
         })
 
         cls.acc_bank = cls.env['res.partner.bank'].create({
@@ -124,7 +124,7 @@ class TestCIIFR(TestUBLCommon):
         res = super().setup_company_data(
             company_name,
             chart_template=chart_template,
-            country_id=cls.env.ref("base.us").id,
+            country_id=cls.env.ref("base.fr").id,
             phone='+1 (650) 555-0111',  # [BR-DE-6] "Seller contact telephone number" (BT-42) is required
             email="info@yourcompany.com",  # [BR-DE-7] The element "Seller contact email address" (BT-43) is required
         )
