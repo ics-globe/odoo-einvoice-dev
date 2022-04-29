@@ -228,7 +228,7 @@ def load_xsd_files_from_url(env, url, xsd_name, force_reload=False,
     archive = zipfile.ZipFile(BytesIO(content))
     for file_path in archive.namelist():
         if file_path.endswith('.xsd'):
-            _, file_name = file_path.rsplit('/', 1)
+            file_name = file_path.rsplit('/', 1)[-1]
 
             if xsd_names and file_name not in xsd_names:
                 continue
