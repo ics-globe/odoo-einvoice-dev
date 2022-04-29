@@ -2,6 +2,8 @@ odoo.define('website_sale.utils', function (require) {
 'use strict';
 
 const wUtils = require('website.utils');
+const _t = require('web.core')._t;
+const Dialog = require('web.Dialog');
 
 const cartHandlerMixin = {
     getRedirectOption() {
@@ -34,9 +36,15 @@ const cartHandlerMixin = {
             route: "/shop/cart/update_json",
             params: params,
         }).then(async data => {
-            if (data.cart_quantity !== parseInt($(".my_cart_quantity").text())) {
-                await animateClone($('header .o_wsale_my_cart').first(), this.$itemImgContainer, 25, 40);
-                updateCartNavBar(data);
+            if(!data.warning){
+                if (data.cart_quantity !== parseInt($(".my_cart_quantity").text())) {
+                    await animateClone($('header .o_wsale_my_cart').first(), this.$itemImgContainer, 25, 40);
+                    updateCartNavBar(data);
+                }
+            }else{
+                Dialog.alert(this, data.warning, {
+                    title: _t('Sorry'),
+                });
             }
         });
     },

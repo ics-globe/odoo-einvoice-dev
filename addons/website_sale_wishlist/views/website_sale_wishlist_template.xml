@@ -184,7 +184,8 @@
                                         </td>
                                         <td class='text-center td-wish-btn align-middle'>
                                             <input name="product_id" t-att-value="wish.product_id.id" type="hidden"/>
-                                            <button type="button" role="button" class="btn btn-secondary btn-block o_wish_add mb4" >Add <span class='d-none d-md-inline'>to Cart</span></button>
+                                            <t t-set="add_to_cart_disabled" t-value="False"/>
+                                            <button t-att-disabled="add_to_cart_disabled" type="button" role="button" class="btn btn-secondary btn-block o_wish_add mb4" >Add <span class='d-none d-md-inline'>to Cart</span></button>
                                         </td>
                                     </tr>
                                 </t>
