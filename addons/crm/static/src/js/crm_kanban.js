@@ -2,7 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { KanbanDynamicGroupList, KanbanModel } from "@web/views/kanban/kanban_model";
-import { KanbanView } from "@web/views/kanban/kanban_view";
+import { kanbanView } from "@web/views/kanban/kanban_view";
 
 export class CRMKanbanDynamicGroupList extends KanbanDynamicGroupList {
     /**
@@ -39,8 +39,9 @@ export class CRMKanbanModel extends KanbanModel {
 CRMKanbanModel.DynamicGroupList = CRMKanbanDynamicGroupList;
 CRMKanbanModel.services = [...KanbanModel.services, "effect"];
 
-export class CRMKanbanView extends KanbanView {}
+export const crmKanbanView = {
+    ...kanbanView,
+    Model: CRMKanbanModel
+};
 
-CRMKanbanView.Model = CRMKanbanModel;
-
-registry.category("views").add("crm_kanban", CRMKanbanView);
+registry.category("views").add("crm_kanban", crmKanbanView);
