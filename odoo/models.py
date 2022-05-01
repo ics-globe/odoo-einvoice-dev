@@ -2795,7 +2795,8 @@ class BaseModel(metaclass=MetaModel):
 
         elif (field.translate) and not self.env.context.get('field_json', False):
             if self.env.lang and self.env.lang != 'en_US':
-                return 'COALESCE("%s"."%s"->>\'%s\', "%s"."%s"->>\'en_US\')' % (alias, fname, self.env.lang, alias, fname)
+                # TODO CWG: TBD:when write empty in non-en_US, I set the value to None, rather than remove the key in jsonb
+                return 'COALESCE(NULLIF("%s"."%s"->>\'%s\', \'\'), "%s"."%s"->>\'en_US\')' % (alias, fname, self.env.lang, alias, fname)
             else:
                 return '"%s"."%s"->>\'en_US\'' % (alias, fname)
         else:
@@ -4029,8 +4030,7 @@ Fields:
 
         # determine SQL values
         columns = []                    # {column_name: value}
-        params  = []
-        sync_lang = []
+        params = []
 
         for name, val in sorted(vals.items()):
             if self._log_access and name in LOG_ACCESS_COLUMNS and not val:
@@ -4038,47 +4038,55 @@ Fields:
             field = self._fields[name]
             assert field.store
             assert field.column_type
-            if field.translate:
-                # TODO VSC: we should accept to write strings and dict in translatable fields:
-                # string means either current language or en_us (if there is no current language)
-                # dict means replace the current json (replace all translations)
-                if callable(field.translate):
-                    for sub_ids in cr.split_for_in_conditions(self._ids):
-                        cr.execute(f'SELECT id, "{name}" FROM "{self._table}" WHERE id IN %s', (sub_ids,))
-                        for tid, tfield in cr.fetchall():
-                            # TODO VSC: the base language isn't always en_US, it might be specified in website --> no we want en_US as base
-                            src = tfield['en_US']
-                            if self.env.lang != 'en_US':
-                                # src: <form><h1>First</h1><h2>Second</h2></form>
-                                # tfield.get(lang): <form><h1>Premier</h1><h2>Deuxième</h2></form>
-                                # val: <form><h1>Première</h1><h3>Deuxième</h3></form>
-                                val = field.translate(tfield.get(self.env.lang), src, val)
-                                # val: <form><h1>Première</h1><h3>Second</h3></form>
-                            for lang in tfield.keys():
-                                # FP TODO 7: speed optimization: don't parse en_US for each lang
-                                #            first, replace transalte=_xml_translate -> translate=True
-                                tfield[lang] = field.translate(src, tfield.get(lang), val)
-                            # tfield = {
-                            #     'en_US': <form><h1>Première</h1><h3>Second</h3></form>
-                            #     'fr_FR': <form><h1>Première</h1><h3>Deuxième</h3></form>
-                            #     'nl_NL': <form><h1>Première</h1><h3>Twede</h3></form>
-                            # }
-                            #
-                            # TODO RCO: this does not look correct; what do we actually expect?
-                    columns.append(f'"{name}" = %s')
-                    params.append(Json(tfield))
+            if field.translate and val:
+                if isinstance(val, list):
+                    val_column, reset, noupdate_dict = val
+                    val_noupdate = Json(noupdate_dict)
+                    if reset:
+                        # Logically the new jsonb value should be val_noupdate || val_column.
+                        # But all existing use cases, val_noupdate is always empty here
+                        columns.append(f'"{name}" = jsonb_strip_nulls(%s)')
+                        params.append(val_column)
+                    else:
+                        # Logically the new jsonb value should be following (emtpy: val is null or val->>'en_US' is null or '')
+                        # val_noupdate || (val_old if val_old is empty else {}) || val_column
+                        #
+                        # Because of the order of the concatenation:
+                        #   val_old will overwrite val_noupdate on conflict => no update logic
+                        #   val_column will overwrite val_old => force update logic
+                        #
+                        # Use case 1:
+                        #   update model translation from write api:
+                        #       if the field hasn't been set to empty after the last flush()
+                        #           noupdate = {'en_US': 'the first written value'}
+                        #       if the field has been set to empty after the last flush()
+                        #           noupdate = {'en_US': 'the first written value after the last write-empty'}
+                        #   The fallback write
+                        #   (when the translated field is empty, and write in non-en_US context,
+                        #   write the value to both 'en_US' and the current language)
+                        #   can be treated as the no update logic
+                        #
+                        # Use case 2:
+                        #   update model translation from trans_load_data:
+                        #       if its ir_model_data.no_update is True
+                        #           noupdate = {'fr_FR': 'French'} (translation from the po file)
+                        #           val_column = {}
+                        #       if its ir_model_data.no_update is False
+                        #           noupdate = {}
+                        #           val_column = {'fr_FR': 'French'} translation from the po file
+                        
+                        columns.append(f""""{name}" = jsonb_strip_nulls(%s || CASE
+                            WHEN ("{name}"->>'en_US' is NULL) OR (LENGTH("{name}"->>'en_US')=0) THEN '{'{}'}'::jsonb
+                            ELSE "{name}"
+                        END || %s)""")
+                        params.append(val_noupdate)
+                        params.append(val_column)
+                        # else:
+                        #     columns.append(f'"{name}" = COALESCE("{name}",' + ' \'{}\'::jsonb) || %s')
+                        #     params.append(val)
                 else:
-                    # TODO VSC: how to you append null (to nullify a value of a language)
-                    # TODO VSC : this could be moved inside the fields in field.py:_write of the String fields
-                    assert isinstance(val, str) or val is None
-                    columns.append(f'"{name}" = "{name}" || %s')
-                    # TODO VSC RCO : at this point self.env.lang might not be the one the user wrote:
-                        #record.with_context(lang='fr_FR').name = "Tralala"
-                        # -> put "Tralala" in record.env.all.towrite
-                        #record.with_context(lang='en_US').flush()
-                        # -> put {"en_US": "Tralala"} in the table
-
-                    params.append(Json({(self.env.lang or 'en_US'): val}))
+                    columns.append(f'"{name}" = COALESCE("{name}",' + ' \'{}\'::jsonb) || %s')
+                    params.append(val)
             else:
                 columns.append(f'"{name}" = %s')
                 params.append(val)
@@ -4336,12 +4344,13 @@ Fields:
                     for stored, row in zip(stored_list, rows):
                         if fname in stored:
                             colval = field.convert_to_column(stored[fname], self, stored)
-                            # TODO VSC : move this inside convert_to_column of _String
-                            if field.translate:
-                                d = {'en_US': colval}
-                                if self.env.lang:
-                                    d[self.env.lang] = colval
-                                colval = Json(d)
+                            # TODO CWG: Maybe make convert_to_column support {'en_US': 'xxx', 'fr_FR': 'xxx'}
+                            if field.translate and self.env.lang not in ['en_US', None]:
+                                colval_en = field.convert_to_column(stored[fname], self.with_context(lang='en_US'), stored)
+                                if colval:
+                                    colval.adapted.update(colval_en.adapted)
+                                else:
+                                    colval = colval_en
                             row.append(colval)
                         else:
                             row.append(SQL_DEFAULT)
@@ -4679,6 +4688,7 @@ Fields:
 
         :return: the qualified field name (or expression) to use for ``field``
         """
+        # TODO CWG: check if this method is dead code
         if self.env.lang:
             # TODO VSC check the quoting, check also 'en' vs 'en_US'
             # TODO VSC there is a big discution about the fallback language, for now we use en_US
@@ -4968,7 +4978,9 @@ Fields:
         #   to avoid modifying the context
         # TODO VSC: copy_data MUST return the entire translation for each translated fields and create MUST accept it.
         #   use lang="ALL" here or inside copy_data, also lang in the context is used by the cache to discriminate
-        vals = self.with_context(active_test=False, lang="ALL").copy_data(default)[0]
+        # vals = self.with_context(active_test=False, lang="ALL").copy_data(default)[0]
+
+        vals = self.with_context(active_test=False).copy_data(default)[0]
         return self.create(vals)
 
     @api.returns('self')

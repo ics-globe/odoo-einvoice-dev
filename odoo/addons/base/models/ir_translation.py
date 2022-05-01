@@ -461,6 +461,7 @@ class IrTranslation(models.Model):
             self.invalidate_cache(ids=discarded._ids)
             self.env.cr.execute("DELETE FROM ir_translation WHERE id IN %s", [discarded._ids])
 
+    # TODO: CWG move to tools
     @api.model
     @tools.ormcache_context('model_name', keys=('lang',))
     def get_field_string(self, model_name):
@@ -473,6 +474,7 @@ class IrTranslation(models.Model):
         fields = self.env['ir.model.fields'].sudo().search([('model', '=', model_name)])
         return {field.name: field.field_description for field in fields}
 
+    # TODO: CWG move to tools
     @api.model
     @tools.ormcache_context('model_name', keys=('lang',))
     def get_field_help(self, model_name):
@@ -485,6 +487,7 @@ class IrTranslation(models.Model):
         fields = self.env['ir.model.fields'].sudo().search([('model', '=', model_name)])
         return {field.name: field.help for field in fields}
 
+    # TODO: CWG move to tools
     @api.model
     @tools.ormcache_context('model_name', 'field_name', keys=('lang',))
     def get_field_selection(self, model_name, field_name):

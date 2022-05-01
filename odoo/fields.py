@@ -16,7 +16,9 @@ import warnings
 
 from markupsafe import Markup
 import psycopg2
+from psycopg2.extras import Json
 import pytz
+from difflib import get_close_matches
 
 from .tools import (
     float_repr, float_round, float_compare, float_is_zero, html_sanitize, human_size,
@@ -1597,20 +1599,161 @@ class _String(Field):
     prefetch = True
     unaccent = True
 
+    def __init__(self, string=Default, **kwargs):
+        # translate is either True, False, or a callable
+        if 'translate' in kwargs and not callable(kwargs['translate']):
+            kwargs['translate'] = bool(kwargs['translate'])
+        super(_String, self).__init__(string=string, **kwargs)
     # TODO VSC: replace old stuff with new stuff that is now in models.py
         # here we should ensure pending changes have {language: value} in pending changes
 
     # TODO VSC: add in _depends_context that a translated field depends on the context language
     # either in a property or in a setup function
 
-
-
-    # def write(self, records, value):
-    #     pass
-
     def _description_translate(self, env):
         return bool(self.translate)
 
+    def get_trans_terms(self, value):
+        """ Return the sequence of terms to translate found in `value`. """
+        if not callable(self.translate):
+            return [value] if value else []
+        terms = []
+        self.translate(terms.append, value)
+        return terms
+
+    def get_text_content(self, term):
+        """ Return the textual content for the given term. """
+        func = getattr(self.translate, 'get_text_content', lambda term: term)
+        return func(term)
+
+    def convert_to_column(self, value, record, values=None, validate=True):
+        """ Convert ``value`` from the ``write`` format to the SQL format. """
+        ret_value = super().convert_to_column(value, record, values, validate)
+        if not self.translate:
+            return ret_value
+        if not ret_value:
+            return Json({'en_US': ret_value})
+        return Json({record.env.lang or 'en_US': ret_value})
+
+    def write(self, records, value):
+        """ Write the value of ``self`` on ``records``. This method must update
+        the cache and prepare database updates.
+
+        :param records:
+        :param value: a value in any format
+        :return: the subset of `records` that have been modified
+        """
+        # discard recomputation of self on records
+        records.env.remove_to_compute(self, records)
+
+        # update the cache, and discard the records that are not modified
+        cache = records.env.cache
+        cache_value = self.convert_to_cache(value, records)
+        records = cache.get_records_different_from(records, self, cache_value)
+        if not records:
+            return records
+
+        if self.translate and (records.env.lang in ['en_US', None] or not value or callable(self.translate)):
+            # remove cache for all languages
+            # TODO CWG: check if cache for all languages are really invalid
+            cache.invalidate([(self, records.ids)])
+            # TODO CWG: try to only invalidate current language cache when value is None or False
+
+        if not self.translate or value:
+            cache.update(records, self, [cache_value] * len(records))
+
+        # update towrite
+        if self.store and any(records._ids):
+            towrite = records.env.all.towrite[self.model_name]
+            record = records[:1]
+            write_value = self.convert_to_write(cache_value, record)
+            column_value = self.convert_to_column(write_value, record)
+            if callable(self.translate):
+                real_records = records.filtered('id')
+                if column_value is None:
+                    for record in real_records:
+                        towrite[record.id][self.name] = None
+                else:
+                    real_records.flush([self.name], real_records)
+                    towrite = records.env.all.towrite[self.model_name]
+                    cr = real_records.env.cr
+                    for sub_ids in cr.split_for_in_conditions(real_records._ids):
+                        cr.execute(f'SELECT id, "{self.name}" FROM "{real_records._table}" WHERE id IN %s', (sub_ids,))
+                        for tid, tfield in cr.fetchall():
+                            # TODO VSC: the base language isn't always en_US, it might be specified in website --> no we want en_US as base
+                            curr_lang = records.env.lang or 'en_US'
+                            if not tfield:
+                                if curr_lang != 'en_US':
+                                    column_value.adapted.update(self.convert_to_column(value, record.with_context(lang='en_US')).adapted)
+                            else:
+                                from_lang_value = tfield.pop(curr_lang) if curr_lang in tfield else tfield['en_US']
+
+                                # TODO CWG: find a better place to put this code
+                                def get_translation_dictionary(from_lang_value, to_lang_values):
+                                    """ Build a dictionary from terms in from_lang_value to terms in to_lang_values
+
+                                    :param str from_lang_value: from xml/html
+                                    :param dict to_lang_values: {lang: lang_value}
+
+                                    :return: {from_lang_term: {lang: lang_term}}
+                                    :rtype: dict
+                                    """
+
+                                    from_lang_terms = self.get_trans_terms(from_lang_value)
+                                    dictionary = defaultdict(dict)
+
+                                    for lang, to_lang_value in to_lang_values.items():
+                                        to_lang_terms = self.get_trans_terms(to_lang_value)
+                                        for from_lang_term, to_lang_term in zip(from_lang_terms, to_lang_terms):
+                                            dictionary[from_lang_term].update({lang: to_lang_term})
+                                    return dictionary
+
+                                translation_dictionary = get_translation_dictionary(from_lang_value, tfield)
+                                new_terms = self.get_trans_terms(value)
+                                text2term = {self.get_text_content(term): term for term in new_terms}
+
+                                for old_term in list(translation_dictionary.keys()):
+                                    if old_term not in new_terms:
+                                        old_term_text = self.get_text_content(old_term)
+                                        matches = get_close_matches(old_term_text, text2term, 1, 0.9)
+                                        if matches:
+                                            translation_dictionary[text2term[matches[0]]] = translation_dictionary[old_term]
+                                            del translation_dictionary[old_term]
+
+                                column_value.adapted.update(self.convert_to_column(value, record.with_context(lang=curr_lang)).adapted)
+                                for lang in tfield.keys():
+                                    # FP TODO 7: speed optimization: don't parse en_US for each lang
+                                    #            first, replace transalte=_xml_translate -> translate=True
+                                    value_lang = self.translate(lambda term: translation_dictionary.get(term, {lang: None})[lang], value)
+
+                                    column_value.adapted.update(self.convert_to_column(value_lang, record.with_context(lang=lang)).adapted)
+                            towrite[tid][self.name] = column_value
+
+            elif self.translate:
+                real_records = records.filtered('id')
+                curr_lang = records.env.lang or 'en_US'
+                column_value_dict = column_value.adapted
+                for record in real_records:
+                    towrite_record = towrite[record.id]
+                    # if the field is never written or is written to an empty value
+                    if not towrite_record.get(self.name) or column_value_dict.get('en_US', False) in [None, ""]:
+                        reset = column_value_dict.get('en_US', False) in [None, ""]
+                        noupdate_en_US = column_value_dict.get(curr_lang, None)
+                        # [towrite_column_value, if reseted, noupdate_language_dict]
+                        towrite_record[self.name] = [column_value, reset, {'en_US': noupdate_en_US}]
+                    else:
+                        if curr_lang != 'en_US' and towrite_record[self.name][0].adapted.get('en_US', False) in [None, ""]:
+                            # write back to towrite en_US using value for curr_lang
+                            column_value_dict.update({'en_US': column_value_dict.get(curr_lang)})
+                        towrite_record[self.name][0].adapted.update(column_value_dict)
+                    noupdate_languages = towrite[record.id][self.name][2]
+                    if value and not noupdate_languages.get('en_US'):
+                        noupdate_languages['en_US'] = column_value_dict.get(curr_lang)
+            else:
+                for record in records.filtered('id'):
+                    towrite[record.id][self.name] = column_value
+
+        return records
 
 class Char(_String):
     """ Basic string field, can be length-limited, usually displayed as a
@@ -1658,10 +1801,10 @@ class Char(_String):
 
     def convert_to_column(self, value, record, values=None, validate=True):
         if value is None or value is False:
-            return None
+            return super().convert_to_column(value, record, values, validate)
         # we need to convert the string to a unicode object to be able
         # to evaluate its length (and possibly truncate it) reliably
-        return pycompat.to_text(value)[:self.size]
+        return super().convert_to_column(pycompat.to_text(value)[:self.size], record, values, validate)
 
     def convert_to_cache(self, value, record, validate=True):
         if value is None or value is False:
@@ -1681,7 +1824,6 @@ class Text(_String):
     :type translate: bool or callable
     """
     type = 'text'
-    prefetch = False
 
     @property
     def column_type(self):
@@ -1710,7 +1852,6 @@ class Html(_String):
     :param bool strip_classes: whether to strip classes attributes (default: ``False``)
     """
     type = 'html'
-    prefetch = False
 
     sanitize = True                     # whether value must be sanitized
     sanitize_tags = True                # whether to sanitize tags (only a white list of attributes is accepted)
@@ -1752,7 +1893,7 @@ class Html(_String):
         if value is None or value is False:
             return None
         if self.sanitize:
-            return html_sanitize(
+            value = html_sanitize(
                 value, silent=True,
                 sanitize_tags=self.sanitize_tags,
                 sanitize_attributes=self.sanitize_attributes,
@@ -1760,7 +1901,7 @@ class Html(_String):
                 sanitize_form=self.sanitize_form,
                 strip_style=self.strip_style,
                 strip_classes=self.strip_classes)
-        return value
+        return super().convert_to_column(value, record, values, validate)
 
     def convert_to_cache(self, value, record, validate=True):
         if value is None or value is False:
@@ -1787,6 +1928,10 @@ class Html(_String):
         if isinstance(r, bytes):
             r = r.decode()
         return r and Markup(r)
+
+    def get_trans_terms(self, value):
+        # ensure the translation terms are stringified, otherwise we can break the PO file
+        return list(map(str, super().get_trans_terms(value)))
 
 
 class Date(Field):

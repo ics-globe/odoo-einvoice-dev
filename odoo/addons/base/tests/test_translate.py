@@ -300,8 +300,9 @@ class TestTranslation(TransactionCase):
     def test_102_duplicate_record(self):
         category = self.customers.with_context({'lang': 'fr_FR'}).copy()
 
-        category_no = category.with_context({})
-        self.assertEqual(category_no.name, 'Customers', "Duplication did not set untranslated value")
+        category_no = category.with_context(lang=None)
+        # TODO CWG: TBD copy behavior
+        self.assertEqual(category_no.name, 'Clients', "Duplication should only copy current language value")
 
         category_fr = category.with_context({'lang': 'fr_FR'})
         self.assertEqual(category_fr.name, 'Clients', "Did not found translation for initial value")
@@ -332,8 +333,9 @@ class TestTranslation(TransactionCase):
         category_no = category.with_context({})
         self.assertEqual(category_no.name, 'Customers', "Duplication did not set untranslated value")
 
+        # TODO CWG: TBD copy behavior
         category_fr = category.with_context({'lang': 'fr_FR'})
-        self.assertEqual(category_fr.name, 'Clients', "Did not found translation for initial value")
+        self.assertEqual(category_fr.name, 'Customers', "Duplication should only copy current language value")
 
     def test_108_search_en(self):
         CategoryEn = self.env['res.partner.category'].with_context(lang='en_US')
@@ -394,6 +396,38 @@ class TestTranslationWrite(TransactionCase):
         cls.category = cls.env['res.partner.category'].create({'name': 'Reblochon'})
         cls.category_xml_id = cls.category.export_data(['id']).get('datas')[0][0]
 
+    def test_00(self):
+        self.env['res.lang']._activate_lang('fr_FR')
+
+        langs = self.env['res.lang'].get_installed()
+        self.assertEqual([('en_US', 'English (US)'), ('fr_FR', 'French / Français')], langs,
+                         "Test did not started with expected languages")
+
+        # flow 1
+        category = self.env['res.partner.category'].with_context(lang='en_US').create({'name': 'English'})
+        self.assertEqual(category.with_context(lang='en_US').name, 'English')
+        self.assertEqual(category.with_context(lang='fr_FR').name, 'English')
+
+        category.with_context(lang='en_US').name = 'English 2'
+        self.assertEqual(category.with_context(lang='fr_FR').name, 'English 2')
+
+        # flow 2
+        category2 = self.env['res.partner.category'].with_context(lang='fr_FR').create({'name': 'French'})
+        self.assertEqual(category2.with_context(lang='en_US').name, 'French')
+        self.assertEqual(category2.with_context(lang='fr_FR').name, 'French')
+
+        category2.with_context(lang='en_US').name = 'English'
+        self.assertEqual(category2.with_context(lang='fr_FR').name, 'French')
+
+        # flow 3
+        category3 = self.env['res.partner.category'].with_context(lang='en_US').create({'name': 'English'})
+        self.assertEqual(category3.with_context(lang='en_US').name, 'English')
+        self.assertEqual(category3.with_context(lang='fr_FR').name, 'English')
+
+        category3.with_context(lang='fr_FR').name = 'French 2'
+        category3.with_context(lang='en_US').name = 'English 2'
+        self.assertEqual(category3.with_context(lang='fr_FR').name, 'French 2')
+
     def test_03_fr_single(self):
         self.env['res.lang']._activate_lang('fr_FR')
         self.env['res.partner'].with_context(active_test=False).search([]).write({'lang': 'fr_FR'})
@@ -403,11 +437,13 @@ class TestTranslationWrite(TransactionCase):
         self.assertEqual([('fr_FR', 'French / Français')], langs, "Test did not started with expected languages")
 
         self.category.with_context(lang='fr_FR').write({'name': 'French Name'})
-        source_name = self.category.with_context(lang=None).read(['name'])
-        self.assertEqual(source_name[0]['name'], "French Name", "Reference field not updated")
+        # TODO CWG discuss if needs support (with_context(lang=None)) can be treated as illegal when en_US is inactive
+        # source_name = self.category.with_context(lang=None).read(['name'])
+        # self.assertEqual(source_name[0]['name'], "French Name", "Reference field not updated")
 
         # read from the cache first
-        self.assertEqual(self.category.with_context(lang=None).name, "French Name")
+        # TODO CWG discuss if needs support
+        # self.assertEqual(self.category.with_context(lang=None).name, "French Name")
         self.assertEqual(self.category.with_context(lang='fr_FR').name, "French Name")
 
         # force save to database and clear the cache: force a clean state
@@ -415,7 +451,8 @@ class TestTranslationWrite(TransactionCase):
         self.category.invalidate_cache()
 
         # read from database
-        self.assertEqual(self.category.with_context(lang=None).name, "French Name")
+        # TODO CWG discuss if needs support
+        # self.assertEqual(self.category.with_context(lang=None).name, "French Name")
         self.assertEqual(self.category.with_context(lang='fr_FR').name, "French Name")
 
     def test_04_fr_multi(self):
