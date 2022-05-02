@@ -1,106 +1,27 @@
 // -----------------------------------------------------------------------------
-// Layout
-// -----------------------------------------------------------------------------
-
-@mixin o-mail-notification-list-item-layout {
-    display: flex;
-    flex: 0 0 auto; // Without this, Safari shrinks parent regardless of child content
-    align-items: center;
-    padding: map-get($spacers, 1);
-
-    &.o-isDeviceSmall {
-        padding: map-get($spacers, 2);
-    }
-}
-
-@mixin o-mail-notification-list-item-content-layout {
-    display: flex;
-    flex-flow: column;
-    flex: 1 1 auto;
-    align-self: flex-start;
-    min-width: 0; // needed for flex to work correctly
-    margin: map-get($spacers, 2);
-}
-
-@mixin o-mail-notification-list-item-core-item-layout {
-    margin: map-get($spacers, 0) map-get($spacers, 2);
-
-    &:first-child {
-        margin-inline-start: map-get($spacers, 0);
-    }
-
-    &:last-child {
-        margin-inline-end: map-get($spacers, 0);
-    }
-}
-
-@mixin o-mail-notification-list-item-counter-layout() {
-    margin: map-get($spacers, 0) map-get($spacers, 1);
-}
-
-@mixin o-mail-notification-list-item-date-layout() {
-    flex: 0 0 auto;
-}
-
-@mixin o-mail-notification-list-item-header-layout {
-    display: flex;
-}
-
-@mixin o-mail-notification-list-item-image-layout {
-    width: map-get($sizes, 100);
-    height: map-get($sizes, 100);
-}
-
-@mixin o-mail-notification-list-item-image-container-layout {
-    position: relative;
-    width: 40px;
-    height: 40px;
-}
-
-@mixin o-mail-notification-list-item-inline-text-layout {
-    &.o-empty::before {
-        content: '\00a0'; // keep line-height as if it had content
-    }
-}
-
-@mixin o-mail-notification-list-item-mark-as-read-layout() {
-    display: flex;
-    flex: 0 0 auto;
-}
-
-@mixin o-mail-notification-list-item-name-layout {
-    &.o-isDeviceSmall {
-        font-size: 1.1em;
-    }
-}
-
-@mixin o-mail-notification-list-item-partner-im-status-icon-layout {
-    @include o-position-absolute($bottom: 0, $right: 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-@mixin o-mail-notification-list-item-sidebar-layout {
-    margin: map-get($spacers, 1);
-}
-
-// -----------------------------------------------------------------------------
-// Style
+// Mixins
 // -----------------------------------------------------------------------------
 
 $o-mail-notification-list-item-background-color: $white !default;
 $o-mail-notification-list-item-hover-background-color:
     darken($o-mail-notification-list-item-background-color, 7%) !default;
 
-$o-mail-notification-list-item-muted-background-color: gray('100') !default;
+$o-mail-notification-list-item-muted-background-color: $gray-100 !default;
 $o-mail-notification-list-item-muted-hover-background-color:
     darken($o-mail-notification-list-item-muted-background-color, 7%) !default;
 
-@mixin o-mail-notification-list-item-style {
+@mixin o-mail-notification-list-item {
+    display: flex;
+    flex: 0 0 auto; // Without this, Safari shrinks parent regardless of child content
+    align-items: center;
+    padding: map-get($spacers, 1);
     cursor: pointer;
     user-select: none;
     background-color: $o-mail-notification-list-item-background-color;
+
+    &.o-isDeviceSmall {
+        padding: map-get($spacers, 2);
+    }
 
     &:hover {
         background-color: $o-mail-notification-list-item-hover-background-color;
@@ -115,24 +36,62 @@ $o-mail-notification-list-item-muted-hover-background-color:
     }
 }
 
-@mixin o-mail-notification-list-item-bold-style {
-    font-weight: $font-weight-bold;
+@mixin o-mail-notification-list-item-content {
+    display: flex;
+    flex-flow: column;
+    flex: 1 1 auto;
+    align-self: flex-start;
+    min-width: 0; // needed for flex to work correctly
+    margin: map-get($spacers, 2);
+}
 
-    &.o-muted {
-        color: gray('600');
+@mixin o-mail-notification-list-item-core-item {
+    margin: map-get($spacers, 0) map-get($spacers, 2);
+
+    &:first-child {
+        margin-inline-start: map-get($spacers, 0);
+    }
+
+    &:last-child {
+        margin-inline-end: map-get($spacers, 0);
     }
 }
 
-@mixin o-mail-notification-list-item-date-style() {
+@mixin o-mail-notification-list-item-counter {
+    margin: map-get($spacers, 0) map-get($spacers, 1);
+}
+
+@mixin o-mail-notification-list-item-date {
+    flex: 0 0 auto;
     font-size: $font-size-sm;
     color: gray('500');
 }
 
-@mixin o-mail-notification-list-item-image-style {
+@mixin o-mail-notification-list-item-header {
+    display: flex;
+}
+
+@mixin o-mail-notification-list-item-image {
+    width: map-get($sizes, 100);
+    height: map-get($sizes, 100);
     object-fit: cover;
 }
 
-@mixin o-mail-notification-list-item-mark-as-read-style() {
+@mixin o-mail-notification-list-item-image-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+@mixin o-mail-notification-list-item-inline-text {
+    &.o-empty::before {
+        content: '\00a0'; // keep line-height as if it had content
+    }
+}
+
+@mixin o-mail-notification-list-item-mark-as-read {
+    display: flex;
+    flex: 0 0 auto;
     color: gray('300');
 
     &:hover {
@@ -140,15 +99,17 @@ $o-mail-notification-list-item-muted-hover-background-color:
     }
 }
 
-@mixin o-mail-notification-list-item-hover-partner-im-status-icon-style {
-    color: $o-mail-notification-list-item-hover-background-color;
+@mixin o-mail-notification-list-item-name {
+    &.o-isDeviceSmall {
+        font-size: 1.1em;
+    }
 }
 
-@mixin o-mail-notification-list-item-muted-hover-partner-im-status-icon-style {
-    color: $o-mail-notification-list-item-muted-hover-background-color;
-}
-
-@mixin o-mail-notification-list-item-partner-im-status-icon-style {
+@mixin o-mail-notification-list-item-partner-im-status-icon {
+    @include o-position-absolute($bottom: 0, $right: 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: $o-mail-notification-list-item-background-color;
 
     &:not(.o-isDeviceSmall) {
@@ -157,5 +118,96 @@ $o-mail-notification-list-item-muted-hover-background-color:
 
     &.o-muted {
         color: $o-mail-notification-list-item-muted-background-color;
+    }
+}
+
+@mixin o-mail-notification-list-item-sidebar {
+    margin: map-get($spacers, 1);
+}
+
+@mixin o-mail-notification-list-item-bold {
+    font-weight: $font-weight-bold;
+
+    &.o-muted {
+        color: gray('600');
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Includes
+// -----------------------------------------------------------------------------
+
+.o_NotificationListItem {
+    @include o-mail-notification-list-item();
+}
+
+.o_NotificationListItem_content {
+    @include o-mail-notification-list-item-content();
+}
+
+.o_NotificationListItem_coreItem {
+    @include o-mail-notification-list-item-core-item();
+}
+
+.o_NotificationListItem_counter {
+    @include o-mail-notification-list-item-counter();
+    @include o-mail-notification-list-item-bold();
+}
+
+.o_NotificationListItem_date {
+    @include o-mail-notification-list-item-date();
+}
+
+.o_NotificationListItem_header {
+    @include o-mail-notification-list-item-header();   
+}
+
+.o_NotificationListItem_image {
+    @include o-mail-notification-list-item-image();
+}
+
+.o_NotificationListItem_imageContainer {
+    @include o-mail-notification-list-item-image-container();
+}
+
+.o_NotificationListItem_inlineText {
+    @include o-mail-notification-list-item-inline-text();
+}
+
+.o_NotificationListItem_markAsRead {
+    @include o-mail-notification-list-item-mark-as-read();
+}
+
+.o_NotificationListItem_name {
+    @include o-mail-notification-list-item-name();
+    @include o-mail-notification-list-item-bold();
+}
+
+.o_NotificationListItem_partnerImStatusIcon {
+    @include o-mail-notification-list-item-partner-im-status-icon();
+}
+
+.o_NotificationListItem_sidebar {
+    @include o-mail-notification-list-item-sidebar();
+}
+
+// -----------------------------------------------------------------------------
+// Style
+// -----------------------------------------------------------------------------
+
+.o_NotificationListItem {
+
+    &:hover {
+        .o_NotificationListItem_partnerImStatusIcon {
+            color: $o-mail-notification-list-item-hover-background-color;
+        }
+    }
+
+    &.o-muted {
+        &:hover {
+            .o_NotificationListItem_partnerImStatusIcon {
+                color: $o-mail-notification-list-item-muted-hover-background-color;
+            }
+        }
     }
 }
