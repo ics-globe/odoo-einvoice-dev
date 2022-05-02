@@ -2237,11 +2237,9 @@ class IrQWeb(models.AbstractModel):
             uniq_cache_key = cache_key and tuple([{self.env.context['__qweb_base_key_cache']!r}, '{def_name}_cache', cache_key])
             loaded_values = values['__qweb_loaded_values']
             def {def_name}_cache():
-                in_cache = values.get('__qweb_in_cache', False)
-                values['__qweb_in_cache'] = True
                 content = []
                 text = []
-                for item in {def_name}(self, values):
+                for item in {def_name}(self, {{**values, '__qweb_in_cache': True}}):
                     if is_string(item):
                         text.append(item)
                     else:
@@ -2250,7 +2248,6 @@ class IrQWeb(models.AbstractModel):
                         text = []
                 if text:
                     content.append(''.join(text))
-                values['__qweb_in_cache'] = in_cache
                 return content
             cache_content = self._load_values(uniq_cache_key, {def_name}_cache, loaded_values)
             if values.get('__qweb_in_cache'):

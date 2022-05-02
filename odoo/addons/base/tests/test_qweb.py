@@ -2530,7 +2530,7 @@ class TestQwebCache(TransactionCase):
                     <article>1</article>
                     <div>cache: 101</div>
                 </section>
-                <div>out of cache: 101</div>
+                <div>out of cache: 1</div>
             </root>
         """
         self.assertEqual(etree.fromstring(render), etree.fromstring(result), 'rendering 1')
@@ -2560,7 +2560,7 @@ class TestQwebCache(TransactionCase):
                     <article>3</article>
                     <div>cache: 103</div>
                 </section>
-                <div>out of cache: 103</div>
+                <div>out of cache: 3</div>
             </root>
         """
         self.assertEqual(etree.fromstring(render), etree.fromstring(result), 'rendering 3')
