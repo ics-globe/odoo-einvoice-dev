@@ -390,8 +390,8 @@
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
-                            <div class="o_kanban_card_header o_kanban_record_top row">
-                                <div class="col-4">
+                            <div class="o_kanban_card_header o_kanban_record_top">
+                                <div>
                                     <h4 class="o_primary">
                                         <span><t t-esc="record.production_id.value"/></span> - <span><t t-esc="record.name.value"/></span>
                                     </h4>
@@ -401,11 +401,11 @@
                                         </h5>
                                     </div>
                                 </div>
-                                <div class="col-2">
+                                <div>
                                     <h5><span class="o_kanban_card_header_title">Date</span></h5>
                                     <span class="d-flex" t-esc="record.date_planned_start.value or record.production_date.value"/>
                                 </div>
-                                <div class="col-6">
+                                <div >
                                     <div class="o_kanban_record_bottom">
                                         <div class="oe_kanban_top_right">
                                             <h2 class="ml8">
