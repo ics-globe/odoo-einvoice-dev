@@ -27,11 +27,13 @@ class CrmTeam(models.Model):
 
         Heuristic (when multiple match: take first sequence ordered)
 
-          1- any of my teams (member OR responsible) matching domain
-          2- any of my teams (member OR responsible)
-          3- default from context
-          4- any team matching my company and domain
-          5- any team matching my company
+          1- default from context if in my teams (member OR responsible) matching domain
+          2- any of my teams (member OR responsible) matching domain
+          3- default from context if in any of my teams (member OR responsible)
+          4- any of my teams (member OR responsible)
+          5- default from context
+          6- any team matching my company and domain
+          7- any team matching my company
 
         Note: ResPartner.team_id field is explicitly not taken into account. We
         think this field causes a lot of noises compared to its added value.
@@ -47,24 +49,38 @@ class CrmTeam(models.Model):
             user = self.env['res.users'].sudo().browse(user_id)
         valid_cids = [False] + [c for c in user.company_ids.ids if c in self.env.companies.ids]
 
-        # 1- find in user memberships - note that if current user in C1 searches
-        # for team belonging to a user in C1/C2 -> only results for C1 will be returned
         team = self.env['crm.team']
         teams = self.env['crm.team'].search([
             ('company_id', 'in', valid_cids),
             '|', ('user_id', '=', user.id), ('member_ids', 'in', [user.id]),
         ])
-        if teams and domain:
-            team = teams.filtered_domain(domain)[:1]
-        # 2- any of my teams
+        default_team_id = self.env.context.get('default_team_id', False)
+        default_team = self.env['crm.team'].browse(default_team_id) if default_team_id else False
+
+        if domain:
+            domain_teams = teams.filtered_domain(domain)
+            # 1- default from context if in my teams (member OR responsible) matching domain
+            # note that if current user in C1 searches for team belonging to a user in C1/C2
+            # -> only results for C1 will be returned
+            if default_team and default_team in domain_teams:
+                team = default_team
+            # 2- any of my teams (member OR responsible) matching domain
+            else:
+                team = domain_teams[:1]
+
+        # 3- the default context team if it is in my teams
+        if not team and default_team and default_team in teams:
+            team = default_team
+
+        # 4- any of my teams
         if not team:
             team = teams[:1]
 
-        # 3- default: context
-        if not team and 'default_team_id' in self.env.context:
-            team = self.env['crm.team'].browse(self.env.context.get('default_team_id'))
+        # 5- default: context
+        if not team and default_team:
+            team = default_team
 
-        # 4- default: first one matching domain, then first one
+        # 6- default: first one matching domain, then first one
         if not team:
             teams = self.env['crm.team'].search([('company_id', 'in', valid_cids)])
             if teams and domain:
