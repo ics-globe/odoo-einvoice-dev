@@ -1709,7 +1709,7 @@ class TestQwebCache(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="base.dummy">
-                    <div t-cache="(cache_id,)" class="toto">
+                    <div t-cache="cache_id," class="toto">
                         <table>
                             <tr><td><span t-esc="value[0]"/></td></tr>
                             <tr><td><span t-esc="value[1]"/></td></tr>
@@ -1809,7 +1809,7 @@ class TestQwebCache(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="base.dummy">
-                    <div t-cache="(cache_id,)" class="toto">
+                    <div t-cache="cache_id," class="toto">
                         <table>
                             <tr><td><span t-esc="value[0]"/></td></tr>
                             <tr t-nocache=""><td><span t-esc="value[1]"/></td></tr>
@@ -1850,11 +1850,11 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="base.dummy">
                     <div class="toto">
-                        <table t-cache="(cache_id,)">
+                        <table t-cache="cache_id,">
                             <tr><td><t t-esc="value[0]"/></td></tr>
                             <tr>
                                 <td>
-                                    <table t-nocache="" t-cache="(cache_id2,)">
+                                    <table t-nocache="" t-cache="cache_id2,">
                                         <tr><td><t t-esc="value2[0]"/></td></tr>
                                         <tr><td><t t-esc="value2[1]"/></td></tr>
                                         <tr><td><t t-esc="value2[2]"/></td></tr>
@@ -1950,11 +1950,11 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="base.dummy">
                     <div class="toto">
-                        <table t-cache="(cache_id,)">
+                        <table t-cache="cache_id,">
                             <tr><td><t t-esc="value[0]"/></td></tr>
                             <tr t-nocache="">
                                 <td>
-                                    <table t-cache="(cache_id2,)">
+                                    <table t-cache="cache_id2,">
                                         <tr><td><t t-esc="value2[0]"/></td></tr>
                                         <tr><td><t t-esc="value2[1]"/></td></tr>
                                         <tr><td><t t-esc="value2[2]"/></td></tr>
@@ -2049,7 +2049,7 @@ class TestQwebCache(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="base.dummy">
-                    <div t-cache="(cache_id,)" class="toto">
+                    <div t-cache="cache_id," class="toto">
                         <table>
                             <tr><td><span t-esc="value[0]"/></td></tr>
                             <tr><td><span t-esc="value[1]"/></td></tr>
@@ -2070,7 +2070,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td><span>3</span></td></tr>
                 </table>
             </div>
-        """), 'First rendering (add in cache)')
+        """), 'First rendering')
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [10, 20, 30]}))
         self.assertEqual(result, etree.fromstring("""
@@ -2081,7 +2081,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td><span>30</span></td></tr>
                 </table>
             </div>
-        """), 'Next rendering use cache')
+        """), 'Next rendering cannot cache (use_qweb_t_cache is False)')
 
     def test_07_render_xml_dont_use_cache_different(self):
         view1 = self.env['ir.ui.view'].create({
@@ -2090,12 +2090,12 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="base.dummy">
                     <div class="toto">
-                        <table t-cache="(cache_id,)">
+                        <table t-cache="cache_id,">
                             <tr><td><span t-esc="value[0]"/></td></tr>
                             <tr><td><span t-esc="value[1]"/></td></tr>
                             <tr><td><span t-esc="value[2]"/></td></tr>
                         </table>
-                        <table t-cache="(cache_id2,)">
+                        <table t-cache="cache_id2,">
                             <tr><td><span t-esc="value2[0]"/></td></tr>
                             <tr><td><span t-esc="value2[1]"/></td></tr>
                             <tr><td><span t-esc="value2[2]"/></td></tr>
@@ -2126,7 +2126,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td><span>30</span></td></tr>
                 </table>
             </div>
-        """), 'First rendering (add in cache with different cache)')
+        """), 'First rendering')
 
         result = etree.fromstring(IrQweb._render(view1.id, {
             'cache_id': (2, 5, 6),
@@ -2155,7 +2155,7 @@ class TestQwebCache(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="base.dummy">
-                    <div t-cache="(cache_id,)" class="toto">
+                    <div t-cache="cache_id," class="toto">
                         <table>
                             <tr><td><span t-esc="value[0]"/></td></tr>
                             <tr t-nocache=""><td><span t-esc="value[1]"/></td></tr>
@@ -2176,7 +2176,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td><span>3</span></td></tr>
                 </table>
             </div>
-        """), 'First rendering add compiled values in cache')
+        """), 'First rendering')
 
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [10, 20, 30]}))
         self.assertEqual(result, etree.fromstring("""
@@ -2187,7 +2187,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td><span>30</span></td></tr>
                 </table>
             </div>
-        """), 'Next rendering use cache exept for t-nocache=""')
+        """), 'Next rendering cannot use cache (use_qweb_t_cache is False)')
 
     def test_09_render_xml_dont_use_cache_recursive(self):
         view1 = self.env['ir.ui.view'].create({
@@ -2196,11 +2196,11 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="base.dummy">
                     <div class="toto">
-                        <table t-cache="(cache_id,)">
+                        <table t-cache="cache_id,">
                             <tr><td><t t-esc="value[0]"/></td></tr>
                             <tr>
                                 <td>
-                                    <table t-nocache="" t-cache="(cache_id2,)">
+                                    <table t-nocache="" t-cache="cache_id2,">
                                         <tr><td><t t-esc="value2[0]"/></td></tr>
                                         <tr><td><t t-esc="value2[1]"/></td></tr>
                                         <tr><td><t t-esc="value2[2]"/></td></tr>
@@ -2238,7 +2238,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>3</td></tr>
                 </table>
             </div>
-        """), 'First rendering (add in cache)')
+        """), 'First rendering')
 
         result = etree.fromstring(IrQweb._render(view1.id, {
             'cache_id': (1, 0),
@@ -2262,7 +2262,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>43</td></tr>
                 </table>
             </div>
-        """), 'Second rendering (change inside cache id)')
+        """), 'Next rendering cannot use cache (use_qweb_t_cache is False)')
 
         result = etree.fromstring(IrQweb._render(view1.id, {
             'cache_id': (1, 1),
@@ -2286,7 +2286,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>33</td></tr>
                 </table>
             </div>
-        """), 'Third rendering (change main cache id, old cache inside)')
+        """), 'Third rendering cannot use cache (use_qweb_t_cache is False)')
 
     def test_10_render_xml_dont_use_cache_false_recursive(self):
         view1 = self.env['ir.ui.view'].create({
@@ -2295,11 +2295,11 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="base.dummy">
                     <div class="toto">
-                        <table t-cache="(cache_id,)">
+                        <table t-cache="cache_id,">
                             <tr><td><t t-esc="value[0]"/></td></tr>
                             <tr t-nocache="">
                                 <td>
-                                    <table t-cache="(cache_id2,)">
+                                    <table t-cache="cache_id2,">
                                         <tr><td><t t-esc="value2[0]"/></td></tr>
                                         <tr><td><t t-esc="value2[1]"/></td></tr>
                                         <tr><td><t t-esc="value2[2]"/></td></tr>
@@ -2337,7 +2337,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>3</td></tr>
                 </table>
             </div>
-        """), 'First rendering (add in cache)')
+        """), 'First rendering')
 
         result = etree.fromstring(self.env['ir.qweb']._render(view1.id, {
             'cache_id': (1, 0),
@@ -2361,7 +2361,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>43</td></tr>
                 </table>
             </div>
-        """), 'Second rendering (change inside cache id)')
+        """), 'Next rendering cannot use cache (use_qweb_t_cache is False)')
 
         result = etree.fromstring(self.env['ir.qweb']._render(view1.id, {
             'cache_id': (1, 1),
@@ -2385,7 +2385,7 @@ class TestQwebCache(TransactionCase):
                     <tr><td>33</td></tr>
                 </table>
             </div>
-        """), 'Third rendering (change main cache id, old cache inside)')
+        """), 'Third rendering cannot use cache (use_qweb_t_cache is False)')
 
     def test_11_render_xml_nocache_use_the_root_values(self):
         template_page = self.env['ir.ui.view'].create({
@@ -2393,7 +2393,7 @@ class TestQwebCache(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="template_page">
-                    <section t-cache="(cache_id,)">
+                    <section t-cache="cache_id,">
                         <t t-set="counter" t-value="counter + 100"/>
                         <article t-nocache=""><t t-out="counter"/></article>
                         <div>cache: <t t-out="counter"/></div>
@@ -2448,7 +2448,7 @@ class TestQwebCache(TransactionCase):
                 <t t-name="template_page">
                     <root>
                         <t t-set="counter" t-value="counter + 100"/>
-                        <section t-cache="(cache_id,)">
+                        <section t-cache="cache_id,">
                             <article t-nocache=""><t t-out="counter"/></article>
                             <div>cache: <t t-out="counter"/></div>
                         </section>
@@ -2508,7 +2508,7 @@ class TestQwebCache(TransactionCase):
             'arch': """
                 <t t-name="template_page">
                     <root>
-                        <section t-cache="(cache_id,)">
+                        <section t-cache="cache_id,">
                             <t t-set="counter" t-value="counter + 100"/>
                             <article t-nocache=""><t t-out="counter"/></article>
                             <div>cache: <t t-out="counter"/></div>
@@ -2670,8 +2670,71 @@ class TestQwebCache(TransactionCase):
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'condition': True, 'value': [10, 20, 30]}))
         self.assertEqual(result, expected_result, 'Next rendering use cache')
 
+
+        expected_result = etree.fromstring("""
+            <div class="toto">
+                <table>
+                    <tr><td><span>10</span></td></tr>
+                    <tr><td><span>20</span></td></tr>
+                    <tr><td><span>30</span></td></tr>
+                </table>
+            </div>
+        """)
         result = etree.fromstring(IrQweb._render(view1.id, {'cache_id': 1, 'value': [10, 20, 30]}))
-        self.assertNotEqual(result, expected_result, 'Next rendering use cache')
+        self.assertEqual(result, expected_result, 'Next rendering use cache')
+
+    def test_16_render_xml_cache_and_inherit_view(self):
+        view1 = self.env['ir.ui.view'].create({
+            'name': "dummy",
+            'type': 'qweb',
+            'arch': """
+                <t t-name="base.dummy">
+                    <div t-cache="True," class="toto">
+                        <table>
+                            <tr><td><span t-esc="value[0]"/></td></tr>
+                            <tr><td><span t-esc="value[1]"/></td></tr>
+                            <tr><td><span t-esc="value[2]"/></td></tr>
+                        </table>
+                    </div>
+                </t>
+            """
+        })
+        view2 = self.env['ir.ui.view'].create({
+            'name': 'Child View',
+            'mode': 'extension',
+            'inherit_id': view1.id,
+            'arch': '''
+                <xpath expr="//div[@t-cache]" position="attributes">
+                    <attribute name="t-cache" add="company,value[0]" remove="True," separator=","/>
+                </xpath>
+            ''',
+        })
+
+        IrQweb = self.env['ir.qweb'].with_context(use_qweb_t_cache=True)
+
+        expected_result = etree.fromstring("""
+            <div class="toto">
+                <table>
+                    <tr><td><span>1</span></td></tr>
+                    <tr><td><span>2</span></td></tr>
+                    <tr><td><span>3</span></td></tr>
+                </table>
+            </div>
+        """)
+        result = etree.fromstring(IrQweb._render(view2.id, {'value': [1, 2, 3]}))
+        self.assertEqual(result, expected_result, 'First rendering create cache from company and the value 1')
+
+        expected_result = etree.fromstring("""
+            <div class="toto">
+                <table>
+                    <tr><td><span>10</span></td></tr>
+                    <tr><td><span>20</span></td></tr>
+                    <tr><td><span>30</span></td></tr>
+                </table>
+            </div>
+        """)
+        result = etree.fromstring(IrQweb._render(view2.id, {'value': [10, 20, 30]}))
+        self.assertEqual(result, expected_result, 'Next rendering create cache from company and the value 10')
 
 class FileSystemLoader(object):
     def __init__(self, path):
