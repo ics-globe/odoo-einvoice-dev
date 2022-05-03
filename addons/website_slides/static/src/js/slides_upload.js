@@ -712,7 +712,11 @@ var SlideUploadDialog = Dialog.extend({
             this.set('state', oldType);
             this._alertDisplay(data.error);
         } else {
-            window.location = data.url;
+            if (data.url.indexOf('enable_editor') >= 0) {
+                window.top.location = data.url;
+            } else {
+                window.location = data.url;
+            }
         }
     },
 

@@ -2,6 +2,7 @@
 
 import { EditInBackendSystray } from '@website/systray_items/edit_in_backend';
 import { patch } from 'web.utils';
+import wUtils from 'website.utils';
 
 patch(EditInBackendSystray.prototype, 'website_blog_edit_in_backend', {
     /**
@@ -21,7 +22,6 @@ patch(EditInBackendSystray.prototype, 'website_blog_edit_in_backend', {
 
     async duplicate() {
         const { metadata: { mainObject } } = this.websiteService.currentWebsite;
-        const duplicateUrl = await this.websiteService.sendRequest('/blog/post_duplicate', { blog_post_id: mainObject.id });
-        this.websiteService.goToWebsite({ path: duplicateUrl });
+        wUtils.sendRequest('/blog/post_duplicate', { blog_post_id: mainObject.id });
     }
 });
