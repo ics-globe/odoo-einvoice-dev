@@ -1239,7 +1239,7 @@ class WebsiteSlides(WebsiteProfile):
         if channel.channel_type == "training" and slide.slide_category not in ["article", "quiz"]:
             redirect_url = "/slides/%s" % (slug(channel))
         if slide.slide_category == 'article':
-            redirect_url += "?enable_editor=1"
+            redirect_url = self.env["website"].get_client_action_url(redirect_url, True)
         return {
             'url': redirect_url,
             'channel_type': channel.channel_type,
