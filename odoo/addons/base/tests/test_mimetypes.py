@@ -65,9 +65,6 @@ class test_guess_mimetype(BaseCase):
         content = base64.b64decode(SVG)
         mimetype = guess_mimetype(content, default='test')
         self.assertTrue(mimetype.startswith('image/svg'))
-        # Tests that whitespace padded SVG are not detected as SVG
-        mimetype = guess_mimetype(b"   " + content, default='test')
-        self.assertNotIn("svg", mimetype)
 
     def test_mimetype_zip(self):
         content = base64.b64decode(ZIP)
