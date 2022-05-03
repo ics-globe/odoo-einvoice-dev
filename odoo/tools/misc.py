@@ -25,7 +25,7 @@ import types
 import unicodedata
 from collections import OrderedDict
 from collections.abc import Iterable, Mapping, MutableMapping, MutableSet
-from contextlib import contextmanager
+from contextlib import ContextDecorator, contextmanager
 from difflib import HtmlDiff
 from functools import wraps
 from itertools import islice, groupby as itergroupby
@@ -1252,12 +1252,54 @@ class Reverse(object):
     def __le__(self, other): return self.val >= other.val
     def __lt__(self, other): return self.val > other.val
 
+# there is contextlib.suppress since py3
 @contextmanager
 def ignore(*exc):
     try:
         yield
     except exc:
         pass
+
+class reraise_x_as(ContextDecorator):
+    """
+    Hide some exceptions behind a fake alternative error. Can be used as
+    a function decorator or as a context manager.
+
+    .. code-block:
+
+        @route('/super/secret/route', auth='public')
+        @reraise_x_as(AccessError, as_=NotFound())
+        def super_secret_route(self):
+            if not request.session.uid:
+                raise AccessError("Route hidden to non logged-in users")
+            ...
+
+        def some_util():
+            ...
+            with reraise_x_as(ValueError, as_=UserError("Invalid argument")):
+                ...
+            ...
+
+    :param exceptions: the exception classes to except.
+    :param as_: the fake exception to raise instead.
+    """
+    def __init__(self, *exceptions, as_):
+        if not exceptions:
+            raise ValueError("Missing exceptions")
+
+        wrong_exc = next((not issubclass(exc, Exception) for exc in exceptions), None)
+        if wrong_exc:
+            raise TypeError(f"{wrong_exc} is not an exception class.")
+
+        self.exceptions = exceptions
+        self.as_ = as_
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None and issubclass(exc_type, self.exceptions):
+            raise self.as_ from exc_value
 
 html_escape = markupsafe.escape
 
