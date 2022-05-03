@@ -464,7 +464,15 @@ eventHandler.modules.editor.resize = function ($editable, sValue) {
     if (width) {
         width = width[2]/100;
     }
-    $target.css('width', (width !== sValue && sValue !== "auto") ? (sValue * 100) + '%' : '');
+    const hasWidth = width !== sValue && sValue !== "auto";
+    const widthValue = hasWidth ? (sValue * 100) + '%' : '';
+    const computedStyle = window.getComputedStyle($target[0]);
+    $target[0].style.removeProperty('width');
+    const oldWidth = computedStyle.width;
+    $target[0].style.setProperty('width', widthValue);
+    if (hasWidth && oldWidth === computedStyle.width) {
+        $target[0].style.setProperty('width', widthValue, 'important');
+    }
 };
 eventHandler.modules.editor.resizefa = function ($editable, sValue) {
     var $target = $(getImgTarget($editable));
