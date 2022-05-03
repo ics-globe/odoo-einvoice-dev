@@ -44,14 +44,17 @@ VariantMixin._onChangeCombination = function (ev, $parent, combination) {
         const addToCart = $parent.find('#o_wsale_cta_wrapper');
         const contactUsButton = $parent.find('#contact_us_wrapper');
         const productPrice = $parent.find('.product_price');
+        const product_unavailable = $parent.find('#product_unavailable');
         if (!combination.price) {
             productPrice.removeClass('d-inline-block').addClass('d-none');
             addToCart.removeClass('d-flex').addClass('d-none');
             contactUsButton.removeClass('d-none').addClass('d-flex');
+            product_unavailable.removeClass('d-none').addClass('d-flex')
         } else {
             productPrice.removeClass('d-none').addClass('d-inline-block');
             addToCart.removeClass('d-none').addClass('d-flex');
             contactUsButton.removeClass('d-flex').addClass('d-none');
+            product_unavailable.removeClass('d-flex').addClass('d-none')
         }
     }
     originalOnChangeCombination.apply(this, [ev, $parent, combination]);

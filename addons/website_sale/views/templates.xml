@@ -193,8 +193,8 @@
                                 <em class="small" t-esc="template_price_vals['base_price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
                             </del>
                         </t>
-                        <span class="h6 mb-0" t-if="template_price_vals['price_reduce']" t-esc="template_price_vals['price_reduce']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                        <span class="h6 mb-0" t-else="">&#160;</span>
+                        <span class="h6 mb-0" t-if="template_price_vals['price_reduce'] or not website.prevent_zero_price_sale" t-esc="template_price_vals['price_reduce']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                        <span class="h6 mb-0" t-else="" t-esc="website.prevent_zero_price_sale_text"/>
                         <span itemprop="price" style="display:none;" t-esc="template_price_vals['price_reduce']" />
                         <span itemprop="priceCurrency" style="display:none;" t-esc="website.currency_id.name" />
                     </div>
@@ -890,6 +890,9 @@
                         }'/>
                 </del>
             </h3>
+        </div>
+        <div id="product_unavailable" t-attf-class="{{'d-flex' if not combination_info['price'] and website.prevent_zero_price_sale else 'd-none'}}">
+            <h3 class="font-italic" t-field="website.prevent_zero_price_sale_text"/>
         </div>
     </template>
 

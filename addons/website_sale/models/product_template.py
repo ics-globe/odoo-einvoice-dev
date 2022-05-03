@@ -468,7 +468,7 @@ class ProductTemplate(models.Model):
                 combination_info = product._get_combination_info(only_template=True)
                 data['price'], list_price = self._search_render_results_prices(
                     mapping, combination_info
-                ) if combination_info['price'] else ''
+                )
                 if list_price:
                     data['list_price'] = list_price
             if with_image:
@@ -481,10 +481,14 @@ class ProductTemplate(models.Model):
         return results_data
 
     def _search_render_results_prices(self, mapping, combination_info):
+        website = self.env['website'].get_current_website()
         monetary_options = {'display_currency': mapping['detail']['display_currency']}
-        price = self.env['ir.qweb.field.monetary'].value_to_html(
-            combination_info['price'], monetary_options
-        )
+        if website and website.prevent_zero_price_sale and not combination_info['price']:
+            price = website.prevent_zero_price_sale_text
+        else:
+            price = self.env['ir.qweb.field.monetary'].value_to_html(
+                combination_info['price'], monetary_options
+            )
         if combination_info['has_discounted_price']:
             list_price = self.env['ir.qweb.field.monetary'].value_to_html(
                 combination_info['list_price'], monetary_options
