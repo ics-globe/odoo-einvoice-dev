@@ -11,17 +11,8 @@ $o-mail-notification-list-item-muted-hover-background-color:
     darken($o-mail-notification-list-item-muted-background-color, 7%) !default;
 
 @mixin o-mail-notification-list-item {
-    display: flex;
-    flex: 0 0 auto; // Without this, Safari shrinks parent regardless of child content
-    align-items: center;
-    padding: map-get($spacers, 1);
-    cursor: pointer;
     user-select: none;
     background-color: $o-mail-notification-list-item-background-color;
-
-    &.o-isDeviceSmall {
-        padding: map-get($spacers, 2);
-    }
 
     &:hover {
         background-color: $o-mail-notification-list-item-hover-background-color;
@@ -37,48 +28,14 @@ $o-mail-notification-list-item-muted-hover-background-color:
 }
 
 @mixin o-mail-notification-list-item-content {
-    display: flex;
-    flex-flow: column;
-    flex: 1 1 auto;
-    align-self: flex-start;
     min-width: 0; // needed for flex to work correctly
-    margin: map-get($spacers, 2);
-}
-
-@mixin o-mail-notification-list-item-core-item {
-    margin: map-get($spacers, 0) map-get($spacers, 2);
-
-    &:first-child {
-        margin-inline-start: map-get($spacers, 0);
-    }
-
-    &:last-child {
-        margin-inline-end: map-get($spacers, 0);
-    }
-}
-
-@mixin o-mail-notification-list-item-counter {
-    margin: map-get($spacers, 0) map-get($spacers, 1);
-}
-
-@mixin o-mail-notification-list-item-date {
-    flex: 0 0 auto;
-    font-size: $font-size-sm;
-    color: gray('500');
-}
-
-@mixin o-mail-notification-list-item-header {
-    display: flex;
 }
 
 @mixin o-mail-notification-list-item-image {
-    width: map-get($sizes, 100);
-    height: map-get($sizes, 100);
     object-fit: cover;
 }
 
 @mixin o-mail-notification-list-item-image-container {
-    position: relative;
     width: 40px;
     height: 40px;
 }
@@ -89,47 +46,11 @@ $o-mail-notification-list-item-muted-hover-background-color:
     }
 }
 
-@mixin o-mail-notification-list-item-mark-as-read {
-    display: flex;
-    flex: 0 0 auto;
-    color: gray('300');
-
-    &:hover {
-        color: gray('600');
-    }
-}
-
-@mixin o-mail-notification-list-item-name {
-    &.o-isDeviceSmall {
-        font-size: 1.1em;
-    }
-}
-
 @mixin o-mail-notification-list-item-partner-im-status-icon {
-    @include o-position-absolute($bottom: 0, $right: 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: $o-mail-notification-list-item-background-color;
-
-    &:not(.o-isDeviceSmall) {
-        font-size: x-small;
-    }
 
     &.o-muted {
         color: $o-mail-notification-list-item-muted-background-color;
-    }
-}
-
-@mixin o-mail-notification-list-item-sidebar {
-    margin: map-get($spacers, 1);
-}
-
-@mixin o-mail-notification-list-item-bold {
-    font-weight: $font-weight-bold;
-
-    &.o-muted {
-        color: gray('600');
     }
 }
 
@@ -145,23 +66,6 @@ $o-mail-notification-list-item-muted-hover-background-color:
     @include o-mail-notification-list-item-content();
 }
 
-.o_NotificationListItem_coreItem {
-    @include o-mail-notification-list-item-core-item();
-}
-
-.o_NotificationListItem_counter {
-    @include o-mail-notification-list-item-counter();
-    @include o-mail-notification-list-item-bold();
-}
-
-.o_NotificationListItem_date {
-    @include o-mail-notification-list-item-date();
-}
-
-.o_NotificationListItem_header {
-    @include o-mail-notification-list-item-header();   
-}
-
 .o_NotificationListItem_image {
     @include o-mail-notification-list-item-image();
 }
@@ -174,21 +78,8 @@ $o-mail-notification-list-item-muted-hover-background-color:
     @include o-mail-notification-list-item-inline-text();
 }
 
-.o_NotificationListItem_markAsRead {
-    @include o-mail-notification-list-item-mark-as-read();
-}
-
-.o_NotificationListItem_name {
-    @include o-mail-notification-list-item-name();
-    @include o-mail-notification-list-item-bold();
-}
-
 .o_NotificationListItem_partnerImStatusIcon {
     @include o-mail-notification-list-item-partner-im-status-icon();
-}
-
-.o_NotificationListItem_sidebar {
-    @include o-mail-notification-list-item-sidebar();
 }
 
 // -----------------------------------------------------------------------------
