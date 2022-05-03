@@ -83,3 +83,6 @@ $theme-colors: map-merge((
 
 // Prefix for :root CSS variables
 $variable-prefix: '' !default;
+
+// Restore negative margins disabled in BS5 by default
+$enable-negative-margins: true !default;
