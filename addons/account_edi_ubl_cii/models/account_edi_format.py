@@ -134,7 +134,7 @@ class AccountEdiFormat(models.Model):
             # If no errors occur, it's marked as "Sent" and you can uncheck the edi_format.
             if errors:
                 res[invoice].update({
-                    'success': False,
+                    'success': True,  #TODO: if no modif in _postprocess_post_edi_results, this should be False, otherwise the 'error' is not parsed
                     'error': _("Errors occured while creating the EDI document (format: %s). The receiver "
                                "might refuse it.", self.env['account.edi.xml.' + format_class_suffix]._description)
                              + '<p> <li>' + "</li> <li>".join(errors) + '</li> </p>',
