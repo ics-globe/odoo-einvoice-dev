@@ -9,8 +9,6 @@ class TestUBLNL(TestUBLCommon):
     @classmethod
     def setUpClass(cls,
                    chart_template_ref="l10n_nl.l10nnl_chart_template",
-                   #chart_template_ref=None,
-                   #edi_format_ref="account_edi_ubl_cii.ubl_nl",
                    edi_format_ref="l10n_nl_edi.edi_nlcius_1",
                    ):
         """
@@ -206,6 +204,6 @@ class TestUBLNL(TestUBLCommon):
     ####################################################
 
     def test_import_invoice_xml(self):
-        # TODO: add test files https://github.com/peppolautoriteit-nl/validation ?
+        # ddd test files https://github.com/peppolautoriteit-nl/validation ?
         self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml',
                                        amount_total=3083.58, amount_tax=401.58, currency='USD')

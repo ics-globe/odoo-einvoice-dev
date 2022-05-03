@@ -9,7 +9,6 @@ class TestCIIFR(TestUBLCommon):
     @classmethod
     def setUpClass(cls,
                    chart_template_ref="l10n_fr.l10n_fr_pcg_chart_template",
-                   #chart_template_ref=None,
                    edi_format_ref="account_edi_facturx.edi_facturx_1_0_05",
                    ):
         """

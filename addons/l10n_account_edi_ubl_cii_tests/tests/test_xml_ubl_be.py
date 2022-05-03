@@ -9,7 +9,6 @@ class TestUBLBE(TestUBLCommon):
     @classmethod
     def setUpClass(cls,
                    chart_template_ref="l10n_be.l10nbe_chart_template",
-                   #chart_template_ref=None,
                    edi_format_ref="account_edi_ubl_cii.ubl_bis3",
                    ):
         super().setUpClass(chart_template_ref=chart_template_ref, edi_format_ref=edi_format_ref)
@@ -108,7 +107,6 @@ class TestUBLBE(TestUBLCommon):
             chart_template=chart_template,
             country_id=cls.env.ref("base.be").id,
             vat="BE0246697724")
-        #TODO: setup journal here ?
         return res
 
     ####################################################
