@@ -42,6 +42,9 @@ function jsonp(form, attributes, callback) {
     }
     _.extend(attributes, {
         dataType: 'script',
+        error: function(res) {
+            $(form).html("<h1>" + res.statusText + "</h1>");
+        }
     });
     $(form).ajaxSubmit(attributes);
 }
