@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import base64
 import datetime
+import io
 import json
+import qrcode
 
 from dateutil.relativedelta import relativedelta
 from werkzeug.exceptions import NotFound
@@ -56,6 +59,12 @@ class UserInputSession(http.Controller):
         if not survey:
             return NotFound()
 
+        # Generate QR code
+        QRimg = qrcode.make(survey.session_link)
+        im_file = io.BytesIO()
+        QRimg.save(im_file, format='JPEG')
+        qrcode_base64 = base64.b64encode(im_file.getvalue())
+
         if survey.session_state == 'ready':
             if not survey.question_ids:
                 return request.render('survey.survey_void_content', {
@@ -63,7 +72,8 @@ class UserInputSession(http.Controller):
                     'answer': request.env['survey.user_input'],
                 })
             return request.render('survey.user_input_session_open', {
-                'survey': survey
+                'survey': survey,
+                'qrcode': qrcode_base64,
             })
         # Note that at this stage survey.session_state can be False meaning that the survey has ended (session closed)
         return request.render('survey.user_input_session_manage', self._prepare_manage_session_values(survey))
