@@ -37,31 +37,52 @@ odoo.define('pos_discount.DiscountButton', function(require) {
             }
 
             // Remove existing discounts
-            for (const line of lines) {
-                if (line.get_product() === product) {
-                    order.remove_orderline(line);
-                }
-            }
+            lines.filter(line => line.get_product().default_code === 'DISC')
+                .forEach(line => order.remove_orderline(line));
 
-            // Add discount
-            // We add the price as manually set to avoid recomputation when changing customer.
-            var base_to_discount = order.get_total_without_tax();
-            if (product.taxes_id.length){
-                var first_tax = this.env.pos.taxes_by_id[product.taxes_id[0]];
-                if (first_tax.price_include) {
-                    base_to_discount = order.get_total_with_tax();
-                }
-            }
-            var discount = - pc / 100.0 * base_to_discount;
+            // Add one discount line per tax group
+            let linesByTax = order.get_orderlines_grouped_by_tax_ids();
+            for (let [taxIds, lines] of Object.entries(linesByTax)) {
+                // Note that taxIdsArray is an Array of taxIds that apply to these lines
+                // That is, the use case of products with more than one tax is supported.
+                let taxIdsArray = taxIds.split(',').map(id => Number(id));
 
-            if( discount < 0 ){
-                order.add_product(product, {
-                    price: discount,
-                    lst_price: discount,
-                    extras: {
-                        price_manually_set: true,
-                    },
-                });
+                // Consider price_include taxes use case
+                let hasTaxesIncludedInPrice = taxIdsArray.filter(taxId =>
+                    this.env.pos.taxes_by_id[taxId].price_include
+                ).length;
+
+                let _getTotalTaxesIncludedInPrice = line =>
+                    line.get_taxes()
+                        .filter(tax => tax.price_include)
+                        .reduce((sum, tax) => sum + line.get_tax_details()[tax.id],
+                        0
+                    )
+                
+                let baseToDiscount = lines.reduce((sum, line) =>
+                        sum +
+                        line.get_price_without_tax() +
+                        (hasTaxesIncludedInPrice ? _getTotalTaxesIncludedInPrice(line) : 0),
+                    0
+                );
+            
+                // We add the price as manually set to avoid recomputation when changing customer.
+                let discount = - pc / 100.0 * baseToDiscount;
+                if (discount < 0) {
+                    order.add_product(product, {
+                        price: discount,
+                        lst_price: discount,
+                        tax_ids: taxIdsArray,
+                        merge: false,
+                        description: _.str.sprintf(
+                            this.env._t('tax: %s'),
+                            taxIdsArray.map(taxId => this.env.pos.taxes_by_id[taxId].amount + '%').join(', ')
+                        ),
+                        extras: {
+                            price_manually_set: true,
+                        },
+                    });
+                }
             }
         }
     }

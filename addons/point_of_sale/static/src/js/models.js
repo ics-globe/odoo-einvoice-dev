@@ -2478,6 +2478,24 @@ class Order extends PosModel {
     get_orderlines(){
         return this.orderlines;
     }
+    get_orderlines_grouped_by_tax_ids() {
+        let orderlines_by_tax_group = {};
+        const lines = this.get_orderlines();
+        for (let line of lines) {
+            const tax_group = this._get_tax_group_key(line);
+            if (!(tax_group in orderlines_by_tax_group)) {
+                orderlines_by_tax_group[tax_group] = [];
+            }
+            orderlines_by_tax_group[tax_group].push(line);
+        }
+        return orderlines_by_tax_group;
+    }
+    _get_tax_group_key(line) {
+        return line
+            .get_taxes()
+            .map(tax => tax.id)
+            .join(',');
+    }
     get_last_orderline(){
         const orderlines = this.orderlines;
         return this.orderlines.at(orderlines.length -1);
