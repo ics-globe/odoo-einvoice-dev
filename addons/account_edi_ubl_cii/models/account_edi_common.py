@@ -137,23 +137,11 @@ class AccountEdiCommon(models.AbstractModel):
         https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/
         :returns: (tax_category_code, tax_exemption_reason_code, tax_exemption_reason)
         """
-        # TODO: this needs to be improved but no means to say what the tax_reason is
-        # if invoice.narration:
-        #    if 'VATEX-EU-O' in invoice.narration:
-        #        return 'O', 'VATEX-EU-O', 'Not subject to VAT'
-        #    if 'VATEX-EU-AE' in invoice.narration:
-        #        return 'AE', 'VATEX-EU-AE', 'Reverse charge'
-        #    if 'VATEX-EU-D' in invoice.narration:
-        #        return 'E', 'VATEX-EU-D', 'Intra-Community acquisition from second hand means of transport'
-        #    if 'VATEX-EU-I' in invoice.narration:
-        #        return 'E', 'VATEX-EU-I', 'Intra-Community acquisition of works of art'
-        #    if 'VATEX-EU-J' in invoice.narration:
-        #        return 'E', 'VATEX-EU-J', 'Intra-Community acquisition of collectors items and antiques'
-        #    if 'VATEX-EU-F' in invoice.narration:
-        #        return 'E', 'VATEX-EU-F', 'Intra-Community acquisition of second hand goods'
-
         supplier = invoice.company_id.partner_id.commercial_partner_id
         customer = invoice.commercial_partner_id
+
+        # add Norway, Iceland, Liechtenstein
+        european_economic_area = self.env.ref('base.europe').country_ids.mapped('code') + ['NO', 'IS', 'LI']
 
         if customer.country_id.code == 'ES':
             if customer.zip[:2] in ['35', '38']:  # Canary
@@ -163,25 +151,8 @@ class AccountEdiCommon(models.AbstractModel):
             if customer.zip[:2] in ['51', '52']:
                 return 'M', None, None  # Ceuta & Mellila
 
-        if supplier.country_id == customer.country_id:
-            if not tax or tax.amount == 0:
-                # in theory, you should indicate the precise law article
-                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'
-            else:
-                return 'S', None, None  # standard VAT
-
-        # Norway is part of the European Economic Area.
-        if supplier.country_id in self.env.ref('base.europe').country_ids or supplier.country_id.code == 'NO':
-            if tax.amount != 0:
-                # otherwise, the validator will complain because G and K code should be used with 0% tax
-                return 'S', None, None
-            if customer.country_id not in self.env.ref('base.europe').country_ids:
-                return 'G', 'VATEX-EU-G', 'Export outside the EU'
-            if customer.country_id in self.env.ref('base.europe').country_ids:
-                return 'K', 'VATEX-EU-IC', 'Intra-Community supply'
-
         # see: https://anskaffelser.dev/postaward/g3/spec/current/billing-3.0/norway/#_value_added_tax_norwegian_mva
-        if supplier.country_id.code == 'NO':
+        if customer.country_id.code == 'NO':
             if tax.amount == 25:
                 return 'S', None, 'Output VAT, regular rate'
             if tax.amount == 15:
@@ -190,6 +161,22 @@ class AccountEdiCommon(models.AbstractModel):
                 return 'S', None, 'Output VAT, reduced rate, raw fish'
             if tax.amount == 12:
                 return 'S', None, 'Output VAT, reduced rate, low'
+
+        if supplier.country_id == customer.country_id:
+            if not tax or tax.amount == 0:
+                # in theory, you should indicate the precise law article
+                return 'E', None, 'Articles 226 items 11 to 15 Directive 2006/112/EN'
+            else:
+                return 'S', None, None  # standard VAT
+
+        if supplier.country_id.code in european_economic_area:
+            if tax.amount != 0:
+                # otherwise, the validator will complain because G and K code should be used with 0% tax
+                return 'S', None, None
+            if customer.country_id.code not in european_economic_area:
+                return 'G', 'VATEX-EU-G', 'Export outside the EU'
+            if customer.country_id.code in european_economic_area:
+                return 'K', 'VATEX-EU-IC', 'Intra-Community supply'
 
         return None, None, None
 

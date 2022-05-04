@@ -530,7 +530,6 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 invoice_form.invoice_date_due = invoice_date_due_node.text
                 break
 
-        # TODO: what is this ?
         # ==== invoice_incoterm_id ====
 
         incoterm_code_node = tree.find('./{*}TransportExecutionTerms/{*}DeliveryTerms/{*}ID')

@@ -134,7 +134,6 @@ class AccountEdiXmlCII(models.AbstractModel):
 
         # Create file content.
         tax_details = invoice._prepare_edi_tax_details()
-        balance_sign = -1 if invoice.is_inbound() else 1
 
         seller_siret = 'siret' in invoice.company_id._fields and invoice.company_id.siret or invoice.company_id.company_registry
         buyer_siret = 'siret' in invoice.commercial_partner_id._fields and invoice.commercial_partner_id.siret
@@ -171,7 +170,7 @@ class AccountEdiXmlCII(models.AbstractModel):
             # /!\ -0.0 == 0.0 in python but not in XSLT, so it can raise a fatal error when validating the XML
             # if 0.0 is expected and -0.0 is given.
             amount_currency = tax_detail_vals['tax_amount_currency']
-            tax_detail_vals['calculated_amount'] = balance_sign * amount_currency if amount_currency != 0 else 0
+            tax_detail_vals['calculated_amount'] = template_values['balance_multiplicator'] * amount_currency if amount_currency != 0 else 0
             tax_category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_unece_codes(invoice, tax)
             tax_detail_vals['unece_tax_category_code'] = tax_category_code
             tax_detail_vals['exemption_reason'] = tax_exemption_reason

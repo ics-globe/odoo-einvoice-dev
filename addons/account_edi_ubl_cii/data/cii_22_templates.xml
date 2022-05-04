@@ -10,7 +10,7 @@
                 <ram:IncludedSupplyChainTradeLineItem>
                     <!-- Line number. -->
                     <ram:AssociatedDocumentLineDocument>
-                        <ram:LineID t-esc="line_vals.get('index')"/>
+                        <ram:LineID t-out="line_vals.get('index')"/>
                     </ram:AssociatedDocumentLineDocument>
 
                     <!-- Product. -->
@@ -18,11 +18,11 @@
                         <ram:GlobalID
                             schemeID="0160"
                             t-if="line.product_id and line.product_id.barcode"
-                            t-esc="line.product_id.barcode"/>
+                            t-out="line.product_id.barcode"/>
                         <ram:SellerAssignedID
                             t-if="line.product_id and line.product_id.default_code"
-                            t-esc="line.product_id.default_code"/>
-                        <ram:Name t-esc="line.name"/>
+                            t-out="line.product_id.default_code"/>
+                        <ram:Name t-out="line.name"/>
                     </ram:SpecifiedTradeProduct>
 
                     <!-- Amounts. -->
@@ -30,27 +30,26 @@
                         <!-- Line information: unit_price (discount is below the taxes) -->
                         <ram:GrossPriceProductTradePrice>
                             <ram:ChargeAmount
-                                t-esc="format_monetary(line.price_unit, 2)"/>
+                                t-out="format_monetary(line.price_unit, 2)"/>
+                            <!-- TODO: remove basis_qty ? -->
                             <ram:BasisQuantity
-                                t-if="line_vals.get('basis_qty')"
                                 t-att-unitCode="line_vals.get('unece_uom_code')"
-                                t-esc="line_vals.get('basis_qty')"/>
+                                t-out="line_vals.get('basis_qty')"/>
                             <!-- Discount. -->
                             <ram:AppliedTradeAllowanceCharge t-if="line.discount">
                                 <ram:ChargeIndicator>
                                     <udt:Indicator>false</udt:Indicator>
                                 </ram:ChargeIndicator>
-                                <ram:ActualAmount t-esc="format_monetary(line_vals['price_discount_unit'], 2)"/>
+                                <ram:ActualAmount t-out="format_monetary(line_vals['price_discount_unit'], 2)"/>
                             </ram:AppliedTradeAllowanceCharge>
                         </ram:GrossPriceProductTradePrice>
                         <!-- Line unit price, with discount applied -->
                         <ram:NetPriceProductTradePrice>
                             <ram:ChargeAmount
-                                t-esc="format_monetary(line_vals['price_subtotal_unit'], 2)"/>
+                                t-out="format_monetary(line_vals['price_subtotal_unit'], 2)"/>
                             <ram:BasisQuantity
-                                t-if="line_vals.get('basis_qty')"
                                 t-att-unitCode="line_vals.get('unece_uom_code')"
-                                t-esc="line_vals.get('basis_qty')"/>
+                                t-out="line_vals.get('basis_qty')"/>
                         </ram:NetPriceProductTradePrice>
                     </ram:SpecifiedLineTradeAgreement>
 
@@ -58,7 +57,7 @@
                     <ram:SpecifiedLineTradeDelivery>
                         <ram:BilledQuantity
                                 t-att-unitCode="line_vals.get('unece_uom_code')"
-                                t-esc="line.quantity"/> <!-- /!\ The quantity is the line.quantity since we keep the unece_uom_code ! -->
+                                t-out="line.quantity"/> <!-- /!\ The quantity is the line.quantity since we keep the unece_uom_code ! -->
                     </ram:SpecifiedLineTradeDelivery>
 
                     <ram:SpecifiedLineTradeSettlement>
@@ -66,8 +65,8 @@
                            t-as="tax_detail_vals">
                             <ram:ApplicableTradeTax t-if="tax_detail_vals['amount_type'] == 'percent'">
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:CategoryCode t-esc="tax_detail_vals['unece_tax_category_code']"/>
-                                <ram:RateApplicablePercent t-esc="tax_detail_vals['amount']"/>
+                                <ram:CategoryCode t-out="tax_detail_vals['unece_tax_category_code']"/>
+                                <ram:RateApplicablePercent t-out="tax_detail_vals['amount']"/>
                             </ram:ApplicableTradeTax>
                         </t>
 
@@ -77,7 +76,7 @@
                             <ram:ChargeIndicator>
                                 <udt:Indicator>false</udt:Indicator>
                             </ram:ChargeIndicator>
-                            <ram:ActualAmount t-esc="format_monetary(line.price_unit * line.discount/100, 2)"/>
+                            <ram:ActualAmount t-out="format_monetary(line.price_unit * line.discount/100, 2)"/>
                             <!-- https://unece.org/fileadmin/DAM/trade/untdid/d16b/tred/tred5189.htm -->
                             <ram:ReasonCode>95</ram:ReasonCode>
                         </ram:SpecifiedTradeAllowanceCharge>
@@ -85,7 +84,7 @@
                         <!-- Subtotal. -->
                         <ram:SpecifiedTradeSettlementLineMonetarySummation>
                             <ram:LineTotalAmount
-                                t-esc="format_monetary(line.price_subtotal, 2)"/>
+                                t-out="format_monetary(line.price_subtotal, 2)"/>
                         </ram:SpecifiedTradeSettlementLineMonetarySummation>
 
                     </ram:SpecifiedLineTradeSettlement>
@@ -99,10 +98,10 @@
                 xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"
                 xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100">
                 <!-- Contact. -->
-                <ram:Name t-if="partner.name" t-esc="partner.name"/>
-                <ram:SpecifiedLegalOrganization t-if="specified_legal_organization_val">
+                <ram:Name t-out="partner.name"/>
+                <ram:SpecifiedLegalOrganization>
                     <ram:ID t-att-schemeID="str('0002')"
-                            t-esc="specified_legal_organization_val"/>
+                            t-out="specified_legal_organization_val"/>
                 </ram:SpecifiedLegalOrganization>
                 <!-- Address. -->
                 <t t-call="account_edi_ubl_cii.account_invoice_address_facturx_export_22"/>
@@ -115,11 +114,11 @@
                 xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100">
                 <!-- Address. -->
                 <ram:PostalTradeAddress>
-                    <ram:PostcodeCode t-if="partner.zip" t-esc="partner.zip"/>
-                    <ram:LineOne t-if="partner.street" t-esc="partner.street"/>
-                    <ram:LineTwo t-if="partner.street2" t-esc="partner.street2"/>
-                    <ram:CityName t-if="partner.city" t-esc="partner.city"/>
-                    <ram:CountryID t-if="partner.country_id" t-esc="partner.country_id.code"/>
+                    <ram:PostcodeCode t-out="partner.zip"/>
+                    <ram:LineOne t-out="partner.street"/>
+                    <ram:LineTwo t-out="partner.street2"/>
+                    <ram:CityName t-out="partner.city"/>
+                    <ram:CountryID t-out="partner.country_id.code"/>
                 </ram:PostalTradeAddress>
             </t>
         </template>
@@ -137,19 +136,19 @@
                 -->
                 <rsm:ExchangedDocumentContext>
                     <ram:GuidelineSpecifiedDocumentContextParameter>
-                        <ram:ID t-esc="document_context_id"/>
+                        <ram:ID t-out="document_context_id"/>
                     </ram:GuidelineSpecifiedDocumentContextParameter>
                 </rsm:ExchangedDocumentContext>
 
                 <!-- Document Headers. -->
                 <rsm:ExchangedDocument>
-                    <ram:ID t-esc="ExchangedDocument_vals.get('id')"/>
-                    <ram:TypeCode t-esc="ExchangedDocument_vals.get('type_code')"/>
+                    <ram:ID t-out="ExchangedDocument_vals.get('id')"/>
+                    <ram:TypeCode t-out="ExchangedDocument_vals.get('type_code')"/>
                     <ram:IssueDateTime t-if="ExchangedDocument_vals.get('issue_date_time')">
-                        <udt:DateTimeString format="102" t-esc="format_date(ExchangedDocument_vals.get('issue_date_time'))"/>
+                        <udt:DateTimeString format="102" t-out="format_date(ExchangedDocument_vals.get('issue_date_time'))"/>
                     </ram:IssueDateTime>
-                    <ram:IncludedNote t-if="ExchangedDocument_vals.get('included_note')">
-                        <ram:Content t-esc="ExchangedDocument_vals.get('included_note')"/>
+                    <ram:IncludedNote>
+                        <ram:Content t-out="ExchangedDocument_vals.get('included_note')"/>
                     </ram:IncludedNote>
                 </rsm:ExchangedDocument>
 
@@ -161,7 +160,7 @@
 
                     <!-- Partners. -->
                     <ram:ApplicableHeaderTradeAgreement>
-                        <ram:BuyerReference t-esc="record.commercial_partner_id.ref"/>
+                        <ram:BuyerReference t-out="record.commercial_partner_id.ref"/>
                         <!-- Seller. -->
                         <ram:SellerTradeParty>
                             <!-- Address. -->
@@ -172,7 +171,7 @@
 
                             <!-- VAT. -->
                             <ram:SpecifiedTaxRegistration t-if="record.company_id.vat">
-                                <ram:ID schemeID="VA" t-esc="record.company_id.vat"/>
+                                <ram:ID schemeID="VA" t-out="record.company_id.vat"/>
                             </ram:SpecifiedTaxRegistration>
                         </ram:SellerTradeParty>
 
@@ -186,16 +185,16 @@
 
                             <!-- VAT. -->
                             <ram:SpecifiedTaxRegistration t-if="record.commercial_partner_id.vat">
-                                <ram:ID schemeID="VA" t-esc="record.commercial_partner_id.vat"/>
+                                <ram:ID schemeID="VA" t-out="record.commercial_partner_id.vat"/>
                             </ram:SpecifiedTaxRegistration>
                         </ram:BuyerTradeParty>
 
                         <!-- Reference. -->
                         <ram:BuyerOrderReferencedDocument>
-                            <ram:IssuerAssignedID t-esc="record.payment_reference if record.payment_reference else record.name"/>
+                            <ram:IssuerAssignedID t-out="record.payment_reference if record.payment_reference else record.name"/>
                         </ram:BuyerOrderReferencedDocument>
                         <ram:ContractReferencedDocument>
-                            <ram:IssuerAssignedID t-esc="record.ref"/>
+                            <ram:IssuerAssignedID t-out="record.ref"/>
                         </ram:ContractReferencedDocument>
                     </ram:ApplicableHeaderTradeAgreement>
 
@@ -213,7 +212,7 @@
                         <ram:ActualDeliverySupplyChainEvent t-if="scheduled_delivery_time">
                             <ram:OccurrenceDateTime>
                                 <udt:DateTimeString t-att-format="102"
-                                                    t-esc="format_date(scheduled_delivery_time)"/>
+                                                    t-out="format_date(scheduled_delivery_time)"/>
                             </ram:OccurrenceDateTime>
                         </ram:ActualDeliverySupplyChainEvent>
                     </ram:ApplicableHeaderTradeDelivery>
@@ -221,8 +220,8 @@
                     <!-- Taxes. -->
                     <ram:ApplicableHeaderTradeSettlement>
 
-                        <ram:PaymentReference t-esc="record.payment_reference"/>
-                        <ram:InvoiceCurrencyCode t-esc="currency.name"/>
+                        <ram:PaymentReference t-out="record.payment_reference"/>
+                        <ram:InvoiceCurrencyCode t-out="currency.name"/>
 
                         <!-- Bank account. -->
                         <ram:SpecifiedTradeSettlementPaymentMeans t-if="record.partner_bank_id.sanitized_acc_number">
@@ -230,66 +229,65 @@
                             <ram:PayeePartyCreditorFinancialAccount>
                                 <ram:IBANID
                                     t-if="record.partner_bank_id.sanitized_acc_number == 'iban'"
-                                    t-esc="record.partner_bank_id.sanitized_acc_number"/>
+                                    t-out="record.partner_bank_id.sanitized_acc_number"/>
                                 <ram:ProprietaryID
                                     t-if="record.partner_bank_id.sanitized_acc_number != 'iban'"
-                                    t-esc="record.partner_bank_id.sanitized_acc_number"/>
+                                    t-out="record.partner_bank_id.sanitized_acc_number"/>
                             </ram:PayeePartyCreditorFinancialAccount>
                         </ram:SpecifiedTradeSettlementPaymentMeans>
 
                         <!-- Tax Summary. -->
                         <t t-foreach="tax_details.get('tax_details', []).values()" t-as="tax_detail_vals">
-                            <t t-set="tax" t-value="tax_detail_vals.get('tax')"/>
                             <ram:ApplicableTradeTax>
                                 <ram:CalculatedAmount
-                                    t-esc="format_monetary(tax_detail_vals.get('calculated_amount'), 2)"/>
+                                    t-out="format_monetary(tax_detail_vals.get('calculated_amount'), 2)"/>
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:ExemptionReason t-esc="tax_detail_vals.get('exemption_reason')"/>
+                                <ram:ExemptionReason t-out="tax_detail_vals.get('exemption_reason')"/>
                                 <ram:BasisAmount
-                                    t-esc="format_monetary(balance_multiplicator * tax_detail_vals['base_amount_currency'], 2)"/>
-                                <ram:CategoryCode t-esc="tax_detail_vals['unece_tax_category_code']"/>
-                                <ram:ExemptionReasonCode t-esc="tax_detail_vals['exemption_reason_code']"/>
+                                    t-out="format_monetary(balance_multiplicator * tax_detail_vals['base_amount_currency'], 2)"/>
+                                <ram:CategoryCode t-out="tax_detail_vals['unece_tax_category_code']"/>
+                                <ram:ExemptionReasonCode t-out="tax_detail_vals['exemption_reason_code']"/>
                                 <!-- 5 = Tax is exigible on the date on the invoice -->
                                 <ram:DueDateTypeCode>5</ram:DueDateTypeCode>
                                 <ram:RateApplicablePercent
                                     t-if="tax_detail_vals['amount_type'] == 'percent'"
-                                    t-esc="tax_detail_vals['amount']"/>
+                                    t-out="tax_detail_vals['amount']"/>
                             </ram:ApplicableTradeTax>
                         </t>
 
                         <!-- Billing Period -->
                         <ram:BillingSpecifiedPeriod t-if="billing_start and billing_end">
                             <ram:StartDateTime>
-                                <udt:DateTimeString format="102" t-esc="format_date(billing_start)"/>
+                                <udt:DateTimeString format="102" t-out="format_date(billing_start)"/>
                             </ram:StartDateTime>
                             <ram:EndDateTime>
-                                <udt:DateTimeString format="102" t-esc="format_date(billing_end)"/>
+                                <udt:DateTimeString format="102" t-out="format_date(billing_end)"/>
                             </ram:EndDateTime>
                         </ram:BillingSpecifiedPeriod>
 
                         <!-- Payment Term. -->
                         <ram:SpecifiedTradePaymentTerms>
-                            <ram:Description t-if="record.invoice_payment_term_id" t-esc="record.invoice_payment_term_id.name"/>
+                            <ram:Description t-if="record.invoice_payment_term_id" t-out="record.invoice_payment_term_id.name"/>
                             <ram:DueDateDateTime t-if="record.invoice_date_due">
-                                <udt:DateTimeString format="102" t-esc="format_date(record.invoice_date_due)"/>
+                                <udt:DateTimeString format="102" t-out="format_date(record.invoice_date_due)"/>
                             </ram:DueDateDateTime>
                         </ram:SpecifiedTradePaymentTerms>
 
                         <!-- Summary. -->
                         <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
                             <ram:LineTotalAmount
-                                t-esc="format_monetary(record.amount_untaxed, 2)"/>
+                                t-out="format_monetary(record.amount_untaxed, 2)"/>
                             <ram:TaxBasisTotalAmount
-                                t-esc="format_monetary(record.amount_untaxed, 2)"/>
+                                t-out="format_monetary(record.amount_untaxed, 2)"/>
                             <ram:TaxTotalAmount
                                 t-att-currencyID="currency.name"
-                                t-esc="format_monetary(record.amount_tax, 2)"/>
+                                t-out="format_monetary(record.amount_tax, 2)"/>
                             <ram:GrandTotalAmount
-                                t-esc="format_monetary(record.amount_total, 2)"/>
+                                t-out="format_monetary(record.amount_total, 2)"/>
                             <ram:TotalPrepaidAmount
-                                t-esc="format_monetary(record.amount_total - record.amount_residual, 2)"/>
+                                t-out="format_monetary(record.amount_total - record.amount_residual, 2)"/>
                             <ram:DuePayableAmount
-                                t-esc="format_monetary(record.amount_residual, 2)"/>
+                                t-out="format_monetary(record.amount_residual, 2)"/>
                         </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
                     </ram:ApplicableHeaderTradeSettlement>
                 </rsm:SupplyChainTradeTransaction>
@@ -306,7 +304,7 @@
                     <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" rdf:about="">
                         <dc:title>
                             <rdf:Alt>
-                                <rdf:li t-att="{'xml:lang': 'x-default'}" t-esc="title"/>
+                                <rdf:li t-att="{'xml:lang': 'x-default'}" t-out="title"/>
                             </rdf:Alt>
                         </dc:title>
                         <dc:creator>
@@ -325,8 +323,8 @@
                     </rdf:Description>
                     <rdf:Description xmlns:xmp="http://ns.adobe.com/xap/1.0/" rdf:about="">
                         <xmp:CreatorTool>Odoo</xmp:CreatorTool>
-                        <xmp:CreateDate t-esc="date"/>
-                        <xmp:ModifyDate t-esc="date"/>
+                        <xmp:CreateDate t-out="date"/>
+                        <xmp:ModifyDate t-out="date"/>
                     </rdf:Description>
                     <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
                                      xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"

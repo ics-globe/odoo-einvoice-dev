@@ -121,7 +121,7 @@ class AccountEdiFormat(models.Model):
                 'mimetype': 'application/xml'
             }
             # we don't want the facturx xml to appear in the attachment of the invoice when confirming it
-            if self.code != 'facturx_1_0_05' or self.code == 'facturx_1_0_05':
+            if self.code != 'facturx_1_0_05':
                 attachment_create_vals.update({'res_id': invoice.id, 'res_model': 'account.move'})
 
             attachment = self.env['ir.attachment'].create(attachment_create_vals)

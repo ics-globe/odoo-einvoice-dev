@@ -28,14 +28,14 @@
                     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                     t-if="invoice.move_type == 'out_invoice'"
-                    t-esc="vals.get('due_date')"/>
+                    t-out="vals.get('due_date')"/>
             <cbc:CreditNoteTypeCode
                     xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                     t-if="invoice.move_type == 'out_refund'"
                     t-att="vals.get('invoice_type_code_attrs', {})"
-                    t-esc="vals.get('credit_note_type_code')"
+                    t-out="vals.get('credit_note_type_code')"
             />
         </xpath>
         <xpath expr="//*[local-name()='DocumentCurrencyCode']" position="after">
@@ -43,7 +43,7 @@
                     xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-                    t-esc="vals.get('buyer_reference')"/>
+                    t-out="vals.get('buyer_reference')"/>
         </xpath>
         <xpath expr="//*[@id='Delivery_foreach']" position="after">
             <t t-if="invoice.move_type == 'out_refund'">
