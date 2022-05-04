@@ -2435,20 +2435,15 @@ class TestViewTranslations(common.TransactionCase):
         # `arch_db` is in `_write` instead of `create` because `arch_db` is the inverse of `arch`.
         # We need to flush `arch_db` before creating the translations otherwise the translation for which there is no value will be deleted,
         # while the `test_sync_update` specifically needs empty translations
+        val = {'en_US': archf % terms}
+        for lang, trans_terms in kwargs.items():
+            val[lang] = archf % trans_terms
+        query = """UPDATE ir_ui_view
+                              SET arch_db = %s
+                            WHERE id = %s"""
+        self.env.cr.execute(query, (Json(val), view.id))
         view.flush()
-        self.env['ir.translation'].create([
-            {
-                'type': 'model_terms',
-                'name': 'ir.ui.view,arch_db',
-                'lang': lang,
-                'res_id': view.id,
-                'src': src,
-                'value': val,
-                'state': 'translated',
-            }
-            for lang, trans_terms in kwargs.items()
-            for src, val in zip(terms, trans_terms)
-        ])
+        view.invalidate_cache()
         return view
 
     def test_sync(self):
@@ -2485,7 +2480,7 @@ class TestViewTranslations(common.TransactionCase):
         view.with_env(env_fr).write({'arch': archf % new_terms_fr})
 
         # check whether translations have been synchronized
-        self.assertEqual(view.with_env(env_nolang).arch, archf % new_terms_fr)
+        self.assertEqual(view.with_env(env_nolang).arch, archf % terms_en)
         self.assertEqual(view.with_env(env_en).arch, archf % terms_en)
         self.assertEqual(view.with_env(env_fr).arch, archf % new_terms_fr)
         self.assertEqual(view.with_env(env_nl).arch, archf % terms_nl)
@@ -2535,26 +2530,26 @@ class TestViewTranslations(common.TransactionCase):
         terms_en = ('', 'Sub total:')
         view = self.create_view(archf, terms_src, en_US=terms_en)
 
-        translations = self.env['ir.translation'].search([
-            ('type', '=', 'model_terms'),
-            ('name', '=', "ir.ui.view,arch_db"),
-            ('res_id', '=', view.id),
-        ])
-        self.assertEqual(len(translations), 2)
+        # translations = self.env['ir.translation'].search([
+        #     ('type', '=', 'model_terms'),
+        #     ('name', '=', "ir.ui.view,arch_db"),
+        #     ('res_id', '=', view.id),
+        # ])
+        # self.assertEqual(len(translations), 2)
 
         # modifying the arch should sync existing translations without errors
         new_arch = archf % ('Subtotal', 'Subtotal : <br/>')
         view.write({"arch": new_arch})
         self.assertEqual(view.arch, new_arch)
 
-        translations = self.env['ir.translation'].search([
-            ('type', '=', 'model_terms'),
-            ('name', '=', "ir.ui.view,arch_db"),
-            ('res_id', '=', view.id),
-        ])
-        # 'Subtotal' being src==value, it will be discared
-        # 'Subtotal:' will be discarded as it match 'Subtotal' instead of 'Subtotal : <br/>'
-        self.assertEqual(len(translations), 0)
+        # translations = self.env['ir.translation'].search([
+        #     ('type', '=', 'model_terms'),
+        #     ('name', '=', "ir.ui.view,arch_db"),
+        #     ('res_id', '=', view.id),
+        # ])
+        # # 'Subtotal' being src==value, it will be discared
+        # # 'Subtotal:' will be discarded as it match 'Subtotal' instead of 'Subtotal : <br/>'
+        # self.assertEqual(len(translations), 0)
 
     def test_cache_consistency(self):
         view = self.env["ir.ui.view"].create({
