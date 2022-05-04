@@ -2397,9 +2397,9 @@ class IrQWeb(models.AbstractModel):
                 keys.append((item._name, tuple(item.ids)))
                 datetimes.extend(item.mapped('write_date'))
             except AttributeError:
-                try:
-                    keys.append(float(item))
-                except (TypeError, ValueError):
+                if isinstance(item, (float, int)):
+                    keys.append(item)
+                else:
                     keys.append(str(item) if item else None)
         if datetimes:
             keys.append(sum([d.timestamp() for d in datetimes]))
