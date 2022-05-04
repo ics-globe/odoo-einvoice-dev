@@ -372,14 +372,16 @@ class TestSMSComposerMass(TestMailFullCommon):
 
     def test_composer_mass_active_ids_w_template_and_lang(self):
         self.env['res.lang']._activate_lang('fr_FR')
-        self.env['ir.translation'].create({
-            'type': 'model',
-            'name': 'sms.template,body',
-            'lang': 'fr_FR',
-            'res_id': self.sms_template.id,
-            'src': self.sms_template.body,
-            'value': 'Cher·e· {{ object.display_name }} ceci est un SMS.',
-        })
+        # self.env['ir.translation'].create({
+        #     'type': 'model',
+        #     'name': 'sms.template,body',
+        #     'lang': 'fr_FR',
+        #     'res_id': self.sms_template.id,
+        #     'src': self.sms_template.body,
+        #     'value': 'Cher·e· {{ object.display_name }} ceci est un SMS.',
+        # })
+        self.sms_template.with_context(lang='fr_FR').body = 'Cher·e· {{ object.display_name }} ceci est un SMS.'
+        self.sms_template.with_context(lang='fr_FR')
         # set template to try to use customer lang
         self.sms_template.write({
             'lang': '{{ object.customer_id.lang }}',
@@ -429,14 +431,15 @@ class TestSMSComposerMass(TestMailFullCommon):
         and the usage with the sms composer """
         # Create the lang info
         self.env['res.lang']._activate_lang('fr_FR')
-        self.env['ir.translation'].create({
-            'type': 'model',
-            'name': 'sms.template,body',
-            'lang': 'fr_FR',
-            'res_id': self.sms_template.id,
-            'src': self.sms_template.body,
-            'value': "Hello {{ object.display_name }} ceci est en français.",
-        })
+        # self.env['ir.translation'].create({
+        #     'type': 'model',
+        #     'name': 'sms.template,body',
+        #     'lang': 'fr_FR',
+        #     'res_id': self.sms_template.id,
+        #     'src': self.sms_template.body,
+        #     'value': "Hello {{ object.display_name }} ceci est en français.",
+        # })
+        self.sms_template.with_context(lang='fr_FR').body = 'Hello {{ object.display_name }} ceci est en français.'
         # set template to try to use customer lang
         self.sms_template.write({
             'lang': '{{ object.customer_id.lang }}',
