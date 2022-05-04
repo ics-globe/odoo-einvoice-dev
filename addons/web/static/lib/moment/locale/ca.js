@@ -73,6 +73,9 @@ var ca = moment.defineLocale('ca', {
     week : {
         dow : 1, // Monday is the first day of the week.
         doy : 4  // The week that contains Jan 4th is the first week of the year.
+    },
+    preparse: function (string) {
+        return string.replace(/\b(?:d’|de )(gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre)/g, '$1');
     }
 });
 
