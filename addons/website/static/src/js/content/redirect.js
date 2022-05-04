@@ -50,6 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         document.addEventListener('click', (ev) => {
             const isEditorEnabled = document.body.classList.contains('editor_enable');
+
+            if (!isEditorEnabled) {
+                // Forward clicks to close backend client action's navbar
+                // dropdowns.
+                window.frameElement.dispatchEvent(new MouseEvent('click', ev));
+            }
+
             const linkEl = ev.target.closest('[href]');
             if (!linkEl) {
                 return;
