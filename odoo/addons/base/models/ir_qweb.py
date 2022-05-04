@@ -437,7 +437,7 @@ ALLOWED_KEYWORD = frozenset(['False', 'None', 'True', 'and', 'as', 'elif', 'else
 # regexpr for string formatting and extract ( ruby-style )|( jinja-style  ) used in `_compile_format`
 FORMAT_REGEX = re.compile(r'(?:#\{(.+?)\})|(?:\{\{(.+?)\}\})')
 RSTRIP_REGEXP = re.compile(r'\n[ \t]*$')
-FISRT_RSTRIP_REGEXP = re.compile(r'^(\n[ \t]*)+(\n[ \t])')
+FIRST_RSTRIP_REGEXP = re.compile(r'^(\n[ \t]*)+(\n[ \t])')
 VARNAME_REGEXP = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
 TO_VARNAME_REGEXP = re.compile(r'[^A-Za-z0-9_]+')
 # Attribute name used outside the context of the QWeb.
@@ -590,8 +590,7 @@ class IrQWeb(models.AbstractModel):
     )
     def _get_view_id(self, template):
         try:
-            view_id = self.env['ir.ui.view'].sudo().with_context(load_all_views=True)._get_view_id(template)
-            return view_id
+            return self.env['ir.ui.view'].sudo().with_context(load_all_views=True)._get_view_id(template)
         except Exception:
             return None
 
@@ -620,15 +619,15 @@ class IrQWeb(models.AbstractModel):
                 "    return template_functions",
             ])
             function = self._eval_generate_functions(ref, template, code)
-            return (function.__code__, def_name)
+            return function.__code__, def_name
         code_function, def_name = self._load_values(base_key_cache, generate_functions)
 
-        # wrapper the __code__ into a function with good globals environement
+        # wrapper the __code__ into a function with good globals environment
         function = self._eval_generate_functions(ref, template, 'def generate_functions(): pass')
         function.__code__ = code_function
         template_functions = function()
 
-        return (template_functions, def_name)
+        return template_functions, def_name
 
     def _eval_generate_functions(self, ref, template, code):
         try:
@@ -657,7 +656,7 @@ class IrQWeb(models.AbstractModel):
             where ``qweb`` is a QWeb instance and ``values`` are the values to
             render.
 
-            :returns dictionary containing rendering methods
+            :returns tuple containing code, options and main method name
         """
         # The `compile_context`` dictionary includes the elements used for the
         # cache key to which are added the template references as well as
@@ -714,7 +713,7 @@ class IrQWeb(models.AbstractModel):
 
         try:
             if element.text:
-                element.text = FISRT_RSTRIP_REGEXP.sub(r'\2', element.text)
+                element.text = FIRST_RSTRIP_REGEXP.sub(r'\2', element.text)
 
             compile_context['template_functions'] = {}
 
@@ -755,16 +754,10 @@ class IrQWeb(models.AbstractModel):
         for lines in compile_context['template_functions'].values():
             code_lines.extend(lines)
 
-        try:
-            code = '\n'.join(code_lines)
-        except Exception as e:
-            code = '\n'.join(map(str, code_lines))
-            raise QWebException("Error when compiling xml template",
-                self, template, ref=compile_context['ref'], code=code) from e
-
         for name in compile_context['template_functions']:
-            code += f'\ntemplate_functions[{name!r}] = {name}'
+            code_lines.append(f'template_functions[{name!r}] = {name}')
 
+        code = '\n'.join(code_lines)
         code += f'\n\ncode = {code!r}'
 
         return (code, options, def_name)
@@ -2227,14 +2220,14 @@ class IrQWeb(models.AbstractModel):
         compile_context['template_functions'][def_name] = def_code
 
         # Get the dynamic key fot the cache and load the content.
-        # The t-nocache yield a tuple (ref, function name) istead of a
+        # The t-nocache yield a tuple (ref, function name) instead of a
         # When reading tuple coming from t-nocache, we check if the
         # method is already known otherwise the corresponding template
         # and its functions are loaded.
         code.append(indent_code(f"""
             template_cache_key = {self._compile_expr(expr)} if self.env.context.get('use_qweb_t_cache') else None
             cache_key = self._get_cache_key(template_cache_key) if template_cache_key else None
-            uniq_cache_key = cache_key and tuple([{self.env.context['__qweb_base_key_cache']!r}, '{def_name}_cache', cache_key])
+            uniq_cache_key = cache_key and ({self.env.context['__qweb_base_key_cache']!r}, '{def_name}_cache', cache_key)
             loaded_values = values['__qweb_loaded_values']
             def {def_name}_cache():
                 content = []

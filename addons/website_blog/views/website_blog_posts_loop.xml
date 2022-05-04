@@ -201,7 +201,7 @@ according to the enabled options.
 
 <!-- ======   Sub-Template: Posts list : Posts Teaser + Tags  ============= -->
 <template id="post_teaser">
-    <t t-cache="(blog_post,str(active_tag_ids))">
+    <t t-cache="blog_post,str(active_tag_ids)">
     <a t-attf-href="/blog/#{slug(blog_post.blog_id)}/#{slug(blog_post)}" class="text-reset text-decoration-none">
         <div t-if="opt_blog_list_view" t-field="blog_post.teaser" class="mt-2 o_wblog_read_text"/>
         <div t-else="" t-field="blog_post.teaser" t-attf-class="mt-2 #{opt_blog_readable and 'o_wblog_normalize_font'}"/>
