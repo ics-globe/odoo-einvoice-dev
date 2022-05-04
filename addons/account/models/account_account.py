@@ -357,7 +357,7 @@ class AccountAccount(models.Model):
     def _compute_reconcile(self):
         for record in self:
             # this should also call _toggle_reconcile_to_true and _toggle_reconcile_to_false - TODO: verify
-            record.reconcile = True if record.internal_type in ('receivable', 'payable') else False
+            record.reconcile = record.internal_type in ('receivable', 'payable')
 
     @api.depends('code')
     def _compute_account_root(self):
@@ -449,15 +449,15 @@ class AccountAccount(models.Model):
             account.is_off_balance = account.internal_group == "off_balance"
 
     def _set_opening_debit(self):
-        for record in self:
+        for record in self.filtered(lambda r: r.opening_debit > 0):
             record._set_opening_debit_credit(record.opening_debit, 'debit')
 
     def _set_opening_credit(self):
-        for record in self:
+        for record in self.filtered(lambda r: r.opening_credit > 0):
             record._set_opening_debit_credit(record.opening_credit, 'credit')
 
     def _set_opening_balance(self):
-        for record in self:
+        for record in self.filtered(lambda r: abs(r.opening_balance) > 0):
             side = 'debit' if record.opening_balance > 0 else 'credit'
             record._set_opening_debit_credit(abs(record.opening_balance), side)
 
@@ -516,7 +516,7 @@ class AccountAccount(models.Model):
             'qweb_template': 'account.import_template',
             'files': [{
                 'label': _('Import Template for Vendor Pricelists'),
-                'template': '/base/static/xls/generic_import.xlsx'
+                'template': '/account/static/xls/generic_import.xlsx'
         }]}
 
     @api.model
