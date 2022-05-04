@@ -17,13 +17,13 @@ class AccountMove(models.Model):
         # OVERRIDE
         return self.line_ids.filtered(lambda l: not l.is_anglo_saxon_line)
 
-    def _reverse_move_vals(self, default_values, cancel=True):
-        # OVERRIDE
-        # Don't keep anglo-saxon lines if not cancelling an existing invoice.
-        move_vals = super(AccountMove, self)._reverse_move_vals(default_values, cancel=cancel)
-        if not cancel:
-            move_vals['line_ids'] = [vals for vals in move_vals['line_ids'] if not vals[2]['is_anglo_saxon_line']]
-        return move_vals
+    # def _reverse_move_vals(self, default_values, cancel=True):
+    #     # OVERRIDE
+    #     # Don't keep anglo-saxon lines if not cancelling an existing invoice.
+    #     move_vals = super(AccountMove, self)._reverse_move_vals(default_values, cancel=cancel)
+    #     if not cancel:
+    #         move_vals['line_ids'] = [vals for vals in move_vals['line_ids'] if not vals[2]['is_anglo_saxon_line']]
+    #     return move_vals
 
     def copy_data(self, default=None):
         # OVERRIDE

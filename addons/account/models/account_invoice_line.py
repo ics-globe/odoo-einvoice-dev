@@ -93,6 +93,8 @@ class AccountInvoiceLine(models.AbstractModel):
     tax_key = fields.Binary(compute='_compute_tax_key')
     compute_all_tax = fields.Binary(compute='_compute_all_tax')
 
+    term_key = fields.Binary(compute='_compute_term_key')
+
     # ==== Analytic fields ====
     analytic_line_ids = fields.One2many(
         'account.analytic.line',
@@ -135,54 +137,62 @@ class AccountInvoiceLine(models.AbstractModel):
                 # In invoice.
                 line.account_id = accounts['expense'] or line.account_id
 
-    @api.depends('display_type')
+    @api.depends('display_type', 'partner_id')
     def _compute_account_id(self):
-        term_lines = self.filtered(lambda line: not line.account_id and line.display_type == 'payment_term')
+        term_lines = self.filtered(lambda line: line.display_type == 'payment_term')
         if term_lines:
             moves = term_lines.move_id
             self.env.cr.execute(f"""
-                SELECT DISTINCT ON (line.move_id)
-                       'account.move' AS model,
-                       line.move_id AS id,
-                       NULL AS type,
-                       line.account_id AS account_id
-                  FROM account_move_line line
-                 WHERE line.move_id = ANY(%(move_ids)s)
-                   AND line.display_type = 'payment_term'
-
+                WITH previous AS (
+                    SELECT DISTINCT ON (line.move_id)
+                           'account.move' AS model,
+                           line.move_id AS id,
+                           NULL AS type,
+                           line.account_id AS account_id
+                      FROM account_move_line line
+                     WHERE line.move_id = ANY(%(move_ids)s)
+                       AND line.display_type = 'payment_term'
+                       AND line.id != ANY(%(current_ids)s)
+                ),
+                properties AS(
+                    SELECT DISTINCT ON (property.company_id, property.name)
+                           'res.partner' AS model,
+                           COALESCE(
+                               SUBSTR(property.res_id, {len('res.partner') + 2})::integer,
+                               company.partner_id
+                           ) AS id,
+                           CASE
+                               WHEN property.name = 'property_account_receivable_id' THEN 'receivable'
+                               ELSE 'payable'
+                           END AS type,
+                           SUBSTR(property.value_reference, {len('account.account') + 2})::integer AS account_id
+                      FROM ir_property property
+                      JOIN res_company company ON property.company_id = company.id
+                     WHERE property.name IN ('property_account_receivable_id', 'property_account_payable_id')
+                       AND property.company_id = ANY(%(company_ids)s)
+                       AND (property.res_id = ANY(%(partners)s) OR property.res_id IS NULL)
+                  ORDER BY property.company_id, property.name, property.res_id NULLS LAST
+                ),
+                fallback AS (
+                    SELECT DISTINCT ON (account.company_id, account.internal_type)
+                           'res.company' AS model,
+                           account.company_id AS id,
+                           account.internal_type AS type,
+                           account.id AS account_id
+                      FROM account_account account
+                     WHERE account.company_id = ANY(%(company_ids)s)
+                       AND account.internal_type IN ('receivable', 'payable')
+                )
+                SELECT * FROM previous
                 UNION ALL
-
-                SELECT DISTINCT ON (property.company_id, property.name)
-                       'res.partner' AS model,
-                       COALESCE(
-                           SUBSTR(property.res_id, {len('res.partner') + 2})::integer,
-                           company.partner_id
-                       ) AS id,
-                       CASE
-                           WHEN property.name = 'property_account_receivable_id' THEN 'receivable'
-                           ELSE 'payable'
-                       END AS type,
-                       SUBSTR(property.value_reference, {len('account.account') + 2})::integer AS account_id
-                  FROM ir_property property
-                  JOIN res_company company ON property.company_id = company.id
-                 WHERE property.name IN ('property_account_receivable_id', 'property_account_payable_id')
-                   AND property.company_id = ANY(%(company_ids)s)
-                   AND (property.res_id = ANY(%(partners)s) OR property.res_id IS NULL)
-
+                SELECT * FROM properties
                 UNION ALL
-
-                SELECT DISTINCT ON (account.company_id, account.internal_type)
-                       'res.company' AS model,
-                       account.company_id AS id,
-                       account.internal_type AS type,
-                       account.id AS account_id
-                  FROM account_account account
-                 WHERE account.company_id = ANY(%(company_ids)s)
-                   AND account.internal_type IN ('receivable', 'payable')
+                SELECT * FROM fallback
             """, {
                 'company_ids': moves.company_id.ids,
                 'move_ids': moves.ids,
                 'partners': [f'res.partner,{pid}' for pid in moves.commercial_partner_id.ids],
+                'current_ids': term_lines.ids
             })
             accounts = {
                 (model, id, internal_type): account_id
@@ -215,10 +225,18 @@ class AccountInvoiceLine(models.AbstractModel):
         for line in self:
             if line.exclude_from_invoice_tab:
                 continue
+            line.update(line._get_price_total_and_subtotal_model(
+                price_unit=line.price_unit,
+                quantity=line.quantity,
+                discount=line.discount,
+                currency=line.currency_id,
+                product=line.product_id,
+                partner=line.partner_id,
+                taxes=line.tax_ids,
+                move_type=line.move_id.move_type,
+            ))
 
-            line.update(line._get_price_total_and_subtotal())
-
-    @api.depends('product_id', 'product_uom_id')
+    @api.depends('product_id', 'product_uom_id', 'currency_rate')
     def _compute_price_unit(self):
         for line in self:
             if not line.product_id or line.display_type in ('line_section', 'line_note'):
@@ -294,7 +312,7 @@ class AccountInvoiceLine(models.AbstractModel):
         # if currency and currency != company_currency:
         #     product_price_unit = company_currency._convert(product_price_unit, currency, company, move_date)
 
-        return product_price_unit
+        return product_price_unit  * self.currency_rate
 
     @api.depends('product_id', 'product_uom_id')
     def _compute_tax_ids(self):
@@ -363,7 +381,7 @@ class AccountInvoiceLine(models.AbstractModel):
     def _compute_all_tax(self):
         for line in self:
             compute_all = line.tax_ids.with_context(force_sign=-1 if line.move_id.is_inbound() else 1).compute_all(
-                line.price_unit or -line.balance,
+                line.price_unit / line.currency_rate * (1 - line.discount / 100) or -line.balance,
                 currency=line.currency_id,
                 quantity=line.quantity,
                 product=line.product_id,
@@ -387,6 +405,17 @@ class AccountInvoiceLine(models.AbstractModel):
                 'name': tax['name'],
                 'balance': -tax['amount']
             } for tax in compute_all['taxes']}
+
+    @api.depends('date_maturity')
+    def _compute_term_key(self):
+        for line in self:
+            if line.display_type in 'payment_term':
+                line.term_key = frozendict({
+                    'move_id': line.move_id.id,
+                    'date_maturity': fields.Date.to_date(line.date_maturity),
+                })
+            else:
+                line.term_key = False
 
     @api.depends('product_id', 'account_id', 'partner_id', 'date')
     def _compute_analytic_account_id(self):
@@ -417,19 +446,6 @@ class AccountInvoiceLine(models.AbstractModel):
                 )
                 if rec:
                     record.analytic_tag_ids = rec.analytic_tag_ids
-
-    def _get_price_total_and_subtotal(self, price_unit=None, quantity=None, discount=None, currency=None, product=None, partner=None, taxes=None, move_type=None):
-        self.ensure_one()
-        return self._get_price_total_and_subtotal_model(
-            price_unit=price_unit or self.price_unit,
-            quantity=quantity or self.quantity,
-            discount=discount or self.discount,
-            currency=currency or self.currency_id,
-            product=product or self.product_id,
-            partner=partner or self.partner_id,
-            taxes=taxes or self.tax_ids,
-            move_type=move_type or self.move_id.move_type,
-        )
 
     @api.model
     def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type):
@@ -590,12 +606,12 @@ class AccountInvoiceLine(models.AbstractModel):
 
         for line in self.filtered(lambda l: l.move_id.is_invoice()):
             if line.display_type == 'product' and before[line].get('price_subtotal') != after[line]['price_subtotal']:
-                line.balance = -after[line]['price_subtotal']
+                line.balance = -after[line]['price_subtotal'] / line.currency_rate
 
     @api.model_create_multi
     def create(self, vals_list):
-        # from pprint import pprint
-        # print(['create', vals_list])
+        from pprint import pprint
+        # pprint(['create', vals_list])
         moves = self.env['account.move'].browse({vals['move_id'] for vals in vals_list})
         with moves._sync_dynamic_lines():
             lines = super().create(vals_list)
@@ -604,8 +620,10 @@ class AccountInvoiceLine(models.AbstractModel):
         return lines
 
     def write(self, vals):
-        # from pprint import pprint
-        # print(['write', vals])
+        if not vals:
+            return True
+        from pprint import pprint
+        # pprint(['write', self, vals])
         with self.move_id._sync_dynamic_lines(), self.with_context(check_move_validity=False)._sync_invoice():
             res = super().write(vals)
         return res

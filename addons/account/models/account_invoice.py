@@ -17,6 +17,7 @@ from odoo.tools import (
     is_html_empty,
     get_lang,
 )
+from odoo.tools.misc import frozendict
 
 
 def calc_check_digits(number):
@@ -86,6 +87,7 @@ class AccountInvoice(models.AbstractModel):
         states={'posted': [('readonly', True)], 'cancel': [('readonly', True)]},
         check_company=True,
     )
+    needed_terms = fields.Binary(compute='_compute_needed_terms')
 
     # === Partner fields === #
     partner_id = fields.Many2one(
@@ -390,12 +392,20 @@ class AccountInvoice(models.AbstractModel):
 
     @api.depends('invoice_date', 'highest_name', 'company_id')
     def _compute_invoice_date_due(self):
+        today = fields.Date.context_today(self)
         for move in self:
-            if move.invoice_date and not move.invoice_payment_term_id and \
-                    (not move.invoice_date_due or move.invoice_date_due < move.invoice_date):
+            if move.invoice_payment_term_id:
+                move.invoice_date_due = max(
+                    (d for d  in move.line_ids.mapped('date_maturity') if d),
+                    default=today,
+                )
+            elif (
+                move.invoice_date
+                and (not move.invoice_date_due or move.invoice_date_due < move.invoice_date)
+            ):
                 move.invoice_date_due = move.invoice_date
 
-    @api.depends('journal_id')
+    @api.depends('company_id')
     def _compute_currency_id(self):
         for move in self:
             move.currency_id = move.journal_id.currency_id or move.journal_id.company_id.currency_id
@@ -549,6 +559,32 @@ class AccountInvoice(models.AbstractModel):
                     new_pmt_state = 'reversed'
 
             invoice.payment_state = new_pmt_state
+
+    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_signed')
+    def _compute_needed_terms(self):
+        for invoice in self:
+            invoice.needed_terms = {}
+            if invoice.is_invoice():
+                if invoice.invoice_payment_term_id:
+                    for date, amount in invoice.invoice_payment_term_id.compute(
+                        invoice.amount_total_signed,
+                        date_ref=invoice.invoice_date or fields.Date.today(),
+                        currency=invoice.currency_id,
+                    ):
+                        key = frozendict({'move_id': invoice.id, 'date_maturity': fields.Date.to_date(date)})
+                        values = {'balance': amount, 'name': invoice.payment_reference or ''}
+                        if key not in invoice.needed_terms:
+                            invoice.needed_terms[key] = values
+                        else:
+                            invoice.needed_terms[key]['balance'] += values['balance']
+                else:
+                    invoice.needed_terms[frozendict({
+                        'move_id': invoice.id,
+                        'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
+                    })] = {
+                        'balance': invoice.amount_total_signed,
+                        'name': invoice.payment_reference or '',
+                    }
 
     def _compute_payments_widget_to_reconcile_info(self):
         for move in self:
@@ -1211,137 +1247,137 @@ class AccountInvoice(models.AbstractModel):
         _apply_cash_rounding(self, diff_balance, diff_amount_currency, existing_cash_rounding_line)
 
     @contextmanager
-    def _sync_tax_lines(self):
+    def _sync_dynamic_line(self, existing_fname, needed_fname, line_type):
         def existing():
-            return {line.tax_key: line for line in self.line_ids if line.tax_key}
+            return {line[existing_fname]: line for line in self.line_ids if line[existing_fname]}
 
         existing_before = existing()
         yield
         existing_after = existing()
 
         needed = {}
-        for line in self.line_ids:
-            for key, values in line.compute_all_tax.items():
+        for computed_needed in self.mapped(needed_fname):
+            for key, values in computed_needed.items():
                 if key not in needed:
                     needed[key] = dict(values)
                 else:
                     needed[key]['balance'] += values['balance']
+        before2after = {
+            before: after
+            for before, bline in existing_before.items()
+            for after, aline in existing_after.items()
+            if bline == aline
+        }
 
         to_delete = {
             line.id
             for key, line in existing_before.items()
-            if key not in needed and existing_after.get(key) == line
+            if key not in needed
+            and before2after[key] not in needed
         }
-        if to_delete:
-            self.env['account.move.line'].browse(to_delete).unlink()
-
-        # TODO recycle to_delete in to_create to save ids
         to_create = {
             key: values
             for key, values in needed.items()
             if key not in existing_after
         }
-        if to_create:
-            self.env['account.move.line'].create([
-                {**key, **values, 'display_type': 'tax'}
-                for key, values in to_create.items()
-            ])
-
         to_write = {
             existing_after[key]: values['balance']
             for key, values in needed.items()
             if key in existing_before and existing_after[key].balance != values['balance']
         }
+
+        # from pprint import pprint
+        # print()
+        # print(f"======== SYNC {line_type} ==========")
+        # print('before')
+        # pprint(existing_before)
+        # print('after')
+        # pprint(existing_after)
+        # print('needed')
+        # pprint(needed)
+        # pprint([line_type, to_create, to_write, to_delete])
+
+        while to_delete and to_create:
+            key, values = to_create.popitem()
+            line_id = to_delete.pop()
+            self.env['account.move.line'].browse(line_id).update(
+                {**key, **values, 'display_type': line_type}
+            )
+        if to_delete:
+            self.env['account.move.line'].browse(to_delete).unlink()
+        if to_create:
+            self.env['account.move.line'].create([
+                {**key, **values, 'display_type': line_type}
+                for key, values in to_create.items()
+            ])
         if to_write:
             for line, balance in to_write.items():
                 line.balance = balance
 
     @contextmanager
-    def _sync_term_lines(self):
+    def _sync_invoice(self):
+        # TODO probably better compute + constraint
         def existing():
-            map = defaultdict(dict)
-            for line in self.line_ids:
-                if line.display_type == 'payment_term':
-                    map[line.move_id][fields.Date.to_date(line.date_maturity)] = line
-            return map
+            return {
+                move: {
+                    'payment_reference': move.payment_reference,
+                    'commercial_partner_id': move.commercial_partner_id,
+                    'currency_id': move.currency_id,
+                }
+                for move in self.filtered(lambda m: m.is_invoice())
+            }
 
-        existing_before = existing()
+        def changing(key):
+            return move not in before or before[move][key] != after[move][key]
+
+        before = existing()
         yield
-        existing_after = existing()
-        needed = defaultdict(dict)
-        for move in self.filtered(lambda move: move.is_invoice()):
-            if move.invoice_payment_term_id:
-                date_ref = move.invoice_date or fields.Date.today()
-                for date, amount in move.invoice_payment_term_id.compute(
-                    move.amount_total_signed,
-                    date_ref=date_ref,
-                    currency=self.currency_id,
-                ):
-                    needed[move][fields.Date.to_date(date)] = amount
-            else:
-                date_ref = move.invoice_date_due or move.invoice_date or fields.Date.today()
-                needed[move][fields.Date.to_date(date_ref)] = move.amount_total_signed
+        after = existing()
 
-        to_delete = {
-            line.id
-            for move, values in existing_before.items()
-            for date, line in values.items()
-            if date not in needed[move]
-        }
-        if to_delete:
-            self.env['account.move.line'].browse(to_delete).unlink()
-
-        to_create = {
-            (move, date): amount
-            for move, values in needed.items()
-            for date, amount in values.items()
-            if date not in existing_after[move]
-        }
-        if to_create:
-            self.env['account.move.line'].create([{
-                'move_id': move.id,
-                'display_type': 'payment_term',
-                'name': move.payment_reference or '',
-                'balance': -amount,
-                'date_maturity': date,
-            } for (move, date), amount in to_create.items()])
-
-        to_write = {
-            existing_after[move][date]: amount
-            for move, values in needed.items()
-            for date, amount in values.items()
-            if date in existing_after[move] and existing_after[move][date].balance != amount
-        }
-        if to_write:
-            for line, amount in to_write.items():
-                line.balance = amount
+        for move in after:
+            if changing('payment_reference'):
+                move.line_ids.filtered(lambda l: l.display_type == 'payment_term').name = after[move]['payment_reference']
+            if changing('commercial_partner_id'):
+                move.line_ids.partner_id = after[move]['commercial_partner_id']
 
     @contextmanager
     def _sync_dynamic_lines(self):
-        if self.env.context.get('_sync_dynamic_lines'):
+        if not self.env.context.get('check_move_validity', True):
             yield
             return
-        self = self.with_context(_sync_dynamic_lines=True)
+        self = self.with_context(check_move_validity=False)
 
         with ExitStack() as stack:
-            stack.enter_context(self._sync_term_lines())
-            stack.enter_context(self._sync_tax_lines())
+            stack.enter_context(self._sync_dynamic_line(
+                existing_fname='term_key',
+                needed_fname='needed_terms',
+                line_type='payment_term',
+            ))
+            stack.enter_context(self._sync_dynamic_line(
+                existing_fname='tax_key',
+                needed_fname='line_ids.compute_all_tax',
+                line_type='tax',
+            ))
+            stack.enter_context(self._sync_invoice())
             yield
+        self._check_balanced()
 
     @api.model_create_multi
     def create(self, vals_list):
         moves = super().create(vals_list)
-        # from pprint import pprint
-        # print(['create', vals_list])
+        from pprint import pprint
+        # pprint(['create', vals_list])
         with moves._sync_dynamic_lines():
             pass
         return moves
 
     def write(self, vals):
-        # from pprint import pprint
-        # print(['write', vals])
+        if not vals:
+            return True
+        from pprint import pprint
+        # pprint(['write', self, vals])
         with self._sync_dynamic_lines():
-            res = super().write(vals)
+            res = super(AccountInvoice, self.with_context(check_move_validity=False)).write(vals)
         return res
 
     # -------------------------------------------------------------------------
@@ -1533,24 +1569,13 @@ class AccountInvoice(models.AbstractModel):
             raise ValidationError(_("This action isn't available for this document."))
 
         for move in self:
-            reversed_move = move._reverse_move_vals({}, False)
-            new_invoice_line_ids = []
-            for cmd, virtualid, line_vals in reversed_move['line_ids']:
-                if not line_vals['exclude_from_invoice_tab']:
-                    new_invoice_line_ids.append((0, 0,line_vals))
-            if move.amount_total < 0:
-                # Inverse all invoice_line_ids
-                for cmd, virtualid, line_vals in new_invoice_line_ids:
-                    line_vals.update({
-                        'quantity': -line_vals['quantity'],
-                        'amount_currency': -line_vals['amount_currency'],
-                    })
             move.write({
                 'move_type': move.move_type.replace('invoice', 'refund'),
-                'invoice_line_ids' : [(5, 0, 0)],
                 'partner_bank_id': False,
+                'currency_id': move.currency_id.id,  # TODO uh?
             })
-            move.write({'invoice_line_ids' : new_invoice_line_ids})
+            for line in move.invoice_line_ids:
+                line.quantity = -line.quantity
 
     def action_register_payment(self):
         ''' Open the account.payment.register wizard to pay the selected journal entries.

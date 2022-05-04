@@ -511,9 +511,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         ], self.move_vals)
 
         move_form = Form(self.invoice)
-        with move_form.line_ids.edit(2) as line_form:
+        with move_form.invoice_line_ids.edit(0) as line_form:
             # Reset field except the discount that becomes 100%.
-            # /!\ The modification is made on the accounting tab.
             line_form.quantity = 1
             line_form.discount = 100
             line_form.price_unit = 1000
@@ -741,6 +740,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'product_uom_id': False,
                 'quantity': 1.0,
                 'discount': 0.0,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': child_tax_2.ids,
                 'tax_line_id': child_tax_1.id,
                 'currency_id': self.company_data['currency'].id,
@@ -757,9 +759,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'product_uom_id': False,
                 'quantity': 1.0,
                 'discount': 0.0,
-                'price_unit': 80.0,
-                'price_subtotal': 80.0,
-                'price_total': 88.0,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': child_tax_2.ids,
                 'tax_line_id': child_tax_1.id,
                 'currency_id': self.company_data['currency'].id,
@@ -776,9 +778,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'product_uom_id': False,
                 'quantity': 1.0,
                 'discount': 0.0,
-                'price_unit': 120.0,
-                'price_subtotal': 120.0,
-                'price_total': 120.0,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': [],
                 'tax_line_id': child_tax_2.id,
                 'currency_id': self.company_data['currency'].id,
@@ -819,6 +821,14 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                     'price_subtotal': 0.03,
                     'debit': 0.0,
                     'credit': 0.02,
+                    'currency_id': self.currency_data['currency'].id,
+                },
+                {  # TODO remove
+                    'quantity': 1.0,
+                    'price_unit': 0.0,
+                    'price_subtotal': 0.0,
+                    'debit': 0.0,
+                    'credit': 0.0,
                     'currency_id': self.currency_data['currency'].id,
                 },
                 {
@@ -1025,9 +1035,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'product_uom_id': False,
                 'quantity': 1.0,
                 'discount': 0.0,
-                'price_unit': 119.91,
-                'price_subtotal': 119.91,
-                'price_total': 119.91,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': [],
                 'tax_line_id': tax_price_include.id,
                 'currency_id': self.company_data['currency'].id,
@@ -1078,9 +1088,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'product_uom_id': False,
                 'quantity': 1.0,
                 'discount': 0.0,
-                'price_unit': -119.91,
-                'price_subtotal': -119.91,
-                'price_total': -119.91,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': [],
                 'tax_line_id': tax_price_include.id,
                 'currency_id': self.company_data['currency'].id,
@@ -1323,6 +1333,9 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         move_form = Form(self.invoice)
         with move_form.invoice_line_ids.edit(0) as line_form:
+            line_form.analytic_account_id = self.env['account.analytic.account']
+            line_form.analytic_tag_ids.clear()
+        with move_form.invoice_line_ids.edit(1) as line_form:
             line_form.analytic_account_id = self.env['account.analytic.account']
             line_form.analytic_tag_ids.clear()
         move_form.save()
@@ -2482,6 +2495,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_untaxed' : -self.move_vals['amount_untaxed'],
         })
 
+        move.flush()
+        print('===========================================================================================')
         move.action_switch_invoice_into_refund_credit_note()
 
         self.assertRecordValues(move, [{'move_type': 'out_refund'}])
@@ -3080,7 +3095,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             ]
         })
 
-        copy_invoice = invoice.copy(default={'invoice_date_due': '2018-01-01'})
+        copy_invoice = invoice.copy(default={'invoice_date': '2018-01-01'})
         self.assertRecordValues(copy_invoice, [
             {'invoice_date_due': fields.Date.from_string('2018-01-01')},
         ])

@@ -270,19 +270,8 @@ class AccountMoveLine(models.Model):
     @api.depends('move_id.partner_id', 'move_id.journal_id')
     def _compute_account_id(self):
         for line in self:
-            if line.display_type in ('line_section', 'line_note'):
-                continue
-            if line.account_id:
-                continue
-            move = line.move_id
-            if move.is_sale_document(include_receipts=True) and move.partner_id:
-                new_term_account = move.partner_id.commercial_partner_id.property_account_receivable_id
-            elif move.is_purchase_document(include_receipts=True) and move.partner_id:
-                new_term_account = move.partner_id.commercial_partner_id.property_account_payable_id
-            else:
-                new_term_account = move.company_id.account_journal_suspense_account_id
-            if new_term_account:
-                line.account_id = new_term_account
+            if not line.account_id and line.display_type not in ('line_section', 'line_note'):
+                line.account_id = line.move_id.company_id.account_journal_suspense_account_id
 
     @api.depends('balance', 'move_id.is_storno')
     def _compute_debit_credit(self):
@@ -320,6 +309,9 @@ class AccountMoveLine(models.Model):
             balance = line.currency_id.round(line.amount_currency / line.currency_rate)
             if line.balance != balance:
                 line.balance = balance
+            # currency_rate = line.amount_currency / line.balance if line.balance else 1
+            # if line.currency_rate != currency_rate:
+            #     line.currency_rate = currency_rate
 
     @api.depends('full_reconcile_id.name', 'matched_debit_ids', 'matched_credit_ids')
     def _compute_matching_number(self):
