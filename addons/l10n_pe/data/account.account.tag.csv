@@ -1,0 +1,31 @@
+id,name,applicability
+account_tag_pnl_income_ordinary_activities,Income from ordinary activities,accounts
+account_tag_pnl_income_sublease,Sublease income and other,accounts
+account_tag_pnl_sales_costs,Sales costs,accounts
+account_tag_pnl_sales_distribution_expenses,Sales and distribution expenses,accounts
+account_tag_pnl_admin_expenses,Administrative expenses,accounts
+account_tag_pnl_other_operating_income_expenses,"Other operating income (expenses), net",accounts
+account_tag_pnl_exchange_rate,"Exchange difference, net",accounts
+account_tag_pnl_financial_income,Financial income,accounts
+account_tag_pnl_financial_expenses,Financial expenses,accounts
+account_tag_pnl_income_tax,Income tax,accounts
+account_tag_bs_nc_assets_property_plant_equipment,"Non-Current Assets - Property, plant and equipment",accounts
+account_tag_bs_nc_assets_invest_properties,Non-Current Assets - Investment properties,accounts
+account_tag_bs_nc_assets_intangible,Non-Current Assets - Intangible assets,accounts
+account_tag_bs_nc_assets_financial,Non-Current Assets - Financial assets,accounts
+account_tag_bs_nc_assets_biological,Non-Current Assets - Biological assets,accounts
+account_tag_bs_c_inventories,Current Assets - Inventories,accounts
+account_tag_bs_c_trade_other_receivables,Current Assets - Trade and other receivables,accounts
+account_tag_bs_c_cash_equivalents,Current Assets - Cash and cash equivalents,accounts
+account_tag_bs_c_capital,Capital,accounts
+account_tag_bs_c_provisions,Equity provisions,accounts
+account_tag_bs_c_share_capital,Share Capital,accounts
+account_tag_bs_c_share_premium,Share premium funds,accounts
+account_tag_bs_c_acumulated_results,Accumulated Results,accounts
+account_tag_bs_profit_and_loss,Profit and Loss for the current year,accounts
+account_tag_bs_reval_funds,Revaluation funds,accounts
+account_tag_bs_results_registered_not_realised,Results registered but not yet realized,accounts
+account_tag_bs_liabilities_trade_payables,Liabilities - Trade and other payables,accounts
+account_tag_bs_liabilities_other_financial,Other financial liabilities,accounts
+account_tag_bs_deferred_tax_liabilities_assets,Deferred tax on liabilities and assets,accounts
+account_tag_bs_provisions_liabilities,Provisions for liabilities,accounts

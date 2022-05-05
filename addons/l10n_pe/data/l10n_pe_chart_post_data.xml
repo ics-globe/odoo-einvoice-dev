@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="pe_chart_template" model="account.chart.template">
-        <field name="property_account_receivable_id" ref="chart1213"/>
+        <field name="property_account_receivable_id" ref="chart12"/>
         <field name="default_pos_receivable_account_id" ref="chart1215" />
-        <field name="property_account_payable_id" ref="chart4212"/>
+        <field name="property_account_payable_id" ref="chart42"/>
         <field name="property_account_expense_categ_id" ref="chart6329"/>
         <field name="property_account_expense_id" ref="chart6011"/>
         <field name="property_account_income_categ_id" ref="chart70121"/>
