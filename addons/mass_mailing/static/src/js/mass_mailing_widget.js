@@ -3,6 +3,8 @@ odoo.define('mass_mailing.FieldHtml', function (require) {
 
 var config = require('web.config');
 var core = require('web.core');
+const Dialog = require('web.Dialog');
+const { Markup } = require('web.utils');
 var FieldHtml = require('web_editor.field.html');
 var fieldRegistry = require('web.field_registry');
 var convertInline = require('web_editor.convertInline');
@@ -10,6 +12,37 @@ const { initializeDesignTabCss } = require('mass_mailing.design_constants');
 
 var _t = core._t;
 
+const MassMailingMobilePreviewDialog = Dialog.extend({
+
+    /**
+     * @override
+     */
+    init(parent, options) {
+        this._super(parent, options);
+        this.preview = options.preview;
+    },
+
+    /**
+     * @override
+     */
+    start() {
+        this.$modal.addClass('oe_mobile_preview');
+        this.$modal.on('click', '.modal-header', () => this.$el.toggleClass('o_invert_orientation'));
+
+        this.$iframe = $('<iframe/>', {
+            id: 'mobile-viewport',
+            srcdoc: this.preview,
+        });
+        this.$iframe.appendTo(this.$el);
+
+        this.$iframe.on('load', () => {
+            this.$iframe.contents().find('head').append($('<style>body{margin:0;}</style>'))
+        });
+
+        return this._super();
+    },
+
+});
 
 var MassMailingFieldHtml = FieldHtml.extend({
     xmlDependencies: (FieldHtml.prototype.xmlDependencies || []).concat(["/mass_mailing/static/src/xml/mass_mailing.xml"]),
@@ -310,6 +343,19 @@ var MassMailingFieldHtml = FieldHtml.extend({
         }
     },
 
+    _toggleMobilePreview: function() {
+        let $editable = this.wysiwyg.getEditable();
+        convertInline.toInline($editable, undefined, this.wysiwyg.$iframe).then(() => {
+            if (this.mobilePreview && !this.mobilePreview.isDestroyed()) {
+                return this.mobilePreview.close();
+            }
+            this.mobilePreview = new MassMailingMobilePreviewDialog(this, {
+                title: Markup(_.escape(_t('Mobile preview')) + ' <span class="fa fa-refresh"/>'),
+                preview: $editable.html(),
+            }).open();
+        });
+    },
+
     /**
      * @override
      */
@@ -416,6 +462,8 @@ var MassMailingFieldHtml = FieldHtml.extend({
         }
         this._$codeview = this.wysiwyg.$iframe.contents().find('textarea.o_codeview');
         $snippetsSideBar.on('click', '.o_codeview_btn', () => this._toggleCodeView(this._$codeview));
+
+        $snippetsSideBar.on('click', '.o_mobile_preview_btn', () => this._toggleMobilePreview());
 
         if ($themes.length === 0) {
             return;

@@ -83,6 +83,7 @@
             'mass_mailing/static/src/scss/mass_mailing.scss',
             'mass_mailing/static/src/scss/mass_mailing_mobile.scss',
             'mass_mailing/static/src/css/email_template.css',
+            'mass_mailing/static/src/scss/mass_mailing_mobile_preview.scss',
             'mass_mailing/static/src/js/mailing_contact_view_kanban.js',
             'mass_mailing/static/src/js/mailing_contact_view_list.js',
             'mass_mailing/static/src/js/mailing_filter_widget.js',
