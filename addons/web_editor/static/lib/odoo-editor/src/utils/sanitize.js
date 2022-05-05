@@ -120,8 +120,10 @@ class Sanitize {
 
         // Remove zero-width spaces added by `fillEmpty` when there is content
         // and the selection is not next to it.
-        const anchor = this.root.ownerDocument.getSelection().anchorNode;
+        const selection = this.root.ownerDocument.getSelection();
+        const anchor = selection && selection.anchorNode;
         if (
+            selection &&
             node.nodeType === Node.TEXT_NODE &&
             node.textContent.includes('\u200B') &&
             (
