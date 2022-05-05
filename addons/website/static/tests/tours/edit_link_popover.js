@@ -4,11 +4,11 @@ odoo.define("website.tour.edit_link_popover", function (require) {
 const tour = require('web_tour.tour');
 const wTourUtils = require('website.tour_utils');
 
-const FIRST_PARAGRAPH = '#wrap .s_text_image p:nth-child(2)';
+const FIRST_PARAGRAPH = 'iframe #wrap .s_text_image p:nth-child(2)';
 
 const clickFooter = [{
     content: "Save the link by clicking outside the URL input (not on a link element)",
-    trigger: 'footer h5:first',
+    trigger: 'iframe footer h5:first',
 }, {
     content: "Wait delayed click on footer",
     trigger: '.o_we_customize_panel we-title:contains("Footer")',

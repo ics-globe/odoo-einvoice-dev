@@ -24,7 +24,7 @@ tour.register('snippet_countdown', {
     },
     {
         content: "Check that the countdown message is still displayed",
-        trigger: '.s_countdown .s_picture',
+        trigger: 'iframe .s_countdown .s_picture',
         run: () => {
             // Just a visibility check
 
@@ -45,12 +45,12 @@ tour.register('snippet_countdown', {
     wTourUtils.changeOption('countdown', 'we-button[data-end-action="message_no_countdown"]', 'end action'),
     {
         content: "Check that the countdown is not displayed",
-        trigger: '.s_countdown:has(.s_countdown_canvas_wrapper:not(:visible))',
+        trigger: 'iframe .s_countdown:has(.s_countdown_canvas_wrapper:not(:visible))',
         run: () => null, // Just a visibility check
     },
     {
         content: "Check that the message is still displayed",
-        trigger: '.s_countdown .s_picture',
+        trigger: 'iframe .s_countdown .s_picture',
         run: () => null, // Just a visibility check
     },
 ]);

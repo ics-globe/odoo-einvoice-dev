@@ -49,7 +49,7 @@ tour.register('configurator_translation', {
         run: function () {}, // it's a check
     }, {
         content: "Wait untill the configurator is finished",
-        trigger: 'body.editor_started',
+        trigger: '#oe_snippets.o_loaded',
         timeout: 30000,
     }, {
         // Check the content of the save button to make sure
@@ -59,7 +59,7 @@ tour.register('configurator_translation', {
         trigger: '.o_we_website_top_actions button.btn-primary:contains("Sauvegarder")',
     }, {
          content: "wait for editor to be closed",
-         trigger: 'body:not(.editor_enable)',
+         trigger: 'iframe body:not(.editor_enable)',
          run: function () {}, // It's a check.
     }
 ]);

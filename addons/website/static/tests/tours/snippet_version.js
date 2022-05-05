@@ -8,15 +8,15 @@ tour.register("snippet_version", {
     url: "/",
 }, [{
     content: "Enter edit mode",
-    trigger: 'a[data-action=edit]',
+    trigger: 'a.o_frontend_to_backend_edit_btn',
 }, {
     content: "Drop s_test_snip snippet",
     trigger: '#oe_snippets .oe_snippet:has(.s_test_snip) .oe_snippet_thumbnail',
-    run: "drag_and_drop #wrap",
+    run: "drag_and_drop iframe #wrap",
 }, {
     content: "Drop s_text_image snippet",
     trigger: '#oe_snippets .oe_snippet:has(.s_text_image) .oe_snippet_thumbnail:not(.o_we_already_dragging)',
-    run: "drag_and_drop #wrap",
+    run: "drag_and_drop iframe #wrap",
 }, {
     content: "Test t-snippet and t-snippet-call: snippets have data-snippet set",
     trigger: '#oe_snippets .o_panel_body > .oe_snippet.ui-draggable',
@@ -29,17 +29,17 @@ tour.register("snippet_version", {
         if (!document.querySelector('#oe_snippets [data-snippet="s_test_snip"] [data-snippet="s_share"]')) {
             console.error("error s_share t-called inside s_test_snip is missing template name");
         }
-        if (!document.querySelector('#wrap [data-snippet="s_test_snip"] [data-snippet="s_share"]')) {
+        if (!document.querySelector('iframe').contentDocument.querySelector('#wrap [data-snippet="s_test_snip"] [data-snippet="s_share"]')) {
             console.error("error Dropped a s_test_snip snippet but missing s_share template name in it");
         }
     },
 }, {
-    content: "Enter edit mode",
+    content: "Click on save button",
     trigger: 'button[data-action="save"]',
 }, {
     content: "Enter edit mode",
-    extra_trigger: 'body:not(.editor_enable)',
-    trigger: 'a[data-action=edit]',
+    extra_trigger: 'o_website_editor:not(.editor_enable)',
+    trigger: '.o_edit_website_container > a',
 }, {
     content: "Modify the version of snippets",
     trigger: '#oe_snippets .o_panel_body > .oe_snippet',
@@ -50,18 +50,18 @@ tour.register("snippet_version", {
     },
 }, {
     content: "Edit s_test_snip",
-    trigger: '#wrap.o_editable .s_test_snip',
+    trigger: 'iframe #wrap.o_editable .s_test_snip',
 }, {
     content: "Edit text_image",
     extra_trigger: 'we-customizeblock-options:contains(Test snip) .snippet-option-VersionControl > we-alert',
-    trigger: '#wrap.o_editable .s_text_image',
+    trigger: 'iframe #wrap.o_editable .s_text_image',
 }, {
     content: "Edit s_share",
     extra_trigger: 'we-customizeblock-options:contains(Text - Image) .snippet-option-VersionControl  > we-alert',
-    trigger: '#wrap.o_editable .s_share',
+    trigger: 'iframe #wrap.o_editable .s_share',
 }, {
     content: "s_share is outdated",
     extra_trigger: 'we-customizeblock-options:contains(Share) .snippet-option-VersionControl > we-alert',
-    trigger: 'body',
+    trigger: 'iframe body',
 }]);
 });

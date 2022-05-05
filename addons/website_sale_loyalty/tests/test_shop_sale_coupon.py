@@ -91,7 +91,6 @@ class TestUi(TestSaleProductAttributeValueCommon, HttpCase):
             })],
         })
 
-        self.env.ref("website_sale.search_count_box").write({"active": True})
         self.env.ref("website_sale.reduction_code").write({"active": True})
         self.start_tour("/", 'shop_sale_loyalty', login="admin")
 

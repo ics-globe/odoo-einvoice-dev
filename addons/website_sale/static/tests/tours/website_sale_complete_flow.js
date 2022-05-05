@@ -324,21 +324,41 @@ odoo.define('website_sale_tour.tour', function (require) {
         },
     },
     {
-        content: "Open Customize menu",
-        trigger: '.o_menu_sections a:contains("Customize")',
+        content: "enter edit mode",
+        trigger: '.o_edit_website_container > a',
+    },
+    {
+        content: "open customize tab",
+        extra_trigger: '#oe_snippets.o_loaded',
+        trigger: '.o_we_customize_snippet_btn',
     },
     {
         content: "Enable Extra step",
-        trigger: 'label.dropdown-item:contains("Extra Step Option")',
+        extra_trigger: '#oe_snippets .o_we_customize_panel',
+        trigger: '[data-customize-website-views="website_sale.extra_info_option"] we-checkbox',
+    },
+    {
+        content: "check that the iframe is reloading",
+        trigger: '.o_loading_dummy',
+        run: () => {}, // It's a check.
+    },
+    {
+        content: "click on save button after the reload",
+        trigger: 'div:not(.o_loading_dummy) > #oe_snippets button[data-action="save"]',
+        run: 'click',
+    },
+    {
+        content: "wait to exit edit mode",
+        trigger: '.o_website_editor:not(.editor_has_snippets)',
     },
     {
         content: "Open Dropdown for logout",
-        extra_trigger: '.progress-wizard-step:contains("Extra Info")',
-        trigger: '#top_menu li.dropdown:visible a:contains("Mitchell Admin")',
+        extra_trigger: 'iframe .progress-wizard-step:contains("Extra Info")',
+        trigger: 'iframe #top_menu li.dropdown:visible a:contains("Mitchell Admin")',
     },
     {
         content: "Logout",
-        trigger: '#o_logout:contains("Logout")',
+        trigger: 'iframe #o_logout:contains("Logout")',
     },
     {
         content: "Sign in as abc",

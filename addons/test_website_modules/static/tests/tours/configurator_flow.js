@@ -74,7 +74,7 @@ tour.register('configurator_flow', {
         run: function () {}, // it's a check
     }, {
         content: "Wait untill the configurator is finished",
-        trigger: 'body.editor_started',
+        trigger: '#oe_snippets.o_loaded',
         timeout: 30000,
     }, {
         content: "exit edit mode",

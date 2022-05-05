@@ -31,8 +31,8 @@ odoo.define('website.tour.form_editor', function (require) {
     const addField = function (data, name, type, label, required, display = {visibility: VISIBLE, condition: ''}) {
         const ret = [{
             content: "Select form",
-            extra_trigger: '.s_website_form_field',
-            trigger: 'section.s_website_form',
+            extra_trigger: 'iframe .s_website_form_field',
+            trigger: 'iframe section.s_website_form',
         }, {
             content: "Add field",
             trigger: 'we-button[data-add-field]',
@@ -40,12 +40,12 @@ odoo.define('website.tour.form_editor', function (require) {
         ...selectButtonByData(data),
         {
             content: "Wait for field to load",
-            trigger: `.s_website_form_field[data-type="${name}"], .s_website_form_input[name="${name}"]`, //custom or existing field
+            trigger: `iframe .s_website_form_field[data-type="${name}"], .s_website_form_input[name="${name}"]`, //custom or existing field
             run: function () {},
         },
         ...selectButtonByText(display.visibility),
     ];
-        let testText = '.s_website_form_field';
+        let testText = 'iframe .s_website_form_field';
         if (display.condition) {
             ret.push({
                 content: "Set the visibility condition",
@@ -92,15 +92,15 @@ odoo.define('website.tour.form_editor', function (require) {
         // Drop a form builder snippet and configure it
         {
             content: "Enter edit mode",
-            trigger: 'a[data-action=edit]',
+            trigger: 'a.o_frontend_to_backend_edit_btn',
         }, {
             content: "Drop the form snippet",
             trigger: '#oe_snippets .oe_snippet:has(.s_website_form) .oe_snippet_thumbnail',
-            run: 'drag_and_drop #wrap',
+            run: 'drag_and_drop iframe #wrap',
         }, {
             content: "Select form by clicking on an input field",
-            extra_trigger: '.s_website_form_field',
-            trigger: 'section.s_website_form input',
+            extra_trigger: 'iframe .s_website_form_field',
+            trigger: 'iframe section.s_website_form input',
         }, {
             content: "Verify that the form editor appeared",
             trigger: '.o_we_customize_panel .snippet-option-WebsiteFormEditor',
@@ -110,8 +110,8 @@ odoo.define('website.tour.form_editor', function (require) {
             trigger: '.o_we_add_snippet_btn',
         }, {
             content: "Select form by clicking on a text area",
-            extra_trigger: '.s_website_form_field',
-            trigger: 'section.s_website_form textarea',
+            extra_trigger: 'iframe .s_website_form_field',
+            trigger: 'iframe section.s_website_form textarea',
         }, {
             content: "Verify that the form editor appeared",
             trigger: '.o_we_customize_panel .snippet-option-WebsiteFormEditor',
@@ -129,20 +129,20 @@ odoo.define('website.tour.form_editor', function (require) {
             trigger: '.o_we_add_snippet_btn',
         }, {
             content: "Select form itself (not a specific field)",
-            extra_trigger: '.s_website_form_field',
-            trigger: 'section.s_website_form',
+            extra_trigger: 'iframe .s_website_form_field',
+            trigger: 'iframe section.s_website_form',
         },
         ...selectButtonByText('Send an E-mail'),
         {
             content: "Form has a model name",
-            trigger: 'section.s_website_form form[data-model_name="mail.mail"]',
+            trigger: 'iframe section.s_website_form form[data-model_name="mail.mail"]',
         }, {
             content: "Complete Recipient E-mail",
             trigger: '[data-field-name="email_to"] input',
             run: 'text_blur test@test.test',
         }, {
             content: 'Edit the Phone Number field',
-            trigger: 'input[name="phone"]',
+            trigger: 'iframe input[name="phone"]',
         }, {
             content: 'Change the label position of the phone field',
             trigger: 'we-button[data-select-label-position="right"]',
@@ -179,7 +179,7 @@ odoo.define('website.tour.form_editor', function (require) {
             run: 'text Wiko Stairway',
         }, {
             content: "Check the resulting field",
-            trigger: ".s_website_form_field.s_website_form_custom.s_website_form_required" +
+            trigger: "iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
                         ":has(.s_website_form_multiple[data-display='horizontal'])" +
                         ":has(.checkbox:has(label:contains('Iphone')):has(input[type='checkbox'][required]))" +
                         ":has(.checkbox:has(label:contains('Galaxy S')):has(input[type='checkbox'][required]))" +
@@ -190,7 +190,7 @@ odoo.define('website.tour.form_editor', function (require) {
         ...selectButtonByData('data-multi-checkbox-display="vertical"'),
         {
             content: "Check the resulting field",
-            trigger: ".s_website_form_field.s_website_form_custom.s_website_form_required" +
+            trigger: "iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
                         ":has(.s_website_form_multiple[data-display='vertical'])" +
                         ":has(.checkbox:has(label:contains('Iphone')):has(input[type='checkbox'][required]))" +
                         ":has(.checkbox:has(label:contains('Galaxy S')):has(input[type='checkbox'][required]))" +
@@ -224,7 +224,7 @@ odoo.define('website.tour.form_editor', function (require) {
             trigger: 'we-button[data-name="required_opt"] we-checkbox',
         }, {
             content: "Check the resulting field",
-            trigger: ".s_website_form_field.s_website_form_custom:not(.s_website_form_required)" +
+            trigger: "iframe .s_website_form_field.s_website_form_custom:not(.s_website_form_required)" +
                         ":has(.radio:has(label:contains('After-sales Service')):has(input[type='radio']:not([required])))" +
                         ":has(.radio:has(label:contains('Invoicing Service')):has(input[type='radio']:not([required])))" +
                         ":has(.radio:has(label:contains('Development Service')):has(input[type='radio']:not([required])))" +
@@ -259,7 +259,7 @@ odoo.define('website.tour.form_editor', function (require) {
             trigger: '.o_we_select_remove_option:eq(0)',
         }, {
             content: "Check the resulting snippet",
-            trigger: ".s_website_form_field.s_website_form_custom.s_website_form_required" +
+            trigger: "iframe .s_website_form_field.s_website_form_custom.s_website_form_required" +
                         ":has(label:contains('State'))" +
                         ":has(select[required]:hidden)" +
                         ":has(.s_website_form_select_item:contains('Belgium'))" +
@@ -273,16 +273,16 @@ odoo.define('website.tour.form_editor', function (require) {
 
         {
             content: "Insure the history step of the editor is not checking for unbreakable",
-            trigger: '#wrapwrap',
+            trigger: 'iframe #wrapwrap',
             run: () => {
-                const wysiwyg = $('#wrapwrap').data('wysiwyg');
+                const wysiwyg = $('iframe').contents().find('#wrapwrap').data('wysiwyg');
                 wysiwyg.odooEditor.historyStep(true);
             },
         },
         // Edit the submit button using linkDialog.
         {
             content: "Click submit button to show edit popover",
-            trigger: '.s_website_form_send',
+            trigger: 'iframe .s_website_form_send',
         }, {
             content: "Click on Edit Link in Popover",
             trigger: '.o_edit_menu_popover .o_we_edit_link',
@@ -303,39 +303,40 @@ odoo.define('website.tour.form_editor', function (require) {
             },
         }, {
             content: "Check the resulting button",
-            trigger: '.s_website_form_send.btn.btn-sm.btn-secondary.rounded-circle',
+            trigger: 'iframe .s_website_form_send.btn.btn-sm.btn-secondary.rounded-circle',
             run: () => null,
         },
         // Add a default value to a auto-fillable field.
         {
             content: 'Select the name field',
-            trigger: '.s_website_form_field:eq(0)',
+            trigger: 'iframe .s_website_form_field:eq(0)',
         }, {
             content: 'Set a default value to the name field',
             trigger: 'we-input[data-attribute-name="value"] input',
             run: 'text John Smith',
         },
         {
-            content:  "Save the page",
-            trigger:  "button[data-action=save]",
+            content: "Save the page",
+            trigger: "button[data-action=save]",
         },
         {
             content: 'Verify value attribute and property',
-            trigger: '.s_website_form_field:eq(0) input[value="John Smith"]:propValue("Mitchell Admin")',
+            extra_trigger: 'iframe body:not(.editor_enable)',
+            trigger: 'iframe .s_website_form_field:eq(0) input[value="John Smith"]:propValue("Mitchell Admin")',
         },
         {
             content: 'Verify that phone field is still auto-fillable',
-            trigger: '.s_website_form_field input[data-fill-with="phone"]:propValue("+1 555-555-5555")',
+            trigger: 'iframe .s_website_form_field input[data-fill-with="phone"]:propValue("+1 555-555-5555")',
         },
         // Check that if we edit again and save again the default value is not deleted.
         {
             content: 'Enter in edit mode again',
-            trigger: 'a[data-action="edit"]',
+            trigger: '.o_edit_website_container > a',
             run: 'click',
         },
         {
             content: 'Edit the form',
-            trigger: '.s_website_form_field:eq(0) input',
+            trigger: 'iframe .s_website_form_field:eq(0) input',
             extra_trigger: 'button[data-action="save"]',
             run: 'click',
         },
@@ -347,7 +348,8 @@ odoo.define('website.tour.form_editor', function (require) {
         },
         {
             content: 'Verify that the value has not been deleted',
-            trigger: '.s_website_form_field:eq(0) input[value="John Smith"]',
+            extra_trigger: 'iframe body:not(.editor_enable)',
+            trigger: 'iframe .s_website_form_field:eq(0) input[value="John Smith"]',
         }
     ]);
 

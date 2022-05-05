@@ -74,7 +74,7 @@ tour.register('course_publisher_standard', {
     trigger: 'button[data-action="save"]',
 }, {
     content: 'eLearning: course create with current member',
-    extra_trigger: 'body:not(.editor_enable)',  // wait for editor to close
+    extra_trigger: 'iframe body:not(.editor_enable)',  // wait for editor to close
     trigger: '.o_wslides_js_course_join:contains("You\'re enrolled")',
     run: function () {} // check membership
 }

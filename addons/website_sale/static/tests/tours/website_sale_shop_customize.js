@@ -29,11 +29,8 @@ tour.register('shop_customize', {
             run: 'click',
         },
         {
-            content: "wait to exit edit mode",
-            trigger: '.o_website_editor:not(.editor_has_snippets)',
-        },
-        {
             content: "select product attribute Steel",
+            extra_trigger: "iframe body:not(.editor_enable)",
             trigger: 'iframe form.js_attributes input:not(:checked) + label:contains(Steel - Test)',
         },
         {
@@ -47,12 +44,8 @@ tour.register('shop_customize', {
             trigger: 'iframe .oe_product_cart a:contains("Test Product")',
         },
         {
-            content: "wait the product page to be loaded",
-            trigger: 'iframe #product_detail',
-            run: function () {},
-        },
-        {
             content: "check list view of variants is disabled initially",
+            extra_trigger: "iframe #product_detail",
             trigger: 'iframe body:not(:has(.js_product_change))',
             run: function () {},
         },
@@ -85,11 +78,8 @@ tour.register('shop_customize', {
             run: 'click',
         },
         {
-            content: "wait to exit edit mode",
-            trigger: '.o_website_editor:not(.editor_has_snippets)',
-        },
-        {
             context: "check variant price",
+            extra_trigger: "iframe body:not(.editor_enable)",
             trigger: 'iframe .custom-radio:contains("Aluminium") .badge:contains("+") .oe_currency_value:contains("50.4")',
             run: function () {},
         },
@@ -136,11 +126,8 @@ tour.register('shop_customize', {
             run: 'click',
         },
         {
-            content: "wait to exit edit mode",
-            trigger: '.o_website_editor:not(.editor_has_snippets)',
-        },
-        {
             content: "check page loaded after list of variant customization disabled",
+            extra_trigger: "iframe body:not(.editor_enable)",
             trigger: "iframe .js_product:not(:has(.js_product_change))",
             run: function () {}, // it's a check
         },

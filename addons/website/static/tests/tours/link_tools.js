@@ -19,7 +19,7 @@ tour.register('link_tools', {
     }),
     {
         content: "Replace first paragraph, to insert a new link",
-        trigger: '#wrap .s_text_image p',
+        trigger: 'iframe #wrap .s_text_image p',
         run: 'text Go to odoo: '
     },
     {
@@ -35,7 +35,7 @@ tour.register('link_tools', {
     // 2. Edit the link with the link tools.
     {
         content: "Click on the newly created link, change content to odoo website",
-        trigger: '.s_text_image a[href="http://odoo.com"]:contains("odoo.com")',
+        trigger: 'iframe .s_text_image a[href="http://odoo.com"]:contains("odoo.com")',
         run: 'text odoo website',
     },
     {
@@ -50,7 +50,7 @@ tour.register('link_tools', {
     {
         content: "The new link content should be odoo website and url odoo.be",
         extra_trigger: "#oe_snippets.o_loaded",
-        trigger: '.s_text_image a[href="http://odoo.be"]:contains("odoo website")',
+        trigger: 'iframe .s_text_image a[href="http://odoo.be"]:contains("odoo website")',
     },
     {
         content: "The new link content should be odoo website and url odoo.be",
@@ -63,7 +63,7 @@ tour.register('link_tools', {
     ...wTourUtils.clickOnSave(),
     {
         content: "The link should have the secondary button style.",
-        trigger: '.s_text_image a.btn.btn-secondary[href="http://odoo.be"]:contains("odoo website")',
+        trigger: 'iframe .s_text_image a.btn.btn-secondary[href="http://odoo.be"]:contains("odoo website")',
         run: () => {}, // It's a check.
     }
 ]);

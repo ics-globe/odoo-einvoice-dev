@@ -106,7 +106,7 @@ tour.register('snippet_social_media', {
     },
     {
         content: "Wait until save's calls are finished",
-        trigger: "body:not(.editor_enable)",
+        trigger: "iframe body:not(.editor_enable)",
         run: function () {}, // it's a check
     }
 ]);

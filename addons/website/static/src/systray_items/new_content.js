@@ -32,6 +32,7 @@ NewContentElement.props = {
     title: String,
     onClick: Function,
     status: { type: String, optional: true },
+    moduleXmlId: { type: String, optional: true },
     slots: Object,
 };
 NewContentElement.defaultProps = {

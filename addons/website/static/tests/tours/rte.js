@@ -41,7 +41,7 @@ tour.register('rte_translator', {
 }, {
     content: "load Parseltongue",
     trigger: '.modal-footer button:first',
-    extra_trigger: '.modal div[name="lang_ids"] .badge-pill .o_tag_badge_text:contains(Parseltongue)',
+    extra_trigger: '.modal-dialog div[name="lang_ids"] .badge-pill .o_tag_badge_text:contains(Parseltongue)',
 }, {
     content: "click language dropdown (2)",
     trigger: '.js_language_selector .dropdown-toggle',
@@ -51,46 +51,49 @@ tour.register('rte_translator', {
     trigger: '.js_language_selector a[data-url_code="en"]',
     extra_trigger: 'html[lang*="pa-GB"]',
 }, {
+    content: "go to backend",
+    trigger: '.o_frontend_to_backend_edit_btn',
+}, {
     content: "Open new page menu",
-    trigger: "body:has(#o_new_content_menu_choices.o_hidden) #new-content-menu > a",
-    extra_trigger: 'a[data-action="edit"]',
+    trigger: ".o_menu_systray .o_new_content_container > a",
+    extra_trigger: '.o_edit_website_container > a',
     consumeVisibleOnly: true,
 }, {
     content: "click on new page",
-    trigger: 'a[data-action="new_page"]',
+    trigger: '.o_new_content_element a',
 }, {
     content: "insert page name",
-    trigger: '#editor_new_page input[type="text"]',
+    trigger: '.modal-dialog input[type="text"]',
     run: 'text rte_translator',
 }, {
     content: "create page",
-    trigger: 'button.btn-continue',
+    trigger: '.modal-dialog button.btn-primary',
     extra_trigger: 'input[type="text"]:propValue(rte_translator)',
 }, {
     content: "drop a snippet",
     trigger: "#snippet_structure .oe_snippet:eq(1) .oe_snippet_thumbnail",
-    run: 'drag_and_drop #wrap',
+    run: 'drag_and_drop iframe #wrap',
 }, {
     content: "change content",
-    trigger: '#wrap',
+    trigger: 'iframe #wrap',
     run: function () {
-        $("#wrap p:first").replaceWith('<p>Write one or <font style="background-color: yellow;">two paragraphs <b>describing</b></font> your product or\
+        $('iframe:not(.o_technical_iframe)').contents().find("#wrap p:first").replaceWith('<p>Write one or <font style="background-color: yellow;">two paragraphs <b>describing</b></font> your product or\
                 <font style="color: rgb(255, 0, 0);">services</font>. To be successful your content needs to be\
                 useful to your <a href="/999">readers</a>.</p> <input placeholder="test translate placeholder"/>\
                 <p>&lt;b&gt;&lt;/b&gt; is an HTML&nbsp;tag &amp; is empty</p>');
-        $("#wrap img").attr("title", "test translate image title");
+        $('iframe:not(.o_technical_iframe)').contents().find("#wrap img").attr("title", "test translate image title");
     }
 }, {
     content: "save",
     trigger: 'button[data-action=save]',
-    extra_trigger: '#wrap p:first b',
+    extra_trigger: 'iframe #wrap p:first b',
 }, {
     content: "click language dropdown (3)",
-    trigger: '.js_language_selector .dropdown-toggle',
-    extra_trigger: 'body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit"]',
+    trigger: 'iframe .js_language_selector .dropdown-toggle',
+    extra_trigger: 'iframe body:not(.editor_enable)',
 }, {
     content: "click on Parseltongue version",
-    trigger: '.js_language_selector a[data-url_code="pa_GB"]',
+    trigger: 'iframe .js_language_selector a[data-url_code="pa_GB"]',
     extra_trigger: 'html[lang*="en"]:not(:has(button[data-action=save]))',
 }, {
     content: "translate",
@@ -100,11 +103,11 @@ tour.register('rte_translator', {
     trigger: '.modal-footer .btn-secondary',
 }, {
     content: "check if translation is activate",
-    trigger: '[data-oe-translation-id]',
+    trigger: 'iframe [data-oe-translation-id]',
 }, {
     content: "translate text",
-    extra_trigger: '.editor_started',
-    trigger: '#wrap p font:first',
+    extra_trigger: '#oe_snippets.o_loaded',
+    trigger: 'iframe #wrap p font:first',
     run: function (actionHelper) {
         actionHelper.text('translated Parseltongue text');
         const Wysiwyg = odoo.__DEBUG__.services['web_editor.wysiwyg'];
@@ -114,7 +117,7 @@ tour.register('rte_translator', {
     },
 }, {
     content: "translate text with special char",
-    trigger: '#wrap input + p span:first',
+    trigger: 'iframe #wrap input + p span:first',
     run: function (actionHelper) {
         actionHelper.click();
         this.$anchor.prepend('&lt;{translated}&gt;');
@@ -125,12 +128,12 @@ tour.register('rte_translator', {
     },
 }, {
     content: "click on input",
-    trigger: '#wrap input:first',
-    extra_trigger: '#wrap .o_dirty font:first:contains(translated Parseltongue text)',
+    trigger: 'iframe #wrap input:first',
+    extra_trigger: 'iframe #wrap .o_dirty font:first:contains(translated Parseltongue text)',
     run: 'click',
 }, {
     content: "translate placeholder",
-    trigger: 'input:first',
+    trigger: 'iframe input:first',
     run: 'text test Parseltongue placeholder',
 }, {
     content: "close modal",
@@ -141,34 +144,34 @@ tour.register('rte_translator', {
     trigger: 'button[data-action=save]',
 }, {
     content: "check: content is translated",
-    trigger: '#wrap p font:first:contains(translated Parseltongue text)',
-    extra_trigger: 'body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit_master"]',
+    trigger: 'iframe #wrap p font:first:contains(translated Parseltongue text)',
+    extra_trigger: 'iframe body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit_master"]',
     run: function () {}, // it's a check
 }, {
     content: "check: content with special char is translated",
-    trigger: "#wrap input + p:contains(<{translated}><b></b> is an HTML\xa0tag & )",
+    trigger: "iframe #wrap input + p:contains(<{translated}><b></b> is an HTML\xa0tag & )",
     run: function () {}, // it's a check
 
 }, {
     content: "check: placeholder translation",
-    trigger: 'input[placeholder="test Parseltongue placeholder"]',
+    trigger: 'iframe input[placeholder="test Parseltongue placeholder"]',
     run: function () {}, // it's a check
 
 }, {
     content: "open language selector",
-    trigger: '.js_language_selector button:first',
-    extra_trigger: 'html[lang*="pa-GB"]:not(:has(#wrap p span))',
+    trigger: 'iframe .js_language_selector button:first',
+    extra_trigger: 'iframe html[lang*="pa-GB"]:not(:has(#wrap p span))',
 }, {
     content: "return to english version",
-    trigger: '.js_language_selector a[data-url_code="en"]',
+    trigger: 'iframe .js_language_selector a[data-url_code="en"]',
 }, {
     content: "edit english version",
-    trigger: 'a[data-action=edit]',
-    extra_trigger: 'body:not(:has(#wrap p font:first:containsExact(paragraphs <b>describing</b>)))',
+    trigger: '.o_edit_website_container > a',
+    extra_trigger: 'iframe body:not(:has(#wrap p font:first:containsExact(paragraphs <b>describing</b>)))',
 }, {
     content: "select text",
     extra_trigger: '#oe_snippets.o_loaded',
-    trigger: '#wrap p',
+    trigger: 'iframe #wrap p',
     run: function (actionHelper) {
         actionHelper.click();
         var el = this.$anchor[0];
@@ -196,18 +199,18 @@ tour.register('rte_translator', {
     // extra_trigger: '#wrap.o_dirty p span[style*="text-decoration-line: underline;"]',
 }, {
     content: "click language dropdown (4)",
-    trigger: '.js_language_selector .dropdown-toggle',
-    extra_trigger: 'body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit"]',
+    trigger: 'iframe .js_language_selector .dropdown-toggle',
+    extra_trigger: 'iframe body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit"]',
 }, {
     content: "return in Parseltongue",
-    trigger: 'html[lang="en-US"] .js_language_selector .js_change_lang[data-url_code="pa_GB"]',
+    trigger: 'iframe html[lang="en-US"] .js_language_selector .js_change_lang[data-url_code="pa_GB"]',
 }, {
     content: "check bis: content is translated",
-    trigger: '#wrap p font:first:contains(translated Parseltongue text)',
-    extra_trigger: 'html[lang*="pa-GB"] body:not(:has(button[data-action=save]))',
+    trigger: 'iframe #wrap p font:first:contains(translated Parseltongue text)',
+    extra_trigger: 'iframe html[lang*="pa-GB"] body:not(:has(button[data-action=save]))',
 }, {
     content: "check bis: placeholder translation",
-    trigger: 'input[placeholder="test Parseltongue placeholder"]',
+    trigger: 'iframe input[placeholder="test Parseltongue placeholder"]',
 }, {
     content: "Open customize menu",
     trigger: "#customize-menu > .dropdown-toggle",

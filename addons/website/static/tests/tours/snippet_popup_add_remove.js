@@ -7,7 +7,7 @@ tour.register('snippet_popup_add_remove', {
     url: '/?enable_editor=1',
 }, [{
     content: 'Drop s_popup snippet',
-    trigger: '#oe_snippets .oe_snippet:has( > [data-snippet="s_popup"]) .oe_snippet_thumbnail',
+    trigger: '#oe_snippets.o_loaded .oe_snippet:has( > [data-snippet="s_popup"]) .oe_snippet_thumbnail',
     run: "drag_and_drop iframe #wrap",
 }, {
     content: 'Edit s_popup snippet',

@@ -204,6 +204,7 @@ function goBackToBlocks(position = "bottom") {
 function goToTheme(position = "bottom") {
     return {
         trigger: '.o_we_customize_theme_btn',
+        extra_trigger: '#oe_snippets.o_loaded',
         content: _t("Go to the Theme tab"),
         position: position,
         run: "click",
@@ -256,10 +257,10 @@ function registerThemeHomepageTour(name, steps) {
     ));
 }
 
-function clickOnExtraMenuItem(stepOptions) {
+function clickOnExtraMenuItem(stepOptions, backend = false) {
     return Object.assign({}, {
         content: "Click on the extra menu dropdown toggle if it is there",
-        trigger: '#top_menu',
+        trigger: `${backend ? "iframe" : ""} #top_menu`,
         run: function () {
             const extraMenuButton = this.$anchor[0].querySelector('.o_extra_menu_items a.nav-link');
             if (extraMenuButton) {

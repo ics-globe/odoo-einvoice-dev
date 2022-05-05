@@ -21,28 +21,28 @@ tour.register('test_reset_page_view_complete_flow_part1', {
         // 1. Edit the page through Edit Mode, it will COW the view
         {
             content: "enter edit mode",
-            trigger: "a[data-action=edit]"
+            trigger: "a.o_frontend_to_backend_edit_btn"
         },
         {
             content: "drop a snippet",
-            trigger: "#oe_snippets .oe_snippet:has(.s_cover) .oe_snippet_thumbnail",
+            trigger: "#oe_snippets.o_loaded .oe_snippet:has(.s_cover) .oe_snippet_thumbnail",
             // id starting by 'oe_structure..' will actually create an inherited view
-            run: "drag_and_drop #oe_structure_test_website_page",
+            run: "drag_and_drop iframe #oe_structure_test_website_page",
         },
         {
             content: "save the page",
-            extra_trigger: '#oe_structure_test_website_page.o_dirty',
+            extra_trigger: 'iframe #oe_structure_test_website_page.o_dirty',
             trigger: "button[data-action=save]",
         },
         // 2. Edit that COW'd view in the HTML editor to break it.
         {
-            content: "open customize menu",
-            extra_trigger: "body:not(.editor_enable)",
-            trigger: '#customize-menu > a',
+            content: "open site menu",
+            extra_trigger: "iframe body:not(.editor_enable)",
+            trigger: 'button[data-menu-xmlid="website.menu_site"]',
         },
         {
             content: "open html editor",
-            trigger: '#html_editor',
+            trigger: 'a[data-menu-xmlid="website.menu_ace_editor"]',
         },
         {
             content: "add a broken t-field in page DOM",
@@ -77,12 +77,12 @@ tour.register('test_reset_page_view_complete_flow_part2', {
         },
         //4. Now break the inherited view created when dropping a snippet
         {
-            content: "open customize menu",
-            trigger: '#customize-menu > a',
+            content: "open site menu",
+            trigger: 'button[data-menu-xmlid="website.menu_site"]',
         },
         {
             content: "open html editor",
-            trigger: '#html_editor',
+            trigger: 'a[data-menu-xmlid="website.menu_ace_editor"]',
         },
         {
             content: "select oe_structure view",
