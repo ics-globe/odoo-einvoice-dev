@@ -24,21 +24,19 @@
           </div>
           <div class="o_burger_menu_content flex-grow-1 flex-shrink-1 overflow-auto"
               t-att-class="{o_burger_menu_dark: !isUserMenuUnfolded, 'bg-white': isUserMenuUnfolded}">
-              <div t-if="isUserMenuUnfolded" class="o_burger_menu_user">
+              <!-- -->
+              <t t-if="isUserMenuUnfolded">
                   <MobileSwitchCompanyMenu t-if="Object.values(company.availableCompanies).length > 1" />
                   <BurgerUserMenu/>
-              </div>
-
+              </t>
               <!-- Current App Sections -->
-              <div class="o_burger_menu_app" t-if="!isUserMenuUnfolded">
-                  <div class="o_menu_sections">
-                      <t t-foreach="currentAppSections" t-as="subMenu" t-key="subMenu_index">
-                          <t t-call="web.BurgerSection">
-                              <t t-set="section" t-value="subMenu" />
-                          </t>
-                      </t>
-                  </div>
-              </div>
+                <t t-if="!isUserMenuUnfolded">
+                    <t t-foreach="currentAppSections" t-as="subMenu" t-key="subMenu_index">
+                        <t t-call="web.BurgerSection">
+                            <t t-set="section" t-value="subMenu" />
+                        </t>
+                    </t>
+                </t>
           </div>
         </div>
       </Transition>
@@ -49,7 +47,7 @@
 </div>
 
 <t t-name="web.BurgerSection" owl="1">
-    <div t-if="section.childrenTree.length" t-key="section.id" class="dropdown o_burger_menu_section show">
+    <div t-if="section.childrenTree.length" t-key="section.id" class="dropdown show">
         <t t-set="childrenCount" t-value="section.children.length - 1"/>
         <button class="dropdown-toggle position-relative d-flex justify-content-between align-items-center w-100 p-0 bg-transparent border-0" t-att-data-menu-xmlid="section.xmlid">
             <span class="d-flex justify-content-between align-items-center w-100" t-att-class="{ 'py-0 fs-4': !isNested }" t-esc="section.name"/>

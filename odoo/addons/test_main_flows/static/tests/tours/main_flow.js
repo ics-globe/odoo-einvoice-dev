@@ -13,12 +13,12 @@ tour.register('main_flow_tour', {
 tour.stepUtils.openBuggerMenu("li.breadcrumb-item.active:contains('Quotations')"),
 {
 // Add Stockable product
-    trigger: ".o_menu_sections .dropdown-toggle span:contains('Products')",
+    trigger: ".o_burger_menu .dropdown-toggle span:contains('Products'), .o_menu_sections .dropdown-toggle span:contains('Products')",
     extra_trigger: '.o_main_navbar',
     content: _t("Let's create products."),
     position: "bottom",
 }, {
-    trigger: ".o_menu_sections .dropdown-item:contains('Products')",
+    trigger: "o_burger_menu .dropdown-item:contains('Products'), .o_menu_sections .dropdown-item:contains('Products')",
     content: _t("Let's create products."),
     position: "bottom"
 }, {
