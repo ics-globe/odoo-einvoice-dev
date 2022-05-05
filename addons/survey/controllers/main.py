@@ -657,12 +657,13 @@ class Survey(http.Controller):
     # REPORTING SURVEY ROUTES AND TOOLS
     # ------------------------------------------------------------
 
-    @http.route('/survey/results/<model("survey.survey"):survey>', type='http', auth='user', website=True)
-    def survey_report(self, survey, answer_token=None, **post):
-        """ Display survey Results & Statistics for given survey.
+    @http.route('/survey/results/<string:results_token>', type='http', auth='public', website=True)
+    def survey_report(self, results_token, answer_token=None, **post):
+        """ Display survey Results & Statistics for survey related to given token.
 
         New structure: {
-            'survey': current survey browse record,
+            'survey': sudo-ed browse record of survey related to given results token (to avoid
+                access rights issues),
             'question_and_page_data': see ``SurveyQuestion._prepare_statistics()``,
             'survey_data'= see ``SurveySurvey._prepare_statistics()``
             'search_filters': [],
@@ -671,6 +672,10 @@ class Survey(http.Controller):
             'search_failed': either filter on failed inputs only or not,
         }
         """
+        survey = request.env['survey.survey'].sudo().search([('results_token', '=', results_token)])
+        if not survey:
+            return request.redirect('/')
+
         user_input_lines, search_filters = self._extract_filters_data(survey, post)
         survey_data = survey._prepare_statistics(user_input_lines)
         question_and_page_data = survey.question_and_page_ids._prepare_statistics(user_input_lines)
