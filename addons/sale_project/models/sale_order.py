@@ -40,6 +40,7 @@ class SaleOrder(models.Model):
             projects = order.order_line.mapped('product_id.project_id')
             projects |= order.order_line.mapped('project_id')
             projects |= order.project_id
+            projects |= self.env['project.project'].search([('sale_line_id', 'in', order.order_line.ids)])
             if not is_project_manager:
                 projects = projects._filter_access_rules('read')
             order.project_ids = projects
