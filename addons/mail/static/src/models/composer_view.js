@@ -1193,14 +1193,11 @@ registerModel({
                 });
                 body = body.replace(text, placeholder);
             }
-            const baseHREF = url('/web');
             for (const mention of mentions) {
-                const href = `href='${baseHREF}#model=${mention.model}&id=${mention.id}'`;
                 const attClass = `class='${mention.class}'`;
                 const dataOeId = `data-oe-id='${mention.id}'`;
                 const dataOeModel = `data-oe-model='${mention.model}'`;
-                const target = `target='_blank'`;
-                const link = `<a ${href} ${attClass} ${dataOeId} ${dataOeModel} ${target}>${mention.text}</a>`;
+                const link = `<span ${attClass} ${dataOeId} ${dataOeModel}>${mention.text}</span>`;
                 body = body.replace(mention.placeholder, link);
             }
             return body;

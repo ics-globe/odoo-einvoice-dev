@@ -812,7 +812,7 @@ registerModel({
          * @param {Partner} member
          */
         onClickMemberName(member) {
-            member.openProfile();
+            member.openChat();
         },
         /**
          * Opens this thread either as form view, in discuss app, or as a chat
@@ -1181,6 +1181,17 @@ registerModel({
          */
         _computeHasCallFeature() {
             return ['channel', 'chat', 'group'].includes(this.channel_type);
+        },
+        /**
+         * @private
+         * @returns {boolean}
+         */
+        _computeHasCurrentParternerJoinedChannel() {
+            if(this.memberCount){
+                return this.members.includes(this.messaging.currentPartner);
+            } else {
+                return false;
+            }
         },
         /**
          * @private
@@ -2053,6 +2064,12 @@ registerModel({
          */
         isDescriptionEditableByCurrentUser: attr({
             compute: '_computeIsDescriptionEditableByCurrentUser',
+        }),
+        /**
+         * States whether current partner has already joined the channel or not.
+         */
+        isJoined: attr({
+            compute: '_computeHasCurrentParternerJoinedChannel',
         }),
         /**
          * States whether `this` is currently loading attachments.

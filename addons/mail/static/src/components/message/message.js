@@ -228,12 +228,52 @@ export class Message extends Component {
         }
     }
 
+    async _onClickMentions(ev) {
+        ev.stopPropagation();
+        if(ev.currentTarget.className.includes('channel')) {
+            let channel = this.messaging.models['Thread'].findFromIdentifyingData({
+                id: parseInt(ev.currentTarget.dataset.oeId),
+                model: ev.currentTarget.dataset.oeModel,
+            });
+            if(!channel) {
+                channel = this.messaging.models['Thread'].insert({
+                    id: parseInt(ev.currentTarget.dataset.oeId),
+                    model: 'mail.channel',
+                });
+            }
+            if(!channel.isJoined) {
+                await channel.join();
+                channel.update({ 
+                    isServerPinned: true,
+                    isJoined: true,
+                });
+            }
+            channel.open({focus:true});
+        } else{
+            this.messaging.openChat({partnerId: parseInt(ev.currentTarget.dataset.oeId)});
+        }
+    }
+
     /**
      * @private
      */
     _update() {
         if (this._prettyBodyRef.el && this.messageView.message.prettyBody !== this._lastPrettyBody) {
             this._prettyBodyRef.el.innerHTML = this.messageView.message.prettyBody;
+            const children = this._prettyBodyRef.el.children;
+            if(children.length > 0){
+                let mentionsEl = null;
+                if(children[0].children.length > 0) {
+                    mentionsEl = children[0].children;
+                } else {
+                    mentionsEl = children;
+                }
+                for (const el of mentionsEl) {
+                    if (el.tagName === 'SPAN'){
+                        el.addEventListener('click', this._onClickMentions.bind(this));
+                    }
+                }
+            }
             this._lastPrettyBody = this.messageView.message.prettyBody;
         }
         if (!this._prettyBodyRef.el) {

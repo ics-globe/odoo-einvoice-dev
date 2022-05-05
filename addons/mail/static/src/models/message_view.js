@@ -81,7 +81,7 @@ registerModel({
             if (!this.message.author) {
                 return;
             }
-            this.message.author.openProfile();
+            this.message.author.openChat();
         },
         /**
          * @param {MouseEvent} ev

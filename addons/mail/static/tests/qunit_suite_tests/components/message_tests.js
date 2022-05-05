@@ -861,6 +861,117 @@ QUnit.test('chat with author should be opened after clicking on their im status 
     );
 });
 
+QUnit.test('chat with author should be opened after clicking on his name', async function (assert) {
+    assert.expect(4);
+
+    const pyEnv = await startServer();
+    const resPartnerId1 = pyEnv['res.partner'].create();
+    pyEnv['res.users'].create({ partner_id: resPartnerId1 });
+    const { click, createMessageComponent, messaging } = await start();
+    const message = messaging.models['Message'].create({
+        author: insert({ id: resPartnerId1 }),
+        id: 10,
+    });
+    await createMessageComponent(message);
+    assert.containsOnce(
+        document.body,
+        '.o_Message_authorName',
+        "message should have the author name"
+    );
+    assert.hasClass(
+        document.querySelector('.o_Message_authorName'),
+        'o_redirect',
+        "author name should have the redirect style"
+    );
+    await click('.o_Message_authorName');
+    assert.containsOnce(
+        document.body,
+        '.o_ChatWindow_thread',
+        "chat window with thread should be opened after clicking on author name"
+    );
+    assert.strictEqual(
+        document.querySelector('.o_ChatWindow_thread').dataset.correspondentId,
+        message.author.id.toString(),
+        "chat with author should be opened after clicking on his name"
+    );
+});
+
+QUnit.test('Chat with partner should be opened after clicking on his mention', async function (assert) {
+    assert.expect(3);
+
+    const pyEnv = await startServer();
+    const mailChannelId1 = pyEnv['mail.channel'].create({});
+    const resPartnerId1 = pyEnv['res.partner'].create({
+        email: "testpartner@odoo.com",
+        name: "TestPartner",
+    });
+    pyEnv['res.users'].create({ partner_id: resPartnerId1 });
+    const { click, createThreadViewComponent, insertText, messaging } = await start();
+    const thread = messaging.models['Thread'].findFromIdentifyingData({
+        id: mailChannelId1,
+        model: 'mail.channel',
+    });
+    const threadViewer = messaging.models['ThreadViewer'].create({
+        hasThreadView: true,
+        qunitTest: insertAndReplace(),
+        thread: replace(thread),
+    });
+    await createThreadViewComponent(threadViewer.threadView);
+    await insertText('.o_ComposerTextInput_textarea', "email@odoo.com\n");
+    await insertText('.o_ComposerTextInput_textarea', "@Te");
+    await click('.o_ComposerSuggestion');
+    await click('.o_Composer_buttonSend');
+    assert.containsOnce(
+        document.querySelector(`.o_Message_content`),
+        `.o_mail_redirect[data-oe-id="${resPartnerId1}"][data-oe-model="res.partner"]:contains("@TestPartner")`,
+        "Conversation should have a message that has been posted, which contains partner mention"
+    );
+    await click('.o_mail_redirect');
+    assert.containsOnce(
+        document.body,
+        '.o_ChatWindow_thread',
+        "chat window with thread should be opened after clicking on partner mention"
+    );
+    assert.strictEqual(
+        document.querySelector('.o_ChatWindow_thread').dataset.correspondentId,
+        resPartnerId1.toString(),
+        "chat with partner should be opened after clicking on his mention"
+    );
+});
+
+QUnit.test('Chat with channel should be opened after clicking on its mention', async function (assert) {
+    assert.expect(2);
+
+    const pyEnv = await startServer();
+    const mailChannelId1 = pyEnv['mail.channel'].create({ name: 'my-channel' });
+    const { click, createThreadViewComponent, insertText, messaging } = await start();
+    const thread = messaging.models['Thread'].findFromIdentifyingData({
+        id: mailChannelId1,
+        model: 'mail.channel',
+    });
+    const threadViewer = messaging.models['ThreadViewer'].create({
+        hasThreadView: true,
+        qunitTest: insertAndReplace(),
+        thread: replace(thread),
+    });
+    await createThreadViewComponent(threadViewer.threadView);
+    await insertText('.o_ComposerTextInput_textarea', "email@odoo.com\n");
+    await insertText('.o_ComposerTextInput_textarea', "#my-channel");
+    await click('.o_ComposerSuggestion');
+    await click('.o_Composer_buttonSend');
+    assert.containsOnce(
+        document.querySelector(`.o_Message_content`),
+        `.o_channel_redirect[data-oe-id="${mailChannelId1}"][data-oe-model="mail.channel"]:contains("#my-channel")`,
+        "Conversation should have a message that has been posted, which contains channel mention"
+    );
+    await click('.o_channel_redirect');
+    assert.containsOnce(
+        document.body,
+        '.o_ChatWindow_thread',
+        "chat window with thread should be opened after clicking on channel mention"
+    );
+});
+
 QUnit.test('open chat with author on avatar click should be disabled when currently chatting with the author', async function (assert) {
     assert.expect(3);
 

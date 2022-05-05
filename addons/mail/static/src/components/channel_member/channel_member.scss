@@ -10,3 +10,15 @@
 .o_ChannelMember_name {
     min-width: 0;
 }
+
+.o_ChannelMember {
+    padding: map-get($spacers, 2) 0;
+
+    .o_ChannelMember_avatarContainer {
+        margin-left: $o-mail-discuss-channel-member-avatar-left-margin;
+    }
+
+    &:hover {
+        background-color: gray('300');
+    }
+}

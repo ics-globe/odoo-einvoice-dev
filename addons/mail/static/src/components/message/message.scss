@@ -76,8 +76,21 @@
     @include o-position-absolute($bottom: 0, $right: 0);
 }
 
-.o_Message_prettyBody > p {
-    margin-bottom: 0;
+.o_Message_prettyBody {
+    &>p {
+        margin-bottom: 0;
+    }
+    &>span {
+        cursor:pointer;
+        color: $link-color;
+        text-decoration: $link-decoration;
+        background-color: transparent;
+
+        &:hover {
+            color: $link-hover-color;
+            text-decoration: $link-hover-decoration;
+        }
+    }
 }
 
 .o_Message_seenIndicator {
