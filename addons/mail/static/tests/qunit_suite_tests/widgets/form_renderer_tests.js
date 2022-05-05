@@ -889,7 +889,7 @@ QUnit.test('Attachments that have been unlinked from server should be visually u
     });
     assert.strictEqual(
         document.querySelector('.o_ChatterTopbar_buttonCount').textContent,
-        '2',
+        '2 files',
         "Partner1 should have 2 attachments initially"
     );
 
@@ -901,7 +901,7 @@ QUnit.test('Attachments that have been unlinked from server should be visually u
     await click('.o_pager_previous');
     assert.strictEqual(
         document.querySelector('.o_ChatterTopbar_buttonCount').textContent,
-        '1',
+        '1 files',
         "Partner1 should now have 1 attachment after it has been unlinked from server"
     );
 });

@@ -1,6 +1,11 @@
 .o_DropZone {
+    background-color: rgba($white, 0.75);
     border: 2px dashed;
     z-index: 1;
+
+    &.o_Chatter_dropZone {
+        background-color: rgba($o-enterprise-primary-color, .2);
+    }
 
     &.o-dragging-inside {
         border-width: 5px;

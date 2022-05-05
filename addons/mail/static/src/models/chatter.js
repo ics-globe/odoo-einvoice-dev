@@ -41,7 +41,12 @@ registerModel({
          * @param {MouseEvent} ev
          */
         onClickButtonAttachments(ev) {
-            this.update({ attachmentBoxView: this.attachmentBoxView ? clear() : insertAndReplace() });
+            if (this.thread && this.thread.isFileBrowserOpen) {
+                this.update({ attachmentBoxView: insertAndReplace() });
+                this.attachmentBoxView.onClickAddAttachment();
+            } else {
+                this.update({ attachmentBoxView: this.attachmentBoxView ? clear() : insertAndReplace() });
+            }
         },
         /**
          * Handles click on top bar close button.
@@ -140,6 +145,16 @@ registerModel({
          */
         _computeActivityBoxView() {
             if (this.thread && this.thread.hasActivities && this.thread.activities.length > 0) {
+                return insertAndReplace();
+            }
+            return clear();
+        },
+        /**
+         * @private
+         * @returns {FieldCommand}
+         */
+        _computeDropZoneView() {
+            if (this.useDragVisibleDropZone.isVisible) {
                 return insertAndReplace();
             }
             return clear();
@@ -302,6 +317,11 @@ registerModel({
         context: attr({
             default: {},
         }),
+        dropZoneView: one('DropZoneView', {
+            compute: '_computeDropZoneView',
+            inverse: 'chatterOwner',
+            isCausal: true,
+        }),
         followButtonView: one('FollowButtonView', {
             compute: '_computeFollowButtonView',
             inverse: 'chatterOwner',
@@ -414,6 +434,13 @@ registerModel({
             default: insertAndReplace(),
             inverse: 'chatter',
             isCausal: true,
+        }),
+        useDragVisibleDropZone: one('UseDragVisibleDropZone', {
+            default: insertAndReplace(),
+            inverse: 'chatterOwner',
+            isCausal: true,
+            readonly: true,
+            required: true,
         }),
     },
     onChanges: [

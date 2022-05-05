@@ -1692,6 +1692,12 @@ registerModel({
         /**
          * @private
          */
+        async _onChangeAllAttachments() {
+            this.update({ isFileBrowserOpen: !this.allAttachments.length });
+        },
+        /**
+         * @private
+         */
         _onChangeLastSeenByCurrentPartnerMessageId() {
             this.messaging.messagingBus.trigger('o-thread-last-seen-by-current-partner-message-id-changed', {
                 thread: this,
@@ -2106,6 +2112,13 @@ registerModel({
             compute: '_computeIsDescriptionEditableByCurrentUser',
         }),
         /**
+         * States whether the attachment file explorer should be opened
+         * automatically for this thread.
+         */
+        isFileBrowserOpen: attr({
+            default: false,
+        }),
+        /**
          * States whether `this` is currently loading attachments.
          */
         isLoadingAttachments: attr({
@@ -2506,6 +2519,10 @@ registerModel({
         }),
     },
     onChanges: [
+        new OnChange({
+            dependencies: ['allAttachments'],
+            methodName: '_onChangeAllAttachments',
+        }),
         new OnChange({
             dependencies: ['lastSeenByCurrentPartnerMessageId'],
             methodName: '_onChangeLastSeenByCurrentPartnerMessageId',
