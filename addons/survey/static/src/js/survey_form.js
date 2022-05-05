@@ -427,9 +427,11 @@ publicWidget.registry.SurveyFormWidget = publicWidget.Widget.extend(SurveyPreloa
 
         if (this.options.isStartScreen) {
             route = "/survey/begin";
-            // Hide survey title in 'page_per_question' layout: it takes too much space
-            if (this.options.questionsLayout === 'page_per_question') {
-                this.$('.o_survey_main_title').fadeOut(400);
+            // Show survey title in header if not 'page_per_question' layout (it takes too much space)
+            if (this.options.questionsLayout !== 'page_per_question') {
+               setTimeout(function () {
+                    self.$('.o_survey_main_title').removeClass('d-none');
+                    }, 400); // Wait for the fade out
             }
         } else {
             var $form = this.$('form');
