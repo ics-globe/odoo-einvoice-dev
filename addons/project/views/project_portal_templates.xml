@@ -322,6 +322,6 @@
     </template>
 
     <template id="portal_my_task_planned_hours_template">
-        <strong>Planned Hours:</strong> <span t-esc="task.planned_hours" t-options='{"widget": "float_time"}'/>
+        <strong>Allocated Hours:</strong> <span t-esc="task.planned_hours" t-options='{"widget": "float_time"}'/>
     </template>
 </odoo>
