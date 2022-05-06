@@ -7278,7 +7278,7 @@ QUnit.module('Views', {
         assert.containsOnce(form, '.o_form_view .alert > div', "should have a translation alert");
 
         // remove translation alert by click X and check alert even after form reload
-        await testUtils.dom.click(form.$('.o_form_view .alert > .close'));
+        await testUtils.dom.click(form.$('.o_form_view .alert > .btn-close'));
         assert.containsNone(form, '.o_form_view .alert > div', "should not have a translation alert");
 
         await form.reload();

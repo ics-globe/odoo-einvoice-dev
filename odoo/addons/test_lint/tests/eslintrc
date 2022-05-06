@@ -40,6 +40,7 @@
         "ScrollSpy": "readonly",
         "Tooltip": "readonly",
         "Collapse": "readonly",
+        "Alert": "readonly",
         "globalThis": "readonly"
     }
 }
