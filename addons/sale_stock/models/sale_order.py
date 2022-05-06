@@ -259,6 +259,7 @@ class SaleOrder(models.Model):
     def _show_cancel_wizard(self):
         res = super(SaleOrder, self)._show_cancel_wizard()
         for order in self:
-            if any(picking.state == 'done' for picking in order.picking_ids) and not order._context.get('disable_cancel_warning'):
+            out_pickings = order.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
+            if any(picking.state == 'done' for picking in out_pickings) and not order._context.get('disable_cancel_warning'):
                 return True
         return res
