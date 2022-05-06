@@ -74,10 +74,13 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
         modelSelector.on("field_chain_changed", undefined, (ev) => {
             this.wysiwyg.odooEditor.editable.focus();
             if (ev.data.chain.length) {
-                let dynamicPlaceholder = "{{object." + ev.data.chain.join('.');
+                let dynamicPlaceholder = "object." + ev.data.chain.join('.');
                 const defaultValue = ev.data.defaultValue;
-                dynamicPlaceholder += defaultValue && defaultValue !== '' ? ` or '''${defaultValue}'''}}` : '}}';
-                this.wysiwyg.odooEditor.execCommand('insertText', dynamicPlaceholder);
+                dynamicPlaceholder += defaultValue && defaultValue !== '' ? ` or '''${defaultValue}'''` : '';
+
+                const t = document.createElement('T');
+                t.setAttribute('t-out', dynamicPlaceholder);
+                this.wysiwyg.odooEditor.execCommand('insertHTML', t.outerHTML);
             }
             modelSelector.destroy();
         });
