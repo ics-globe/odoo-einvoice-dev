@@ -576,6 +576,7 @@ var FieldChar = InputField.extend(TranslatableFieldMixin, {
         readonly: false,
         needDefaultValue: true,
         cancelOnEscape: true,
+        chainedTitle: true,
         filter: (model) => !["one2many", "boolean", "many2many"].includes(model.type)
     },
 

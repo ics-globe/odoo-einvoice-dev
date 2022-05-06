@@ -96,7 +96,8 @@ var ModelFieldSelectorPopOver = Widget.extend({
             debugMode: false,
             showSearchInput: true,
             needDefaultValue: false,
-            cancelOnEscape: false
+            cancelOnEscape: false,
+            chainedTitle: false
         }, options || {});
         this.options.filters = _.extend({
             searchable: true,
@@ -109,6 +110,7 @@ var ModelFieldSelectorPopOver = Widget.extend({
         }
 
         this.pages = [];
+        this.titlesNames = {};
         this.dirty = false;
         this.searchValue = '';
         this.defaultValue = '';
@@ -396,6 +398,28 @@ var ModelFieldSelectorPopOver = Widget.extend({
         this.chain.pop();
     },
     /**
+     * Get the current value for the popOver header
+     *
+     * @private
+     */
+    _getTitle: function () {
+        var title = "";
+        if (this.pages.length > 1) {
+            var prevField = _.findWhere(this.pages[this.pages.length - 2], {
+                name: (this.chain.length === this.pages.length) ? this.chain[this.chain.length - 2] : _.last(this.chain),
+            });
+            if (prevField) {
+                this.titlesNames[_.last(this.chain)] = prevField.string;
+                title = prevField.string;
+            }
+        }
+        if (this.options.chainedTitle) {
+            title = this.chain.map((chain) => this.titlesNames[chain]).join(' > ');
+        }
+
+        return title;
+    },
+    /**
      * Adapts the content of the popover.
      *
      * @private
@@ -405,14 +429,7 @@ var ModelFieldSelectorPopOver = Widget.extend({
 
         // Adapt the popover content
         var page = _.last(this.pages);
-        var title = "";
-        if (this.pages.length > 1) {
-            var prevField = _.findWhere(this.pages[this.pages.length - 2], {
-                name: (this.chain.length === this.pages.length) ? this.chain[this.chain.length - 2] : _.last(this.chain),
-            });
-            if (prevField) title = prevField.string;
-        }
-        this.$(".o_field_selector_popover_header .o_field_selector_title").text(title);
+        this.$(".o_field_selector_popover_header .o_field_selector_title").text(this._getTitle());
 
         var lines = _.filter(page, this.options.filter);
         if (this.searchValue) {
@@ -438,7 +455,10 @@ var ModelFieldSelectorPopOver = Widget.extend({
         this.$defaultValueInput.focus();
 
         // Adapt the popover content
-        this.$(".o_field_selector_popover_header .o_field_selector_title").text(_t("Default value"));
+        let title = this._getTitle() + '<br>' + _t("Default value");
+        this.$(".o_field_selector_popover_header .o_field_selector_title")[0].replaceChildren(
+            ...$('<div>' + title + '</div>')[0].childNodes
+        );
 
         this.$(".o_field_selector_page").replaceWith(core.qweb.render(this.baseTemplate + ".defaultValue", {
             line: {
@@ -667,7 +687,6 @@ var ModelFieldSelectorPopOver = Widget.extend({
                 this._hidePopover(this.options.cancelOnEscape);
                 break;
             case $.ui.keyCode.ENTER:
-                if (inputHasFocus || searchInputHasFocus) break;
                 e.preventDefault();
                 if (this.options.needDefaultValue && this._isOnDefaultValuePage()) {
                     this._hidePopover();
