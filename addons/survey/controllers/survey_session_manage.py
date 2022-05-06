@@ -19,21 +19,19 @@ class UserInputSession(http.Controller):
         return request.env['survey.survey'].search([('access_token', '=', survey_token)])
 
     def _fetch_from_session_code(self, session_code):
-        """ Matches a survey against a passed session_code.
-        We don't limit the session_state to be reachable (ready / in_progress) here because
-        in some cases, we want closed session as well (where session_state = False).
-        Instead, when necessary, the reachability is forced in routes calling this method to
-        avoid people using those routes to access other (private) surveys.
-        We limit to sessions opened within the last 7 days to avoid potential abuses. """
+        """ Matches a survey against a passed session_code, and checks if it is valid.
+        If it is valid, returns the start url. Else, the error type."""
         if session_code:
-            matching_survey = request.env['survey.survey'].sudo().search([
-                ('session_start_time', '>', fields.Datetime.now() - relativedelta(days=7)),
-                ('session_code', '=', session_code),
-            ], limit=1)
-            if matching_survey:
-                return matching_survey
-
-        return False
+            survey = request.env['survey.survey'].sudo().search([('session_code', '=', session_code)], limit=1)
+            if survey:
+                if survey.session_state in ['ready', 'in_progress']:
+                    return {'survey_url': '/survey/start/%s' % survey.access_token}
+                elif not survey.certification:
+                    survey_info = {'error': "survey_session_not_launched"}
+                    if request.env.user.has_group("survey.group_survey_user"):
+                        survey_info['survey_id'] = survey.id
+                return survey_info
+        return {'error': 'survey_wrong'}
 
     # ------------------------------------------------------------
     # SURVEY SESSION MANAGEMENT
@@ -176,28 +174,21 @@ class UserInputSession(http.Controller):
     @http.route('/s/<string:session_code>', type='http', auth='public', website=True)
     def survey_start_short(self, session_code):
         """" Redirects to 'survey_start' route using a shortened link & token.
-        We match the session_code for open surveys.
+        Shows an error message if the survey is not valid.
         This route is used in survey sessions where we need short links for people to type. """
+        survey_info = self._fetch_from_session_code(session_code)
 
-        survey = self._fetch_from_session_code(session_code)
-        if survey and survey.session_state in ['ready', 'in_progress']:
-            return request.redirect("/survey/start/%s" % survey.access_token)
-
-        return request.redirect("/s")
+        if 'error' in survey_info:
+            survey_info['session_code'] = session_code
+            return request.render('survey.survey_session_code', survey_info)
+        return request.redirect(survey_info['survey_url'])
 
     @http.route('/survey/check_session_code/<string:session_code>', type='json', auth='public', website=True)
     def survey_check_session_code(self, session_code):
         """ Checks if the given code is matching a survey session_code.
         If yes, redirect to /s/code route.
-        If not, return error. The user is invited to type again the code. """
-        survey = self._fetch_from_session_code(session_code)
-        if survey:
-            if survey.session_state in ['ready', 'in_progress']:
-                return {"survey_url": "/survey/start/%s" % survey.access_token}
-            else:
-                return {"error": "survey_session_closed"}
-
-        return {"error": "survey_wrong"}
+        If not, return error. The user is invited to type again the code."""
+        return self._fetch_from_session_code(session_code)
 
     def _prepare_manage_session_values(self, survey):
         is_first_question, is_last_question = False, False
