@@ -74,6 +74,10 @@
             <field name="inherit_id" ref="view_task_search_form"></field>
             <field name="mode">primary</field>
             <field name="arch" type="xml">
+                <xpath expr="//filter[@name='my_tasks']" position='after'>
+                    <filter string="My Private Task" name="my_private_task" domain="[('project_id', '=', False),
+                 ('user_ids', 'in', uid)]"/>
+                </xpath>
                <xpath expr="//filter[@name='unassigned']" position="after">
                     <separator/>
                     <filter string="My Projects" name="my_projects" domain="[('project_id.user_id', '=', uid)]"/>
