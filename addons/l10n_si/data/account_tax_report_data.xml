@@ -21,15 +21,19 @@
                                         <field name="tag_name">Nabave po osnovni stopnji DDV (Neodbitni)</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zo_dvd_neo_sdtopni_zni" model="account.tax.report.line">
                                         <field name="name">Nabave po znižani stopnji DDV</field>
                                         <field name="tag_name">Nabave po znižani stopnji DDV (Neodbitni)</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_zo_dvd_odb" model="account.tax.report.line">
                         <field name="name">Odbitni DDV</field>
                         <field name="sequence" eval="2"/>
@@ -43,18 +47,22 @@
                                         <field name="tag_name">Prodaja oproščena DDV</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zo_dvd_odb_izstopni_osn" model="account.tax.report.line">
                                         <field name="name">Prodaja po osnovni stopnji DDV</field>
                                         <field name="tag_name">Prodaja po osnovni stopnji DDV</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                     <record id="tax_report_zo_dvd_odb_izstopni_zni" model="account.tax.report.line">
                                         <field name="name">Prodaja po znižani stopnji DDV</field>
                                         <field name="tag_name">Prodaja po znižani stopnji DDV</field>
                                         <field name="sequence" eval="3"/>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_zo_dvd_odb_vstopni" model="account.tax.report.line">
                                 <field name="name">Vstopni DDV</field>
                                 <field name="sequence" eval="2"/>
@@ -64,22 +72,28 @@
                                         <field name="tag_name">Nabave oproščene DDV</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zo_dvd_odb_vstopni_osn" model="account.tax.report.line">
                                         <field name="name">Nabave po osnovni stopnji DDV</field>
                                         <field name="tag_name">Nabave po osnovni stopnji DDV (Vstopni)</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                     <record id="tax_report_zo_dvd_odb_vstopni_zni" model="account.tax.report.line">
                                         <field name="name">Nabave po znižani stopnji DDV</field>
                                         <field name="tag_name">Nabave po znižani stopnji DDV (Vstopni)</field>
                                         <field name="sequence" eval="3"/>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_zn_dvd" model="account.tax.report.line">
                 <field name="name">Znesek DDV</field>
                 <field name="sequence" eval="2"/>
@@ -97,15 +111,19 @@
                                         <field name="tag_name">Neodbitni DDV – osnovna stopnja</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zn_dvd_neo_vstopni_zni" model="account.tax.report.line">
                                         <field name="name">Neodbitni DDV – znižana stopnja</field>
                                         <field name="tag_name">Neodbitni DDV – znižana stopnja</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_zn_dvd_odb" model="account.tax.report.line">
                         <field name="name">Odbitni DDV</field>
                         <field name="sequence" eval="2"/>
@@ -119,13 +137,16 @@
                                         <field name="tag_name">Izstopni DDV - osnovna stopnja</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zn_dvd_odb_izstopni_zni" model="account.tax.report.line">
                                         <field name="tag_name">Izstopni DDV - znižana stopnja</field>
                                         <field name="name">Izstopni DDV - znižana stopnja</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_zn_dvd_odb_vstopni" model="account.tax.report.line">
                                 <field name="name">Vstopni DDV</field>
                                 <field name="sequence" eval="2"/>
@@ -135,17 +156,23 @@
                                         <field name="tag_name">Vstopni DDV - osnovna stopnja</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="tax_report_zn_dvd_odb_vstopni_zni" model="account.tax.report.line">
                                         <field name="name">Vstopni DDV - znižana stopnja</field>
                                         <field name="tag_name">Vstopni DDV - znižana stopnja</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>

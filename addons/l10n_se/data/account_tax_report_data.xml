@@ -15,26 +15,31 @@
                         <field name="tag_name">se_05</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_06" model="account.tax.report.line">
                         <field name="name">Fält 06 – Momspliktiga uttag</field>
                         <field name="code">se_06</field>
                         <field name="tag_name">se_06</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_07" model="account.tax.report.line">
                         <field name="name">Fält 07 – Beskattningsunderlag vid vinstmarginalbeskattning</field>
                         <field name="code">se_07</field>
                         <field name="tag_name">se_07</field>
                         <field name="sequence">3</field>
                     </record>
+
                     <record id="tax_report_line_08" model="account.tax.report.line">
                         <field name="name">Fält 08 – Hyresinkomster vid frivillig skattskyldighet</field>
                         <field name="code">se_08</field>
                         <field name="tag_name">se_08</field>
                         <field name="sequence">4</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_output_vat_sales" model="account.tax.report.line">
                 <field name="name">Block B – Utgående moms på försäljning eller uttag i fält 05–08</field>
                 <field name="code">se_b</field>
@@ -46,20 +51,24 @@
                         <field name="tag_name">se_10</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_11" model="account.tax.report.line">
                         <field name="name">Fält 11 – Utgående moms 12 %</field>
                         <field name="code">se_11</field>
                         <field name="tag_name">se_11</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_12" model="account.tax.report.line">
                         <field name="name">Fält 12 – Utgående moms 6 %</field>
                         <field name="code">se_12</field>
                         <field name="tag_name">se_12</field>
                         <field name="sequence">3</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_purchases" model="account.tax.report.line">
                 <field name="name">Block C – Momspliktiga inköp vid omvänd skattskyldighet</field>
                 <field name="code">se_c</field>
@@ -71,32 +80,38 @@
                         <field name="tag_name">se_20</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_21" model="account.tax.report.line">
                         <field name="name">Fält 21 – Inköp av tjänster från ett annat EU-land, enligt huvudregeln</field>
                         <field name="code">se_21</field>
                         <field name="tag_name">se_21</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_22" model="account.tax.report.line">
                         <field name="name">Fält 22 – Inköp av tjänster från länder utanför EU</field>
                         <field name="code">se_22</field>
                         <field name="tag_name">se_22</field>
                         <field name="sequence">3</field>
                     </record>
+
                     <record id="tax_report_line_23" model="account.tax.report.line">
                         <field name="name">Fält 23 – Inköp av varor i Sverige</field>
                         <field name="code">se_23</field>
                         <field name="tag_name">se_23</field>
                         <field name="sequence">3</field>
                     </record>
+
                     <record id="tax_report_line_24" model="account.tax.report.line">
                         <field name="name">Fält 24 – Övriga inköp av tjänster</field>
                         <field name="code">se_24</field>
                         <field name="tag_name">se_24</field>
                         <field name="sequence">4</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_output_vat_purchases" model="account.tax.report.line">
                 <field name="name">Block D – Utgående moms på inköp i fält 20–24</field>
                 <field name="code">se_d</field>
@@ -108,20 +123,24 @@
                         <field name="tag_name">se_30</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_31" model="account.tax.report.line">
                         <field name="name">Fält 31 – Utgående moms 12 %</field>
                         <field name="code">se_31</field>
                         <field name="tag_name">se_31</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_32" model="account.tax.report.line">
                         <field name="name">Fält 32 – Utgående moms 6 %</field>
                         <field name="code">se_32</field>
                         <field name="tag_name">se_32</field>
                         <field name="sequence">3</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_imports" model="account.tax.report.line">
                 <field name="name">Block H - moms vid import</field>
                 <field name="code">se_h</field>
@@ -133,8 +152,10 @@
                         <field name="tag_name">se_50</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_output_vat_imports" model="account.tax.report.line">
                 <field name="name">Block I - Utgående moms på import i fält 50</field>
                 <field name="code">se_i</field>
@@ -146,20 +167,24 @@
                         <field name="tag_name">se_60</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_61" model="account.tax.report.line">
                         <field name="name">Fält 61 – Utgående moms 12 %</field>
                         <field name="code">se_61</field>
                         <field name="tag_name">se_61</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_62" model="account.tax.report.line">
                         <field name="name">Fält 62 – Utgående moms 6 %</field>
                         <field name="code">se_62</field>
                         <field name="tag_name">se_62</field>
                         <field name="sequence">3</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_exempt_sales" model="account.tax.report.line">
                 <field name="name">Block E – Försäljning m.m. som är undantagen från moms</field>
                 <field name="code">se_e</field>
@@ -171,24 +196,28 @@
                         <field name="tag_name">se_35</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_36" model="account.tax.report.line">
                         <field name="name">Fält 36 – Försäljning av varor utanför EU</field>
                         <field name="code">se_36</field>
                         <field name="tag_name">se_36</field>
                         <field name="sequence">2</field>
                     </record>
+
                     <record id="tax_report_line_37" model="account.tax.report.line">
                         <field name="name">Fält 37 – Mellanmans inköp av varor vid trepartshandel</field>
                         <field name="code">se_37</field>
                         <field name="tag_name">se_37</field>
                         <field name="sequence">3</field>
                     </record>
+
                     <record id="tax_report_line_38" model="account.tax.report.line">
                         <field name="name">Fält 38 – Mellanmans försäljning av varor vid trepartshandel</field>
                         <field name="code">se_38</field>
                         <field name="tag_name">se_38</field>
                         <field name="sequence">4</field>
                     </record>
+
                     <record id="tax_report_line_39" model="account.tax.report.line">
                         <field name="name">Fält 39 – Försäljning av tjänster till en beskattningsbar person (näringsidkare) i ett
                 annat EU-land, enligt huvudregeln
@@ -197,26 +226,31 @@
                         <field name="tag_name">se_39</field>
                         <field name="sequence">5</field>
                     </record>
+
                     <record id="tax_report_line_40" model="account.tax.report.line">
                         <field name="name">Fält 40 – Övrig försäljning av tjänster omsatta utanför Sverige</field>
                         <field name="code">se_40</field>
                         <field name="tag_name">se_40</field>
                         <field name="sequence">6</field>
                     </record>
+
                     <record id="tax_report_line_41" model="account.tax.report.line">
                         <field name="name">Fält 41 – Försäljning när köparen är skattskyldig i Sverige</field>
                         <field name="code">se_41</field>
                         <field name="tag_name">se_41</field>
                         <field name="sequence">7</field>
                     </record>
+
                     <record id="tax_report_line_42" model="account.tax.report.line">
                         <field name="name">Fält 42 – Övrig försäljning m.m.</field>
                         <field name="code">se_42</field>
                         <field name="tag_name">se_42</field>
                         <field name="sequence">8</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_input_vat" model="account.tax.report.line">
                 <field name="name">Block F – Ingående moms</field>
                 <field name="code">se_f</field>
@@ -228,8 +262,10 @@
                         <field name="tag_name">se_48</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_title_vat_debt_credit" model="account.tax.report.line">
                 <field name="name">Block G – Moms att betala eller få tillbaka</field>
                 <field name="code">se_g</field>
@@ -242,8 +278,11 @@
                         <field name="formula">se_b+se_i+se_d+se_f</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>

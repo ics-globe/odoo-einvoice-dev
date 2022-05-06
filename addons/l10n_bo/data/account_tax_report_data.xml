@@ -8,6 +8,7 @@
                 <field name="name">Impuesto a las Utilidades de la Empresa IUE (25%)</field>
                 <field name="sequence" eval="1"/>
             </record>
+
             <record id="tax_report_impuesto_trans" model="account.tax.report.line">
                 <field name="name">Impuesto a las Transacciones IT (3%)</field>
                 <field name="sequence" eval="2"/>
@@ -17,8 +18,10 @@
                         <field name="tag_name">Impuesto a las Transacciones IT (3%)</field>
                         <field name="sequence" eval="1"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_impuesto_ttl" model="account.tax.report.line">
                 <field name="name">Impuesto al Valor Agregado (IVA) Total a Pagar</field>
                 <field name="sequence" eval="3"/>
@@ -31,17 +34,21 @@
                                 <field name="name">Impuesto Cobrado Fuera de Ámbito</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                             <record id="tax_report_impuesto_ttl_cob_exon" model="account.tax.report.line">
                                 <field name="name">Impuesto Cobrado de Exonerados al IVA</field>
                                 <field name="sequence" eval="2"/>
                             </record>
+
                             <record id="tax_report_impuesto_ttl_cob_iva" model="account.tax.report.line">
                                 <field name="name">Impuesto Cobrado IVA</field>
                                 <field name="tag_name">Impuesto Cobrado IVA</field>
                                 <field name="sequence" eval="3"/>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_impuesto_ttl_pag" model="account.tax.report.line">
                         <field name="name">Impuesto Pagado</field>
                         <field name="sequence" eval="2"/>
@@ -50,19 +57,24 @@
                                 <field name="name">Impuesto Pagado Fuera de Ámbito</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                             <record id="tax_report_impuesto_ttl_pag_exon" model="account.tax.report.line">
                                 <field name="name">Impuesto Pagado de Exonerados al IVA</field>
                                 <field name="sequence" eval="2"/>
                             </record>
+
                             <record id="tax_report_impuesto_ttl_pag_iva" model="account.tax.report.line">
                                 <field name="name">Impuesto Pagado IVA</field>
                                 <field name="tag_name">Impuesto Pagado IVA</field>
                                 <field name="sequence" eval="3"/>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_base_imponible" model="account.tax.report.line">
                 <field name="name">Base Imponible</field>
                 <field name="sequence" eval="4"/>
@@ -75,17 +87,21 @@
                                 <field name="name">Compras Gravadas Fuera de Ámbito</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                             <record id="tax_report_base_imponible_compras_gravadas" model="account.tax.report.line">
                                 <field name="name">Compras NO Gravadas (Exoneradas)</field>
                                 <field name="sequence" eval="2"/>
                             </record>
+
                             <record id="tax_report_base_imponible_compras_iva" model="account.tax.report.line">
                                 <field name="name">Compras Gravadas con IVA</field>
                                 <field name="tag_name">Compras Gravadas con IVA</field>
                                 <field name="sequence" eval="3"/>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_base_imponible_venras" model="account.tax.report.line">
                         <field name="name">Base Imponible - Ventas</field>
                         <field name="sequence" eval="2"/>
@@ -94,19 +110,25 @@
                                 <field name="name">Ventas Gravadas Fuera de Ámbito</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                             <record id="tax_report_base_imponible_venras_exon" model="account.tax.report.line">
                                 <field name="name">Ventas NO Gravadas (Exoneradas)</field>
                                 <field name="sequence" eval="2"/>
                             </record>
+
                             <record id="tax_report_base_imponible_venras_iva" model="account.tax.report.line">
                                 <field name="name">Impuesto al Valor Agregado con IVA</field>
                                 <field name="tag_name">Impuesto al Valor Agregado con IVA</field>
                                 <field name="sequence" eval="3"/>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>

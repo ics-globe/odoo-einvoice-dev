@@ -14,14 +14,17 @@
                         <field name="code">NOTAX_01</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_2" model="account.tax.report.line">
                         <field name="name">Post 2 Samlet omsetning og uttak innenfor merverdiavgiftloven og innførsel</field>
                         <field name="formula">NOTAX_03+NOTAX_04+NOTAX_05+NOTAX_06+NOTAX_07+NOTAX_08</field>
                         <field name="code">NOTAX_02</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_innenlands_omsetning" model="account.tax.report.line">
                 <field name="name">B. Innenlands omsetning og uttak</field>
                 <field name="sequence" eval="2"/>
@@ -32,50 +35,59 @@
                         <field name="code">NOTAX_03</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_3_tax" model="account.tax.report.line">
                         <field name="name">Post 3 Innenlands omsetning og uttak, og beregnet avgift 25 % Tax</field>
                         <field name="tag_name">Post 3 Tax</field>
                         <field name="code">NOTAX_03_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_4" model="account.tax.report.line">
                         <field name="name">Post 4 Innenlands omsetning og uttak, og beregnet avgift 15 %</field>
                         <field name="tag_name">Post 4 Base</field>
                         <field name="code">NOTAX_04</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_4_tax" model="account.tax.report.line">
                         <field name="name">Post 4 Innenlands omsetning og uttak, og beregnet avgift 15 % Tax</field>
                         <field name="tag_name">Post 4 Tax</field>
                         <field name="code">NOTAX_04_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_5" model="account.tax.report.line">
                         <field name="name">Post 5 Innenlands omsetning og uttak, og beregnet avgift 12 %</field>
                         <field name="tag_name">Post 5 Base</field>
                         <field name="code">NOTAX_05</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_5_tax" model="account.tax.report.line">
                         <field name="name">Post 5 Innenlands omsetning og uttak, og beregnet avgift 12 % Tax</field>
                         <field name="tag_name">Post 5 Tax</field>
                         <field name="code">NOTAX_05_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_6" model="account.tax.report.line">
                         <field name="name">Post 6 Innenlands omsetning og uttak fritatt for merverdiavgift</field>
                         <field name="tag_name">Post 6</field>
                         <field name="code">NOTAX_06</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_7" model="account.tax.report.line">
                         <field name="name">Post 7 Innenlands omsetning med omvendt avgiftsplikt</field>
                         <field name="tag_name">Post 7</field>
                         <field name="code">NOTAX_07</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_utforsel" model="account.tax.report.line">
                 <field name="name">C. Utførsel</field>
                 <field name="sequence" eval="3"/>
@@ -86,8 +98,10 @@
                         <field name="code">NOTAX_08</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_innforsel_av_varer" model="account.tax.report.line">
                 <field name="name">D. Innførsel av varer</field>
                 <field name="sequence" eval="4"/>
@@ -98,32 +112,38 @@
                         <field name="code">NOTAX_09</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_9_tax" model="account.tax.report.line">
                         <field name="name">Post 9 Innførsel av varer, og beregnet avgift 25 % Tax</field>
                         <field name="tag_name">Post 9 Tax</field>
                         <field name="code">NOTAX_09_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_10" model="account.tax.report.line">
                         <field name="name">Post 10 Innførsel av varer, og beregnet avgift 15 %</field>
                         <field name="tag_name">Post 10 Base</field>
                         <field name="code">NOTAX_10</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_10_tax" model="account.tax.report.line">
                         <field name="name">Post 10 Innførsel av varer, og beregnet avgift 15 % Tax</field>
                         <field name="tag_name">Post 10 Tax</field>
                         <field name="code">NOTAX_10_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_11" model="account.tax.report.line">
                         <field name="name">Post 11 Innførsel av varer som det ikke skal beregnes merverdiavgift av</field>
                         <field name="tag_name">Post 11</field>
                         <field name="code">NOTAX_11</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_kjop_med_omvendt_avgiftsplikt" model="account.tax.report.line">
                 <field name="name">E. Kjøp med omvendt avgiftsplikt</field>
                 <field name="sequence" eval="5"/>
@@ -134,26 +154,31 @@
                         <field name="code">NOTAX_12</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_12_tax" model="account.tax.report.line">
                         <field name="name">Post 12 Tjenester kjøpt fra utlandet, og beregnet avgift 25 % Tax</field>
                         <field name="tag_name">Post 12 Tax</field>
                         <field name="code">NOTAX_12_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_13" model="account.tax.report.line">
                         <field name="name">Post 13 Innenlands kjøp av varer og tjenester, og beregnet avgift 25 %</field>
                         <field name="tag_name">Post 13 Base</field>
                         <field name="code">NOTAX_13</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_13_tax" model="account.tax.report.line">
                         <field name="name">Post 13 Innenlands kjøp av varer og tjenester, og beregnet avgift 25 % Tax</field>
                         <field name="tag_name">Post 13 Tax</field>
                         <field name="code">NOTAX_13_1</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_fradragsberettigen_innenlands" model="account.tax.report.line">
                 <field name="name">F. Fradragsberettiget innenlands inngående avgift</field>
                 <field name="sequence" eval="6"/>
@@ -164,20 +189,24 @@
                         <field name="code">NOTAX_14</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_15" model="account.tax.report.line">
                         <field name="name">Post 15 Fradragsberettiget innenlands inngående avgift 15 %</field>
                         <field name="tag_name">Post 15</field>
                         <field name="code">NOTAX_15</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_16" model="account.tax.report.line">
                         <field name="name">Post 16 Fradragsberettiget innenlands inngående avgift 12 %</field>
                         <field name="tag_name">Post 16</field>
                         <field name="code">NOTAX_16</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_fradragsberettiget_innforselsmerverdiavgift" model="account.tax.report.line">
                 <field name="name">G. Fradragsberettiget innførselsmerverdiavgift</field>
                 <field name="sequence" eval="7"/>
@@ -188,14 +217,17 @@
                         <field name="code">NOTAX_17</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                     <record id="account_tax_report_line_post_18" model="account.tax.report.line">
                         <field name="name">Post 18 Fradragsberettiget innførselsmerverdiavgift 15 %</field>
                         <field name="tag_name">Post 18</field>
                         <field name="code">NOTAX_18</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_sum" model="account.tax.report.line">
                 <field name="name">H. Sum</field>
                 <field name="sequence" eval="8"/>
@@ -206,8 +238,11 @@
                         <field name="code">NOTAX_19</field>
                         <field name="sequence" eval="0"/>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>

@@ -20,10 +20,13 @@
                                 <field name="code">GRTAX_303</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_358" model="account.tax.report.line">
                 <field name="name">358 Σύνολο φορολ. Εισροών</field>
                 <field name="code">GRTAX_358</field>
@@ -35,14 +38,17 @@
                         <field name="code">GRTAX_353</field>
                         <field name="sequence" eval="1"/>
                     </record>
+
                     <record id="account_tax_report_line_357" model="account.tax.report.line">
                         <field name="name">357 Δαπάνες/Έξοδα φορολ.</field>
                         <field name="tag_name">357 Δαπάνες/Έξοδα φορολ.</field>
                         <field name="code">GRTAX_357</field>
                         <field name="sequence" eval="2"/>
                     </record>
+
                 </field>
             </record>
+
             <record id="account_tax_report_line_501-511" model="account.tax.report.line">
                 <field name="name">501-511 Υπόλοιπο ΦΠΑ</field>
                 <field name="sequence" eval="3"/>
@@ -58,8 +64,10 @@
                                 <field name="code">GRTAX_333</field>
                                 <field name="sequence" eval="1"/>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="account_tax_report_line_420" model="account.tax.report.line">
                         <field name="name">420 ΦΠΑ Αγορών</field>
                         <field name="sequence" eval="2"/>
@@ -76,18 +84,24 @@
                                         <field name="code">GRTAX_373</field>
                                         <field name="sequence" eval="1"/>
                                     </record>
+
                                     <record id="account_tax_report_line_377" model="account.tax.report.line">
                                         <field name="name">377 ΦΠΑ Δαπανών</field>
                                         <field name="tag_name">377 ΦΠΑ Δαπανών</field>
                                         <field name="code">GRTAX_377</field>
                                         <field name="sequence" eval="2"/>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>

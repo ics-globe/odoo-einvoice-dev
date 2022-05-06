@@ -20,20 +20,24 @@
                                 <field name="tag_name">401 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_411" model="account.tax.report.line">
                                 <field name="name">Valor neto(411)</field>
                                 <field name="code">c411</field>
                                 <field name="tag_name">411 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_421" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(421)</field>
                                 <field name="code">c421</field>
                                 <field name="tag_name">421 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_6" model="account.tax.report.line">
                         <field name="name">Ventas de activos fijos gravadas tarifa diferente de cero</field>
                         <field name="sequence">1</field>
@@ -45,20 +49,24 @@
                                 <field name="tag_name">402 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_412" model="account.tax.report.line">
                                 <field name="name">Valor neto(412)</field>
                                 <field name="code">c412</field>
                                 <field name="tag_name">412 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_422" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(422)</field>
                                 <field name="code">c422</field>
                                 <field name="tag_name">422 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_10" model="account.tax.report.line">
                         <field name="name">IVA generado en la diferencia entre ventas y notas de crédito con distinta tarifa (ajuste
                 a pagar)
@@ -72,8 +80,10 @@
                                 <field name="tag_name">423 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_12" model="account.tax.report.line">
                         <field name="name">IVA generado en la diferencia entre ventas y notas de crédito con distinta tarifa (ajuste
                 a favor)
@@ -87,8 +97,10 @@
                                 <field name="tag_name">424 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_14" model="account.tax.report.line">
                         <field name="name">Ventas locales (excluye activos fijos) gravadas tarifa 0% que no dan derecho a crédito
                 tributario
@@ -102,14 +114,17 @@
                                 <field name="tag_name">403 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_413" model="account.tax.report.line">
                                 <field name="name">Valor neto(413)</field>
                                 <field name="code">c413</field>
                                 <field name="tag_name">413 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_17" model="account.tax.report.line">
                         <field name="name">Ventas de activos fijos gravadas tarifa 0% que no dan derecho a crédito tributario
             </field>
@@ -122,14 +137,17 @@
                                 <field name="tag_name">404 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_414" model="account.tax.report.line">
                                 <field name="name">Valor neto(414)</field>
                                 <field name="code">c414</field>
                                 <field name="tag_name">414 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_20" model="account.tax.report.line">
                         <field name="name">Ventas locales (excluye activos fijos) gravadas tarifa 0% que dan derecho a crédito
                 tributario
@@ -143,14 +161,17 @@
                                 <field name="tag_name">405 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_415" model="account.tax.report.line">
                                 <field name="name">Valor neto(415)</field>
                                 <field name="code">c415</field>
                                 <field name="tag_name">415 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_23" model="account.tax.report.line">
                         <field name="name">Ventas de activos fijos gravadas tarifa 0% que dan derecho a crédito tributario</field>
                         <field name="sequence">1</field>
@@ -162,14 +183,17 @@
                                 <field name="tag_name">406 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_416" model="account.tax.report.line">
                                 <field name="name">Valor neto(416)</field>
                                 <field name="code">c416</field>
                                 <field name="tag_name">416 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_26" model="account.tax.report.line">
                         <field name="name">Exportaciones de bienes</field>
                         <field name="sequence">1</field>
@@ -181,14 +205,17 @@
                                 <field name="tag_name">407 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_417" model="account.tax.report.line">
                                 <field name="name">Valor neto(417)</field>
                                 <field name="code">c417</field>
                                 <field name="tag_name">417 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_29" model="account.tax.report.line">
                         <field name="name">Exportaciones de servicios y/o derechos</field>
                         <field name="sequence">1</field>
@@ -200,14 +227,17 @@
                                 <field name="tag_name">408 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_418" model="account.tax.report.line">
                                 <field name="name">Valor neto(418)</field>
                                 <field name="code">c418</field>
                                 <field name="tag_name">418 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_32" model="account.tax.report.line">
                         <field name="name">TOTAL VENTAS Y OTRAS OPERACIONES</field>
                         <field name="sequence">1</field>
@@ -219,20 +249,24 @@
                                 <field name="tag_name">409 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_419" model="account.tax.report.line">
                                 <field name="name">Valor neto(419)</field>
                                 <field name="code">c419</field>
                                 <field name="tag_name">419 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_429" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(429)</field>
                                 <field name="code">c429</field>
                                 <field name="tag_name">429 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_36" model="account.tax.report.line">
                         <field name="name">Transferencias no objeto o exentas de IVA</field>
                         <field name="sequence">1</field>
@@ -244,14 +278,17 @@
                                 <field name="tag_name">431 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_441" model="account.tax.report.line">
                                 <field name="name">Valor neto(441)</field>
                                 <field name="code">c441</field>
                                 <field name="tag_name">441 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_39" model="account.tax.report.line">
                         <field name="name">Notas de crédito tarifa 0% por compensar próximo mes</field>
                         <field name="sequence">1</field>
@@ -263,8 +300,10 @@
                                 <field name="tag_name">442 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_41" model="account.tax.report.line">
                         <field name="name">Notas de crédito tarifa diferente de cero por compensar próximo mes</field>
                         <field name="sequence">1</field>
@@ -276,14 +315,17 @@
                                 <field name="tag_name">443 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_453" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(453)</field>
                                 <field name="code">c453</field>
                                 <field name="tag_name">453 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_44" model="account.tax.report.line">
                         <field name="name">Ingresos por reembolso como intermediario / valores facturados por operadoras de
                 transporte (informativo)
@@ -297,22 +339,27 @@
                                 <field name="tag_name">434 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_444" model="account.tax.report.line">
                                 <field name="name">Valor neto(444)</field>
                                 <field name="code">c444</field>
                                 <field name="tag_name">444 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_454" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(454)</field>
                                 <field name="code">c454</field>
                                 <field name="tag_name">454 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_48" model="account.tax.report.line">
                 <field name="name">LIQUIDACIÓN DEL IVA EN EL MES</field>
                 <field name="sequence">1</field>
@@ -324,44 +371,52 @@
                         <field name="tag_name">480 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_481" model="account.tax.report.line">
                         <field name="name">Total transferencias gravadas tarifa diferente de cero a crédito este mes(481)</field>
                         <field name="code">c481</field>
                         <field name="tag_name">481 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_482" model="account.tax.report.line">
                         <field name="name">Total impuesto generado(482)</field>
                         <field name="code">c482</field>
                         <field name="tag_name">482 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_483" model="account.tax.report.line">
                         <field name="name">Impuesto a liquidar del mes anterior(483)</field>
                         <field name="code">c483</field>
                         <field name="tag_name">483 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_484" model="account.tax.report.line">
                         <field name="name">Impuesto a liquidar en este mes(484)</field>
                         <field name="code">c484</field>
                         <field name="tag_name">484 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_495" model="account.tax.report.line">
                         <field name="name">Impuesto a liquidar en el próximo mes(495)</field>
                         <field name="code">c495</field>
                         <field name="tag_name">495 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_499" model="account.tax.report.line">
                         <field name="name">TOTAL IMPUESTO A LIQUIDAR EN ESTE MES(499)</field>
                         <field name="code">c499</field>
                         <field name="tag_name">499 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_56" model="account.tax.report.line">
                 <field name="name">RESUMEN DE ADQUISICIONES Y PAGOS DEL PERÍODO QUE DECLARA</field>
                 <field name="sequence">1</field>
@@ -380,20 +435,24 @@
                                 <field name="tag_name">500 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_510" model="account.tax.report.line">
                                 <field name="name">Valor neto(510)</field>
                                 <field name="code">c510</field>
                                 <field name="tag_name">510 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_520" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(520)</field>
                                 <field name="code">c520</field>
                                 <field name="tag_name">520 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_61" model="account.tax.report.line">
                         <field name="name">Adquisiciones locales de activos fijos gravados tarifa diferente de cero (con derecho a
                 crédito tributario)
@@ -407,20 +466,24 @@
                                 <field name="tag_name">501 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_511" model="account.tax.report.line">
                                 <field name="name">Valor neto(511)</field>
                                 <field name="code">c511</field>
                                 <field name="tag_name">511 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_521" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(521)</field>
                                 <field name="code">c521</field>
                                 <field name="tag_name">521 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_65" model="account.tax.report.line">
                         <field name="name">Otras adquisiciones y pagos gravados tarifa diferente de cero (sin derecho a crédito
                 tributario)
@@ -434,20 +497,24 @@
                                 <field name="tag_name">502 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_512" model="account.tax.report.line">
                                 <field name="name">Valor neto(512)</field>
                                 <field name="code">c512</field>
                                 <field name="tag_name">512 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_522" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(522)</field>
                                 <field name="code">c522</field>
                                 <field name="tag_name">522 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_69" model="account.tax.report.line">
                         <field name="name">Importaciones de servicios y/o derechos gravados tarifa diferente de cero</field>
                         <field name="sequence">1</field>
@@ -459,20 +526,24 @@
                                 <field name="tag_name">503 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_513" model="account.tax.report.line">
                                 <field name="name">Valor neto(513)</field>
                                 <field name="code">c513</field>
                                 <field name="tag_name">513 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_523" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(523)</field>
                                 <field name="code">c523</field>
                                 <field name="tag_name">523 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_73" model="account.tax.report.line">
                         <field name="name">Importaciones de bienes (excluye activos fijos) gravados tarifa diferente de cero</field>
                         <field name="sequence">1</field>
@@ -484,20 +555,24 @@
                                 <field name="tag_name">504 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_514" model="account.tax.report.line">
                                 <field name="name">Valor neto(514)</field>
                                 <field name="code">c514</field>
                                 <field name="tag_name">514 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_524" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(524)</field>
                                 <field name="code">c524</field>
                                 <field name="tag_name">524 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_77" model="account.tax.report.line">
                         <field name="name">Importaciones de activos fijos gravados tarifa diferente de cero</field>
                         <field name="sequence">1</field>
@@ -509,20 +584,24 @@
                                 <field name="tag_name">505 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_515" model="account.tax.report.line">
                                 <field name="name">Valor neto(515)</field>
                                 <field name="code">c515</field>
                                 <field name="tag_name">515 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_525" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(525)</field>
                                 <field name="code">c525</field>
                                 <field name="tag_name">525 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_81" model="account.tax.report.line">
                         <field name="name">IVA generado en la diferencia entre adquisiciones y notas de crédito con distinta tarifa
                 (ajuste en positivo al crédito tributario)
@@ -536,8 +615,10 @@
                                 <field name="tag_name">526 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_83" model="account.tax.report.line">
                         <field name="name">IVA generado en la diferencia entre adquisiciones y notas de crédito con distinta tarifa
                 (ajuste en negativo al crédito tributario)
@@ -551,8 +632,10 @@
                                 <field name="tag_name">527 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_85" model="account.tax.report.line">
                         <field name="name">Importaciones de bienes (incluye activos fijos) gravados tarifa 0%</field>
                         <field name="sequence">1</field>
@@ -564,14 +647,17 @@
                                 <field name="tag_name">506 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_516" model="account.tax.report.line">
                                 <field name="name">Valor neto(516)</field>
                                 <field name="code">c516</field>
                                 <field name="tag_name">516 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_88" model="account.tax.report.line">
                         <field name="name">Adquisiciones y pagos (incluye activos fijos) gravados tarifa 0%</field>
                         <field name="sequence">1</field>
@@ -583,14 +669,17 @@
                                 <field name="tag_name">507 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_517" model="account.tax.report.line">
                                 <field name="name">Valor neto(517)</field>
                                 <field name="code">c517</field>
                                 <field name="tag_name">517 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_91" model="account.tax.report.line">
                         <field name="name">Adquisiciones realizadas a contribuyentes RISE</field>
                         <field name="sequence">1</field>
@@ -602,14 +691,17 @@
                                 <field name="tag_name">508 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_518" model="account.tax.report.line">
                                 <field name="name">Valor neto(518)</field>
                                 <field name="code">c518</field>
                                 <field name="tag_name">518 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_94" model="account.tax.report.line">
                         <field name="name">TOTAL ADQUISICIONES Y PAGOS</field>
                         <field name="sequence">1</field>
@@ -621,20 +713,24 @@
                                 <field name="tag_name">509 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_519" model="account.tax.report.line">
                                 <field name="name">Valor neto(519)</field>
                                 <field name="code">c519</field>
                                 <field name="tag_name">519 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_529" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(529)</field>
                                 <field name="code">c529</field>
                                 <field name="tag_name">529 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_98" model="account.tax.report.line">
                         <field name="name">Adquisiciones no objeto de IVA</field>
                         <field name="sequence">1</field>
@@ -646,14 +742,17 @@
                                 <field name="tag_name">531 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_541" model="account.tax.report.line">
                                 <field name="name">Valor neto(541)</field>
                                 <field name="code">c541</field>
                                 <field name="tag_name">541 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_101" model="account.tax.report.line">
                         <field name="name">Adquisiciones exentas del pago de IVA</field>
                         <field name="sequence">1</field>
@@ -665,14 +764,17 @@
                                 <field name="tag_name">532 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_542" model="account.tax.report.line">
                                 <field name="name">Valor neto(542)</field>
                                 <field name="code">c542</field>
                                 <field name="tag_name">542 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_104" model="account.tax.report.line">
                         <field name="name">Notas de crédito tarifa 0% por compensar próximo mes</field>
                         <field name="sequence">1</field>
@@ -684,8 +786,10 @@
                                 <field name="tag_name">543 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_106" model="account.tax.report.line">
                         <field name="name">Notas de crédito tarifa diferente de cero por compensar próximo mes</field>
                         <field name="sequence">1</field>
@@ -697,14 +801,17 @@
                                 <field name="tag_name">544 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_554" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(554)</field>
                                 <field name="code">c554</field>
                                 <field name="tag_name">554 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_109" model="account.tax.report.line">
                         <field name="name">Pagos netos por reembolso como intermediario / valores facturados por socios a operadoras
                 de transporte (informativo)
@@ -718,22 +825,27 @@
                                 <field name="tag_name">535 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_545" model="account.tax.report.line">
                                 <field name="name">Valor neto(545)</field>
                                 <field name="code">c545</field>
                                 <field name="tag_name">545 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_555" model="account.tax.report.line">
                                 <field name="name">Impuesto generado(555)</field>
                                 <field name="code">c555</field>
                                 <field name="tag_name">555 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_113" model="account.tax.report.line">
                 <field name="name">RESUMEN IMPOSITIVO: AGENTE DE PERCEPCIÓN DEL IMPUESTO AL VALOR AGREGADO</field>
                 <field name="sequence">1</field>
@@ -745,6 +857,7 @@
                         <field name="tag_name">601 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_602" model="account.tax.report.line">
                         <field name="name">Crédito tributario aplicable en este período (si la diferencia de los campos 499-564 es
                 menor que cero)(602)
@@ -753,6 +866,7 @@
                         <field name="tag_name">602 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_604" model="account.tax.report.line">
                         <field name="name">(-) Compensación de IVA por ventas efectuadas en zonas afectadas - Ley de solidaridad,
                 restitución de crédito tributario en resoluciones(604)
@@ -761,6 +875,7 @@
                         <field name="tag_name">604 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_117" model="account.tax.report.line">
                         <field name="name">(-) Saldo crédito tributario del mes anterior</field>
                         <field name="sequence">1</field>
@@ -774,6 +889,7 @@
                                 <field name="tag_name">605 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_606" model="account.tax.report.line">
                                 <field name="name">Por retenciones en la fuente de IVA que le han sido efectuadas (trasládese el campo 617
                 de la declaración del período anterior)(606)
@@ -782,6 +898,7 @@
                                 <field name="tag_name">606 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_608" model="account.tax.report.line">
                                 <field name="name">Por compensación de IVA por ventas efectuadas en zonas afectadas - Ley de solidaridad
                 (trasládese el campo 619 de la declaración del período anterior)(608)
@@ -790,8 +907,10 @@
                                 <field name="tag_name">608 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_104_609" model="account.tax.report.line">
                         <field name="name">(-) Retenciones en la fuente de IVA que le han sido efectuadas en este período(609)
             </field>
@@ -799,6 +918,7 @@
                         <field name="tag_name">609 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_610" model="account.tax.report.line">
                         <field name="name">(+) Ajuste por IVA devuelto o descontado por adquisiciones efectuadas con medio
                 electrónico(610)
@@ -807,6 +927,7 @@
                         <field name="tag_name">610 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_612" model="account.tax.report.line">
                         <field name="name">(+) Ajuste por IVA devuelto e IVA rechazado (por concepto de devoluciones de IVA), ajuste
                 de IVA por procesos de control y otros (adquisiciones en importaciones), imputables al crédito
@@ -816,6 +937,7 @@
                         <field name="tag_name">612 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_613" model="account.tax.report.line">
                         <field name="name">(+) Ajuste por IVA devuelto e IVA rechazado, ajuste de IVA por procesos de control y
                 otros (por concepto retenciones en la fuente de IVA), imputables al crédito tributario(613)
@@ -824,6 +946,7 @@
                         <field name="tag_name">613 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_614" model="account.tax.report.line">
                         <field name="name">(+) Ajuste por IVA devuelto por otras instituciones del sector público imputable al
                 crédito tributario en el mes(614)
@@ -832,6 +955,7 @@
                         <field name="tag_name">614 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_126" model="account.tax.report.line">
                         <field name="name">Saldo crédito tributario para el próximo mes</field>
                         <field name="sequence">1</field>
@@ -843,12 +967,14 @@
                                 <field name="tag_name">615 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_617" model="account.tax.report.line">
                                 <field name="name">Por retenciones en la fuente de IVA que le han sido efectuadas(617)</field>
                                 <field name="code">c617</field>
                                 <field name="tag_name">617 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_619" model="account.tax.report.line">
                                 <field name="name">Por compensación de IVA por ventas efectuadas en zonas afectadas - Ley de solidaridad,
                 restitución de crédito tributario en resoluciones(619)
@@ -857,8 +983,10 @@
                                 <field name="tag_name">619 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_104_620" model="account.tax.report.line">
                         <field name="name">SUBTOTAL A PAGAR Si (601-602-603-604-605-606-607-608-609+610+611+612+613+614) &gt; 0(620)
             </field>
@@ -866,6 +994,7 @@
                         <field name="tag_name">620 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_621" model="account.tax.report.line">
                         <field name="name">IVA presuntivo de salas de juego (bingo mecánicos) y otros juegos de azar (aplica para
                 ejercicios anteriores al 2013)(621)
@@ -874,14 +1003,17 @@
                         <field name="tag_name">621 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_699" model="account.tax.report.line">
                         <field name="name">TOTAL IMPUESTO A PAGAR POR PERCEPCIÓN(699)</field>
                         <field name="code">c699</field>
                         <field name="tag_name">699 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_133" model="account.tax.report.line">
                 <field name="name">IMPUESTO A LA SALIDA DE DIVISAS A EFECTOS DE DEVOLUCIÓN A EXPORTADORES HABITUALES DE
                 BIENES
@@ -902,16 +1034,20 @@
                                 <field name="tag_name">700 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_104_701" model="account.tax.report.line">
                                 <field name="name">ISD pagado(701)</field>
                                 <field name="code">c701</field>
                                 <field name="tag_name">701 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_137" model="account.tax.report.line">
                 <field name="name">AGENTE DE RETENCIÓN DEL IMPUESTO AL VALOR AGREGADO</field>
                 <field name="sequence">1</field>
@@ -923,36 +1059,42 @@
                         <field name="tag_name">721 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_723" model="account.tax.report.line">
                         <field name="name">Retención del 20%(723)</field>
                         <field name="code">c723</field>
                         <field name="tag_name">723 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_725" model="account.tax.report.line">
                         <field name="name">Retención del 30%(725)</field>
                         <field name="code">c725</field>
                         <field name="tag_name">725 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_727" model="account.tax.report.line">
                         <field name="name">Retención del 50%(727)</field>
                         <field name="code">c727</field>
                         <field name="tag_name">727 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_729" model="account.tax.report.line">
                         <field name="name">Retención del 70%(729)</field>
                         <field name="code">c729</field>
                         <field name="tag_name">729 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_104_731" model="account.tax.report.line">
                         <field name="name">Retención del 100%(731)</field>
                         <field name="code">c731</field>
                         <field name="tag_name">731 (Reporte 104)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_144" model="account.tax.report.line">
                         <field name="name">TOTAL IMPUESTO RETENIDO</field>
                         <field name="sequence">1</field>
@@ -964,8 +1106,10 @@
                                 <field name="tag_name">799 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_146" model="account.tax.report.line">
                         <field name="name">Devolución provisional de IVA mediante compensación con retenciones efectuadas</field>
                         <field name="sequence">1</field>
@@ -977,8 +1121,10 @@
                                 <field name="tag_name">800 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_148" model="account.tax.report.line">
                         <field name="name">TOTAL IMPUESTO A PAGAR POR RETENCIÓN</field>
                         <field name="sequence">1</field>
@@ -990,12 +1136,16 @@
                                 <field name="tag_name">801 (Reporte 104)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
     <record id="tax_report_103" model="account.tax.report">
         <field name="name">103</field>
         <field name="country_id" ref="base.ec"/>
@@ -1016,12 +1166,14 @@
                                 <field name="tag_name">302 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_352" model="account.tax.report.line">
                                 <field name="name">Valor retenido(352)</field>
                                 <field name="code">c352</field>
                                 <field name="tag_name">352 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_154" model="account.tax.report.line">
                                 <field name="name">Servicios</field>
                                 <field name="sequence">1</field>
@@ -1038,14 +1190,17 @@
                                                 <field name="tag_name">303 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_353" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(353)</field>
                                                 <field name="code">c353</field>
                                                 <field name="tag_name">353 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_158" model="account.tax.report.line">
                                         <field name="name">Predomina el intelecto</field>
                                         <field name="sequence">1</field>
@@ -1057,14 +1212,17 @@
                                                 <field name="tag_name">304 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_354" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(354)</field>
                                                 <field name="code">c354</field>
                                                 <field name="tag_name">354 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_161" model="account.tax.report.line">
                                         <field name="name">Predomina la mano de obra</field>
                                         <field name="sequence">1</field>
@@ -1076,14 +1234,17 @@
                                                 <field name="tag_name">307 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_357" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(357)</field>
                                                 <field name="code">c357</field>
                                                 <field name="tag_name">357 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_164" model="account.tax.report.line">
                                         <field name="name">Utilización o aprovechamiento de la imagen o renombre</field>
                                         <field name="sequence">1</field>
@@ -1095,14 +1256,17 @@
                                                 <field name="tag_name">308 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_358" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(358)</field>
                                                 <field name="code">c358</field>
                                                 <field name="tag_name">358 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_167" model="account.tax.report.line">
                                         <field name="name">Publicidad y comunicación</field>
                                         <field name="sequence">1</field>
@@ -1114,14 +1278,17 @@
                                                 <field name="tag_name">309 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_359" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(359)</field>
                                                 <field name="code">c359</field>
                                                 <field name="tag_name">359 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_170" model="account.tax.report.line">
                                         <field name="name">Transporte privado de pasajeros o servicio público o privado de carga</field>
                                         <field name="sequence">1</field>
@@ -1133,16 +1300,20 @@
                                                 <field name="tag_name">310 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_360" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(360)</field>
                                                 <field name="code">c360</field>
                                                 <field name="tag_name">360 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_173" model="account.tax.report.line">
                                 <field name="name">A través de liquidaciones de compra (nivel cultural o rusticidad)</field>
                                 <field name="sequence">1</field>
@@ -1154,14 +1325,17 @@
                                         <field name="tag_name">311 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_361" model="account.tax.report.line">
                                         <field name="name">Valor retenido(361)</field>
                                         <field name="code">c361</field>
                                         <field name="tag_name">361 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_176" model="account.tax.report.line">
                                 <field name="name">Transferencia de bienes muebles de naturaleza corporal</field>
                                 <field name="sequence">1</field>
@@ -1173,14 +1347,17 @@
                                         <field name="tag_name">312 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_362" model="account.tax.report.line">
                                         <field name="name">Valor retenido(362)</field>
                                         <field name="code">c362</field>
                                         <field name="tag_name">362 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_179" model="account.tax.report.line">
                                 <field name="name">Compra de bienes de origen agrícola, avícola, pecuario, apícola, cunícula, bioacuático,
                 forestal y carnes en estado natural
@@ -1194,14 +1371,17 @@
                                         <field name="tag_name">3210 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_3620" model="account.tax.report.line">
                                         <field name="name">Valor retenido(3620)</field>
                                         <field name="code">c3620</field>
                                         <field name="tag_name">3620 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_182" model="account.tax.report.line">
                                 <field name="name">Por regalías, derechos de autor, marcas, patentes y similares</field>
                                 <field name="sequence">1</field>
@@ -1213,14 +1393,17 @@
                                         <field name="tag_name">314 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_364" model="account.tax.report.line">
                                         <field name="name">Valor retenido(364)</field>
                                         <field name="code">c364</field>
                                         <field name="tag_name">364 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_185" model="account.tax.report.line">
                                 <field name="name">Arrendamiento</field>
                                 <field name="sequence">1</field>
@@ -1237,14 +1420,17 @@
                                                 <field name="tag_name">319 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_369" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(369)</field>
                                                 <field name="code">c369</field>
                                                 <field name="tag_name">369 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                     <record id="tax_report_line_parent_line_report_189" model="account.tax.report.line">
                                         <field name="name">Bienes inmuebles</field>
                                         <field name="sequence">1</field>
@@ -1256,16 +1442,20 @@
                                                 <field name="tag_name">320 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                             <record id="tax_report_line_103_370" model="account.tax.report.line">
                                                 <field name="name">Valor retenido(370)</field>
                                                 <field name="code">c370</field>
                                                 <field name="tag_name">370 (Reporte 103)</field>
                                                 <field name="sequence">1</field>
                                             </record>
+
                                         </field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_192" model="account.tax.report.line">
                                 <field name="name">Seguros y reaseguros (primas y cesiones)</field>
                                 <field name="sequence">1</field>
@@ -1277,14 +1467,17 @@
                                         <field name="tag_name">322 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_372" model="account.tax.report.line">
                                         <field name="name">Valor retenido(372)</field>
                                         <field name="code">c372</field>
                                         <field name="tag_name">372 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_195" model="account.tax.report.line">
                                 <field name="name">Rendimientos financieros</field>
                                 <field name="sequence">1</field>
@@ -1296,14 +1489,17 @@
                                         <field name="tag_name">323 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_373" model="account.tax.report.line">
                                         <field name="name">Valor retenido(373)</field>
                                         <field name="code">c373</field>
                                         <field name="tag_name">373 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_198" model="account.tax.report.line">
                                 <field name="name">Rendimientos financieros entre instituciones del sistema financiero y entidades economía
                 popular y solidaria
@@ -1317,14 +1513,17 @@
                                         <field name="tag_name">324 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_374" model="account.tax.report.line">
                                         <field name="name">Valor retenido(374)</field>
                                         <field name="code">c374</field>
                                         <field name="tag_name">374 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_201" model="account.tax.report.line">
                                 <field name="name">Anticipo dividendos</field>
                                 <field name="sequence">1</field>
@@ -1336,14 +1535,17 @@
                                         <field name="tag_name">325 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_375" model="account.tax.report.line">
                                         <field name="name">Valor retenido(375)</field>
                                         <field name="code">c375</field>
                                         <field name="tag_name">375 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_204" model="account.tax.report.line">
                                 <field name="name">Dividendos distribuidos que correspondan al impuesto a la renta único establecido en el
                 art. 27 de la LRTI
@@ -1357,14 +1559,17 @@
                                         <field name="tag_name">326 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_376" model="account.tax.report.line">
                                         <field name="name">Valor retenido(376)</field>
                                         <field name="code">c376</field>
                                         <field name="tag_name">376 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_207" model="account.tax.report.line">
                                 <field name="name">Dividendos distribuidos a personas naturales residentes</field>
                                 <field name="sequence">1</field>
@@ -1376,14 +1581,17 @@
                                         <field name="tag_name">327 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_377" model="account.tax.report.line">
                                         <field name="name">Valor retenido(377)</field>
                                         <field name="code">c377</field>
                                         <field name="tag_name">377 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_210" model="account.tax.report.line">
                                 <field name="name">Dividendos distribuidos a sociedades residentes</field>
                                 <field name="sequence">1</field>
@@ -1395,14 +1603,17 @@
                                         <field name="tag_name">328 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_378" model="account.tax.report.line">
                                         <field name="name">Valor retenido(378)</field>
                                         <field name="code">c378</field>
                                         <field name="tag_name">378 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_213" model="account.tax.report.line">
                                 <field name="name">Dividendos distribuidos a fideicomisos residentes</field>
                                 <field name="sequence">1</field>
@@ -1414,14 +1625,17 @@
                                         <field name="tag_name">329 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_379" model="account.tax.report.line">
                                         <field name="name">Valor retenido(379)</field>
                                         <field name="code">c379</field>
                                         <field name="tag_name">379 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_216" model="account.tax.report.line">
                                 <field name="name">Dividendos en acciones (capitalización de utilidades)</field>
                                 <field name="sequence">1</field>
@@ -1433,8 +1647,10 @@
                                         <field name="tag_name">331 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_218" model="account.tax.report.line">
                                 <field name="name">Pagos de bienes y servicios no sujetos a retención</field>
                                 <field name="sequence">1</field>
@@ -1446,8 +1662,10 @@
                                         <field name="tag_name">332 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_220" model="account.tax.report.line">
                                 <field name="name">Enajenación de derechos representativos de capital y otros derechos cotizados en bolsa
                 ecuatoriana
@@ -1461,14 +1679,17 @@
                                         <field name="tag_name">333 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_383" model="account.tax.report.line">
                                         <field name="name">Valor retenido(383)</field>
                                         <field name="code">c383</field>
                                         <field name="tag_name">383 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_223" model="account.tax.report.line">
                                 <field name="name">Enajenación de derechos representativos de capital y otros derechos no cotizados en bolsa
                 ecuatoriana
@@ -1482,14 +1703,17 @@
                                         <field name="tag_name">334 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_384" model="account.tax.report.line">
                                         <field name="name">Valor retenido(384)</field>
                                         <field name="code">c384</field>
                                         <field name="tag_name">384 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_226" model="account.tax.report.line">
                                 <field name="name">Loterías, rifas, apuestas y similares</field>
                                 <field name="sequence">1</field>
@@ -1501,16 +1725,20 @@
                                         <field name="tag_name">335 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_385" model="account.tax.report.line">
                                         <field name="name">Valor retenido(385)</field>
                                         <field name="code">c385</field>
                                         <field name="tag_name">385 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_229" model="account.tax.report.line">
                         <field name="name">Venta de combustibles</field>
                         <field name="sequence">1</field>
@@ -1527,14 +1755,17 @@
                                         <field name="tag_name">336 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_386" model="account.tax.report.line">
                                         <field name="name">Valor retenido(386)</field>
                                         <field name="code">c386</field>
                                         <field name="tag_name">386 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_233" model="account.tax.report.line">
                                 <field name="name">A distribuidores</field>
                                 <field name="sequence">1</field>
@@ -1546,16 +1777,20 @@
                                         <field name="tag_name">337 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_387" model="account.tax.report.line">
                                         <field name="name">Valor retenido(387)</field>
                                         <field name="code">c387</field>
                                         <field name="tag_name">387 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_236" model="account.tax.report.line">
                         <field name="name">Producción y venta local de banano producido o no por el mismo sujeto pasivo</field>
                         <field name="sequence">1</field>
@@ -1567,14 +1802,17 @@
                                 <field name="tag_name">3380 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_3880" model="account.tax.report.line">
                                 <field name="name">Valor retenido(3880)</field>
                                 <field name="code">c3880</field>
                                 <field name="tag_name">3880 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_239" model="account.tax.report.line">
                         <field name="name">Impuesto único a la exportación de banano</field>
                         <field name="sequence">1</field>
@@ -1586,14 +1824,17 @@
                                 <field name="tag_name">3400 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_3900" model="account.tax.report.line">
                                 <field name="name">Valor retenido(3900)</field>
                                 <field name="code">c3900</field>
                                 <field name="tag_name">3900 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_242" model="account.tax.report.line">
                         <field name="name">Otras retenciones</field>
                         <field name="sequence">1</field>
@@ -1610,14 +1851,17 @@
                                         <field name="tag_name">343 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_393" model="account.tax.report.line">
                                         <field name="name">Valor retenido(393)</field>
                                         <field name="code">c393</field>
                                         <field name="tag_name">393 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_246" model="account.tax.report.line">
                                 <field name="name">Aplicables el 2%</field>
                                 <field name="sequence">1</field>
@@ -1629,14 +1873,17 @@
                                         <field name="tag_name">344 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_394" model="account.tax.report.line">
                                         <field name="name">Valor retenido(394)</field>
                                         <field name="code">c394</field>
                                         <field name="tag_name">394 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_249" model="account.tax.report.line">
                                 <field name="name">Aplicables el 2,75%</field>
                                 <field name="sequence">1</field>
@@ -1648,14 +1895,17 @@
                                         <field name="tag_name">3440 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_3940" model="account.tax.report.line">
                                         <field name="name">Valor retenido(3940)</field>
                                         <field name="code">c3940</field>
                                         <field name="tag_name">3940 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_252" model="account.tax.report.line">
                                 <field name="name">Aplicables el 8%</field>
                                 <field name="sequence">1</field>
@@ -1667,14 +1917,17 @@
                                         <field name="tag_name">345 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_395" model="account.tax.report.line">
                                         <field name="name">Valor retenido(395)</field>
                                         <field name="code">c395</field>
                                         <field name="tag_name">395 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_255" model="account.tax.report.line">
                                 <field name="name">Aplicables a otros porcentajes (incluye régimen Microempresarial)</field>
                                 <field name="sequence">1</field>
@@ -1686,16 +1939,20 @@
                                         <field name="tag_name">346 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_396" model="account.tax.report.line">
                                         <field name="name">Valor retenido(396)</field>
                                         <field name="code">c396</field>
                                         <field name="tag_name">396 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_258" model="account.tax.report.line">
                         <field name="name">Impuesto único a ingresos provenientes de actividades agropecuarias en etapa de
                 producción / comercialización local o exportación
@@ -1709,14 +1966,17 @@
                                 <field name="tag_name">348 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_398" model="account.tax.report.line">
                                 <field name="name">Valor retenido(398)</field>
                                 <field name="code">c398</field>
                                 <field name="tag_name">398 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_261" model="account.tax.report.line">
                         <field name="name">Otras autoretenciones</field>
                         <field name="sequence">1</field>
@@ -1728,14 +1988,17 @@
                                 <field name="tag_name">350 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_400" model="account.tax.report.line">
                                 <field name="name">Valor retenido(400)</field>
                                 <field name="code">c400</field>
                                 <field name="tag_name">400 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_264" model="account.tax.report.line">
                         <field name="name">SUBTOTAL OPERACIONES EFECTUADAS EN EL PAÍS</field>
                         <field name="sequence">1</field>
@@ -1747,16 +2010,20 @@
                                 <field name="tag_name">349 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                             <record id="tax_report_line_103_399" model="account.tax.report.line">
                                 <field name="name">Valor retenido(399)</field>
                                 <field name="code">c399</field>
                                 <field name="tag_name">399 (Reporte 103)</field>
                                 <field name="sequence">1</field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_267" model="account.tax.report.line">
                 <field name="name">POR PAGOS A NO RESIDENTES</field>
                 <field name="sequence">1</field>
@@ -1778,14 +2045,17 @@
                                         <field name="tag_name">402 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_452" model="account.tax.report.line">
                                         <field name="name">Valor retenido(452)</field>
                                         <field name="code">c452</field>
                                         <field name="tag_name">452 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_272" model="account.tax.report.line">
                                 <field name="name">Intereses de créditos</field>
                                 <field name="sequence">1</field>
@@ -1797,14 +2067,17 @@
                                         <field name="tag_name">403 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_453" model="account.tax.report.line">
                                         <field name="name">Valor retenido(453)</field>
                                         <field name="code">c453</field>
                                         <field name="tag_name">453 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_275" model="account.tax.report.line">
                                 <field name="name">Anticipo de dividendos</field>
                                 <field name="sequence">1</field>
@@ -1816,14 +2089,17 @@
                                         <field name="tag_name">404 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_454" model="account.tax.report.line">
                                         <field name="name">Valor retenido(454)</field>
                                         <field name="code">c454</field>
                                         <field name="tag_name">454 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_278" model="account.tax.report.line">
                                 <field name="name">Dividendos sin beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -1835,14 +2111,17 @@
                                         <field name="tag_name">4050 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4550" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4550)</field>
                                         <field name="code">c4550</field>
                                         <field name="tag_name">4550 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_281" model="account.tax.report.line">
                                 <field name="name">Dividendos con beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -1854,14 +2133,17 @@
                                         <field name="tag_name">4060 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4560" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4560)</field>
                                         <field name="code">c4560</field>
                                         <field name="tag_name">4560 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_284" model="account.tax.report.line">
                                 <field name="name">Dividendos incumpliendo el deber de informar la composición societaria</field>
                                 <field name="sequence">1</field>
@@ -1873,14 +2155,17 @@
                                         <field name="tag_name">4070 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4570" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4570)</field>
                                         <field name="code">c4570</field>
                                         <field name="tag_name">4570 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_287" model="account.tax.report.line">
                                 <field name="name">Enajenación de derechos representativos de capital y otros derechos</field>
                                 <field name="sequence">1</field>
@@ -1892,14 +2177,17 @@
                                         <field name="tag_name">408 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_458" model="account.tax.report.line">
                                         <field name="name">Valor retenido(458)</field>
                                         <field name="code">c458</field>
                                         <field name="tag_name">458 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_290" model="account.tax.report.line">
                                 <field name="name">Seguros y reaseguros (primas y cesiones)</field>
                                 <field name="sequence">1</field>
@@ -1911,14 +2199,17 @@
                                         <field name="tag_name">409 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_459" model="account.tax.report.line">
                                         <field name="name">Valor retenido(459)</field>
                                         <field name="code">c459</field>
                                         <field name="tag_name">459 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_293" model="account.tax.report.line">
                                 <field name="name">Servicios técnicos, administrativos o de consultoría y regalías</field>
                                 <field name="sequence">1</field>
@@ -1930,14 +2221,17 @@
                                         <field name="tag_name">410 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_460" model="account.tax.report.line">
                                         <field name="name">Valor retenido(460)</field>
                                         <field name="code">c460</field>
                                         <field name="tag_name">460 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_296" model="account.tax.report.line">
                                 <field name="name">Otros conceptos de ingresos gravados</field>
                                 <field name="sequence">1</field>
@@ -1949,14 +2243,17 @@
                                         <field name="tag_name">411 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_461" model="account.tax.report.line">
                                         <field name="name">Valor retenido(461)</field>
                                         <field name="code">c461</field>
                                         <field name="tag_name">461 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_299" model="account.tax.report.line">
                                 <field name="name">Otros pagos al exterior no sujetos a retención</field>
                                 <field name="sequence">1</field>
@@ -1968,10 +2265,13 @@
                                         <field name="tag_name">412 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_301" model="account.tax.report.line">
                         <field name="name">Sin convenio de doble tributación</field>
                         <field name="sequence">1</field>
@@ -1988,14 +2288,17 @@
                                         <field name="tag_name">413 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_463" model="account.tax.report.line">
                                         <field name="name">Valor retenido(463)</field>
                                         <field name="code">c463</field>
                                         <field name="tag_name">463 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_305" model="account.tax.report.line">
                                 <field name="name">Intereses de créditos</field>
                                 <field name="sequence">1</field>
@@ -2007,14 +2310,17 @@
                                         <field name="tag_name">414 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_464" model="account.tax.report.line">
                                         <field name="name">Valor retenido(464)</field>
                                         <field name="code">c464</field>
                                         <field name="tag_name">464 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_308" model="account.tax.report.line">
                                 <field name="name">Anticipo de dividendos</field>
                                 <field name="sequence">1</field>
@@ -2026,14 +2332,17 @@
                                         <field name="tag_name">415 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_465" model="account.tax.report.line">
                                         <field name="name">Valor retenido(465)</field>
                                         <field name="code">c465</field>
                                         <field name="tag_name">465 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_311" model="account.tax.report.line">
                                 <field name="name">Dividendos sin beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -2045,14 +2354,17 @@
                                         <field name="tag_name">4160 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4660" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4660)</field>
                                         <field name="code">c4660</field>
                                         <field name="tag_name">4660 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_314" model="account.tax.report.line">
                                 <field name="name">Dividendos con beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -2064,14 +2376,17 @@
                                         <field name="tag_name">4170 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4670" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4670)</field>
                                         <field name="code">c4670</field>
                                         <field name="tag_name">4670 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_317" model="account.tax.report.line">
                                 <field name="name">Dividendos incumpliendo el deber de informar la composición societaria</field>
                                 <field name="sequence">1</field>
@@ -2083,14 +2398,17 @@
                                         <field name="tag_name">4180 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4680" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4680)</field>
                                         <field name="code">c4680</field>
                                         <field name="tag_name">4680 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_320" model="account.tax.report.line">
                                 <field name="name">Enajenación de derechos representativos de capital y otros derechos</field>
                                 <field name="sequence">1</field>
@@ -2102,14 +2420,17 @@
                                         <field name="tag_name">419 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_469" model="account.tax.report.line">
                                         <field name="name">Valor retenido(469)</field>
                                         <field name="code">c469</field>
                                         <field name="tag_name">469 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_323" model="account.tax.report.line">
                                 <field name="name">Seguros y reaseguros (primas y cesiones)</field>
                                 <field name="sequence">1</field>
@@ -2121,14 +2442,17 @@
                                         <field name="tag_name">420 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_470" model="account.tax.report.line">
                                         <field name="name">Valor retenido(470)</field>
                                         <field name="code">c470</field>
                                         <field name="tag_name">470 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_326" model="account.tax.report.line">
                                 <field name="name">Servicios técnicos, administrativos o de consultoría y regalías</field>
                                 <field name="sequence">1</field>
@@ -2140,14 +2464,17 @@
                                         <field name="tag_name">421 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_471" model="account.tax.report.line">
                                         <field name="name">Valor retenido(471)</field>
                                         <field name="code">c471</field>
                                         <field name="tag_name">471 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_329" model="account.tax.report.line">
                                 <field name="name">Otros conceptos de ingresos gravados</field>
                                 <field name="sequence">1</field>
@@ -2159,14 +2486,17 @@
                                         <field name="tag_name">422 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_472" model="account.tax.report.line">
                                         <field name="name">Valor retenido(472)</field>
                                         <field name="code">c472</field>
                                         <field name="tag_name">472 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_332" model="account.tax.report.line">
                                 <field name="name">Otros pagos al exterior no sujetos a retención</field>
                                 <field name="sequence">1</field>
@@ -2178,10 +2508,13 @@
                                         <field name="tag_name">423 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                     <record id="tax_report_line_parent_line_report_334" model="account.tax.report.line">
                         <field name="name">En paraísos fiscales o regímenes fiscales preferentes</field>
                         <field name="sequence">1</field>
@@ -2198,14 +2531,17 @@
                                         <field name="tag_name">424 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_474" model="account.tax.report.line">
                                         <field name="name">Valor retenido(474)</field>
                                         <field name="code">c474</field>
                                         <field name="tag_name">474 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_338" model="account.tax.report.line">
                                 <field name="name">Anticipo de dividendos</field>
                                 <field name="sequence">1</field>
@@ -2217,14 +2553,17 @@
                                         <field name="tag_name">425 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_475" model="account.tax.report.line">
                                         <field name="name">Valor retenido(475)</field>
                                         <field name="code">c475</field>
                                         <field name="tag_name">475 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_341" model="account.tax.report.line">
                                 <field name="name">Dividendos sin beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -2236,14 +2575,17 @@
                                         <field name="tag_name">4260 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4760" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4760)</field>
                                         <field name="code">c4760</field>
                                         <field name="tag_name">4760 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_344" model="account.tax.report.line">
                                 <field name="name">Dividendos con beneficiario efectivo persona natural residente en Ecuador</field>
                                 <field name="sequence">1</field>
@@ -2255,14 +2597,17 @@
                                         <field name="tag_name">4270 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4770" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4770)</field>
                                         <field name="code">c4770</field>
                                         <field name="tag_name">4770 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_347" model="account.tax.report.line">
                                 <field name="name">Dividendos incumpliendo el deber de informar la composición societaria</field>
                                 <field name="sequence">1</field>
@@ -2274,14 +2619,17 @@
                                         <field name="tag_name">4280 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_4780" model="account.tax.report.line">
                                         <field name="name">Valor retenido(4780)</field>
                                         <field name="code">c4780</field>
                                         <field name="tag_name">4780 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_350" model="account.tax.report.line">
                                 <field name="name">Enajenación de derechos representativos de capital y otros derechos</field>
                                 <field name="sequence">1</field>
@@ -2293,14 +2641,17 @@
                                         <field name="tag_name">429 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_479" model="account.tax.report.line">
                                         <field name="name">Valor retenido(479)</field>
                                         <field name="code">c479</field>
                                         <field name="tag_name">479 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_353" model="account.tax.report.line">
                                 <field name="name">Seguros y reaseguros (primas y cesiones)</field>
                                 <field name="sequence">1</field>
@@ -2312,14 +2663,17 @@
                                         <field name="tag_name">430 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_480" model="account.tax.report.line">
                                         <field name="name">Valor retenido(480)</field>
                                         <field name="code">c480</field>
                                         <field name="tag_name">480 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_356" model="account.tax.report.line">
                                 <field name="name">Servicios técnicos, administrativos o de consultoría y regalías</field>
                                 <field name="sequence">1</field>
@@ -2331,14 +2685,17 @@
                                         <field name="tag_name">431 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_481" model="account.tax.report.line">
                                         <field name="name">Valor retenido(481)</field>
                                         <field name="code">c481</field>
                                         <field name="tag_name">481 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_359" model="account.tax.report.line">
                                 <field name="name">Otros conceptos de ingresos gravados</field>
                                 <field name="sequence">1</field>
@@ -2350,14 +2707,17 @@
                                         <field name="tag_name">432 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                     <record id="tax_report_line_103_482" model="account.tax.report.line">
                                         <field name="name">Valor retenido(482)</field>
                                         <field name="code">c482</field>
                                         <field name="tag_name">482 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                             <record id="tax_report_line_parent_line_report_362" model="account.tax.report.line">
                                 <field name="name">Otros pagos al exterior no sujetos a retención</field>
                                 <field name="sequence">1</field>
@@ -2369,12 +2729,16 @@
                                         <field name="tag_name">433 (Reporte 103)</field>
                                         <field name="sequence">1</field>
                                     </record>
+
                                 </field>
                             </record>
+
                         </field>
                     </record>
+
                 </field>
             </record>
+
             <record id="tax_report_line_parent_line_report_364" model="account.tax.report.line">
                 <field name="name">SUBTOTAL OPERACIONES EFECTUADAS CON EL EXTERIOR</field>
                 <field name="sequence">1</field>
@@ -2386,14 +2750,18 @@
                         <field name="tag_name">487 (Reporte 103)</field>
                         <field name="sequence">1</field>
                     </record>
+
                     <record id="tax_report_line_103_498" model="account.tax.report.line">
                         <field name="name">Valor retenido(498)</field>
                         <field name="code">c498</field>
                         <field name="tag_name">498 (Reporte 103)</field>
                         <field name="sequence">1</field>
                     </record>
+
                 </field>
             </record>
+
         </field>
     </record>
+
 </odoo>
