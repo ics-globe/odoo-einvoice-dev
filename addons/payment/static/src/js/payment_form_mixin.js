@@ -299,6 +299,7 @@ odoo.define('payment.payment_form_mixin', require => {
                 'currency_id': this.txContext.currencyId
                     ? parseInt(this.txContext.currencyId) : null,
                 'partner_id': parseInt(this.txContext.partnerId),
+                // TODO VFE -> account_payment
                 'invoice_id': this.txContext.invoiceId
                     ? parseInt(this.txContext.invoiceId) : null,
                 'flow': flow,

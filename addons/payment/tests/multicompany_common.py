@@ -12,11 +12,11 @@ _logger = logging.getLogger(__name__)
 class PaymentMultiCompanyCommon(PaymentCommon):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass(chart_template_ref=chart_template_ref)
+    def setUpClass(cls):
+        super().setUpClass()
 
-        cls.company_a = cls.company_data['company']
-        cls.company_b = cls.company_data_2['company']
+        cls.company_a = cls.env.company # cls.company_data['company']
+        cls.company_b = cls.env.company.create({'name': "Payment Test Company"}) # cls.company_data_2['company']
 
         cls.user_company_a = cls.internal_user
         cls.user_company_b = cls.env['res.users'].create({

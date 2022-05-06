@@ -10,6 +10,8 @@ from odoo.addons.payment.controllers import portal as payment_portal
 
 class PaymentPortal(payment_portal.PaymentPortal):
 
+    # TODO VFE all invoice_id logic
+
     @route('/invoice/transaction/<int:invoice_id>', type='json', auth='public')
     def invoice_transaction(self, invoice_id, access_token, **kwargs):
         """ Create a draft transaction and return its processing values.

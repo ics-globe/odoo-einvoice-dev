@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem id="root_payment_menu"
+        name="Payments"
+        groups="account.group_account_manager"
+        sequence="4"
+        parent="account.menu_finance_configuration">
+
+        <!-- TODO add sequences for pay icon & pay token to keep order -->
+        <menuitem action="payment.action_payment_acquirer"
+                id="payment_acquirer_menu"
+                sequence="10"/>
+        <menuitem action="payment.action_payment_icon"
+                id="payment_icon_menu"
+                groups="base.group_no_one"/>
+        <menuitem action="payment.action_payment_token"
+                id="payment_token_menu"
+                groups="base.group_no_one"/>
+        <menuitem action="payment.action_payment_transaction"
+                id="payment_transaction_menu"
+                groups="base.group_no_one"
+                sequence="20"/>
+    </menuitem>
+
+</odoo>

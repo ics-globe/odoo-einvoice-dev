@@ -6,26 +6,17 @@ from unittest.mock import patch
 from werkzeug import urls
 
 from odoo.fields import Command
-
-from odoo.addons.account.models.account_payment_method import AccountPaymentMethod
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.tests.common import TransactionCase
 from odoo.tools.misc import hmac as hmac_tool
 
 _logger = logging.getLogger(__name__)
 
 
-class PaymentCommon(AccountTestInvoicingCommon):
+class PaymentCommon(TransactionCase):
 
     @classmethod
-    def setUpClass(cls, chart_template_ref=None):
-        super().setUpClass(chart_template_ref=chart_template_ref)
-
-        Method_get_payment_method_information = AccountPaymentMethod._get_payment_method_information
-
-        def _get_payment_method_information(self):
-            res = Method_get_payment_method_information(self)
-            res['none'] = {'mode': 'multi', 'domain': [('type', '=', 'bank')]}
-            return res
+    def setUpClass(cls):
+        super().setUpClass()
 
         cls.currency_euro = cls._prepare_currency('EUR')
         cls.currency_usd = cls._prepare_currency('USD')
@@ -81,19 +72,12 @@ class PaymentCommon(AccountTestInvoicingCommon):
             'arch': arch,
         })
 
-        with patch.object(AccountPaymentMethod, '_get_payment_method_information', _get_payment_method_information):
-            cls.env['account.payment.method'].create({
-                'name': 'Dummy method',
-                'code': 'none',
-                'payment_type': 'inbound'
-            })
         cls.dummy_acquirer = cls.env['payment.acquirer'].create({
             'name': "Dummy Acquirer",
             'provider': 'none',
             'state': 'test',
             'allow_tokenization': True,
             'redirect_form_view_id': redirect_form.id,
-            'journal_id': cls.company_data['default_journal_bank'].id,
         })
 
         cls.acquirer = cls.dummy_acquirer
@@ -102,27 +86,28 @@ class PaymentCommon(AccountTestInvoicingCommon):
         cls.currency = cls.currency_euro
         cls.partner = cls.default_partner
         cls.reference = "Test Transaction"
-        cls.account = cls.company.account_journal_payment_credit_account_id
-        cls.invoice = cls.env['account.move'].create({
-            'move_type': 'entry',
-            'date': '2019-01-01',
-            'line_ids': [
-                (0, 0, {
-                    'account_id': cls.account.id,
-                    'currency_id': cls.currency_euro.id,
-                    'debit': 100.0,
-                    'credit': 0.0,
-                    'amount_currency': 200.0,
-                }),
-                (0, 0, {
-                    'account_id': cls.account.id,
-                    'currency_id': cls.currency_euro.id,
-                    'debit': 0.0,
-                    'credit': 100.0,
-                    'amount_currency': -200.0,
-                }),
-            ],
-        })
+
+        account_payment_module = cls.env['ir.module.module']._get('account_payment')
+        cls.account_payment_installed = account_payment_module.state in ('installed', 'to upgrade')
+
+    def setUp(self):
+        # TODO make common in acc_pay disabling the patcher
+        # and implement a removeCleanup ?
+        super().setUp()
+        if self.account_payment_installed:
+            # disable account payment generation if account_payment is installed
+            # because the accounting setup of acquirers is not managed in this common
+            self.reconcile_after_done_patcher = patch(
+                'odoo.addons.account_payment.models.payment_transaction.PaymentTransaction._reconcile_after_done',
+            )
+            self.reconcile_after_done_patcher.start()
+
+    def tearDown(self):
+        super().tearDown()
+        # Magic hack: we start the patcher even if it was started already
+        # so that we do not call stop on a non started patcher.
+        self.reconcile_after_done_patcher.start()
+        self.reconcile_after_done_patcher.stop()
 
     #=== Utils ===#
 
@@ -220,13 +205,8 @@ class PaymentCommon(AccountTestInvoicingCommon):
             else:
                 acquirer = base_acquirer.copy({'company_id': company.id})
 
+        update_values['state'] = 'test'
         acquirer.write(update_values)
-        if not acquirer.journal_id:
-            acquirer.journal_id = cls.env['account.journal'].search([
-                ('company_id', '=', company.id),
-                ('type', '=', 'bank')
-            ], limit=1)
-        acquirer.state = 'test'
         return acquirer
 
     def create_transaction(self, flow, sudo=True, **values):
@@ -275,6 +255,7 @@ class PaymentCommon(AccountTestInvoicingCommon):
             'tokenization_requested': True,
             'landing_route': 'Test',
             'is_validation': False,
-            'invoice_id': self.invoice.id,
+            # FIXME VFE
+            # 'invoice_id': self.invoice.id,
             'flow': flow,
         }

@@ -8,20 +8,24 @@ class PaymentRefundWizard(models.TransientModel):
     _name = 'payment.refund.wizard'
     _description = "Payment Refund Wizard"
 
-    payment_id = fields.Many2one(
-        string="Payment",
-        comodel_name='account.payment',
-        readonly=True,
-        default=lambda self: self.env.context.get('active_id'),
-    )
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        res_model = self.env.context.get('active_model')
+        res_id = self.env.context.get('active_id')
+        if res_model and res_id:
+            res.update(
+                self.env[res_model].browse(res_id)._get_payment_refund_wizard_values()
+            )
+
     transaction_id = fields.Many2one(
-        string="Payment Transaction", related='payment_id.payment_transaction_id'
+        comodel_name='payment.transaction',
+        string="Payment Transaction",
+        required=True,
     )
-    payment_amount = fields.Monetary(string="Payment Amount", related='payment_id.amount')
+    payment_amount = fields.Monetary(string="Payment Amount", default=0)
     refunded_amount = fields.Monetary(string="Refunded Amount", compute='_compute_refunded_amount')
-    amount_available_for_refund = fields.Monetary(
-        string="Maximum Refund Allowed", related='payment_id.amount_available_for_refund'
-    )
+    amount_available_for_refund = fields.Monetary(string="Maximum Refund Allowed", default=0)
     amount_to_refund = fields.Monetary(
         string="Refund Amount", compute='_compute_amount_to_refund', store=True, readonly=False
     )
@@ -51,11 +55,11 @@ class PaymentRefundWizard(models.TransientModel):
         for wizard in self:
             wizard.amount_to_refund = wizard.amount_available_for_refund
 
-    @api.depends('payment_id')  # To always trigger the compute
+    @api.depends('transaction_id')  # To always trigger the compute
     def _compute_has_pending_refund(self):
         for wizard in self:
             pending_refunds_count = self.env['payment.transaction'].search_count([
-                ('source_transaction_id', '=', wizard.payment_id.payment_transaction_id.id),
+                ('source_transaction_id', '=', wizard.transaction_id.id),
                 ('operation', '=', 'refund'),
                 ('state', 'in', ['draft', 'pending', 'authorized']),
             ])

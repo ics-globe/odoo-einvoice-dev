@@ -19,7 +19,6 @@
                 </div>
                 <group>
                     <group>
-                        <field name="payment_id" invisible="1"/>
                         <field name="transaction_id" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
                         <field name="support_refund" invisible="1"/>
