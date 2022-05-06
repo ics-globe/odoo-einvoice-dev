@@ -1642,6 +1642,15 @@ class AccountMove(models.Model):
         self.ensure_one()
         reconciled_vals = []
         reconciled_partials, exchange_diff_moves = self._get_reconciled_invoices_partials()
+        payments = []
+        # exchange diff moves that are linked to payment lines, not invoice lines, are not retrieved in
+        # _get_reconciled_invoices_partials() and we need another loop to get them
+        for partial in reconciled_partials:
+            for partial_credit in partial[0].credit_move_id.matched_debit_ids:
+                if partial_credit.debit_move_id.move_id.id in exchange_diff_moves:
+                    payments.append((partial_credit, partial_credit.credit_amount_currency, partial_credit.debit_move_id))
+        reconciled_partials.extend(payments)
+
         for partial, amount, counterpart_line in reconciled_partials:
             if counterpart_line.move_id.ref:
                 reconciliation_ref = '%s (%s)' % (counterpart_line.move_id.name, counterpart_line.move_id.ref)
