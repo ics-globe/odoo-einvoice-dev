@@ -1635,6 +1635,48 @@ class _String(Field):
             return Json({'en_US': ret_value})
         return Json({record.env.lang or 'en_US': ret_value})
 
+    def get_trans_func(self, records):
+        """ Return a translation function `translate` for `self` on the given
+        records; the function call `translate(record_id, value)` translates the
+        field English value to the language given by the environment of `records`.
+        """
+        lang = records.env.lang or 'en_US'
+        if lang == 'en_US' or not self.translate:
+            return lambda record_id, value: value
+        # TODO: CWG: optimize it to one query
+        vals_en2lang = zip(records.with_context(lang='en_US').mapped(self.name),
+                           records.with_context(lang=lang).mapped(self.name))
+        translation_dictionaries = dict(zip(records.ids,
+                                 list(map(lambda vals: self.get_translation_dictionary(vals[0], {lang: vals[1]}), vals_en2lang))))
+        if callable(self.translate):
+            def translate(record_id, value):
+                translation_dictionary = translation_dictionaries[record_id]
+                return self.translate(lambda term: translation_dictionary[term][lang], value)
+        else:  # TODO CWG: TBD never used, useless?
+            def translate(record_id, value):
+                return translation_dictionaries.get(record_id).get(value, value)
+        return translate
+
+    def get_translation_dictionary(self, from_lang_value, to_lang_values):
+        """ Build a dictionary from terms in from_lang_value to terms in to_lang_values
+
+        :param str from_lang_value: from xml/html
+        :param dict to_lang_values: {lang: lang_value}
+
+        :return: {from_lang_term: {lang: lang_term}}
+        :rtype: dict
+        """
+
+        # TODO: CWG test from_lang_value / to_lang_value is empty false none
+        from_lang_terms = self.get_trans_terms(from_lang_value)
+        dictionary = defaultdict(lambda: defaultdict(dict))
+
+        for lang, to_lang_value in to_lang_values.items():
+            to_lang_terms = self.get_trans_terms(to_lang_value)
+            for from_lang_term, to_lang_term in zip(from_lang_terms, to_lang_terms):
+                dictionary[from_lang_term].update({lang: to_lang_term})
+        return dictionary
+
     def write(self, records, value):
         """ Write the value of ``self`` on ``records``. This method must update
         the cache and prepare database updates.
@@ -1687,28 +1729,7 @@ class _String(Field):
                                     column_value.adapted.update(self.convert_to_column(value, record.with_context(lang='en_US')).adapted)
                             else:
                                 from_lang_value = tfield.pop(curr_lang) if curr_lang in tfield else tfield['en_US']
-
-                                # TODO CWG: find a better place to put this code
-                                def get_translation_dictionary(from_lang_value, to_lang_values):
-                                    """ Build a dictionary from terms in from_lang_value to terms in to_lang_values
-
-                                    :param str from_lang_value: from xml/html
-                                    :param dict to_lang_values: {lang: lang_value}
-
-                                    :return: {from_lang_term: {lang: lang_term}}
-                                    :rtype: dict
-                                    """
-
-                                    from_lang_terms = self.get_trans_terms(from_lang_value)
-                                    dictionary = defaultdict(dict)
-
-                                    for lang, to_lang_value in to_lang_values.items():
-                                        to_lang_terms = self.get_trans_terms(to_lang_value)
-                                        for from_lang_term, to_lang_term in zip(from_lang_terms, to_lang_terms):
-                                            dictionary[from_lang_term].update({lang: to_lang_term})
-                                    return dictionary
-
-                                translation_dictionary = get_translation_dictionary(from_lang_value, tfield)
+                                translation_dictionary = self.get_translation_dictionary(from_lang_value, tfield)
                                 new_terms = self.get_trans_terms(value)
                                 text2term = {self.get_text_content(term): term for term in new_terms}
 
