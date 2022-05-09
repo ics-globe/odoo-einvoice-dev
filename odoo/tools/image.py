@@ -10,6 +10,7 @@ from PIL import IcoImagePlugin
 
 from random import randrange
 
+import odoo
 from odoo.exceptions import UserError
 from odoo.tools.translate import _
 
@@ -113,6 +114,9 @@ class ImageProcess():
         :return: image
         :rtype: bytes or False
         """
+        if odoo.http.request and \
+            odoo.http.request.env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization', ''):
+            return self.source
         if not self.image:
             return self.source
 
