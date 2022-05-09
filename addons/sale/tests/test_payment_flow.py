@@ -44,7 +44,7 @@ class TestSalePayment(PaymentHttpCommon):
         route_values = self._prepare_pay_values()
         route_values['sale_order_id'] = self.order.id
 
-        tx_context = self.get_tx_checkout_context(**route_values)
+        tx_context = self._get_tx_checkout_context(**route_values)
 
         self.assertEqual(tx_context['currency_id'], self.order.currency_id.id)
         self.assertEqual(tx_context['partner_id'], self.order.partner_id.id)
@@ -63,7 +63,7 @@ class TestSalePayment(PaymentHttpCommon):
         })
 
         with mute_logger('odoo.addons.payment.models.payment_transaction'):
-            processing_values = self.get_processing_values(**route_values)
+            processing_values = self._get_processing_values(**route_values)
         tx_sudo = self._get_tx(processing_values['reference'])
 
         self.assertEqual(tx_sudo.sale_order_ids, self.order)
@@ -88,7 +88,7 @@ class TestSalePayment(PaymentHttpCommon):
         route_values = self._prepare_pay_values()
         route_values['sale_order_id'] = self.order.id
 
-        tx_context = self.get_tx_checkout_context(**route_values)
+        tx_context = self._get_tx_checkout_context(**route_values)
 
         self.assertEqual(tx_context['reference_prefix'], self.reference)
         self.assertEqual(tx_context['currency_id'], self.order.currency_id.id)
@@ -105,7 +105,7 @@ class TestSalePayment(PaymentHttpCommon):
             'landing_route': tx_context['landing_route'],
         })
         with mute_logger('odoo.addons.payment.models.payment_transaction'):
-            processing_values = self.get_processing_values(**route_values)
+            processing_values = self._get_processing_values(**route_values)
         tx_sudo = self._get_tx(processing_values['reference'])
 
         self.assertEqual(tx_sudo.sale_order_ids, self.order)
@@ -124,7 +124,7 @@ class TestSalePayment(PaymentHttpCommon):
         route_values = self._prepare_pay_values()
         route_values['sale_order_id'] = self.order.id
 
-        tx_context = self.get_tx_checkout_context(**route_values)
+        tx_context = self._get_tx_checkout_context(**route_values)
 
         self.assertEqual(tx_context['reference_prefix'], self.reference)
         self.assertEqual(tx_context['currency_id'], self.order.currency_id.id)
@@ -141,7 +141,7 @@ class TestSalePayment(PaymentHttpCommon):
             'landing_route': tx_context['landing_route'],
         })
         with mute_logger('odoo.addons.payment.models.payment_transaction'):
-            processing_values = self.get_processing_values(**route_values)
+            processing_values = self._get_processing_values(**route_values)
         tx2_sudo = self._get_tx(processing_values['reference'])
 
         self.assertEqual(tx2_sudo.sale_order_ids, self.order)
@@ -169,7 +169,7 @@ class TestSalePayment(PaymentHttpCommon):
         route_values = self._prepare_pay_values()
         route_values['sale_order_id'] = self.order.id
 
-        tx_context = self.get_tx_checkout_context(**route_values)
+        tx_context = self._get_tx_checkout_context(**route_values)
 
         route_values.update({
             'flow': 'direct',
@@ -180,7 +180,7 @@ class TestSalePayment(PaymentHttpCommon):
             'landing_route': tx_context['landing_route'],
         })
         with mute_logger('odoo.addons.payment.models.payment_transaction'):
-            processing_values = self.get_processing_values(**route_values)
+            processing_values = self._get_processing_values(**route_values)
         tx_sudo = self._get_tx(processing_values['reference'])
 
         tx_sudo._set_done()
