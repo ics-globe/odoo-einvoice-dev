@@ -4783,6 +4783,47 @@ QUnit.module('basic_fields', {
         form.destroy();
     });
 
+    QUnit.test('datetime field with date widget: hit enter should update value', async function (assert) {
+        assert.expect(3);
+
+        const form = await createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch:'<form string="Partners"><field name="datetime" widget="date"/></form>',
+            res_id: 1,
+            translateParameters: {  // Avoid issues due to localization formats
+                date_format: '%m/%d/%Y',
+            },
+            viewOptions: {
+                mode: 'edit',
+            },
+            session: {
+                getTZOffset: function () {
+                    return 120;
+                },
+            },
+        });
+
+        const datetime = form.el.querySelector('input[name="datetime"]');
+        const year = (new Date()).getFullYear();
+
+        await testUtils.fields.editInput(datetime, '01/08');
+        await testUtils.fields.triggerKeydown(datetime, 'enter');
+        assert.strictEqual(datetime.value, '01/08/' + year);
+
+        // Click outside the field to check that the field is not changed
+        await testUtils.dom.click(form.$el);
+        assert.strictEqual(datetime.value, '01/08/' + year);
+
+        // Save and check that it's still ok
+        await testUtils.form.clickSave(form);
+        const { textContent } = form.el.querySelector('span[name="datetime"]')
+        assert.strictEqual(textContent, '01/08/' + year);
+
+        form.destroy();
+    });
+
     QUnit.module('RemainingDays');
 
     QUnit.test('remaining_days widget on a date field in list view', async function (assert) {
