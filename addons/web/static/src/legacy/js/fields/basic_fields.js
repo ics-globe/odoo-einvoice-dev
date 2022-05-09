@@ -2960,7 +2960,7 @@ var BooleanToggle = FieldBoolean.extend({
     className: FieldBoolean.prototype.className + ' o_boolean_toggle',
     isQuickEditable: true,
     events: {
-        'click': '_onClick'
+        'click input': '_onClick'
     },
 
     //--------------------------------------------------------------------------
@@ -2975,6 +2975,8 @@ var BooleanToggle = FieldBoolean.extend({
      */
     async _render() {
         await this._super(...arguments);
+        // const isReadonly = this.record.evalModifiers(this.attrs.modifiers).readonly;
+        this.$el.find('input').prop('disabled', this.hasReadonlyModifier);
         const classToApply = this.value ? 'fa-check-circle' : 'fa-times-circle';
         if (this.el.querySelector('i')) {
             this.el.querySelector('i').remove();

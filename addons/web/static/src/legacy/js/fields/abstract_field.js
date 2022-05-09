@@ -223,7 +223,7 @@ var AbstractField = Widget.extend({
             self.$el.attr('name', self.name);
             self.$el.addClass('o_field_widget');
             self.$el.toggleClass('o_quick_editable', self._canQuickEdit);
-            if (self.viewType === 'form') {
+            if (self.viewType === 'form' && !self.hasReadonlyModifier) {
                 self.$el.on('click', self._onClick.bind(self));
             }
             return self._render();
