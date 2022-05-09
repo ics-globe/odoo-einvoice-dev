@@ -199,7 +199,7 @@ class PaymentTransaction(models.Model):
         if self.state == 'done' and self.payment_id:
             message += "<br />" + _(
                 "The related payment is posted: %s",
-                self.payment_id._get_html_link()()
+                self.payment_id._get_html_link()
             )
 
         return message

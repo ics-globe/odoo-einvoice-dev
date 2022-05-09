@@ -134,5 +134,6 @@ class PaymentWizard(models.TransientModel):
 
     def _start_stripe_onboarding(self):
         """ Start Stripe Connect onboarding. """
-        menu_id = self.env.ref('payment.payment_acquirer_menu').id
+        # TODO VFE move whole onboarding logic to acc_payment ?
+        menu_id = self.env.ref('account_payment.payment_acquirer_menu').id
         return self.env.company._run_payment_onboarding_step(menu_id)

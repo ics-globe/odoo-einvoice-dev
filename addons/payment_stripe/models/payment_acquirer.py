@@ -97,6 +97,8 @@ class PaymentAcquirer(models.Model):
             connected_account = self._stripe_fetch_or_create_connected_account()
 
             # Link generation
+            # FIXME VFE menu doesn't exist in payment anymore
+            # make a new menu in payment, return to /web or consider acc_pay as implicit dependency?
             menu_id = menu_id or self.env.ref('payment.payment_acquirer_menu').id
             account_link_url = self._stripe_create_account_link(connected_account['id'], menu_id)
             if account_link_url:
