@@ -3443,7 +3443,16 @@ exports.Order = Backbone.Model.extend({
     _reduce_total_discount_callback: function(sum, orderLine) {
         sum += (orderLine.get_unit_price() * (orderLine.get_discount()/100) * orderLine.get_quantity());
         if (orderLine.display_discount_policy() === 'without_discount'){
-            sum += ((orderLine.get_lst_price() - orderLine.get_unit_price()) * orderLine.get_quantity());
+            const list_price = orderLine.get_lst_price();
+            const price_diff = list_price - orderLine.get_unit_price();
+            // Only take the price difference into account as a discount if the
+            // signs match. This mimics the behavior in sale order lines.
+            // TODO This should be updated in master to handle recursively
+            // defined pricelists involving a parent pricelist with discounts
+            // included (display_discount_policy == 'with_discount').
+            if (list_price * price_diff > 1) {
+                sum += (price_diff * orderLine.get_quantity());
+            }
         }
         return sum;
     },
