@@ -1,17 +1,17 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Stripe Payment Acquirer',
+    'name': 'Stripe Payment Provider',
     'version': '2.0',
-    'category': 'Accounting/Payment Acquirers',
+    'category': 'Accounting/Payment Providers',
     'sequence': 380,
-    'summary': 'Payment Acquirer: Stripe Implementation',
-    'description': """Stripe Payment Acquirer""",
+    'summary': 'Payment Provider: Stripe Implementation',
+    'description': """Stripe Payment Provider""",
     'depends': ['payment'],
     'data': [
         'views/payment_views.xml',
         'views/payment_templates.xml',
-        'data/payment_acquirer_data.xml',
+        'data/payment_provider_data.xml',
     ],
     'application': True,
     'uninstall_hook': 'uninstall_hook',

@@ -36,4 +36,4 @@ class PaymentMultiCompanyCommon(PaymentCommon):
             'groups_id': [Command.link(cls.group_user.id)],
         })
 
-        cls.acquirer_company_b = cls._prepare_acquirer(company=cls.company_b)
+        cls.provider_company_b = cls._prepare_provider(company=cls.company_b)

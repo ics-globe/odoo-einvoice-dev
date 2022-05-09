@@ -402,7 +402,7 @@ class TestOnlineEventPerformance(EventPerformanceCase, UtilPerf):
             'type': 'cash',
             'code': 'CASH - Test'
         })
-        cls.env['payment.acquirer'].search([('provider', '=', 'test')]).write({
+        cls.env['payment.provider'].search([('code', '=', 'test')]).write({
             'journal_id': cash_journal.id,
             'state': 'test'
         })

@@ -983,25 +983,25 @@ class WebsiteSale(http.Controller):
 
     def _get_shop_payment_values(self, order, **kwargs):
         logged_in = not request.env.user._is_public()
-        acquirers_sudo = request.env['payment.acquirer'].sudo()._get_compatible_acquirers(
+        providers_sudo = request.env['payment.provider'].sudo()._get_compatible_providers(
             order.company_id.id,
             order.partner_id.id,
             currency_id=order.currency_id.id,
             sale_order_id=order.id,
             website_id=request.website.id,
-        )  # In sudo mode to read the fields of acquirers, order and partner (if not logged in)
+        )  # In sudo mode to read the fields of providers, order and partner (if not logged in)
         tokens = request.env['payment.token'].search(
-            [('acquirer_id', 'in', acquirers_sudo.ids), ('partner_id', '=', order.partner_id.id)]
+            [('provider_id', 'in', providers_sudo.ids), ('partner_id', '=', order.partner_id.id)]
         ) if logged_in else request.env['payment.token']
-        fees_by_acquirer = {
-            acq_sudo: acq_sudo._compute_fees(
+        fees_by_provider = {
+            pro_sudo: pro_sudo._compute_fees(
                 order.amount_total, order.currency_id, order.partner_id.country_id
-            ) for acq_sudo in acquirers_sudo.filtered('fees_active')
+            ) for pro_sudo in providers_sudo.filtered('fees_active')
         }
         # Prevent public partner from saving payment methods but force it for logged in partners
         # buying subscription products
         show_tokenize_input = logged_in \
-            and not request.env['payment.acquirer'].sudo()._is_tokenization_required(
+            and not request.env['payment.provider'].sudo()._is_tokenization_required(
                 sale_order_id=order.id
             )
         return {
@@ -1009,11 +1009,11 @@ class WebsiteSale(http.Controller):
             'errors': [],
             'partner': order.partner_id,
             'order': order,
-            'payment_action_id': request.env.ref('payment.action_payment_acquirer').id,
+            'payment_action_id': request.env.ref('payment.action_payment_provider').id,
             # Payment form common (checkout and manage) values
-            'acquirers': acquirers_sudo,
+            'providers': providers_sudo,
             'tokens': tokens,
-            'fees_by_acquirer': fees_by_acquirer,
+            'fees_by_provider': fees_by_provider,
             'show_tokenize_input': show_tokenize_input,
             'amount': order.amount_total,
             'currency': order.currency_id,
@@ -1026,12 +1026,12 @@ class WebsiteSale(http.Controller):
     @http.route('/shop/payment', type='http', auth='public', website=True, sitemap=False)
     def shop_payment(self, **post):
         """ Payment step. This page proposes several payment means based on available
-        payment.acquirer. State at this point :
+        payment.provider. State at this point :
 
          - a draft sales order with lines; otherwise, clean context / session and
            back to the shop
          - no transaction in context / session, or only a draft one, if the customer
-           did go to a payment.acquirer website but closed the tab without
+           did go to a payment.provider website but closed the tab without
            paying / canceling
         """
         order = request.website.sale_get_order()
@@ -1043,7 +1043,7 @@ class WebsiteSale(http.Controller):
         render_values['only_services'] = order and order.only_services or False
 
         if render_values['errors']:
-            render_values.pop('acquirers', '')
+            render_values.pop('providers', '')
             render_values.pop('tokens', '')
 
         return request.render("website_sale.payment", render_values)

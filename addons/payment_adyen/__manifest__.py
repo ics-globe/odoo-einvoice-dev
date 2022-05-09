@@ -1,17 +1,17 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Adyen Payment Acquirer',
+    'name': 'Adyen Payment Provider',
     'version': '2.0',
-    'category': 'Accounting/Payment Acquirers',
+    'category': 'Accounting/Payment Providers',
     'sequence': 340,
-    'summary': 'Payment Acquirer: Adyen Implementation',
-    'description': """Adyen Payment Acquirer""",
+    'summary': 'Payment Provider: Adyen Implementation',
+    'description': """Adyen Payment Provider""",
     'depends': ['payment'],
     'data': [
         'views/payment_adyen_templates.xml',
         'views/payment_views.xml',
-        'data/payment_acquirer_data.xml',  # Depends on views/payment_adyen_templates.xml
+        'data/payment_provider_data.xml',  # Depends on views/payment_adyen_templates.xml
     ],
     'application': True,
     'uninstall_hook': 'uninstall_hook',

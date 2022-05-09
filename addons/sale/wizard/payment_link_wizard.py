@@ -24,17 +24,17 @@ class PaymentLinkWizard(models.TransientModel):
             })
         return res
 
-    def _get_payment_acquirer_available(self, res_model, res_id, **kwargs):
-        """ Select and return the acquirers matching the criteria.
+    def _get_payment_provider_available(self, res_model, res_id, **kwargs):
+        """ Select and return the providers matching the criteria.
 
         :param str res_model: active model
         :param int res_id: id of 'active_model' record
-        :return: The compatible acquirers
-        :rtype: recordset of `payment.acquirer`
+        :return: The compatible providers
+        :rtype: recordset of `payment.provider`
         """
         if res_model == 'sale.order':
             kwargs['sale_order_id'] = res_id
-        return super()._get_payment_acquirer_available(**kwargs)
+        return super()._get_payment_provider_available(**kwargs)
 
     def _generate_link(self):
         """ Override of payment to add the sale_order_id in the link. """
@@ -47,7 +47,7 @@ class PaymentLinkWizard(models.TransientModel):
                                     f'?reference={urls.url_quote(payment_link.description)}' \
                                     f'&amount={payment_link.amount}' \
                                     f'&sale_order_id={payment_link.res_id}' \
-                                    f'{"&acquirer_id=" + str(payment_link.payment_acquirer_selection) if payment_link.payment_acquirer_selection != "all" else "" }' \
+                                    f'{"&provider_id=" + str(payment_link.payment_provider_selection) if payment_link.payment_provider_selection != "all" else "" }' \
                                     f'&access_token={payment_link.access_token}'
                 # Order-related fields are retrieved in the controller
             else:

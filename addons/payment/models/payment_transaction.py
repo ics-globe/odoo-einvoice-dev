@@ -29,27 +29,27 @@ class PaymentTransaction(models.Model):
     def _lang_get(self):
         return self.env['res.lang'].get_installed()
 
-    acquirer_id = fields.Many2one(
-        string="Acquirer", comodel_name='payment.acquirer', readonly=True, required=True)
-    provider = fields.Selection(related='acquirer_id.provider')
+    provider_id = fields.Many2one(
+        string="Provider", comodel_name='payment.provider', readonly=True, required=True)
+    provider_code = fields.Selection(related='provider_id.code')
     company_id = fields.Many2one(  # Indexed to speed-up ORM searches (from ir_rule or others)
-        related='acquirer_id.company_id', store=True, index=True)
+        related='provider_id.company_id', store=True, index=True)
     reference = fields.Char(
         string="Reference", help="The internal reference of the transaction", readonly=True,
         required=True)  # Already has an index from the UNIQUE SQL constraint
-    acquirer_reference = fields.Char(
-        string="Acquirer Reference", help="The acquirer reference of the transaction",
-        readonly=True)  # This is not the same thing as the acquirer reference of the token
+    provider_reference = fields.Char(
+        string="Provider Reference", help="The provider reference of the transaction",
+        readonly=True)  # This is not the same thing as the provider reference of the token
     amount = fields.Monetary(
         string="Amount", currency_field='currency_id', readonly=True, required=True)
     currency_id = fields.Many2one(
         string="Currency", comodel_name='res.currency', readonly=True, required=True)
     fees = fields.Monetary(
         string="Fees", currency_field='currency_id',
-        help="The fees amount; set by the system as it depends on the acquirer", readonly=True)
+        help="The fees amount; set by the system as it depends on the provider", readonly=True)
     token_id = fields.Many2one(
         string="Payment Token", comodel_name='payment.token', readonly=True,
-        domain='[("acquirer_id", "=", "acquirer_id")]', ondelete='restrict')
+        domain='[("provider_id", "=", "provider_id")]', ondelete='restrict')
     state = fields.Selection(
         string="Status",
         selection=[('draft', "Draft"), ('pending', "Pending"), ('authorized', "Authorized"),
@@ -159,12 +159,12 @@ class PaymentTransaction(models.Model):
     def _check_state_authorized_supported(self):
         """ Check that authorization is supported for a transaction in the 'authorized' state. """
         illegal_authorize_state_txs = self.filtered(
-            lambda tx: tx.state == 'authorized' and not tx.acquirer_id.support_authorization
+            lambda tx: tx.state == 'authorized' and not tx.provider_id.support_authorization
         )
         if illegal_authorize_state_txs:
             raise ValidationError(_(
-                "Transaction authorization is not supported by the following payment acquirers: %s",
-                ', '.join(set(illegal_authorize_state_txs.mapped('acquirer_id.name')))
+                "Transaction authorization is not supported by the following payment providers: %s",
+                ', '.join(set(illegal_authorize_state_txs.mapped('provider_id.name')))
             ))
 
     #=== CRUD METHODS ===#
@@ -172,10 +172,10 @@ class PaymentTransaction(models.Model):
     @api.model_create_multi
     def create(self, values_list):
         for values in values_list:
-            acquirer = self.env['payment.acquirer'].browse(values['acquirer_id'])
+            provider = self.env['payment.provider'].browse(values['provider_id'])
 
             if not values.get('reference'):
-                values['reference'] = self._compute_reference(acquirer.provider, **values)
+                values['reference'] = self._compute_reference(provider.code, **values)
 
             # Duplicate partner values
             partner = self.env['res.partner'].browse(values['partner_id'])
@@ -195,12 +195,12 @@ class PaymentTransaction(models.Model):
 
             # Compute fees
             currency = self.env['res.currency'].browse(values.get('currency_id')).exists()
-            values['fees'] = acquirer._compute_fees(
+            values['fees'] = provider._compute_fees(
                 values.get('amount', 0), currency, partner.country_id
             )
 
-            # Include acquirer-specific create values
-            values.update(self._get_specific_create_values(acquirer.provider, values))
+            # Include provider-specific create values
+            values.update(self._get_specific_create_values(provider.code, values))
 
             # Generate the hash for the callback if one has be configured on the tx
             values['callback_hash'] = self._generate_callback_hash(
@@ -224,16 +224,16 @@ class PaymentTransaction(models.Model):
         return txs
 
     @api.model
-    def _get_specific_create_values(self, provider, values):
-        """ Complete the values of the `create` method with acquirer-specific values.
+    def _get_specific_create_values(self, provider_code, values):
+        """ Complete the values of the `create` method with provider-specific values.
 
-        For an acquirer to add its own create values, it must overwrite this method and return a
-        dict of values. Acquirer-specific values take precedence over those of the dict of generic
+        For a provider to add its own create values, it must overwrite this method and return a
+        dict of values. Provider-specific values take precedence over those of the dict of generic
         create values.
 
-        :param str provider: The provider of the acquirer that handled the transaction
+        :param str provider_code: The code of the provider that handled the transaction
         :param dict values: The original create values
-        :return: The dict of acquirer-specific create values
+        :return: The dict of provider-specific create values
         :rtype: dict
         """
         return dict()
@@ -324,7 +324,7 @@ class PaymentTransaction(models.Model):
     #=== BUSINESS METHODS - PAYMENT FLOW ===#
 
     @api.model
-    def _compute_reference(self, provider, prefix=None, separator='-', **kwargs):
+    def _compute_reference(self, provider_code, prefix=None, separator='-', **kwargs):
         """ Compute a unique reference for the transaction.
 
         The reference either corresponds to the prefix if no other transaction with that prefix
@@ -347,7 +347,7 @@ class PaymentTransaction(models.Model):
             the full reference will be 'INV1-INV2' (or similar) if no existing reference has the
             same prefix, or 'INV1-INV2-n' if n existing references have the same prefix.
 
-        :param str provider: The provider of the acquirer handling the transaction
+        :param str provider: The provider of the provider handling the transaction
         :param str prefix: The custom prefix used to compute the full reference
         :param str separator: The custom separator used to separate the prefix from the suffix, and
                               passed to `_compute_reference_prefix` if it is called
@@ -361,7 +361,7 @@ class PaymentTransaction(models.Model):
             # Replace special characters by their ASCII alternative (é -> e ; ä -> a ; ...)
             prefix = unicodedata.normalize('NFKD', prefix).encode('ascii', 'ignore').decode('utf-8')
         if not prefix:  # Prefix not provided or voided above, compute it based on the kwargs
-            prefix = self.sudo()._compute_reference_prefix(provider, separator, **kwargs)
+            prefix = self.sudo()._compute_reference_prefix(provider_code, separator, **kwargs)
         if not prefix:  # Prefix not computed from the kwargs, fallback on time-based value
             prefix = payment_utils.singularize_reference_prefix()
 
@@ -400,7 +400,7 @@ class PaymentTransaction(models.Model):
         return reference
 
     @api.model
-    def _compute_reference_prefix(self, provider, separator, **values):
+    def _compute_reference_prefix(self, provider_code, separator, **values):
         """ Compute the reference prefix from the transaction values.
 
         If the `values` parameter has an entry with 'invoice_ids' as key and a list of (4, id, O) or
@@ -409,7 +409,7 @@ class PaymentTransaction(models.Model):
 
         Note: This method should be called in sudo mode to give access to documents (INV, SO, ...).
 
-        :param str provider: The provider of the acquirer handling the transaction
+        :param str provider_code: The code of the provider handling the transaction
         :param str separator: The custom separator used to separate data references
         :param dict values: The transaction values used to compute the reference prefix. It should
                             have the structure {'invoice_ids': [(X2M command), ...], ...}.
@@ -449,13 +449,13 @@ class PaymentTransaction(models.Model):
 
         The returned dict contains the following entries:
             - tx_id: The transaction, as a `payment.transaction` id
-            - acquirer_id: The acquirer handling the transaction, as a `payment.acquirer` id
-            - provider: The provider of the acquirer
+            - provider_id: The provider handling the transaction, as a `payment.provider` id
+            - provider: The provider of the provider
             - reference: The reference of the transaction
             - amount: The rounded amount of the transaction
             - currency_id: The currency of the transaction, as a res.currency id
             - partner_id: The partner making the transaction, as a res.partner id
-            - Additional acquirer-specific entries
+            - Additional provider-specific entries
 
         Note: self.ensure_one()
 
@@ -465,31 +465,31 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
 
         processing_values = {
-            'acquirer_id': self.acquirer_id.id,
-            'provider': self.provider,
+            'provider_id': self.provider_id.id,
+            'provider_code': self.provider_code,
             'reference': self.reference,
             'amount': self.amount,
             'currency_id': self.currency_id.id,
             'partner_id': self.partner_id.id,
         }
 
-        # Complete generic processing values with acquirer-specific values
+        # Complete generic processing values with provider-specific values
         processing_values.update(self._get_specific_processing_values(processing_values))
         _logger.info(
-            "generic and acquirer-specific processing values for transaction with reference "
+            "generic and provider-specific processing values for transaction with reference "
             "%(ref)s:\n%(values)s",
             {'ref': self.reference, 'values': pprint.pformat(processing_values)},
         )
 
         # Render the html form for the redirect flow if available
         if self.operation in ('online_redirect', 'validation'):
-            redirect_form_view = self.acquirer_id._get_redirect_form_view(
+            redirect_form_view = self.provider_id._get_redirect_form_view(
                 is_validation=self.operation == 'validation'
             )
-            if redirect_form_view:  # Some acquirer don't need a redirect form
+            if redirect_form_view:  # Some provider don't need a redirect form
                 rendering_values = self._get_specific_rendering_values(processing_values)
                 _logger.info(
-                    "acquirer-specific rendering values for transaction with reference "
+                    "provider-specific rendering values for transaction with reference "
                     "%(ref)s:\n%(values)s",
                     {'ref': self.reference, 'values': pprint.pformat(rendering_values)},
                 )
@@ -499,36 +499,36 @@ class PaymentTransaction(models.Model):
         return processing_values
 
     def _get_specific_processing_values(self, processing_values):
-        """ Return a dict of acquirer-specific values used to process the transaction.
+        """ Return a dict of provider-specific values used to process the transaction.
 
-        For an acquirer to add its own processing values, it must overwrite this method and return a
-        dict of acquirer-specific values based on the generic values returned by this method.
-        Acquirer-specific values take precedence over those of the dict of generic processing
+        For a provider to add its own processing values, it must overwrite this method and return a
+        dict of provider-specific values based on the generic values returned by this method.
+        Provider-specific values take precedence over those of the dict of generic processing
         values.
 
         :param dict processing_values: The generic processing values of the transaction
-        :return: The dict of acquirer-specific processing values
+        :return: The dict of provider-specific processing values
         :rtype: dict
         """
         return dict()
 
     def _get_specific_rendering_values(self, processing_values):
-        """ Return a dict of acquirer-specific values used to render the redirect form.
+        """ Return a dict of provider-specific values used to render the redirect form.
 
-        For an acquirer to add its own rendering values, it must overwrite this method and return a
-        dict of acquirer-specific values based on the processing values (acquirer-specific
+        For a provider to add its own rendering values, it must overwrite this method and return a
+        dict of provider-specific values based on the processing values (provider-specific
         processing values included).
 
         :param dict processing_values: The processing values of the transaction
-        :return: The dict of acquirer-specific rendering values
+        :return: The dict of provider-specific rendering values
         :rtype: dict
         """
         return dict()
 
     def _send_payment_request(self):
-        """ Request the provider of the acquirer handling the transaction to execute the payment.
+        """ Request the provider of the provider handling the transaction to execute the payment.
 
-        For an acquirer to support tokenization, it must override this method and call it to log the
+        For a provider to support tokenization, it must override this method and call it to log the
         'sent' message, then request a money transfer to its provider.
 
         Note: self.ensure_one()
@@ -539,9 +539,9 @@ class PaymentTransaction(models.Model):
         self._log_sent_message()
 
     def _send_refund_request(self, amount_to_refund=None, create_refund_transaction=True):
-        """ Request the provider of the acquirer handling the transaction to refund it.
+        """ Request the provider of the provider handling the transaction to refund it.
 
-        For an acquirer to support refunds, it must override this method and request a refund
+        For a provider to support refunds, it must override this method and request a refund
         to its provider.
 
         Note: self.ensure_one()
@@ -561,9 +561,9 @@ class PaymentTransaction(models.Model):
             return self.env['payment.transaction']
 
     def _send_capture_request(self):
-        """ Request the provider of the acquirer handling the transaction to capture it.
+        """ Request the provider of the provider handling the transaction to capture it.
 
-        For an acquirer to support authorization, it must override this method and request a capture
+        For a provider to support authorization, it must override this method and request a capture
         to its provider.
 
         Note: self.ensure_one()
@@ -573,9 +573,9 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
 
     def _send_void_request(self):
-        """ Request the provider of the acquirer handling the transaction to void it.
+        """ Request the provider of the provider handling the transaction to void it.
 
-        For an acquirer to support authorization, it must override this method and request the
+        For a provider to support authorization, it must override this method and request the
         transaction to be voided to its provider.
 
         Note: self.ensure_one()
@@ -595,8 +595,8 @@ class PaymentTransaction(models.Model):
         self.ensure_one
 
         return self.create({
-            'acquirer_id': self.acquirer_id.id,
-            'reference': self._compute_reference(self.provider, prefix=f'R-{self.reference}'),
+            'provider_id': self.provider_id.id,
+            'reference': self._compute_reference(self.provider_code, prefix=f'R-{self.reference}'),
             'amount': -(amount_to_refund or self.amount),
             'currency_id': self.currency_id.id,
             'token_id': self.token_id.id,
@@ -609,7 +609,7 @@ class PaymentTransaction(models.Model):
     def _handle_notification_data(self, provider, notification_data):
         """ Match the transaction with the notification data, update its state and return it.
 
-        :param str provider: The provider of the acquirer that handled the transaction
+        :param str provider: The provider of the provider that handled the transaction
         :param dict notification_data: The notification data sent by the provider
         :return: The transaction
         :rtype: recordset of `payment.transaction`
@@ -619,13 +619,13 @@ class PaymentTransaction(models.Model):
         tx._execute_callback()
         return tx
 
-    def _get_tx_from_notification_data(self, provider, notification_data):
+    def _get_tx_from_notification_data(self, provider_code, notification_data):
         """ Find the transaction based on the notification data.
 
-        For an acquirer to handle transaction processing, it must overwrite this method and return
+        For a provider to handle transaction processing, it must overwrite this method and return
         the transaction matching the notification data.
 
-        :param str provider: The provider of the acquirer that handled the transaction
+        :param str provider_code: The code of the provider that handled the transaction
         :param dict notification_data: The notification data sent by the provider
         :return: The transaction if found
         :rtype: recordset of `payment.transaction`
@@ -633,12 +633,12 @@ class PaymentTransaction(models.Model):
         return self
 
     def _process_notification_data(self, notification_data):
-        """ Update the transaction state and the acquirer reference based on the notification data.
+        """ Update the transaction state and the provider reference based on the notification data.
 
         This method should normally never be called directly. The correct method to call upon
         receiving notification data is `_handle_notification_data`.
 
-        For an acquirer to handle transaction processing, it must overwrite this method and process
+        For a provider to handle transaction processing, it must overwrite this method and process
         the notification data.
 
         Note: self.ensure_one()
@@ -812,12 +812,12 @@ class PaymentTransaction(models.Model):
     def _get_post_processing_values(self):
         """ Return a dict of values used to display the status of the transaction.
 
-        For an acquirer to handle transaction status display, it must override this method and
-        return a dict of values. Acquirer-specific values take precedence over those of the dict of
+        For a provider to handle transaction status display, it must override this method and
+        return a dict of values. Provider-specific values take precedence over those of the dict of
         generic post-processing values.
 
         The returned dict contains the following entries:
-            - provider: The provider of the acquirer
+            - provider_code: The code of the provider
             - reference: The reference of the transaction
             - amount: The rounded amount of the transaction
             - currency_id: The currency of the transaction, as a res.currency id
@@ -825,7 +825,7 @@ class PaymentTransaction(models.Model):
             - state_message: The information message about the state
             - is_post_processed: Whether the transaction has already been post-processed
             - landing_route: The route the user is redirected to after the transaction
-            - Additional acquirer-specific entries
+            - Additional provider-specific entries
 
         Note: self.ensure_one()
 
@@ -835,7 +835,7 @@ class PaymentTransaction(models.Model):
         self.ensure_one()
 
         post_processing_values = {
-            'provider': self.provider,
+            'provider_code': self.provider_code,
             'reference': self.reference,
             'amount': self.amount,
             'currency_code': self.currency_id.name,
@@ -845,8 +845,8 @@ class PaymentTransaction(models.Model):
             'landing_route': self.landing_route,
         }
         _logger.debug(
-            "post-processing values of transaction with reference %s for acquirer with id %s:\n%s",
-            self.reference, self.acquirer_id.id, pprint.pformat(post_processing_values)
+            "post-processing values of transaction with reference %s for provider with id %s:\n%s",
+            self.reference, self.provider_id.id, pprint.pformat(post_processing_values)
         )  # DEBUG level because this can get spammy with transactions in non-final states
         return post_processing_values
 
@@ -920,16 +920,16 @@ class PaymentTransaction(models.Model):
         """
         self.ensure_one()
 
-        payment_method_line = self.acquirer_id.journal_id.inbound_payment_method_line_ids\
-            .filtered(lambda l: l.code == self.provider)
+        payment_method_line = self.provider_id.journal_id.inbound_payment_method_line_ids\
+            .filtered(lambda l: l.code == self.provider_code)
         payment_values = {
             'amount': abs(self.amount),  # A tx may have a negative amount, but a payment must >= 0
             'payment_type': 'inbound' if self.amount > 0 else 'outbound',
             'currency_id': self.currency_id.id,
             'partner_id': self.partner_id.commercial_partner_id.id,
             'partner_type': 'customer',
-            'journal_id': self.acquirer_id.journal_id.id,
-            'company_id': self.acquirer_id.company_id.id,
+            'journal_id': self.provider_id.journal_id.id,
+            'company_id': self.provider_id.company_id.id,
             'payment_method_line_id': payment_method_line.id,
             'payment_token_id': self.token_id.id,
             'payment_transaction_id': self.id,
@@ -966,7 +966,7 @@ class PaymentTransaction(models.Model):
     def _log_received_message(self):
         """ Log in the chatter of relevant documents that the transactions have been received.
 
-        A transaction is 'received' when a response is received from the provider of the acquirer
+        A transaction is 'received' when a response is received from the system of the provider
         handling the transaction.
 
         :return: None
@@ -1009,21 +1009,21 @@ class PaymentTransaction(models.Model):
         # Choose the message based on the payment flow
         if self.operation in ('online_redirect', 'online_direct'):
             message = _(
-                "A transaction with reference %(ref)s has been initiated (%(acq_name)s).",
-                ref=self.reference, acq_name=self.acquirer_id.name
+                "A transaction with reference %(ref)s has been initiated (%(pro_name)s).",
+                ref=self.reference, pro_name=self.provider_id.name
             )
         elif self.operation == 'refund':
             formatted_amount = format_amount(self.env, -self.amount, self.currency_id)
             message = _(
                 "A refund request of %(amount)s has been sent. The payment will be created soon. "
-                "Refund transaction reference: %(ref)s (%(acq_name)s).",
-                amount=formatted_amount, ref=self.reference, acq_name=self.acquirer_id.name
+                "Refund transaction reference: %(ref)s (%(pro_name)s).",
+                amount=formatted_amount, ref=self.reference, pro_name=self.provider_id.name
             )
         else:  # 'online_token'
             message = _(
                 "A transaction with reference %(ref)s has been initiated using the payment method "
-                "%(token_name)s (%(acq_name)s).",
-                ref=self.reference, token_name=self.token_id.name, acq_name=self.acquirer_id.name
+                "%(token_name)s (%(pro_name)s).",
+                ref=self.reference, token_name=self.token_id.name, pro_name=self.provider_id.name
             )
         return message
 
@@ -1037,20 +1037,20 @@ class PaymentTransaction(models.Model):
         formatted_amount = format_amount(self.env, self.amount, self.currency_id)
         if self.state == 'pending':
             message = _(
-                "The transaction with reference %(ref)s for %(amount)s is pending (%(acq_name)s).",
-                ref=self.reference, amount=formatted_amount, acq_name=self.acquirer_id.name
+                "The transaction with reference %(ref)s for %(amount)s is pending (%(pro_name)s).",
+                ref=self.reference, amount=formatted_amount, pro_name=self.provider_id.name
             )
         elif self.state == 'authorized':
             message = _(
                 "The transaction with reference %(ref)s for %(amount)s has been authorized "
-                "(%(acq_name)s).", ref=self.reference, amount=formatted_amount,
-                acq_name=self.acquirer_id.name
+                "(%(pro_name)s).", ref=self.reference, amount=formatted_amount,
+                pro_name=self.provider_id.name
             )
         elif self.state == 'done':
             message = _(
                 "The transaction with reference %(ref)s for %(amount)s has been confirmed "
-                "(%(acq_name)s).", ref=self.reference, amount=formatted_amount,
-                acq_name=self.acquirer_id.name
+                "(%(pro_name)s).", ref=self.reference, amount=formatted_amount,
+                pro_name=self.provider_id.name
             )
             if self.payment_id:
                 message += "<br />" + _(
@@ -1060,15 +1060,15 @@ class PaymentTransaction(models.Model):
         elif self.state == 'error':
             message = _(
                 "The transaction with reference %(ref)s for %(amount)s encountered an error"
-                " (%(acq_name)s).",
-                ref=self.reference, amount=formatted_amount, acq_name=self.acquirer_id.name
+                " (%(pro_name)s).",
+                ref=self.reference, amount=formatted_amount, pro_name=self.provider_id.name
             )
             if self.state_message:
                 message += "<br />" + _("Error: %s", self.state_message)
         else:
             message = _(
-                "The transaction with reference %(ref)s for %(amount)s is canceled (%(acq_name)s).",
-                ref=self.reference, amount=formatted_amount, acq_name=self.acquirer_id.name
+                "The transaction with reference %(ref)s for %(amount)s is canceled (%(pro_name)s).",
+                ref=self.reference, amount=formatted_amount, pro_name=self.provider_id.name
             )
             if self.state_message:
                 message += "<br />" + _("Reason: %s", self.state_message)

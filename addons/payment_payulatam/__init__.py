@@ -3,8 +3,8 @@
 from . import controllers
 from . import models
 
-from odoo.addons.payment import reset_payment_acquirer
+from odoo.addons.payment import reset_payment_provider
 
 
 def uninstall_hook(cr, registry):
-    reset_payment_acquirer(cr, registry, 'payulatam')
+    reset_payment_provider(cr, registry, 'payulatam')

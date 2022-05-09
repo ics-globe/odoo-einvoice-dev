@@ -16,34 +16,34 @@ from odoo.addons.payment_alipay.tests.common import AlipayCommon
 @tagged('post_install', '-at_install')
 class AlipayTest(AlipayCommon, PaymentHttpCommon):
 
-    def test_compatible_acquirers(self):
+    def test_compatible_providers(self):
         self.alipay.alipay_payment_method = 'express_checkout'
-        acquirers = self.env['payment.acquirer']._get_compatible_acquirers(
+        providers = self.env['payment.provider']._get_compatible_providers(
             partner_id=self.partner.id,
             currency_id=self.currency_yuan.id,  # 'CNY'
             company_id=self.company.id,
         )
-        self.assertIn(self.alipay, acquirers)
-        acquirers = self.env['payment.acquirer']._get_compatible_acquirers(
+        self.assertIn(self.alipay, providers)
+        providers = self.env['payment.provider']._get_compatible_providers(
             partner_id=self.partner.id,
             currency_id=self.currency_euro.id,
             company_id=self.company.id,
         )
-        self.assertNotIn(self.alipay, acquirers)
+        self.assertNotIn(self.alipay, providers)
 
         self.alipay.alipay_payment_method = 'standard_checkout'
-        acquirers = self.env['payment.acquirer']._get_compatible_acquirers(
+        providers = self.env['payment.provider']._get_compatible_providers(
             partner_id=self.partner.id,
             currency_id=self.currency_yuan.id,  # 'CNY'
             company_id=self.company.id,
         )
-        self.assertIn(self.alipay, acquirers)
-        acquirers = self.env['payment.acquirer']._get_compatible_acquirers(
+        self.assertIn(self.alipay, providers)
+        providers = self.env['payment.provider']._get_compatible_providers(
             partner_id=self.partner.id,
             currency_id=self.currency_euro.id,
             company_id=self.company.id,
         )
-        self.assertIn(self.alipay, acquirers)
+        self.assertIn(self.alipay, providers)
 
     def test_01_redirect_form_standard_checkout(self):
         self.alipay.alipay_payment_method = 'standard_checkout'
@@ -100,7 +100,7 @@ class AlipayTest(AlipayCommon, PaymentHttpCommon):
         )
 
     def test_03_redirect_form_with_fees(self):
-        # update acquirer: compute fees
+        # update provider: compute fees
         self.alipay.write({
             'fees_active': True,
             'fees_dom_fixed': 1.0,
@@ -149,7 +149,7 @@ class AlipayTest(AlipayCommon, PaymentHttpCommon):
         tx = self.create_transaction('redirect')
         self.env['payment.transaction']._handle_notification_data('alipay', self.notification_data)
         self.assertEqual(tx.state, 'done')
-        self.assertEqual(tx.acquirer_reference, self.notification_data['trade_no'])
+        self.assertEqual(tx.provider_reference, self.notification_data['trade_no'])
 
         # Pending transaction
         self.reference = 'Test Transaction 2'
@@ -163,7 +163,7 @@ class AlipayTest(AlipayCommon, PaymentHttpCommon):
     @mute_logger('odoo.addons.payment_alipay.controllers.main')
     def test_webhook_notification_confirms_transaction(self):
         """ Test the processing of a webhook notification. """
-        self.acquirer.alipay_payment_method = 'standard_checkout'
+        self.provider.alipay_payment_method = 'standard_checkout'
         tx = self.create_transaction('redirect')
         url = self._build_url(AlipayController._webhook_url)
         with patch(
@@ -179,7 +179,7 @@ class AlipayTest(AlipayCommon, PaymentHttpCommon):
     @mute_logger('odoo.addons.payment_alipay.controllers.main')
     def test_webhook_notification_triggers_origin_and_signature_checks(self):
         """ Test that receiving a webhook notification triggers origin and signature checks. """
-        self.acquirer.alipay_payment_method = 'standard_checkout'
+        self.provider.alipay_payment_method = 'standard_checkout'
         self.create_transaction('redirect')
         url = self._build_url(AlipayController._webhook_url)
         with patch(
@@ -218,8 +218,8 @@ class AlipayTest(AlipayCommon, PaymentHttpCommon):
         self.assertRaises(Forbidden, AlipayController._verify_notification_signature, payload, tx)
 
     def test_alipay_neutralize(self):
-        self.env['payment.acquirer']._neutralize()
+        self.env['payment.provider']._neutralize()
 
-        self.assertEqual(self.acquirer.alipay_merchant_partner_id, False)
-        self.assertEqual(self.acquirer.alipay_md5_signature_key, False)
-        self.assertEqual(self.acquirer.alipay_seller_email, False)
+        self.assertEqual(self.provider.alipay_merchant_partner_id, False)
+        self.assertEqual(self.provider.alipay_md5_signature_key, False)
+        self.assertEqual(self.provider.alipay_seller_email, False)

@@ -15,12 +15,12 @@ odoo.define('payment_test.payment_form', require => {
          *
          * @override method from payment.payment_form_mixin
          * @private
-         * @param {string} provider - The provider of the acquirer
-         * @param {number} acquirerId - The id of the acquirer handling the transaction
+         * @param {string} provider - The provider of the provider
+         * @param {number} providerId - The id of the provider handling the transaction
          * @param {object} processingValues - The processing values of the transaction
          * @return {Promise}
          */
-        _processDirectPayment: function (provider, acquirerId, processingValues) {
+        _processDirectPayment: function (provider, providerId, processingValues) {
             if (provider !== 'test') {
                 return this._super(...arguments);
             }
@@ -42,7 +42,7 @@ odoo.define('payment_test.payment_form', require => {
          *
          * @override method from payment.payment_form_mixin
          * @private
-         * @param {string} provider - The provider of the selected payment option's acquirer
+         * @param {string} provider - The provider of the selected payment option's provider
          * @param {integer} paymentOptionId - The id of the selected payment option
          * @param {string} flow - The online payment flow of the selected payment option
          * @return {Promise}

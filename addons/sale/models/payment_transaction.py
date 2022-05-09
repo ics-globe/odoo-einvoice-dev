@@ -22,10 +22,10 @@ class PaymentTransaction(models.Model):
 
     def _compute_sale_order_reference(self, order):
         self.ensure_one()
-        if self.acquirer_id.so_reference_type == 'so_name':
+        if self.provider_id.so_reference_type == 'so_name':
             return order.name
         else:
-            # self.acquirer_id.so_reference_type == 'partner'
+            # self.provider_id.so_reference_type == 'partner'
             identification_number = order.partner_id.id
             return '%s/%s' % ('CUST', str(identification_number % 97).rjust(2, '0'))
 
@@ -42,7 +42,7 @@ class PaymentTransaction(models.Model):
             sales_orders = record.sale_order_ids.filtered(lambda so: so.state in ['draft', 'sent'])
             sales_orders.filtered(lambda so: so.state == 'draft').with_context(tracking_disable=True).write({'state': 'sent'})
 
-            if record.acquirer_id.provider == 'transfer':
+            if record.provider_id.code == 'transfer':
                 for so in record.sale_order_ids:
                     so.reference = record._compute_sale_order_reference(so)
             # send order confirmation mail
@@ -56,13 +56,13 @@ class PaymentTransaction(models.Model):
             else:
                 _logger.warning(
                     '<%s> transaction AMOUNT MISMATCH for order %s (ID %s): expected %r, got %r',
-                    self.acquirer_id.provider,order.name, order.id,
+                    self.provider_id.code, order.name, order.id,
                     order.amount_total, self.amount,
                 )
                 order.message_post(
-                    subject=_("Amount Mismatch (%s)", self.acquirer_id.provider),
-                    body=_("The order was not confirmed despite response from the acquirer (%s): order total is %r but acquirer replied with %r.") % (
-                        self.acquirer_id.provider,
+                    subject=_("Amount Mismatch (%s)", self.provider_id.code),
+                    body=_("The order was not confirmed despite response from the provider (%s): order total is %r but provider replied with %r.") % (
+                        self.provider_id.code,
                         order.amount_total,
                         self.amount,
                     )
@@ -110,8 +110,8 @@ class PaymentTransaction(models.Model):
             return
 
         for trans in self:
-            trans = trans.with_company(trans.acquirer_id.company_id).with_context(
-                company_id=trans.acquirer_id.company_id.id,
+            trans = trans.with_company(trans.provider_id.company_id).with_context(
+                company_id=trans.provider_id.company_id.id,
             )
             invoice_to_send = trans.invoice_ids.filtered(
                 lambda i: not i.is_move_sent and i.state == 'posted' and i._is_ready_to_be_sent()
@@ -144,8 +144,8 @@ class PaymentTransaction(models.Model):
     def _invoice_sale_orders(self):
         if self.env['ir.config_parameter'].sudo().get_param('sale.automatic_invoice'):
             for trans in self.filtered(lambda t: t.sale_order_ids):
-                trans = trans.with_company(trans.acquirer_id.company_id)\
-                    .with_context(company_id=trans.acquirer_id.company_id.id)
+                trans = trans.with_company(trans.provider_id.company_id)\
+                    .with_context(company_id=trans.provider_id.company_id.id)
                 confirmed_orders = trans.sale_order_ids.filtered(lambda so: so.state in ('sale', 'done'))
                 if confirmed_orders:
                     confirmed_orders._force_lines_to_invoice_policy_order()
@@ -157,14 +157,14 @@ class PaymentTransaction(models.Model):
                     trans.invoice_ids = [(6, 0, invoices.ids)]
 
     @api.model
-    def _compute_reference_prefix(self, provider, separator, **values):
+    def _compute_reference_prefix(self, provider_code, separator, **values):
         """ Override of payment to compute the reference prefix based on Sales-specific values.
 
         If the `values` parameter has an entry with 'sale_order_ids' as key and a list of (4, id, O)
         or (6, 0, ids) X2M command as value, the prefix is computed based on the sales order name(s)
         Otherwise, the computation is delegated to the super method.
 
-        :param str provider: The provider of the acquirer handling the transaction
+        :param str provider: The provider of the provider handling the transaction
         :param str separator: The custom separator used to separate data references
         :param dict values: The transaction values used to compute the reference prefix. It should
                             have the structure {'sale_order_ids': [(X2M command), ...], ...}.
@@ -178,7 +178,7 @@ class PaymentTransaction(models.Model):
             orders = self.env['sale.order'].browse(order_ids).exists()
             if len(orders) == len(order_ids):  # All ids are valid
                 return separator.join(orders.mapped('name'))
-        return super()._compute_reference_prefix(provider, separator, **values)
+        return super()._compute_reference_prefix(provider_code, separator, **values)
 
     def action_view_sales_orders(self):
         action = {

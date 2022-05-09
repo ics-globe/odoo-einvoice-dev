@@ -1,17 +1,17 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'PayuLatam Payment Acquirer',
+    'name': 'PayuLatam Payment Provider',
     'version': '2.0',
-    'category': 'Accounting/Payment Acquirers',
+    'category': 'Accounting/Payment Providers',
     'sequence': 370,
-    'summary': 'Payment Acquirer: PayuLatam Implementation',
-    'description': """Payulatam payment acquirer""",
+    'summary': 'Payment Provider: PayuLatam Implementation',
+    'description': """Payulatam payment provider""",
     'depends': ['payment'],
     'data': [
         'views/payment_views.xml',
         'views/payment_payulatam_templates.xml',
-        'data/payment_acquirer_data.xml',
+        'data/payment_provider_data.xml',
     ],
     'application': True,
     'uninstall_hook': 'uninstall_hook',

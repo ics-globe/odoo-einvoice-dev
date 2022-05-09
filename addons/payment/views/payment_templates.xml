@@ -4,10 +4,10 @@
     <!-- Checkout form -->
     <template id="checkout" name="Payment Checkout">
         <!-- Variables description:
-            - 'acquirers' - The payment acquirers compatible with the current transaction
-            - 'tokens' - The payment tokens of the current partner and payment acquirers
+            - 'providers' - The payment providers compatible with the current transaction
+            - 'tokens' - The payment tokens of the current partner and payment providers
             - 'default_token_id' - The id of the token that should be pre-selected. Optional
-            - 'fees_by_acquirer' - The dict of transaction fees for each acquirer. Optional
+            - 'fees_by_provider' - The dict of transaction fees for each provider. Optional
             - 'show_tokenize_input' - Whether the option to save the payment method is shown
             - 'reference_prefix' - The custom prefix to compute the full transaction reference
             - 'amount' - The amount to pay. Optional (sale_subscription)
@@ -31,45 +31,45 @@
               t-att-data-allow-token-selection="True"
               t-att-data-invoice-id="invoice_id">
 
-            <t t-set="acquirer_count" t-value="len(acquirers) if acquirers else 0"/>
+            <t t-set="provider_count" t-value="len(providers) if providers else 0"/>
             <t t-set="token_count" t-value="len(tokens) if tokens else 0"/>
-            <!-- Check the radio button of the default token, if set, or of the first acquirer if
+            <!-- Check the radio button of the default token, if set, or of the first provider if
                  it is the only payment option -->
             <t t-set="default_payment_option_id"
                t-value="default_token_id if default_token_id and token_count > 0
-                        else acquirers[0].id if acquirer_count == 1 and token_count == 0
+                        else providers[0].id if provider_count == 1 and token_count == 0
                         else None"/>
-            <t t-set="fees_by_acquirer" t-value="fees_by_acquirer or dict()"/>
+            <t t-set="fees_by_provider" t-value="fees_by_provider or dict()"/>
             <t t-set="footer_template_id"
                t-value="footer_template_id or 'payment.footer'"/>
 
             <div class="card">
-                <!-- === Acquirers === -->
-                <t t-foreach="acquirers" t-as="acquirer">
+                <!-- === Providers === -->
+                <t t-foreach="providers" t-as="provider">
                     <div name="o_payment_option_card" class="card-body o_payment_option_card">
                         <label>
                             <!-- === Radio button === -->
                             <!-- Only shown if linked to the only payment option -->
                             <input name="o_payment_radio"
                                    type="radio"
-                                   t-att-checked="acquirer.id == default_payment_option_id"
-                                   t-att-class="'' if acquirer_count + token_count > 1 else 'd-none'"
-                                   t-att-data-payment-option-id="acquirer.id"
-                                   t-att-data-provider="acquirer.provider"
-                                   data-payment-option-type="acquirer"/>
-                            <!-- === Acquirer name === -->
+                                   t-att-checked="provider.id == default_payment_option_id"
+                                   t-att-class="'' if provider_count + token_count > 1 else 'd-none'"
+                                   t-att-data-payment-option-id="provider.id"
+                                   t-att-data-provider="provider.code"
+                                   data-payment-option-type="provider"/>
+                            <!-- === Provider name === -->
                             <span class="payment_option_name">
-                                <b t-esc="acquirer.display_as or acquirer.name"/>
+                                <b t-esc="provider.display_as or provider.name"/>
                             </span>
                             <!-- === "Test Mode" badge === -->
-                            <span t-if="acquirer.state == 'test'"
+                            <span t-if="provider.state == 'test'"
                                   class="badge-pill badge-warning ml-1">
                                 Test Mode
                             </span>
                             <!-- === Extra fees badge === -->
-                            <t t-if="fees_by_acquirer.get(acquirer)">
+                            <t t-if="fees_by_provider.get(provider)">
                                 <span class="badge-pill badge-secondary ml-1">
-                                    + <t t-esc="fees_by_acquirer.get(acquirer)"
+                                    + <t t-esc="fees_by_provider.get(provider)"
                                          t-options="{'widget': 'monetary', 'display_currency': currency}"/>
                                     Fees
                                 </span>
@@ -78,29 +78,29 @@
                         <!-- === Payment icon list === -->
                         <t t-call="payment.icon_list"/>
                         <!-- === Help message === -->
-                        <div t-if="not is_html_empty(acquirer.pre_msg)"
-                             t-out="acquirer.pre_msg"
+                        <div t-if="not is_html_empty(provider.pre_msg)"
+                             t-out="provider.pre_msg"
                              class="text-muted ml-3"/>
                     </div>
-                    <!-- === Acquirer inline form === -->
-                    <div t-attf-id="o_payment_acquirer_inline_form_{{acquirer.id}}"
+                    <!-- === Provider inline form === -->
+                    <div t-attf-id="o_payment_provider_inline_form_{{provider.id}}"
                          name="o_payment_inline_form"
                          class="card-footer d-none">
-                        <!-- === Inline form content (filled by acquirer) === -->
-                        <t t-if="acquirer.sudo()._should_build_inline_form(is_validation=False)">
+                        <!-- === Inline form content (filled by provider) === -->
+                        <t t-if="provider.sudo()._should_build_inline_form(is_validation=False)">
                             <t t-set="inline_form_xml_id"
-                               t-value="acquirer.sudo().inline_form_view_id.xml_id"/>
+                               t-value="provider.sudo().inline_form_view_id.xml_id"/>
                             <div t-if="inline_form_xml_id" class="clearfix">
                                 <t t-call="{{inline_form_xml_id}}">
-                                    <t t-set="acquirer_id" t-value="acquirer.id"/>
+                                    <t t-set="provider_id" t-value="provider.id"/>
                                 </t>
                             </div>
                         </t>
                         <!-- === "Save my payment details" checkbox === -->
                         <!-- Only included if partner is known and if the choice is given -->
                         <t t-set="tokenization_required"
-                           t-value="acquirer._is_tokenization_required(provider=acquirer.provider)"/>
-                        <label t-if="show_tokenize_input and acquirer.allow_tokenization and not tokenization_required">
+                           t-value="provider._is_tokenization_required(code=provider.code)"/>
+                        <label t-if="show_tokenize_input and provider.allow_tokenization and not tokenization_required">
                             <input name="o_payment_save_as_token" type="checkbox"/>
                             Save my payment details
                         </label>
@@ -115,7 +115,7 @@
                                    type="radio"
                                    t-att-checked="token.id == default_payment_option_id"
                                    t-att-data-payment-option-id="token.id"
-                                   t-att-data-provider="token.provider"
+                                   t-att-data-provider="token.provider_code"
                                    data-payment-option-type="token"/>
                             <!-- === Token name === -->
                             <span class="payment_option_name" t-esc="token.name"/>
@@ -140,7 +140,7 @@
     <!-- Manage (token create and deletion) form -->
     <template id="manage" name="Payment Manage">
         <!-- Variables description:
-            - 'acquirers' - The payment acquirers supporting tokenization
+            - 'providers' - The payment providers supporting tokenization
             - 'tokens' - The set of payment tokens of the current partner
             - 'default_token_id' - The id of the token that should be pre-selected. Optional
             - 'reference_prefix' - The custom prefix to compute the full transaction reference
@@ -164,35 +164,35 @@
               t-att-data-assign-token-route="assign_token_route"
               t-att-data-landing-route="landing_route"
               t-att-data-allow-token-selection="bool(assign_token_route)">
-            <t t-set="acquirer_count" t-value="len(acquirers) if acquirers else 0"/>
+            <t t-set="provider_count" t-value="len(providers) if providers else 0"/>
             <t t-set="token_count" t-value="len(tokens) if tokens else 0"/>
             <t t-set="no_selectable_token" t-value="token_count == 0 or not assign_token_route"/>
             <t t-set="default_payment_option_id"
                t-value="default_token_id if default_token_id and token_count > 0
-                        else acquirers[0].id if acquirer_count == 1 and no_selectable_token
+                        else providers[0].id if provider_count == 1 and no_selectable_token
                         else None"/>
             <t t-set="footer_template_id"
                t-value="footer_template_id or 'payment.footer'"/>
             <div class="card">
-                <!-- === Acquirers === -->
-                <t t-foreach="acquirers" t-as="acquirer">
+                <!-- === Providers === -->
+                <t t-foreach="providers" t-as="provider">
                     <div name="o_payment_option_card" class="card-body o_payment_option_card">
                         <label>
                             <!-- === Radio button === -->
                             <!-- Only shown if linked to the only payment option -->
                             <input name="o_payment_radio"
                                    type="radio"
-                                   t-att-checked="acquirer.id == default_payment_option_id"
-                                   t-att-class="'' if acquirer_count + token_count > 1 else 'd-none'"
-                                   t-att-data-payment-option-id="acquirer.id"
-                                   t-att-data-provider="acquirer.provider"
-                                   data-payment-option-type="acquirer"/>
-                            <!-- === Acquirer name === -->
+                                   t-att-checked="provider.id == default_payment_option_id"
+                                   t-att-class="'' if provider_count + token_count > 1 else 'd-none'"
+                                   t-att-data-payment-option-id="provider.id"
+                                   t-att-data-provider="provider.code"
+                                   data-payment-option-type="provider"/>
+                            <!-- === Provider name === -->
                             <span class="payment_option_name">
-                                <b><t t-esc="acquirer.display_as or acquirer.name"/></b>
+                                <b><t t-esc="provider.display_as or provider.name"/></b>
                             </span>
                             <!-- === "Test Mode" badge === -->
-                            <span t-if="acquirer.state == 'test'"
+                            <span t-if="provider.state == 'test'"
                                   class="badge-pill badge-warning"
                                   style="margin-left:5px">
                                 Test Mode
@@ -201,21 +201,21 @@
                         <!-- === Payment icon list === -->
                         <t t-call="payment.icon_list"/>
                         <!-- === Help message === -->
-                        <div t-if="not is_html_empty(acquirer.pre_msg)"
-                             t-out="acquirer.pre_msg"
+                        <div t-if="not is_html_empty(provider.pre_msg)"
+                             t-out="provider.pre_msg"
                              class="text-muted ml-3"/>
                     </div>
-                    <!-- === Acquirer inline form === -->
-                    <t t-if="acquirer.sudo()._should_build_inline_form(is_validation=True)">
-                        <div t-attf-id="o_payment_acquirer_inline_form_{{acquirer.id}}"
+                    <!-- === Provider inline form === -->
+                    <t t-if="provider.sudo()._should_build_inline_form(is_validation=True)">
+                        <div t-attf-id="o_payment_provider_inline_form_{{provider.id}}"
                              name="o_payment_inline_form"
                              class="card-footer d-none">
-                            <!-- === Inline form content (filled by acquirer) === -->
+                            <!-- === Inline form content (filled by provider) === -->
                             <t t-set="inline_form_xml_id"
-                               t-value="acquirer.sudo().inline_form_view_id.xml_id"/>
+                               t-value="provider.sudo().inline_form_view_id.xml_id"/>
                             <div t-if="inline_form_xml_id" class="clearfix">
                                 <t t-call="{{inline_form_xml_id}}">
-                                    <t t-set="acquirer_id" t-value="acquirer.id"/>
+                                    <t t-set="provider_id" t-value="provider.id"/>
                                 </t>
                             </div>
                         </div>
@@ -232,7 +232,7 @@
                                    t-att-checked="token.id == default_payment_option_id"
                                    t-att-class="'' if bool(assign_token_route) else 'd-none'"
                                    t-att-data-payment-option-id="token.id"
-                                   t-att-data-provider="token.provider"
+                                   t-att-data-provider="token.provider_code"
                                    data-payment-option-type="token"/>
                             <!-- === Token name === -->
                             <span class="payment_option_name" t-esc="token.name"/>
@@ -266,7 +266,7 @@
             <t t-set="MAX_ICONS" t-value="3"/>
             <!-- === Icons === -->
             <!-- Only shown if in the first 3 icons -->
-            <t t-foreach="acquirer.payment_icon_ids" t-as="icon">
+            <t t-foreach="provider.payment_icon_ids" t-as="icon">
                 <li t-attf-class="list-inline-item{{'' if (icon_index &lt; MAX_ICONS) else ' d-none'}}">
                     <span t-esc="icon.image_payment_form"
                           t-options="{'widget': 'image', 'alt-field': 'name'}"
@@ -282,7 +282,7 @@
                     <span class="float-right more_option text-info">
                         <a name="o_payment_icon_more"
                            data-toggle="tooltip"
-                           t-att-title="', '.join([icon.name for icon in acquirer.payment_icon_ids[MAX_ICONS:]])">
+                           t-att-title="', '.join([icon.name for icon in provider.payment_icon_ids[MAX_ICONS:]])">
                             show more
                         </a>
                     </span>
@@ -335,24 +335,24 @@
         <!-- Variables description:
             - 'tx' - The transaction whose status must be displayed
         -->
-        <div t-if="tx.state == 'pending' and not is_html_empty(tx.acquirer_id.sudo().pending_msg)"
+        <div t-if="tx.state == 'pending' and not is_html_empty(tx.provider_id.sudo().pending_msg)"
              class="alert alert-warning alert-dismissible">
-            <span t-out="tx.acquirer_id.sudo().pending_msg"/>
+            <span t-out="tx.provider_id.sudo().pending_msg"/>
             <button class="close" data-dismiss="alert" title="Dismiss">×</button>
         </div>
-        <div t-elif="tx.state == 'authorized' and not is_html_empty(tx.acquirer_id.sudo().auth_msg)"
+        <div t-elif="tx.state == 'authorized' and not is_html_empty(tx.provider_id.sudo().auth_msg)"
              class="alert alert-success alert-dismissible">
-            <span t-out="tx.acquirer_id.sudo().auth_msg"/>
+            <span t-out="tx.provider_id.sudo().auth_msg"/>
             <button class="close" data-dismiss="alert" title="Dismiss">×</button>
         </div>
-        <div t-elif="tx.state == 'done' and not is_html_empty(tx.acquirer_id.sudo().done_msg)"
+        <div t-elif="tx.state == 'done' and not is_html_empty(tx.provider_id.sudo().done_msg)"
              class="alert alert-success alert-dismissible">
-            <span t-out="tx.acquirer_id.sudo().done_msg"/>
+            <span t-out="tx.provider_id.sudo().done_msg"/>
             <button class="close" data-dismiss="alert" title="Dismiss">×</button>
         </div>
-        <div t-elif="tx.state == 'cancel' and not is_html_empty(tx.acquirer_id.sudo().cancel_msg)"
+        <div t-elif="tx.state == 'cancel' and not is_html_empty(tx.provider_id.sudo().cancel_msg)"
              class="alert alert-danger alert-dismissible">
-            <span t-out="tx.acquirer_id.sudo().cancel_msg"/>
+            <span t-out="tx.provider_id.sudo().cancel_msg"/>
             <button class="close" data-dismiss="alert" title="Dismiss">×</button>
         </div>
         <span t-if="tx.state_message" t-esc="tx.state_message"/>

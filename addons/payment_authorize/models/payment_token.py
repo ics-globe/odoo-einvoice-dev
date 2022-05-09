@@ -31,10 +31,10 @@ class PaymentToken(models.Model):
         :return: None
         """
         super()._handle_deactivation_request()
-        if self.provider != 'authorize':
+        if self.provider_code != 'authorize':
             return
 
-        authorize_API = AuthorizeAPI(self.acquirer_id)
+        authorize_API = AuthorizeAPI(self.provider_id)
         res_content = authorize_API.delete_customer_profile(self.authorize_profile)
         _logger.info("delete_customer_profile request response:\n%s", pprint.pformat(res_content))
 
@@ -46,7 +46,7 @@ class PaymentToken(models.Model):
         :return: None
         """
         super()._handle_reactivation_request()
-        if self.provider != 'authorize':
+        if self.provider_code != 'authorize':
             return
 
         raise UserError(_("Saved payment methods cannot be restored once they have been deleted."))

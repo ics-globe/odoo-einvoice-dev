@@ -54,7 +54,7 @@ class TestSalePayment(PaymentCommon, PaymentHttpCommon):
 
         route_values.update({
             'flow': 'direct',
-            'payment_option_id': self.acquirer.id,
+            'payment_option_id': self.provider.id,
             'tokenization_requested': False,
             'validation_route': False,
             'reference_prefix': None, # Force empty prefix to fallback on SO reference
@@ -99,7 +99,7 @@ class TestSalePayment(PaymentCommon, PaymentHttpCommon):
 
         route_values.update({
             'flow': 'direct',
-            'payment_option_id': self.acquirer.id,
+            'payment_option_id': self.provider.id,
             'tokenization_requested': False,
             'validation_route': False,
             'reference_prefix': tx_context['reference_prefix'],
@@ -135,7 +135,7 @@ class TestSalePayment(PaymentCommon, PaymentHttpCommon):
 
         route_values.update({
             'flow': 'direct',
-            'payment_option_id': self.acquirer.id,
+            'payment_option_id': self.provider.id,
             'tokenization_requested': False,
             'validation_route': False,
             'reference_prefix': tx_context['reference_prefix'],
@@ -174,7 +174,7 @@ class TestSalePayment(PaymentCommon, PaymentHttpCommon):
 
         route_values.update({
             'flow': 'direct',
-            'payment_option_id': self.acquirer.id,
+            'payment_option_id': self.provider.id,
             'tokenization_requested': False,
             'validation_route': False,
             'reference_prefix': tx_context['reference_prefix'],

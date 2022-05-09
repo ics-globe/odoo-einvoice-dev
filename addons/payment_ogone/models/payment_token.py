@@ -20,7 +20,7 @@ class PaymentToken(models.Model):
         :raise: UserError if the token is managed by Ogone
         """
         super()._handle_reactivation_request()
-        if self.provider != 'ogone':
+        if self.provider_code != 'ogone':
             return
 
         raise UserError(_("Saved payment methods cannot be restored once they have been archived."))

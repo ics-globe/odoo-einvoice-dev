@@ -7,10 +7,10 @@ odoo.define('pos_restaurant_adyen.payment', function (require) {
         _adyen_pay_data: function () {
             var data = this._super();
 
-            if (data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToAcquirerData) {
-                data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToAcquirerData += "&authorisationType=PreAuth";
+            if (data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToProviderData) {
+                data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToProviderData += "&authorisationType=PreAuth";
             } else {
-                data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToAcquirerData = "authorisationType=PreAuth";
+                data.SaleToPOIRequest.PaymentRequest.SaleData.SaleToProviderData = "authorisationType=PreAuth";
             }
     
             return data;

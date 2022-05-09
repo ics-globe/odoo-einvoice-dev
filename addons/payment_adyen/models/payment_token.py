@@ -21,16 +21,16 @@ class PaymentToken(models.Model):
         :return: None
         """
         super()._handle_deactivation_request()
-        if self.provider != 'adyen':
+        if self.provider_code != 'adyen':
             return
 
         data = {
-            'merchantAccount': self.acquirer_id.adyen_merchant_account,
+            'merchantAccount': self.provider_id.adyen_merchant_account,
             'shopperReference': self.adyen_shopper_reference,
-            'recurringDetailReference': self.acquirer_ref,
+            'recurringDetailReference': self.provider_ref,
         }
         try:
-            self.acquirer_id._adyen_make_request(
+            self.provider_id._adyen_make_request(
                 url_field_name='adyen_recurring_api_url',
                 endpoint='/disable',
                 payload=data,
@@ -48,7 +48,7 @@ class PaymentToken(models.Model):
         :raise: UserError if the token is managed by Adyen
         """
         super()._handle_reactivation_request()
-        if self.provider != 'adyen':
+        if self.provider_code != 'adyen':
             return
 
         raise UserError(_("Saved payment methods cannot be restored once they have been deleted."))

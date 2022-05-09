@@ -1,16 +1,16 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Wire Transfer Payment Acquirer',
+    'name': 'Wire Transfer Payment Provider',
     'version': '2.0',
-    'category': 'Accounting/Payment Acquirers',
-    'summary': 'Payment Acquirer: Wire Transfer Implementation',
-    'description': """Wire Transfer Payment Acquirer""",
+    'category': 'Accounting/Payment Providers',
+    'summary': 'Payment Provider: Wire Transfer Implementation',
+    'description': """Wire Transfer Payment Provider""",
     'depends': ['payment'],
     'data': [
         'views/payment_views.xml',
         'views/payment_transfer_templates.xml',
-        'data/payment_acquirer_data.xml',
+        'data/payment_provider_data.xml',
     ],
     'auto_install': True,
     'uninstall_hook': 'uninstall_hook',

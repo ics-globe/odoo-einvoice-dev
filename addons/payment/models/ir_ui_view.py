@@ -8,9 +8,9 @@ class IrUiView(models.Model):
     _inherit = 'ir.ui.view'
 
     @api.ondelete(at_uninstall=False)
-    def _unlink_if_not_referenced_by_acquirer(self):
-        referencing_acquirers = self.env['payment.acquirer'].search([
+    def _unlink_if_not_referenced_by_provider(self):
+        referencing_providers = self.env['payment.provider'].search([
             '|', ('redirect_form_view_id', 'in', self.ids), ('inline_form_view_id', 'in', self.ids)
         ])
-        if referencing_acquirers:
-            raise UserError(_("You cannot delete a view that is used by a payment acquirer."))
+        if referencing_providers:
+            raise UserError(_("You cannot delete a view that is used by a payment provider."))

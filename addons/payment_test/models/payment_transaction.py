@@ -21,26 +21,26 @@ class PaymentTransaction(models.Model):
         :return: None
         """
         super()._send_payment_request()
-        if self.provider != 'test':
+        if self.provider_code != 'test':
             return
 
         self._handle_notification_data('test', None)
 
-    def _get_tx_from_notification_data(self, provider, notification_data):
+    def _get_tx_from_notification_data(self, provider_code, notification_data):
         """ Override of payment to find the transaction based on dummy data.
 
-        :param str provider: The provider of the acquirer that handled the transaction
+        :param str provider_code: The code of the provider that handled the transaction
         :param dict notification_data: The dummy notification data
         :return: The transaction if found
         :rtype: recordset of `payment.transaction`
         :raise: ValidationError if the data match no transaction
         """
-        tx = super()._get_tx_from_notification_data(provider, notification_data)
-        if provider != 'test' or len(tx) == 1:
+        tx = super()._get_tx_from_notification_data(provider_code, notification_data)
+        if provider_code != 'test' or len(tx) == 1:
             return tx
 
         reference = notification_data.get('reference')
-        tx = self.search([('reference', '=', reference), ('provider', '=', 'test')])
+        tx = self.search([('reference', '=', reference), ('provider_code', '=', 'test')])
         if not tx:
             raise ValidationError(
                 "Test: " + _("No transaction found matching reference %s.", reference)
@@ -57,17 +57,17 @@ class PaymentTransaction(models.Model):
         :raise: ValidationError if inconsistent data were received
         """
         super()._process_notification_data(notification_data)
-        if self.provider != "test":
+        if self.provider_code != "test":
             return
 
         self._set_done()  # Dummy transactions are always successful
         if self.tokenize:
             payment_details_short = notification_data['cc_summary']
             token = self.env['payment.token'].create({
-                'acquirer_id': self.acquirer_id.id,
+                'provider_id': self.provider_id.id,
                 'name': payment_utils.build_token_name(payment_details_short=payment_details_short),
                 'partner_id': self.partner_id.id,
-                'acquirer_ref': 'fake acquirer reference',
+                'provider_ref': 'fake provider reference',
                 'verified': True,
             })
             self.token_id = token.id
