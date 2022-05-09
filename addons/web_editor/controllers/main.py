@@ -198,11 +198,13 @@ class Web_Editor(http.Controller):
         )
 
     @http.route('/web_editor/attachment/add_data', type='json', auth='user', methods=['POST'], website=True)
-    def add_data(self, name, data, is_image, quality=0, width=0, height=0, res_id=False, res_model='ir.ui.view', **kwargs):
+    def add_data(self, name, data, is_image, quality=0, width=0, height=0, res_id=False, res_model='ir.ui.view', website=False, **kwargs):
         data = b64decode(data)
         if is_image:
             format_error_msg = _("Uploaded image's format is not supported. Try with: %s", ', '.join(SUPPORTED_IMAGE_EXTENSIONS))
             try:
+                if website and request.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', ''):
+                    quality = -1 # disable image quality optimization
                 data = tools.image_process(data, size=(width, height), quality=quality, verify_resolution=True)
                 mimetype = guess_mimetype(data)
                 if mimetype not in SUPPORTED_IMAGE_MIMETYPES:
@@ -714,5 +716,6 @@ class Web_Editor(http.Controller):
         request.env['bus.bus']._sendone(channel, 'editor_collaboration', bus_data)
 
     @http.route('/web_editor/is_website_images_optimization_deactivated', type='json', auth='user')
-    def is_website_images_optimization_activated(self):
-        return request.env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization', '')
+    def is_website_images_optimization_activated(self, website):
+        return request.env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization', '') or \
+            (request.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', '') and website)

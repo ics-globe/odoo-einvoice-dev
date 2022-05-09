@@ -4941,8 +4941,12 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
         weightEl.title = _t("Size");
         this.$weight = $(weightEl);
 
+        const isForWebsite = Boolean(this.$target[0].closest('#wrapwrap'));
         const isOptimizationDeactivated = await this._rpc({
             route: '/web_editor/is_website_images_optimization_deactivated',
+            params: {
+                website: isForWebsite,
+            },
         });
         if (isOptimizationDeactivated) {
             const warningEl = document.createElement('i');

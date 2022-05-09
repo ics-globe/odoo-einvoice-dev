@@ -328,6 +328,10 @@ class IrAttachment(models.Model):
                     if w > nw or h > nh:
                         img.resize(nw, nh)
                         quality = int(ICP('base.image_autoresize_quality', 80))
+                        if 'res_model' in values.keys() and values['res_model'] == 'ir.ui.view' \
+                            and values['website_id'] is not None \
+                            and self.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', ''):
+                            quality = -1 # disable image quality optimization
                         values[is_raw and 'raw' or 'datas'] = fn_quality(quality=quality)
                 except UserError as e:
                     # Catch error during test where we provide fake image
