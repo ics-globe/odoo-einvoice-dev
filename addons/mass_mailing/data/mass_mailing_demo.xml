@@ -16,17 +16,14 @@
         <record id="mass_mail_contact_1" model="mailing.contact">
             <field name="name">Aristide Antario</field>
             <field name="email">alexandre.antario@example.com</field>
-            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mailing_list_data')])]"/>
         </record>
         <record id="mass_mail_contact_2" model="mailing.contact">
             <field name="name">Beverly Bridge</field>
             <field name="email">beverly.bridge@example.com</field>
-            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mailing_list_data')])]"/>
         </record>
         <record id="mass_mail_contact_3" model="mailing.contact">
             <field name="name">Carol Cartridge</field>
             <field name="email">carol.cartridge@example.com</field>
-            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mailing_list_data'),ref('mass_mailing.mailing_list_1')])]"/>
         </record>
         <record id="mass_mail_contact_4" model="mailing.contact">
             <field name="name">David Dawson</field>
@@ -36,12 +33,10 @@
             <field name="name">Elsa Ericson</field>
             <field name="email">elsa.ericson@example.com</field>
             <field name="message_bounce">5</field>
-            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mailing_list_data')])]"/>
         </record>
         <record id="mass_mail_contact_6" model="mailing.contact">
             <field name="name">Franz Faubourg</field>
             <field name="email">franz.faubourg@example.com</field>
-            <field name="list_ids" eval="[(6,0,[ref('mass_mailing.mailing_list_1')])]"/>
         </record>
 
         <!-- Create Opt-out Records -->
@@ -54,6 +49,32 @@
             <field name="list_id" ref="mass_mailing.mailing_list_data"/>
             <field name="contact_id" ref="mass_mailing.mass_mail_contact_6"/>
             <field name="opt_out">True</field>
+        </record>
+
+        <!-- Contact Subscription records -->
+        <record id="mass_mail_contact_list_rel_3" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_1"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_data"/>
+        </record>
+        <record id="mass_mail_contact_list_rel_4" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_2"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_data"/>
+        </record>
+        <record id="mass_mail_contact_list_rel_5" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_3"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_data"/>
+        </record>
+        <record id="mass_mail_contact_list_rel_6" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_5"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_data"/>
+        </record>
+        <record id="mass_mail_contact_list_rel_7" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_3"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_1"/>
+        </record>
+        <record id="mass_mail_contact_list_rel_8" model="mailing.contact.subscription">
+            <field name="contact_id" ref="mass_mailing.mass_mail_contact_6"/>
+            <field name="list_id" ref="mass_mailing.mailing_list_1"/>
         </record>
 
         <!-- Create Blacklist Records -->
