@@ -204,7 +204,15 @@ class IrModuleModule(models.Model):
             for model_name in self._theme_model_names:
                 module._update_records(model_name, website)
 
-            self.env['theme.utils']._post_copy(module, website)
+            if self._context.get('apply_new_theme'):
+                # Both the theme install and upgrade flow ends up here.
+                # The _post_copy() is supposed to be called only when the theme
+                # is installed for the first time on a website.
+                # It will basically select some header and footer template.
+                # We don't want the system to select again the theme footer or
+                # header template when that theme is updated later. It could
+                # erase the change the user made after the theme install.
+                self.env['theme.utils'].with_context(website_id=website.id)._post_copy(module)
 
     def _theme_unload(self, website):
         """
@@ -359,7 +367,7 @@ class IrModuleModule(models.Model):
         website.theme_id = self
 
         # this will install 'self' if it is not installed yet
-        self._theme_upgrade_upstream()
+        self.with_context(apply_new_theme=True)._theme_upgrade_upstream()
 
         return website.button_go_website()
 
