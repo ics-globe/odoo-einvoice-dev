@@ -101,13 +101,10 @@ class PaymentCommon(TransactionCase):
                 'odoo.addons.account_payment.models.payment_transaction.PaymentTransaction._reconcile_after_done',
             )
             self.reconcile_after_done_patcher.start()
-
-    def tearDown(self):
-        super().tearDown()
-        # Magic hack: we start the patcher even if it was started already
-        # so that we do not call stop on a non started patcher.
-        self.reconcile_after_done_patcher.start()
-        self.reconcile_after_done_patcher.stop()
+            # Magic hack: we start the patcher even if it was started already
+            # so that we do not call stop on a non started patcher.
+            self.addCleanup(self.reconcile_after_done_patcher.start)
+            self.addCleanup(self.reconcile_after_done_patcher.stop)
 
     #=== Utils ===#
 
