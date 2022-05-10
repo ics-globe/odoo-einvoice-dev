@@ -4918,6 +4918,7 @@ registry.ReplaceMedia = SnippetOptionWidget.extend({
     },
 });
 
+let isImageOptimizationDeactivated;
 /*
  * Abstract option to be extended by the ImageTools and BackgroundOptimize
  * options that handles all the common parts.
@@ -4941,14 +4942,15 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
         weightEl.title = _t("Size");
         this.$weight = $(weightEl);
 
-        const isForWebsite = Boolean(this.$target[0].closest('#wrapwrap'));
-        const isOptimizationDeactivated = await this._rpc({
-            route: '/web_editor/is_website_images_optimization_deactivated',
-            params: {
-                website: isForWebsite,
-            },
-        });
-        if (isOptimizationDeactivated) {
+        if (isImageOptimizationDeactivated === undefined) {
+            isImageOptimizationDeactivated = await this._rpc({
+                route: '/web_editor/is_website_images_optimization_deactivated',
+                params: {
+                    website: Boolean(this.$target[0].closest('#wrapwrap')),
+                },
+            });
+        }
+        if (isImageOptimizationDeactivated) {
             const warningEl = document.createElement('i');
             warningEl.classList.add('fa', 'fa-exclamation-triangle', 'mr-2', 'text-warning');
             warningEl.title = _t("Automatic Images optimization is disabled");
