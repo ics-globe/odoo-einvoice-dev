@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_config_view_form" model="ir.ui.view">
+        <field name="name">pos.config.form.view.inherit</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id" ref="point_of_sale.pos_config_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='iface_invoicing']" position="before">
+                <div class="col-12 col-lg-6 o_setting_box" id="iface_global_invoice">
+                    <div class="o_setting_right_pane">
+                        <span class="o_form_label">Global Invoice</span>
+                        <div class="text-muted">Configuration for the global invoice</div>
+                        <div class="content-group">
+                            <!-- <div class="row mt16" title="Whenever you close a session, one entry is generated in the following accounting journal for all the orders not invoiced. Invoices are recorded in accounting separately.">
+                                <label string="Product" for="default_product" class="col-lg-3 o_light_label" options="{'no_open': True, 'no_create': True}"/>
+                                <field name="default_product" required="0"/>
+                            </div> -->
+                            <!-- <div class="row mt16" title="Default customer when validating an order">
+                                <label string="Customer" for="default_customer" class="col-lg-3 o_light_label" options="{'no_open': True, 'no_create': True}"/>
+                                <field name="default_customer" required="0" />
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

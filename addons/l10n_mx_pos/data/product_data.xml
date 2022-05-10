@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ACT Units of Measure -->
+    <record id="uom_general_product" model="uom.uom">
+        <field name="name">ACT</field>
+        <field name="category_id" ref="uom.product_uom_categ_unit"/>
+        <field name="uom_type">bigger</field>
+        <field name="factor">1.0</field>
+        <field name="unspsc_code_id" search="[('code', '=', '01010101')]"/>
+    </record>
+
+    <!-- General product -->
+    <record id="product_general_product_mx" model="product.product">
+        <field name="name">Servicio para factura global y pagos</field>
+        <field name="default_code">SERV-FAC</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="product.product_category_3"/>
+        <field name="uom_id" ref="uom_general_product"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">0.0</field>
+        <field name="purchase_ok" eval="False"/>
+        <field name="weight">0.01</field>
+        <field name="unspsc_code_id" search="[('code', '=', '01010101')]"/>
+    </record>
+
+    <!-- General Customer -->
+    <record id="res_partner_general_customer_mx" model="res.partner">
+        <field name="name">Publico en General</field>
+    </record>
+</odoo>
