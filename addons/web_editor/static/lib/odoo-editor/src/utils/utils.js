@@ -515,6 +515,25 @@ export function setSelection(
     return [anchorNode, anchorOffset, focusNode, focusOffset];
 }
 /**
+ * Get the first and last node of the `nodes` relative to a pre-order
+ * depth-first traversal of the DOM.
+ *
+ * @param {Node[]} nodes
+ */
+export function getFirstAndLastNodes(nodes) {
+    let first = nodes[0];
+    let last = nodes[0];
+    for (const node of nodes) {
+        if (first.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING) {
+            first = node;
+        } else if (last.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            last = node;
+        }
+        document.head.compareDocumentPosition(document.head) & Node.DOCUMENT_POSITION_PRECEDING
+    }
+    return [first, last];
+}
+/**
  * @param {Node} node
  * @param {boolean} [normalize=true]
  * @returns {?Array.<Node, number}
