@@ -205,17 +205,17 @@ class TestUi(odoo.tests.HttpCase):
                 </xpath>
             """,
         }])
-        self.start_tour("/", 'snippet_version', login='admin')
+        self.start_tour("/web", 'snippet_version', login='admin')
 
     def test_08_website_style_custo(self):
         self.start_tour("/", "website_style_edition", login="admin")
 
     def test_09_website_edit_link_popover(self):
-        self.start_tour("/", "edit_link_popover", login="admin")
+        self.start_tour("/web", "edit_link_popover", login="admin")
 
     def test_10_website_conditional_visibility(self):
-        self.start_tour('/', 'conditional_visibility_1', login='admin')
-        self.start_tour('/', 'conditional_visibility_2', login='admin')
+        self.start_tour('/web', 'conditional_visibility_1', login='admin')
+        self.start_tour('/web', 'conditional_visibility_2', login='admin')
 
     def test_11_website_snippet_background_edition(self):
         self.env['ir.attachment'].create({
@@ -225,7 +225,7 @@ class TestUi(odoo.tests.HttpCase):
             'name': 'test.png',
             'mimetype': 'image/png',
         })
-        self.start_tour('/', 'snippet_background_edition', login='admin')
+        self.start_tour('/web', 'snippet_background_edition', login='admin')
 
     def test_12_edit_translated_page_redirect(self):
         lang = self.env['res.lang']._activate_lang('nl_NL')

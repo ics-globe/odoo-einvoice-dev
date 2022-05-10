@@ -1,15 +1,20 @@
 odoo.define("website.tour.snippets_all_drag_and_drop", async function (require) {
 "use strict";
 
-const snippetsEditor = require('web_editor.snippet.editor');
+const { WysiwygAdapterComponent } = require('@website/components/wysiwyg_adapter/wysiwyg_adapter');
 const websiteTourUtils = require('website.tour_utils');
+const { patch, unpatch } = require('web.utils');
 
-snippetsEditor.SnippetEditor.include({
-    removeSnippet: async function (shouldRecordUndo = true) {
-        await this._super(...arguments);
-        $('body').attr('test-dd-snippet-removed', true);
-    },
+const patchWysiwygAdapter = () => patch(WysiwygAdapterComponent.prototype, 'snippets_all_drag_and_drop.wysiwyg_adapter', {
+    _trigger_up(ev) {
+        this._super(...arguments);
+        if (ev.name === 'snippet_removed') {
+            $('body').attr('test-dd-snippet-removed', true);
+        }
+    }
 });
+
+const unpatchWysiwygAdapter = () => unpatch(WysiwygAdapterComponent.prototype, 'snippets_all_drag_and_drop.wysiwyg_adapter');
 
 const tour = require("web_tour.tour");
 
@@ -73,14 +78,15 @@ tour.register("snippets_all_drag_and_drop", {
     websiteTourUtils.clickOnEdit(),
     {
         content: "Ensure snippets are actually passed at the test.",
-        trigger: "#oe_snippets",
+        trigger: "#oe_snippets.o_loaded",
         run: function () {
             // safety check, otherwise the test might "break" one day and
             // receive no steps. The test would then not test anything anymore
             // without us noticing it.
-            if (steps.lenth < 280) {
+            if (steps.length < 280) {
                 console.error("This test is not behaving as it should.");
             }
+            patchWysiwygAdapter();
         },
     },
     // This first step is needed as it will be used later for inner snippets
@@ -103,6 +109,12 @@ tour.register("snippets_all_drag_and_drop", {
         content: "click on 'BLOCKS' tab",
         trigger: ".o_we_add_snippet_btn"
     },
-].concat(steps)
+].concat(steps).concat([
+    {
+        content: "Remove wysiwyg patch",
+        trigger: "body",
+        run: () => unpatchWysiwygAdapter(),
+    }
+]),
 );
 });

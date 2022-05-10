@@ -25,12 +25,15 @@ tour.register('full_screen_web_editor', {
     trigger: '.o_wslides_fs_main',
     run: function () {} // check we land on the fullscreen view
 }, {
-    // click on the main "Edit" button to open the web editor
-    trigger: '#edit-page-menu a[data-action="edit"]',
+    trigger: '.o_frontend_to_backend_edit_btn',
 }, {
-    trigger: '.o_wslides_lesson_main',
+// TODO: uncomment this when edit button behaviour changes.
+//     // click on the main "Edit" button to open the web editor
+//     trigger: '.o_edit_website_container a',
+// }, {
+    trigger: 'iframe .o_wslides_lesson_main',
     run: function () {} // check we are redirected on the detailed view
 }, {
-    trigger: 'body.editor_enable',
+    trigger: 'body.editor_has_snippets',
     run: function () {} // check the editor is automatically opened on the detailed view
 }]);

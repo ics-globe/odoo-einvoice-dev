@@ -54,6 +54,7 @@ export class WebsiteEditorClientAction extends Component {
 
         this.iframe = useRef('iframe');
         this.iframefallback = useRef('iframefallback');
+        this.iframeContainer = useRef('iframe-container');
         this.websiteContext = useState(this.websiteService.context);
 
         onWillStart(async () => {
@@ -90,6 +91,9 @@ export class WebsiteEditorClientAction extends Component {
 
                 this.websiteService.pageDocument = this.iframe.el.contentDocument;
                 this.websiteService.contentWindow = this.iframe.el.contentWindow;
+
+                // This is needed for the registerThemeHomepageTour tours
+                this.iframeContainer.el.dataset.viewXmlid = this.iframe.el.contentDocument.documentElement.dataset.viewXmlid;
 
                 this.iframe.el.contentWindow.addEventListener('beforeunload', () => {
                     if (!this.websiteContext.edition) {

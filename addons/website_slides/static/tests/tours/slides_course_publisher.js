@@ -11,11 +11,12 @@ import slidesTourTools from '@website_slides/../tests/tours/slides_tour_tools';
  * they publishe it;
  */
 tour.register('course_publisher', {
-    url: '/slides',
+    // TODO: replace by wTourUtils.getClientActionURL when it's added
+    url: '/web#action=website.website_editor&path=%2Fslides&website_id=1&cids=1',
     test: true
 }, [{
     content: 'eLearning: click on New (top-menu)',
-    trigger: 'div.o_new_content_menu a'
+    trigger: 'div.o_new_content_container a'
 }, {
     content: 'eLearning: click on New Course',
     trigger: 'a:contains("Course")'
@@ -25,27 +26,29 @@ tour.register('course_publisher', {
     run: 'text How to Déboulonnate',
 }, {
     content: 'eLearning: click on tags',
-    trigger: 'ul.select2-choices:first',
+    trigger: '.o_field_many2manytags input',
+    run: 'text Gard',
 }, {
     content: 'eLearning: select gardener tag',
-    trigger: 'div.select2-result-label:contains("Gardener")',
+    trigger: '.ui-autocomplete a:contains("Gardener")',
     in_modal: false,
 }, {
     content: 'eLearning: set description',
-    trigger: 'textarea[name="description"]',
+    trigger: '.oe_form_field_html[name="description"]',
     run: 'text Déboulonnate is very common at Fleurus',
 }, {
     content: 'eLearning: we want reviews',
-    trigger: 'input[name="allow_comment"]',
+    trigger: '.o_field_boolean[name="allow_comment"] input',
 }, {
     content: 'eLearning: seems cool, create it',
-    trigger: 'button:contains("Create")',
+    trigger: 'button:contains("Save")',
 }, {
     content: 'eLearning: launch course edition',
-    trigger: 'div[id="edit-page-menu"] a',
+    trigger: '.o_edit_website_container a',
 }, {
     content: 'eLearning: double click image to edit it',
-    trigger: 'img.o_wslides_course_pict',
+    extra_trigger: 'iframe body.editor_enable',
+    trigger: 'iframe img.o_wslides_course_pict',
     run: 'dblclick',
 }, {
     content: 'eLearning: click "Add URL" to trigger URL box',
@@ -59,35 +62,36 @@ tour.register('course_publisher', {
     trigger: '.o_upload_media_url_button',
 }, {
     content: 'eLearning: is the Corgi set ?',
-    trigger: 'img.o_wslides_course_pict',
+    trigger: 'iframe img.o_wslides_course_pict',
     run: function () {
-        if ($('img.o_wslides_course_pict').attr('src').endsWith('GoldWinnerPembrookeWelshCorgi.jpg')) {
-            $('img.o_wslides_course_pict').addClass('o_wslides_tour_success');
+        const $imgCorgi = $('.o_website_editor iframe').contents().find('img.o_wslides_course_pict');
+        if ($imgCorgi.attr('src').endsWith('GoldWinnerPembrookeWelshCorgi.jpg')) {
+            $imgCorgi.addClass('o_wslides_tour_success');
         }
     },
 }, {
     content: 'eLearning: the Corgi is set !',
-    trigger: 'img.o_wslides_course_pict.o_wslides_tour_success',
+    trigger: 'iframe img.o_wslides_course_pict.o_wslides_tour_success',
 }, {
     content: 'eLearning: save course edition',
     trigger: 'button[data-action="save"]',
 }, {
     content: 'eLearning: course create with current member',
-    extra_trigger: 'body:not(.editor_enable)',  // wait for editor to close
-    trigger: '.o_wslides_js_course_join:contains("You\'re enrolled")',
+    extra_trigger: 'iframe body:not(.editor_enable)',  // wait for editor to close
+    trigger: 'iframe .o_wslides_js_course_join:contains("You\'re enrolled")',
     run: function () {} // check membership
 }
 ].concat(
-    slidesTourTools.addExistingCourseTag(),
-    slidesTourTools.addNewCourseTag('The Most Awesome Course'),
-    slidesTourTools.addSection('Introduction'),
-    slidesTourTools.addVideoToSection('Introduction'),
+    slidesTourTools.addExistingCourseTag(true),
+    slidesTourTools.addNewCourseTag('The Most Awesome Course', true),
+    slidesTourTools.addSection('Introduction', true),
+    slidesTourTools.addVideoToSection('Introduction', false, true),
     [{
     content: 'eLearning: publish newly added course',
-    trigger: 'span:contains("Dschinghis Khan - Dschinghis Khan (1979)")',  // wait for slide to appear
+    trigger: 'iframe span:contains("Dschinghis Khan - Dschinghis Khan (1979)")',  // wait for slide to appear
     // trigger: 'span.o_wslides_js_slide_toggle_is_preview:first',
     run: function () {
-        $('span.o_wslides_js_slide_toggle_is_preview:first').click();
+        $('.o_website_editor iframe').contents().find('span.o_wslides_js_slide_toggle_is_preview:first')[0].click();
     }
 }]
 //     [

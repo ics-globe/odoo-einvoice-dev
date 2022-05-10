@@ -75,7 +75,7 @@ odoo.define("website_blog.tour", function (require) {
         position: "bottom",
     }, {
         trigger: "a[data-action=show-mobile-preview]",
-        extra_trigger: "body:not(.editor_enable)",
+        extra_trigger: "iframe body:not(.editor_enable)",
         content: Markup(_t("Use this icon to preview your blog post on <b>mobile devices</b>.")),
         position: "bottom",
     }, {
@@ -85,7 +85,7 @@ odoo.define("website_blog.tour", function (require) {
         position: "right",
     }, {
         trigger: ".js_publish_management .js_publish_btn",
-        extra_trigger: "body:not(.editor_enable)",
+        extra_trigger: "iframe body:not(.editor_enable)",
         position: "bottom",
         content: Markup(_t("<b>Publish your blog post</b> to make it visible to your visitors.")),
     }, {

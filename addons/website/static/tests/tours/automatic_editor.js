@@ -101,7 +101,7 @@ tour.register('automatic_editor_on_new_website', {
     },
     {
         content: "wait for editor to close",
-        trigger: 'body:not(.editor_enable)',
+        trigger: 'iframe body:not(.editor_enable)',
         run: () => null, // It's a check
     }
 ]);

@@ -6,7 +6,7 @@ const wTourUtils = require('website.tour_utils');
 
 tour.register("default_shape_gets_palette_colors", {
     test: true,
-    url: "/?enable_editor=1",
+    url: wTourUtils.getClientActionUrl('/', true),
 }, [
     wTourUtils.dragNDrop({
         id: 's_text_image',
@@ -21,7 +21,7 @@ tour.register("default_shape_gets_palette_colors", {
         content: "Check that shape does not have a background-image in its inline style",
         trigger: 'iframe #wrap .s_text_image .o_we_shape',
         run: () => {
-            const shape = $('#main_iframe').contents().find('#wrap .s_text_image .o_we_shape')[0];
+            const shape = $('iframe:not(.o_technical_iframe)').contents().find('#wrap .s_text_image .o_we_shape')[0];
             if (shape.style.backgroundImage) {
                 console.error("error The default shape has a background-image in its inline style (should rely on the class)");
             }

@@ -5,7 +5,7 @@ odoo.define('website_sale_tour.tour', function (require) {
     var rpc = require("web.rpc");
     const tourUtils = require('website_sale.tour_utils');
 
-    tour.register('website_sale_tour', {
+    tour.register('website_sale_tour_1', {
         test: true,
         url: '/shop?search=Storage Box Test',
     }, [
@@ -322,15 +322,12 @@ odoo.define('website_sale_tour.tour', function (require) {
             $('.oe_login_form input[name="redirect"]').val("/shop/cart");
             $('.oe_login_form').submit();
         },
-    },
-    {
-        content: "Open Customize menu",
-        trigger: '.o_menu_sections a:contains("Customize")',
-    },
-    {
-        content: "Enable Extra step",
-        trigger: 'label.dropdown-item:contains("Extra Step Option")',
-    },
+    }]);
+
+    tour.register('website_sale_tour_2', {
+        test: true,
+        url: '/shop/cart',
+    }, [
     {
         content: "Open Dropdown for logout",
         extra_trigger: '.progress-wizard-step:contains("Extra Info")',

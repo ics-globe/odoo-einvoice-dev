@@ -12,7 +12,7 @@
     </t>
 </t>
 <t t-name="website.WebsiteEditorClientAction" owl="1">
-    <div class="o_website_editor" t-att-class="{ 'editor_enable editor_has_snippets': this.websiteContext.snippetsLoaded }">
+    <div class="o_website_editor" t-att-class="{ 'editor_enable editor_has_snippets': this.websiteContext.snippetsLoaded }" t-ref="iframe-container">
         <BlockIframe/>
         <iframe t-if="!this.websiteContext.edition"
             t-att-src="iframeFallbackUrl"
@@ -23,11 +23,11 @@
             t-ref="iframe"
             class="o_iframe"
             t-att-class="{ 'o_is_mobile': this.websiteContext.isMobile }"/>
+        <WebsiteEditorComponent t-if="websiteContext.edition"
+            reloadIframe.bind="this.reloadIframe"/>
+        <WebsiteTranslator t-if="websiteContext.translation"
+            reloadIframe.bind="this.reloadIframe"/>
     </div>
-    <WebsiteEditorComponent t-if="websiteContext.edition"
-        reloadIframe.bind="this.reloadIframe"/>
-    <WebsiteTranslator t-if="websiteContext.translation"
-        reloadIframe.bind="this.reloadIframe"/>
 </t>
 
 <div t-name="website.homepage_editor_welcome_message" class="container text-center o_homepage_editor_welcome_message">

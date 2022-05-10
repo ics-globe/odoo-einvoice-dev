@@ -73,18 +73,18 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         trigger: 'form'
     }, {
         content: 'Enter in edit mode',
-        trigger: 'a[data-action="edit"]',
+        trigger: 'a.o_frontend_to_backend_edit_btn',
     }, {
         content: 'Add a fake default value for the job_id field',
-        trigger: 'button[data-action="save"]',
+        trigger: '#oe_snippets.o_loaded',
         run: () => {
             // It must be done in this way because the editor does not allow to
             // put a default value on a field with type="hidden".
-            document.querySelector('input[name="job_id"]').value = 'FAKE_JOB_ID_DEFAULT_VAL';
+            document.querySelector('iframe').contentDocument.querySelector('input[name="job_id"]').value = 'FAKE_JOB_ID_DEFAULT_VAL';
         },
     }, {
         content: 'Edit the form',
-        trigger: 'input[type="file"]',
+        trigger: 'iframe input[type="file"]',
         extra_trigger: '#oe_snippets.o_loaded',
     }, {
         content: 'Add a new field',
@@ -94,7 +94,7 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         trigger: 'button[data-action="save"]',
     }, {
         content: 'Go back to /jobs page after save',
-        trigger: 'a[data-action="edit"]',
+        trigger: 'iframe body:not(.editor_enable)',
         run: () => {
             window.location.href = '/jobs';
         }
@@ -116,12 +116,12 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         }
     }, {
         content: 'Enter in edit mode',
-        trigger: 'a[data-action="edit"]',
+        trigger: 'a.o_frontend_to_backend_edit_btn',
     }, {
         content: 'Verify that the job_id field has kept its default value',
-        trigger: 'button[data-action="save"]',
+        trigger: '#oe_snippets.o_loaded',
         run: () => {
-            if (!document.querySelector('input[name="job_id"][value="FAKE_JOB_ID_DEFAULT_VAL"]')) {
+            if (!document.querySelector('iframe').contentDocument.querySelector('input[name="job_id"][value="FAKE_JOB_ID_DEFAULT_VAL"]')) {
                 console.error('The job_id field has lost its default value');
             }
         }

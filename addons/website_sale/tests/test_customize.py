@@ -57,7 +57,7 @@ class TestUi(HttpCaseWithUserDemo, HttpCaseWithUserPortal):
     def test_01_admin_shop_customize_tour(self):
         # Enable Variant Group
         self.env.ref('product.group_product_variant').write({'users': [(4, self.env.ref('base.user_admin').id)]})
-        self.start_tour("/", 'shop_customize', login="admin")
+        self.start_tour("/web", 'shop_customize', login="admin")
 
     def test_02_admin_shop_custom_attribute_value_tour(self):
         # Make sure pricelist rule exist

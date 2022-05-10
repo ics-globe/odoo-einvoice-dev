@@ -10,4 +10,4 @@ class TestCustomSnippet(odoo.tests.HttpCase):
 
     @mute_logger('odoo.addons.http_routing.models.ir_http', 'odoo.http')
     def test_01_run_tour(self):
-        self.start_tour("/", 'test_custom_snippet', login="admin")
+        self.start_tour("/web", 'test_custom_snippet', login="admin")

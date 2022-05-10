@@ -11,11 +11,12 @@ import slidesTourTools from '@website_slides/../tests/tours/slides_tour_tools';
  * they publish it;
  */
 tour.register('course_publisher_standard', {
-    url: '/slides',
+    // TODO: replace by wTourUtils.getClientActionURL when it's added
+    url: '/web#action=website.website_editor&path=%2Fslides&website_id=1&cids=1',
     test: true
 }, [{
     content: 'eLearning: click on New (top-menu)',
-    trigger: 'div.o_new_content_menu a'
+    trigger: 'div.o_new_content_container a'
 }, {
     content: 'eLearning: click on New Course',
     trigger: 'a:contains("Course")'
@@ -25,28 +26,29 @@ tour.register('course_publisher_standard', {
     run: 'text How to Déboulonnate',
 }, {
     content: 'eLearning: click on tags',
-    trigger: 'ul.select2-choices:first',
+    trigger: '.o_field_many2manytags input',
+    run: 'text Gard',
 }, {
     content: 'eLearning: select gardener tag',
-    trigger: 'div.select2-result-label:contains("Gardener")',
+    trigger: '.ui-autocomplete a:contains("Gardener")',
     in_modal: false,
 }, {
     content: 'eLearning: set description',
-    trigger: 'textarea[name="description"]',
+    trigger: '.oe_form_field_html[name="description"]',
     run: 'text Déboulonnate is very common at Fleurus',
 }, {
     content: 'eLearning: we want reviews',
-    trigger: 'input[name="allow_comment"]',
+    trigger: '.o_field_boolean[name="allow_comment"] input',
 }, {
     content: 'eLearning: seems cool, create it',
-    trigger: 'button:contains("Create")',
+    trigger: 'button:contains("Save")',
 }, {
     content: 'eLearning: launch course edition',
-    trigger: 'div[id="edit-page-menu"] a',
+    trigger: '.o_edit_website_container a',
 }, {
     content: 'eLearning: double click image to edit it',
-    extra_trigger: 'body.editor_enable',
-    trigger: 'img.o_wslides_course_pict',
+    extra_trigger: 'iframe body.editor_enable',
+    trigger: 'iframe img.o_wslides_course_pict',
     run: 'dblclick',
 }, {
     content: 'eLearning: click "Add URL" to trigger URL box',
@@ -60,32 +62,33 @@ tour.register('course_publisher_standard', {
     trigger: '.o_upload_media_url_button',
 }, {
     content: 'eLearning: is the Corgi set ?',
-    trigger: 'img.o_wslides_course_pict',
+    trigger: 'iframe img.o_wslides_course_pict',
     run: function () {
-        if ($('img.o_wslides_course_pict').attr('src').endsWith('GoldWinnerPembrookeWelshCorgi.jpg')) {
-            $('img.o_wslides_course_pict').addClass('o_wslides_tour_success');
+        const $imgCorgi = $('.o_website_editor iframe').contents().find('img.o_wslides_course_pict');
+        if ($imgCorgi.attr('src').endsWith('GoldWinnerPembrookeWelshCorgi.jpg')) {
+            $imgCorgi.addClass('o_wslides_tour_success');
         }
     },
 }, {
     content: 'eLearning: the Corgi is set !',
-    trigger: 'img.o_wslides_course_pict.o_wslides_tour_success',
+    trigger: 'iframe img.o_wslides_course_pict.o_wslides_tour_success',
 }, {
     content: 'eLearning: save course edition',
     trigger: 'button[data-action="save"]',
 }, {
     content: 'eLearning: course create with current member',
-    extra_trigger: 'body:not(.editor_enable)',  // wait for editor to close
-    trigger: '.o_wslides_js_course_join:contains("You\'re enrolled")',
+    extra_trigger: 'iframe body:not(.editor_enable)',  // wait for editor to close
+    trigger: 'iframe .o_wslides_js_course_join:contains("You\'re enrolled")',
     run: function () {} // check membership
 }
 ].concat(
-    slidesTourTools.addExistingCourseTag(),
-    slidesTourTools.addNewCourseTag('The Most Awesome Course'),
-    slidesTourTools.addSection('Introduction'),
-    slidesTourTools.addArticleToSection('Introduction', 'MyArticle'),
+    slidesTourTools.addExistingCourseTag(true),
+    slidesTourTools.addNewCourseTag('The Most Awesome Course', true),
+    slidesTourTools.addSection('Introduction', true),
+    slidesTourTools.addArticleToSection('Introduction', 'MyArticle', true),
     [{
     content: "eLearning: check editor is loaded for article",
-    trigger: 'body.editor_enable',
+    trigger: 'iframe body.editor_enable',
     timeout: 30000,
     run: () => null, // it's a check
 }, {
@@ -93,7 +96,7 @@ tour.register('course_publisher_standard', {
     trigger: '.o_we_website_top_actions button.btn-primary:contains("Save")',
 }, {
     content: "eLearning: use breadcrumb to go back to channel",
-    trigger: '.o_wslides_course_nav a:contains("Déboulonnate")',
+    trigger: 'iframe .o_wslides_course_nav a:contains("Déboulonnate")',
 }]
 //     [
 // {

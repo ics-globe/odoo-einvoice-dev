@@ -10,9 +10,10 @@ tour.register("website_style_edition", {
     url: "/",
 }, [{
     content: "Enter edit mode",
-    trigger: 'a[data-action=edit]',
+    trigger: 'a.o_frontend_to_backend_edit_btn',
 }, {
     content: "Go to theme options",
+    extra_trigger: '#oe_snippets.o_loaded',
     trigger: '.o_we_customize_theme_btn',
 }, {
     content: "Change font size",
@@ -23,7 +24,7 @@ tour.register("website_style_edition", {
     trigger: '[data-action="save"]',
 }, {
     content: "Check the font size was properly adapted",
-    trigger: 'body:not(.editor_enable) #wrapwrap',
+    trigger: 'iframe body:not(.editor_enable) #wrapwrap',
     run: function (actions) {
         const style = window.getComputedStyle(this.$anchor[0]);
         if (style.fontSize !== `${TARGET_FONT_SIZE}px`) {

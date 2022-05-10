@@ -20,11 +20,8 @@ tour.register('shop_sale_gift_card', {
         },
         tourUtils.goToCart({quantity: 1}),
         {
-            content: "wait the /cart page",
-            trigger: '#cart_products',
-        },
-        {
             content: 'Click on "I have a promo code"',
+            extra_trigger: '#cart_products',
             trigger: '.show_coupon',
         },
         {
