@@ -291,6 +291,7 @@
             <field name="name">Kitchen Assembly</field>
             <field name="sale_line_id" ref="sale_line_12"/>
             <field name="project_id" search="[('sale_line_id', '=', ref('sale_line_13'))]"/>
+            <field name="milestone_id" ref="agr_milestone_1" />
             <field name="user_ids" eval="[Command.link(ref('base.user_admin'))]"/>
         </record>
 
