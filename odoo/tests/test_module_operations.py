@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import logging
+import optparse
 import os
 import sys
 import time
@@ -148,12 +149,24 @@ def test_scripts(args):
     _logger.info("%d standalone scripts executed in %.2fs" % (len(funcs), time.time() - start_time))
 
 
+def _check_addons_path(path):
+    ad_paths = []
+    for path in path.split(','):
+        path = path.strip()
+        res = os.path.abspath(os.path.expanduser(path))
+        if not os.path.isdir(res):
+            raise optparse.OptionValueError("option `--addons-path`: no such directory: %r" % path)
+        ad_paths.append(res)
+    return ','.join(ad_paths)
+
+
 if __name__ == '__main__':
     args = parse_args()
 
     # handle paths option
+    odoo.tools.config['addons_path'] = _check_addons_path(odoo.tools.config['addons_path'])
     if args.addons_path:
-        odoo.tools.config['addons_path'] = ','.join([args.addons_path, odoo.tools.config['addons_path']])
+        odoo.tools.config['addons_path'] = ','.join([_check_addons_path(args.addons_path), odoo.tools.config['addons_path']])
         if args.data_dir:
             odoo.tools.config['data_dir'] = args.data_dir
         odoo.modules.module.initialize_sys_path()
