@@ -209,8 +209,7 @@ export class ModelManager {
      * @returns {boolean}
      */
     exists(model, record) {
-        const existingRecord = model.__records[record.localId];
-        return Boolean(existingRecord && existingRecord === record);
+        return Boolean(record.localId);
     }
 
     /**
@@ -660,7 +659,7 @@ export class ModelManager {
             get: function getFromProxy(record, prop) {
                 if (
                     !model.__fieldMap[prop] &&
-                    !['_super', 'then'].includes(prop) &&
+                    !['_super', 'then', 'localId'].includes(prop) &&
                     typeof prop !== 'symbol' &&
                     !(prop in record)
                 ) {
@@ -741,6 +740,9 @@ export class ModelManager {
             if (field.fieldType === 'relation') {
                 // ensure inverses are properly unlinked
                 field.parseAndExecuteCommands(record, unlinkAll(), { allowWriteReadonly: true });
+                if (!record.exists()) {
+                    return; // current record might have been deleted from causality
+                }
             }
         }
         this._createdRecordsComputes.delete(record);
@@ -761,7 +763,10 @@ export class ModelManager {
                 infoList,
             });
         }
+        delete record.__values;
+        delete record.__listeners;
         delete model.__records[record.localId];
+        delete record.localId;
     }
 
     /**
@@ -1219,6 +1224,10 @@ export class ModelManager {
             for (const field of model.__fieldList) {
                 Object.defineProperty(model.prototype, field.fieldName, {
                     get: function getFieldValue() { // this is bound to record
+                        if (!this.exists()) {
+                            // Deprecated, allows reading fields on deleted records. Use exists() instead.
+                            return undefined;
+                        }
                         if (this.modelManager._listeners.size) {
                             if (!this.modelManager._listenersObservingLocalId.has(this.localId)) {
                                 this.modelManager._listenersObservingLocalId.set(this.localId, new Map());

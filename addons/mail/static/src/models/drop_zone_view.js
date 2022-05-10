@@ -65,9 +65,11 @@ registerModel({
             if (this._isDragSourceExternalFile(ev.dataTransfer)) {
                 if (this.attachmentBoxViewOwner) {
                     await this.attachmentBoxViewOwner.fileUploader.uploadFiles(ev.dataTransfer.files);
+                    return;
                 }
                 if (this.composerViewOwner) {
                     await this.composerViewOwner.fileUploader.uploadFiles(ev.dataTransfer.files);
+                    return;
                 }
             }
         },
