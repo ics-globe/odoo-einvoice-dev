@@ -29,7 +29,6 @@ var MediaWidget = Widget.extend({
         this._super.apply(this, arguments);
         this.media = media;
         this.$media = $(media);
-        this.isForWebsite = parent.__parentedParent.el.id === 'wrapwrap';
     },
 
     //--------------------------------------------------------------------------
@@ -613,7 +612,7 @@ var FileWidget = SearchableMediaWidget.extend({
                         'is_image': this.widgetType === 'image',
                         'width': 0,
                         'quality': 0,
-                        'website': this.isForWebsite,
+                        'website': Boolean(this.$media[0].closest('#wrapwrap')),
                     }
                 }, index);
                 if (!attachment.error) {
