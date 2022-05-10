@@ -577,26 +577,30 @@ class TestTranslationWrite(TransactionCase):
 
     def test_write_empty_and_value(self):
         self.env['res.lang']._activate_lang('fr_FR')
+        self.env['res.lang']._activate_lang('nl_NL')
 
         langs = self.env['res.lang'].get_installed()
-        self.assertEqual([('en_US', 'English (US)'), ('fr_FR', 'French / Français')], langs,
+        self.assertEqual([('nl_NL', 'Dutch / Nederlands'), ('en_US', 'English (US)'), ('fr_FR', 'French / Français')], langs,
                          "Test did not started with expected languages")
 
         belgium = self.env.ref('base.be')
         # vat_label is translatable and not required
-        belgium.with_context(lang='en_US').write({'vat_label': 'VAT'})
-        belgium.with_context(lang='fr_FR').write({'vat_label': 'TVA'})
+        belgium.with_context(lang='en_US').write({'vat_label': 'VAT_US'})
+        belgium.with_context(lang='fr_FR').write({'vat_label': 'VAT_FR'})
+        belgium.with_context(lang='nl_NL').write({'vat_label': 'VAT_NL'})
 
         belgium.flush()
         belgium.invalidate_cache()
 
         belgium.with_context(lang='en_US').write({'vat_label': ''})
-        belgium.with_context(lang='fr_FR').write({'vat_label': 'TVA'})
-        self.assertEqual(belgium.with_context(lang='en_US').vat_label, 'TVA')
+        belgium.with_context(lang='fr_FR').write({'vat_label': 'TVA_FR2'})
+        self.assertEqual(belgium.with_context(lang='en_US').vat_label, 'TVA_FR2')
+        self.assertEqual(belgium.with_context(lang='nl_NL').vat_label, 'TVA_FR2')
 
-        belgium.with_context(lang='fr_FR').write({'vat_label': 'TVA'})
+        belgium.with_context(lang='fr_FR').write({'vat_label': 'TVA_FR3'})
         belgium.with_context(lang='en_US').write({'vat_label': ''})
         self.assertEqual(belgium.with_context(lang='en_US').vat_label, '')
+        self.assertEqual(belgium.with_context(lang='nl_NL').vat_label, '')
 
     def test_cresate_emtpy_false(self):
         self._test_create_empty(False)
