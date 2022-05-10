@@ -57,7 +57,7 @@
     customize_show="True">
     <xpath expr="//ul[hasclass('o_wesponsor_topbar_filters')]" position="inside">
         <li class="nav-item dropdown mr-2 my-1">
-            <a href="#" role="button" class="btn dropdown-toggle" data-toggle="dropdown">
+            <a href="#" role="button" class="btn dropdown-toggle user-select-none" data-toggle="dropdown">
                 <i class="fa fa-folder-open"/>
                 By Country
             </a>
@@ -86,7 +86,7 @@
     customize_show="True">
     <xpath expr="//ul[hasclass('o_wesponsor_topbar_filters')]" position="inside">
         <li class="nav-item dropdown mr-2 my-1">
-            <a href="#" role="button" class="btn dropdown-toggle" data-toggle="dropdown">
+            <a href="#" role="button" class="btn dropdown-toggle user-select-none" data-toggle="dropdown">
                 <i class="fa fa-folder-open"/>
                 By Level
             </a>

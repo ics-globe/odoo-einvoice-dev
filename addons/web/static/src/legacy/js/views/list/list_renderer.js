@@ -1010,7 +1010,7 @@ var ListRenderer = BasicRenderer.extend({
             class: 'o_optional_columns text-center dropdown',
         });
         var $a = $("<a>", {
-            'class': "dropdown-toggle text-dark o-no-caret",
+            'class': "dropdown-toggle text-dark o-no-caret user-select-none",
             'href': "#",
             'role': "button",
             'data-toggle': "dropdown",

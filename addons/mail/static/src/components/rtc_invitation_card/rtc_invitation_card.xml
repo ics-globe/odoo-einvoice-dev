@@ -15,13 +15,13 @@
                     </div>
                 </t>
                 <div class="o_RtcInvitationCard_buttonList">
-                    <div class="o_RtcInvitationCard_buttonListButton o_RtcInvitationCard_buttonListRefuse"
+                    <div class="o_RtcInvitationCard_buttonListButton o_RtcInvitationCard_buttonListRefuse user-select-none"
                         aria-label="Refuse"
                         title="Refuse"
                         t-on-click="rtcInvitationCard.onClickRefuse">
                         <i class="o_RtcInvitationCard_buttonListButtonIcon fa fa-lg fa-times"/>
                     </div>
-                    <div class="o_RtcInvitationCard_buttonListButton o_RtcInvitationCard_buttonListAccept"
+                    <div class="o_RtcInvitationCard_buttonListButton o_RtcInvitationCard_buttonListAccept user-select-none"
                         aria-label="Accept"
                         title="Accept"
                         t-on-click="rtcInvitationCard.onClickAccept">

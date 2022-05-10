@@ -99,7 +99,6 @@ $o-mail-notification-list-item-muted-hover-background-color:
 
 @mixin o-mail-notification-list-item-style {
     cursor: pointer;
-    user-select: none;
     background-color: $o-mail-notification-list-item-background-color;
 
     &:hover {

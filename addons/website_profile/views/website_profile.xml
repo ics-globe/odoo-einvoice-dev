@@ -35,7 +35,7 @@
                     <div class="col d-md-none py-1 o_wprofile_user_profile_sub_nav_mobile_col">
                         <div class="btn-group w-100 position-relative" role="group" aria-label="Mobile sub-nav">
                             <div class="btn-group w-100 ml-2">
-                                <a class="btn bg-black-25 text-white dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Nav</a>
+                                <a class="btn bg-black-25 text-white dropdown-toggle user-select-none" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Nav</a>
 
                                 <ul class="dropdown-menu">
                                     <a class="dropdown-item" t-att-href="home_url or '/'">Home</a>
@@ -45,7 +45,7 @@
                             </div>
 
                             <div class="btn-group ml-1 position-static mr-2">
-                                <a class="btn bg-black-25 text-white dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-search"></i></a>
+                                <a class="btn bg-black-25 text-white dropdown-toggle user-select-none" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-search"></i></a>
                                 <div class="dropdown-menu dropdown-menu-right w-100" style="right: 10px;">
                                     <form class="px-3" t-attf-action="/profile/users" role="search" method="get">
                                         <div class="input-group">
@@ -654,7 +654,7 @@
         <div t-elif="validation_email_sent and not validation_email_done" t-att-class="done_alert_classes">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">×</button>
             Verification Email sent to <i t-esc="user.email"></i>!<br/>
-            Did not receive it? <a class="alert-link" t-att-href="my_account_redirect"><u>Correct your email address</u></a> 
+            Did not receive it? <a class="alert-link" t-att-href="my_account_redirect"><u>Correct your email address</u></a>
             or <a class="send_validation_email alert-link" href="#" t-att-data-redirect_url="redirect_url"><u>Send Again</u></a>.
         </div>
         <div t-if="validation_email_done" t-att-class="done_alert_classes" role="status">

@@ -33,7 +33,7 @@
             <nav groups="base.group_user" t-if="website" id="oe_main_menu_navbar" class="o_main_navbar d-flex align-items-center">
                 <div id="oe_applications">
                     <div class="dropdown active pl-3">
-                        <a class="dropdown-toggle full" data-toggle="dropdown" href="#" accesskey="h">
+                        <a class="dropdown-toggle user-select-none full" data-toggle="dropdown" href="#" accesskey="h">
                             <i class="fa fa-th-large mr-2"/> WEBSITE
                         </a>
                         <div class="dropdown-menu" role="menu">
@@ -42,12 +42,12 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn fa fa-bars float-right ml-auto d-block d-md-none o_mobile_menu_toggle" aria-label="Menu" title="Menu" groups="website.group_website_designer"/>
+                <button type="button" class="btn fa fa-bars float-right ml-auto d-block d-md-none o_mobile_menu_toggle user-select-none" aria-label="Menu" title="Menu" groups="website.group_website_designer"/>
 
                 <div class="o_menu_sections d-flex flex-grow-1 flex-shrink-1" groups="website.group_website_designer">
                     <!-- Content -->
                     <div t-if="editable" class="dropdown" id="content-menu">
-                        <a id="content-menu-button" class="dropdown-toggle o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Pages</a>
+                        <a id="content-menu-button" class="dropdown-toggle user-select-none o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Pages</a>
                         <div class="dropdown-menu" role="menu">
                             <a role="menuitem" data-action="edit_menu" href="#" title="Edit Top Menu" class="dropdown-item">Edit Menu</a>
                             <a role="menuitem" href="/website/pages" title="Manage Your Website Pages" class="dropdown-item">Manage Pages</a>
@@ -57,7 +57,7 @@
                     </div>
                     <!-- Customize -->
                     <div class="dropdown" id="customize-menu">
-                        <a class="dropdown-toggle o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Customize</a>
+                        <a class="dropdown-toggle user-select-none o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Customize</a>
                         <div class="dropdown-menu" role="menu">
                             <a role="menuitem" href="#" data-action="ace" class="dropdown-item" id="html_editor">HTML/CSS/JS Editor</a>
                             <a role="menuitem" href="/web#action=website.action_website_add_features" class="dropdown-item" id="install_apps">Add Features</a>
@@ -65,7 +65,7 @@
                     </div>
                     <!-- Promote -->
                     <div class="dropdown" id="promote-menu">
-                        <a class="dropdown-toggle o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Promote</a>
+                        <a class="dropdown-toggle user-select-none o-no-caret waves" data-toggle="dropdown" data-display="static" href="#">Promote</a>
                         <div class="dropdown-menu oe_promote_menu" role="menu">
                             <a role="menuitem" data-action="promote-current-page" href="#" title="Promote page on the web" class="dropdown-item">Optimize SEO</a>
                         </div>
@@ -82,10 +82,10 @@
                     </t>
                     <!-- Mobile preview -->
                     <div class="o_mobile_preview o_menu_systray_item" id="mobile-menu">
-                        <a data-action="show-mobile-preview" href="#" accesskey="v"><span title="Mobile preview" role="img" aria-label="Mobile preview" class="fa fa-lg fa-mobile"/></a>
+                        <a data-action="show-mobile-preview" href="#" accesskey="v"><span title="Mobile preview" role="img" aria-label="Mobile preview" class="fa fa-lg fa-mobile user-select-none"/></a>
                     </div>
                     <div groups="website.group_multi_website" t-if="multi_website_websites" id="website_switcher" class="o_menu_systray_item">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#" accesskey="w">
+                        <a class="dropdown-toggle user-select-none" data-toggle="dropdown" href="#" accesskey="w">
                             <i class="fa fa-globe d-lg-none"/>
                             <span class="d-none d-lg-inline-block">
                                 <t t-esc="multi_website_websites_current"/>
@@ -109,7 +109,7 @@
 
                     <!-- Page Edition -->
                     <div class="o_new_content_menu o_menu_systray_item" id="new-content-menu">
-                        <a href="#" accesskey="c"><span class="fa fa-plus mr-1"/>New</a>
+                        <a href="#" accesskey="c"><span class="fa fa-plus mr-1 user-select-none"/>New</a>
                         <div id="o_new_content_menu_choices" class="o_hidden">
                             <div class="container pt32 pb32">
                                 <div class="row">
@@ -199,10 +199,10 @@
                         </div>
                     </div>
                     <div t-if="not translatable" id="edit-page-menu" class="o_menu_systray_item">
-                        <a data-action="edit" href="#" accesskey="a"><span class="fa fa-pencil mr-1"/>Edit</a>
+                        <a data-action="edit" href="#" accesskey="a"><span class="fa fa-pencil mr-1 user-select-none"/>Edit</a>
                     </div>
                     <div t-if="edit_in_backend or ('website_published' in main_object.fields_get() and main_object._name != 'website.page')" class="o_menu_systray_item">
-                        <a role="button" class="btn pl-0 rounded-0 dropdown-toggle css_edit_dynamic" data-toggle="dropdown" href="#">
+                        <a role="button" class="btn pl-0 rounded-0 dropdown-toggle user-select-none css_edit_dynamic" data-toggle="dropdown" href="#">
                             <span class="sr-only">Toggle Dropdown</span>
                         </a>
                         <div class="dropdown-menu" role="menu">

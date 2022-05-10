@@ -8,7 +8,7 @@
                 class="table-hover table table-sm table-bordered bg-white"
                 t-att-class="{
                     o_enable_linking: !model.metaData.disableLinking,
-                    o_sample_data_disabled: model.useSampleModel,
+                    o_sample_data_disabled user-select-none: model.useSampleModel,
                 }"
                 t-ref="table"
             >

@@ -44,7 +44,7 @@
                                         <li class="breadcrumb-item d-flex align-items-center">
                                             <div class="o_knowledge_icon pr-1" attrs="{'invisible': [('icon', '=', False)]}">
                                                 <div class="o_article_emoji_dropdown dropdown">
-                                                    <a href="#" class="o_article_editable_emoji o_article_emoji dropdown-toggle o-no-caret"
+                                                    <a href="#" class="o_article_editable_emoji o_article_emoji dropdown-toggle user-select-none o-no-caret"
                                                        type="button" data-toggle="dropdown" aria-expanded="true"
                                                        attrs="{'invisible': ['|', ('is_locked', '=', True), ('user_has_write_access', '=', False)]}"/>
                                                     <span class="o_article_editable_emoji o_article_emoji o-no-caret"
@@ -74,7 +74,7 @@
                                     </a>
                                     <div class="btn-group" role="toolbar" aria-label="options">
                                         <div class="o-dropdown dropdown o-dropdown--no-caret">
-                                            <a type="button" role="button" class="btn btn-secondary btn-share dropdown-toggle mr-1"
+                                            <a type="button" role="button" class="btn btn-secondary btn-share dropdown-toggle mr-1 user-select-none"
                                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-hotkey="s"
                                                attrs="{'invisible': [('id', '=', False)]}">
                                                 <i class="fa fa-share-alt"/> Share
@@ -96,7 +96,7 @@
                                     </div>
                                     <div class="btn-group" role="toolbar" aria-label="options">
                                         <div class="o-dropdown dropdown o-dropdown--no-caret">
-                                            <a type="button" role="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                                            <a type="button" role="button" class="btn btn-secondary dropdown-toggle user-select-none" data-toggle="dropdown"
                                                aria-haspopup="true" aria-expanded="false" data-hotkey="p">
                                                 <i class="fa fa-ellipsis-v"/>
                                             </a>
@@ -183,7 +183,7 @@
                                                     <span class="d-none" attrs="{'invisible': [('cover', '!=', False)]}" />
                                                     <div class="o_knowledge_icon o_large" attrs="{'invisible': [('icon', '=', False)]}">
                                                         <div class="o_article_emoji_dropdown dropdown">
-                                                            <a href="#" class="o_article_emoji dropdown-toggle o-no-caret"
+                                                            <a href="#" class="o_article_emoji dropdown-toggle user-select-none o-no-caret"
                                                                type="button" data-toggle="dropdown" aria-expanded="true"
                                                                attrs="{'invisible': ['|', ('is_locked', '=', True), ('user_has_write_access', '=', False)]}"/>
                                                             <p class="o_article_emoji o-no-caret"

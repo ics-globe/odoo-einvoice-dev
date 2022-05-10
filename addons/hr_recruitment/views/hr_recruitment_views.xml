@@ -343,7 +343,7 @@
                             </div>
                             <span class="badge badge-pill badge-danger float-end mr-4" attrs="{'invisible': ['|', ('active', '=', True), ('refuse_reason_id', '=', False)]}">Refused</span>
                             <div class="o_dropdown_kanban dropdown">
-                                <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu" data-display="static">
+                                <a class="dropdown-toggle o-no-caret btn user-select-none" role="button" data-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu" data-display="static">
                                     <span class="fa fa-ellipsis-v"/>
                                 </a>
                                 <div class="dropdown-menu" role="menu">

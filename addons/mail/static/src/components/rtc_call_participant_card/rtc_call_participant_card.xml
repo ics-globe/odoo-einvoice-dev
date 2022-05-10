@@ -21,7 +21,7 @@
                     <RtcVideo record="callParticipantCard.rtcVideoView"/>
                 </t>
                 <t t-else="">
-                    <div class="o_RtcCallParticipantCard_avatarFrame d-flex align-items-center justify-content-center h-100 w-100" t-att-class="{ 'o-isMinimized': callParticipantCard.isMinimized }" draggable="false">
+                    <div class="o_RtcCallParticipantCard_avatarFrame d-flex align-items-center justify-content-center h-100 w-100 user-select-none" t-att-class="{ 'o-isMinimized': callParticipantCard.isMinimized }" draggable="false">
                         <img alt="Avatar"
                              t-att-class="{
                                 'o-isTalking': callParticipantCard.isTalking,

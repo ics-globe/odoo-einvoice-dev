@@ -16,7 +16,7 @@
         (submenu.clean_url() and submenu.clean_url() != '/' and any(request.httprequest.path == child.url for child in submenu.child_id if child.url) or
          (submenu.clean_url() and request.httprequest.path == submenu.clean_url())) and 'active'
         } #{submenu.is_mega_menu and 'position-static'}">
-        <a t-attf-class="#{link_class or ''} dropdown-toggle #{submenu.is_mega_menu and 'o_mega_menu_toggle'}" data-toggle="dropdown" href="#">
+        <a t-attf-class="#{link_class or ''} dropdown-toggle user-select-none #{submenu.is_mega_menu and 'o_mega_menu_toggle'}" data-toggle="dropdown" href="#">
             <span t-field="submenu.name"/>
         </a>
         <div t-if="submenu.is_mega_menu"
@@ -2019,7 +2019,7 @@
         <div t-attf-class="btn-group #{btn_class} js_publish_management #{object.website_published and 'css_published' or 'css_unpublished'}" t-att-data-id="object.id" t-att-data-object="object._name" t-att-data-description="env['ir.model']._get(object._name).display_name" t-att-data-controller="publish_controller">
             <button class="btn btn-danger js_publish_btn">Unpublished</button>
             <button class="btn btn-success js_publish_btn">Published</button>
-            <button type="button" t-attf-class="btn btn-default dropdown-toggle dropdown-toggle-split" t-att-id="'dopprod-%s' % object.id" data-toggle="dropdown"/>
+            <button type="button" t-attf-class="btn btn-default dropdown-toggle dropdown-toggle-split user-select-none" t-att-id="'dopprod-%s' % object.id" data-toggle="dropdown"/>
             <div class="dropdown-menu" role="menu" t-att-aria-labelledby="'dopprod-%s' % object.id">
                 <t t-out="0"/>
                 <a role="menuitem" t-attf-href="/web#view_type=form&amp;model=#{object._name}&amp;id=#{object.id}&amp;action=#{action}&amp;menu_id=#{menu or object.env['ir.model.data']._xmlid_to_res_id('website.menu_website_configuration')}"
@@ -2380,7 +2380,7 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
               <t t-set="action" t-valuef="/website/pages"/>
           </t>
           <div t-if="searchbar_sortings" class="dropdown float-right mt8 mr8">
-              <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+              <button class="btn btn-secondary dropdown-toggle user-select-none" type="button" data-toggle="dropdown">
                   <span class="fa fa-sort fa-lg" role="img" aria-label="Sort" title="Sort"/>
                   <span class="d-none d-xl-inline" t-esc="searchbar_sortings[sortby].get('label', 'Newest')"/>
               </button>

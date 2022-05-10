@@ -1286,7 +1286,7 @@
                                         <t t-else="record.email_from.raw_value"><span><field name="email_from"/></span></t>
                                     </div>
                                     <div class="o_dropdown_kanban dropdown" t-if="!selection_mode" groups="base.group_user">
-                                        <a role="button" class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                        <a role="button" class="dropdown-toggle o-no-caret btn user-select-none" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
                                             <span class="fa fa-ellipsis-v"/>
                                         </a>
                                         <div class="dropdown-menu" role="menu">
@@ -1389,8 +1389,8 @@
             <field name="model">project.task</field>
             <field eval="2" name="priority"/>
             <field name="arch" type="xml">
-                <calendar date_start="date_deadline" string="Tasks" mode="month" 
-                          color="color" event_limit="5" hide_time="true" 
+                <calendar date_start="date_deadline" string="Tasks" mode="month"
+                          color="color" event_limit="5" hide_time="true"
                           event_open_popup="true" quick_add="false" show_unusual_days="True"
                           js_class="project_calendar"
                           scales="month,year">
