@@ -102,9 +102,6 @@ export const websiteService = {
             get editedObjectPath() {
                 return editedObjectPath;
             },
-            get wysiwygLoaded() {
-                return !!Wysiwyg;
-            },
             goToWebsite({ websiteId, path, edition, translation } = {}) {
                 action.doAction('website.website_editor', {
                     clearBreadcrumbs: true,

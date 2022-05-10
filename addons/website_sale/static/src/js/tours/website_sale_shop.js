@@ -3,10 +3,12 @@ odoo.define("website_sale.tour_shop", function (require) {
 
     const {_t} = require("web.core");
     const {Markup} = require('web.utils');
+    const tour = require("web_tour.tour");
+    const wTourUtils = require("website.tour_utils");
 
-    // return the steps, used for backend and frontend
-
-    return [{
+    tour.register("shop", {
+        url: wTourUtils.getClientActionUrl("/shop"),
+    }, [{
         trigger: "body:has(#o_new_content_menu_choices.o_hidden) #new-content-menu > a",
         content: _t("Let's create your first product."),
         extra_trigger: ".js_sale",
@@ -74,5 +76,5 @@ odoo.define("website_sale.tour_shop", function (require) {
         extra_trigger: ".o_apps,#oe_applications",
         position: "bottom",
         timeout: 30000, // ~ 10 secondes to be redirected, due to slow assets generation
-    }];
+    }]);
 });
