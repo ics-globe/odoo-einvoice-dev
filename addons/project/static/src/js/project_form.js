@@ -109,6 +109,28 @@ const ProjectFormController = FormController.extend({
         };
 
         dialog.open();
+    },
+
+    async _applyChanges(dataPointID, changes, event) {
+        const result = await this._super(...arguments);
+        if (event.data.force_save && 'stage_id' in changes) {
+            this._checkRainbowmanMessage(parseInt(event.target.res_id));
+        }
+        return result;
+    },
+
+    async _checkRainbowmanMessage(recordId) {
+        const message = await this._rpc({
+            model: 'project.task',
+            method: 'get_milestone_to_mark_as_done_message',
+            args: [[recordId]],
+        });
+        if (message) {
+            this.trigger_up('show_effect', {
+                message,
+                type: 'rainbow_man',
+            });
+        }
     }
 });
 

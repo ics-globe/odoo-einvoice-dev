@@ -131,7 +131,7 @@ const ProjectTaskKanbanModel = KanbanModel.extend({
      * @override
      * @private
      */
-    moveRecord: function (recordID, groupID, parentID) {
+    async moveRecord(recordID, groupID, parentID) {
         var self = this;
         var parent = this.localData[parentID];
         var new_group = this.localData[groupID];
@@ -186,12 +186,23 @@ const ProjectTaskKanbanModel = KanbanModel.extend({
         new_group.res_ids.push(resID);
         new_group.count++;
 
-        return this.notifyChanges(recordID, changes).then(function () {
-            return self.save(recordID);
-        }).then(function () {
-            record.parentID = new_group.id;
-            return [old_group.id, new_group.id];
-        });
+        await this.notifyChanges(recordID, changes);
+        await self.save(recordID);
+        if (groupedFieldName === 'stage_id') {
+            const message = await this._rpc({
+                model: 'project.task',
+                method: 'get_milestone_to_mark_as_done_message',
+                args: [[resID]],
+            });
+            if (message) {
+                this.trigger_up('show_effect', {
+                    message,
+                    type: 'rainbow_man',
+                });
+            }
+        }
+        record.parentID = new_group.id;
+        return [old_group.id, new_group.id];
     },
 })
 
