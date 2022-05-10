@@ -22,10 +22,12 @@ from os.path import join
 from pathlib import Path
 from babel.messages import extract
 from lxml import etree, html
+from psycopg2.extras import Json
 
 import odoo
 from . import config, pycompat
 from .misc import file_open, get_iso_codes, SKIPPED_ELEMENT_TYPES
+from ..sql_db import Cursor
 
 _logger = logging.getLogger(__name__)
 
@@ -1103,26 +1105,91 @@ def trans_load_data(cr, fileobj, fileformat, lang,
         fileobj.seek(0)
         reader = TranslationFileReader(fileobj, fileformat=fileformat)
 
-        cr.execute("select module || '.' || name, res_id from ir_model_data")
-        xml_ids = dict(cr.fetchall())
-        for term in reader:
-            if not term.get('value'):
+        # load all translation in to dict
+        # {model_name: {imd_name: {imd_name, {src: value}}}}
+        deep_defaultdict = lambda: defaultdict(deep_defaultdict)
+        translations = deep_defaultdict()
+        module_imd_names = []
+        imd_model_field_names = defaultdict(lambda: defaultdict(list))
+        for row in reader:
+            if not row.get('value') or not row.get('src') or row['type'] == 'code':
                 continue
-            if term['type']=='code':
+            module_imd_names.append(row['module'])
+            module_imd_names.append(row['imd_name'])
+            fname = row['name'].split(',')[1]
+            xmlid = row['module'] + '.' + row['imd_name']
+            imd_model_field_names[row['imd_model']][fname].append(xmlid)
+            translations[row['imd_model']][xmlid][fname][row['src']] = row['value']
+
+        # get xmlid to record id map
+        if not module_imd_names:
+            return
+        cr.flush()
+
+        # TODO: CWG check if split in another way _lookup_xmlids
+        # TODO: this approach deal with all logic in python, try to move model translation to SQL
+        xmlid_to_id = {}
+        for sub_module_imd_names in cr.split_for_in_conditions(module_imd_names, size=Cursor.IN_MAX * 2):
+            query = "SELECT module || '.' || name, res_id, noupdate FROM ir_model_data WHERE "
+            query += " OR ".join(["module = %s AND name = %s"] * int(len(sub_module_imd_names) / 2))
+            cr.execute(query, sub_module_imd_names)
+            rows = cr.fetchall()
+            # {xmlid: (id, noupdate)}
+            xmlid_to_id.update([(row[0], row[1:]) for row in rows])
+        # {id: (xmlid, noupdate)}
+        id_to_xmlid = {v[0]: (k, v[1]) for k, v in xmlid_to_id.items()}
+
+        # translate model terms
+        for imd_model, model_dictionary in translations.items():
+            if imd_model not in env:
                 continue
-            res_id = xml_ids.get(term['module']+'.'+term['imd_name'], False)
-            value = term.get('value')
-            obj = env[term['imd_model']].browse(res_id)
-            fname = term['name'].split(',')[1]
-            if (fname not in obj._fields) or not obj._fields[fname].store:
-                continue
-            if (term['type']=='model_terms') or not overwrite:
-                # FP TODO 2: to improve, build a dictionary of all terms {en_US: fr_FR} then using it
-                #            outside of the loop. Use translate_xml_node, rather than simple replaces:
-                # translate_xml_node(parse_xml(obj[fname]), lambda x: terms.get(x), parse_xml, serialize_xml)
-                value = obj[fname].replace(term['src'], value)
-            if res_id and value:
-                obj.write({fname: value})
+            model_table = env[imd_model]._table
+            field_name_to_xmlids = imd_model_field_names[imd_model]
+            towrite = env.all.towrite[imd_model]
+            fields = env[imd_model]._fields
+            field_type = defaultdict(list)
+            for name in field_name_to_xmlids.keys():
+                translate = fields[name].translate
+                field_type['no_translate' if not translate else 'model_term' if callable(translate) else 'model'].append(name)
+            if field_type['no_translate']:
+                pass  # ignore illegal translation
+            for field_name in field_type['model_term']:
+                # TODO: CWG: check if list is necessary
+                record_ids = list(map(lambda xmlid: xmlid_to_id.get(xmlid, (0, False))[0], field_name_to_xmlids[field_name]))
+                field = fields[field_name]
+                for sub_ids in cr.split_for_in_conditions(record_ids):
+                    cr.execute(f'SELECT id, "{field_name}"->>\'en_US\', "{field_name}"->>\'{lang}\' FROM "{model_table}" WHERE id IN %s', (sub_ids,))
+                    for id, value_en, value_lang in cr.fetchall():
+                        if not value_en:
+                            continue
+                        value_lang = value_lang if value_lang else value_en
+                        xmlid, noupdate = id_to_xmlid[id]
+                        field_dictionary = model_dictionary[xmlid][field_name]
+                        translation_dictionary = field.get_translation_dictionary(value_en, {lang: value_lang})
+
+                        # update translation_dictionary using new translations
+                        for term_en, term in translation_dictionary.items():
+                            if not overwrite and noupdate and term[lang] != term_en:
+                                continue
+                            term[lang] = field_dictionary.get(term_en, term[lang])
+
+                        new_value_lang = field.translate(lambda term: field_dictionary.get(term), value_en)
+                        value_column = field.convert_to_column(new_value_lang, env[imd_model].with_context(lang=lang))
+                        towrite[id][field_name] = value_column
+            for field_name in field_type['model']:
+                field = fields[field_name]
+                for xmlid in field_name_to_xmlids[field_name]:
+                    if xmlid not in xmlid_to_id:
+                        continue
+                    id, noupdate = xmlid_to_id[xmlid]
+                    # the src is not compared and checked
+                    new_value = list(model_dictionary[xmlid][field_name].values())[0]
+                    new_value_column = field.convert_to_column(new_value, env[imd_model].with_context(lang=lang))
+                    towrite[id][field_name] = [Json({}), False, new_value_column.adapted] if not noupdate and overwrite else [new_value_column, False, {}]
+        cr.flush()
+        # TODO CWG: invalidate some/all cache or update cache during import
+        # TODO CWG: analyze each table
+
 
         if verbose:
             _logger.info("translation file loaded successfully")
