@@ -4950,9 +4950,8 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
         });
         if (isOptimizationDeactivated) {
             const warningEl = document.createElement('i');
-            warningEl.classList.add('fa', 'fa-exclamation-triangle', 'mr-2');
+            warningEl.classList.add('fa', 'fa-exclamation-triangle', 'mr-2', 'text-warning');
             warningEl.title = _t("Automatic Images optimization is disabled");
-            warningEl.style.color = 'orange';
             this.$warning = $(warningEl);
         }
     },
