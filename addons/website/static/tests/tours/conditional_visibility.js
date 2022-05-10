@@ -11,12 +11,9 @@ const snippets = [
 ];
 tour.register('conditional_visibility_1', {
     test: true,
-    url: '/',
+    url: wTourUtils.getClientActionUrl('/'),
 },
-[{
-    content: "enter edit mode",
-    trigger: 'a[data-action=edit]',
-},
+[wTourUtils.clickOnEdit(),
 wTourUtils.dragNDrop(snippets[0]),
 wTourUtils.clickOnSnippet(snippets[0]),
 wTourUtils.changeOption('ConditionalVisibility', 'we-toggler'),
@@ -38,7 +35,8 @@ wTourUtils.changeOption('ConditionalVisibility', 'we-toggler'),
 ...wTourUtils.clickOnSave(),
 {
     content: 'Check if the rule was applied',
-    trigger: 'body:not(.editor_enable) #wrap',
+    extra_trigger: '.o_website_editor:only-child',
+    trigger: 'iframe #wrap',
     run: function (actions) {
         const style = window.getComputedStyle(this.$anchor[0].getElementsByClassName('s_text_image')[0]);
         if (style.display !== 'none') {
@@ -49,7 +47,8 @@ wTourUtils.changeOption('ConditionalVisibility', 'we-toggler'),
 wTourUtils.clickOnEdit(),
 {
     content: 'Check if the element is visible as it should always be visible in edit view',
-    trigger: 'body.editor_enable #wrap .s_text_image',
+    extra_trigger: 'body.editor_has_snippets',
+    trigger: 'iframe #wrap .s_text_image',
     run: function (actions) {
         const style = window.getComputedStyle((this.$anchor[0]));
         if (style.display === 'none') {

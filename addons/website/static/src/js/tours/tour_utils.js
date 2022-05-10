@@ -123,8 +123,9 @@ function clickOnEdit(position = "bottom") {
     return {
         trigger: ".o_menu_systray .o_edit_website_container a",
         content: Markup(_t("<b>Click Edit</b> to start designing your homepage.")),
-        extra_trigger: "iframe .homepage",
+        extra_trigger: "body:not(.editor_has_snippets)",
         position: position,
+        timeout: 5000,
     };
 }
 
@@ -182,8 +183,7 @@ function clickOnText(snippet, element, position = "bottom") {
 function dragNDrop(snippet, position = "bottom") {
     return {
         trigger: `#oe_snippets .oe_snippet:has( > [data-snippet='${snippet.id}']) .oe_snippet_thumbnail:not(.o_we_already_dragging)`,
-        extra_trigger: ".o_website_editor .editor_enable.editor_has_snippets",
-        moveTrigger: '.oe_drop_zone',
+        extra_trigger: ".o_website_editor.editor_enable.editor_has_snippets",
         content: Markup(_.str.sprintf(_t("Drag the <b>%s</b> building block and drop it at the bottom of the page."), snippet.name)),
         position: position,
         // Normally no main snippet can be dropped in the default footer but
@@ -237,6 +237,14 @@ function prepend_trigger(steps, prepend_text='') {
     return steps;
 }
 
+function getClientActionUrl(path, edition) {
+    let url = `/web#action=website.website_editor&path=${encodeURI(path)}`;
+    if (edition) {
+        url += '&enable_editor=1';
+    }
+    return url;
+}
+
 function registerThemeHomepageTour(name, steps) {
     tour.register(name, {
         url: "/?enable_editor=1",
@@ -281,6 +289,7 @@ return {
     selectHeader,
     selectNested,
     selectSnippetColumn,
+    getClientActionUrl,
     registerThemeHomepageTour,
     clickOnExtraMenuItem,
 };
