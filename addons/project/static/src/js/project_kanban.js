@@ -189,15 +189,14 @@ const ProjectTaskKanbanModel = KanbanModel.extend({
         await this.notifyChanges(recordID, changes);
         await self.save(recordID);
         if (groupedFieldName === 'stage_id') {
-            const message = await this._rpc({
+            const action = await this._rpc({
                 model: 'project.task',
-                method: 'get_milestone_to_mark_as_done_message',
+                method: 'get_milestone_to_mark_as_reached_action',
                 args: [[resID]],
             });
-            if (message) {
-                this.trigger_up('show_effect', {
-                    message,
-                    type: 'rainbow_man',
+            if (action) {
+                this.trigger_up('do-action', {
+                    action,
                 });
             }
         }

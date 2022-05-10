@@ -114,24 +114,42 @@ const ProjectFormController = FormController.extend({
     async _applyChanges(dataPointID, changes, event) {
         const result = await this._super(...arguments);
         if (event.data.force_save && 'stage_id' in changes) {
-            this._checkRainbowmanMessage(parseInt(event.target.res_id));
+            this._getMilestoneReachWizardAction([parseInt(event.target.res_id)]);
         }
         return result;
     },
-
-    async _checkRainbowmanMessage(recordId) {
-        const message = await this._rpc({
+    async _getMilestoneReachWizardAction(recordIds) {
+        const action = await this._rpc({
             model: 'project.task',
-            method: 'get_milestone_to_mark_as_done_message',
-            args: [[recordId]],
+            method: 'get_milestone_to_mark_as_reached_action',
+            args: [recordIds],
         });
-        if (message) {
-            this.trigger_up('show_effect', {
-                message,
-                type: 'rainbow_man',
+        if (action) {
+            this.trigger_up('do-action', {
+                action,
             });
         }
-    }
+    },
+    async _saveRecord(recordID, options) {
+        const task = this.model.get(recordID || this.handle);
+        const result = await this._super(...arguments);
+        let tasksX2ManyFields = result.filter(fieldName => ['child_ids', 'depend_on_ids'].includes(fieldName));
+        if (tasksX2ManyFields.length) {
+            const taskResIds = [];
+            for (const taskX2ManyFieldName of tasksX2ManyFields) {
+                for (const subtask of task.data[taskX2ManyFieldName].data) {
+                    const changes = this.model.localData[subtask.id]._changes;
+                    if (changes && changes.hasOwnProperty('stage_id') && !!subtask.data.milestone_id) {
+                        taskResIds.push(subtask.res_id);
+                    }
+                }
+            }
+            if (taskResIds.length) {
+                this._getMilestoneReachWizardAction(taskResIds);
+            }
+        }
+        return result;
+    },
 });
 
 const FormDescriptionExpanderRenderer = FormRenderer.extend(Object.assign({}, FormHtmlFieldExpanderMixin, {
