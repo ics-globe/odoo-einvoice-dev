@@ -13,9 +13,9 @@ from odoo.modules.module import get_module_resource
 @tagged('post_install')
 class TestSmsTemplateAccessRights(TransactionCase):
     def _load(self, module, *args):
-        convert_file(self.cr, 'sms',
-                     get_module_resource(module, *args),
-                     {}, 'init', False, 'test')
+        convert_file(self.cr, module='sms',
+                     filename=get_module_resource(module, *args),
+                     idref={}, mode='init', noupdate=False, kind='test')
 
     @classmethod
     def setUpClass(cls):

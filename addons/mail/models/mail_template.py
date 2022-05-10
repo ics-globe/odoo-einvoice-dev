@@ -15,7 +15,7 @@ _logger = logging.getLogger(__name__)
 class MailTemplate(models.Model):
     "Templates for sending email"
     _name = "mail.template"
-    _inherit = ['mail.render.mixin', 'reset.template.mixin']
+    _inherit = ['mail.render.mixin', 'template.reset.mixin']
     _description = 'Email Templates'
     _order = 'name'
 
@@ -84,6 +84,9 @@ class MailTemplate(models.Model):
         for record in self:
             record.attachment_ids.write({'res_model': record._name, 'res_id': record.id})
         return self
+
+    def _get_fields_to_reset(self):
+        return ['body_html', 'lang', 'model_id', 'name', 'report_template', 'report_name', 'subject']
 
     @api.model_create_multi
     def create(self, vals_list):

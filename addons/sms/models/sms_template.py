@@ -7,7 +7,7 @@ from odoo import api, fields, models, _
 class SMSTemplate(models.Model):
     "Templates for sending SMS"
     _name = "sms.template"
-    _inherit = ['mail.render.mixin', 'reset.template.mixin']
+    _inherit = ['mail.render.mixin', 'template.reset.mixin']
     _description = 'SMS Templates'
 
     _unrestricted_rendering = True
@@ -76,3 +76,6 @@ class SMSTemplate(models.Model):
             if template.sidebar_action_id:
                 template.sidebar_action_id.unlink()
         return True
+
+    def _get_fields_to_reset(self):
+        return ['name', 'body', 'model_id', 'lang']

@@ -12,9 +12,9 @@ from odoo.modules.module import get_module_resource
 
 class TestMailTemplate(MailCommon):
     def _load(self, module, *args):
-        convert_file(self.cr, 'mail',
-                     get_module_resource(module, *args),
-                     {}, 'init', False, 'test')
+        convert_file(self.cr, module='mail',
+                     filename=get_module_resource(module, *args),
+                     idref={}, mode='init', noupdate=False, kind='test')
 
     @classmethod
     def setUpClass(cls):
