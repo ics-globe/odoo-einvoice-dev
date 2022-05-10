@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, _
+from odoo.addons.account_edi_ubl_cii.models.account_edi_common import COUNTRY_EAS
 
 from stdnum.no import mva
 
@@ -16,7 +17,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
     def _get_xml_builder(self, format_code, company):
         # if a the company country is not in the EAS mapping, nothing is generated
-        if format_code == 'ubl_bis3' and company.country_id.code in self.env['account.edi.common']._get_eas_mapping():
+        if format_code == 'ubl_bis3' and company.country_id.code in COUNTRY_EAS:
             return {
                 'export_invoice': self._export_invoice,
                 'invoice_filename': lambda inv: f"{inv.name.replace('/', '_')}_ubl_bis3.xml",
@@ -40,7 +41,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         for vals in vals_list:
             vals.pop('registration_name', None)
-            vals.pop('RegistrationAddress_vals', None)
+            vals.pop('registration_address_vals', None)
 
         # sources:
         #  https://anskaffelser.dev/postaward/g3/spec/current/billing-3.0/norway/#_applying_foretaksregisteret
@@ -58,7 +59,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals_list = super()._get_partner_party_legal_entity_vals_list(partner)
 
         for vals in vals_list:
-            vals.pop('RegistrationAddress_vals', None)
+            vals.pop('registration_address_vals', None)
             if partner.country_code == 'NL':
                 endpoint = partner.l10n_nl_oin or partner.l10n_nl_kvk
                 scheme = '0190' if partner.l10n_nl_oin else '0106'
@@ -82,7 +83,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals = super()._get_partner_party_vals(partner, role)
 
         vals['endpoint_id'] = partner.vat
-        vals['endpoint_id_attrs'] = {'schemeID': self._get_eas_mapping().get(partner.country_id.code)}
+        vals['endpoint_id_attrs'] = {'schemeID': COUNTRY_EAS.get(partner.country_id.code)}
 
         if partner.country_code == 'NO' and 'l10n_no_bronnoysund_number' in partner._fields:
             vals.update({
@@ -145,8 +146,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return [{
             'actual_delivery_date': invoice.invoice_date,
-            'Location_vals': {
-                'DeliveryAddress_vals': self._get_partner_address_vals(partner_shipping),
+            'location_vals': {
+                'delivery_address_vals': self._get_partner_address_vals(partner_shipping),
             },
         }]
 
@@ -165,7 +166,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # [UBL-CR-664]-A UBL invoice should not include the FinancialInstitutionBranch FinancialInstitution
         # xpath test: not(//cac:FinancialInstitution)
         vals.pop('id_attrs', None)
-        vals.pop('FinancialInstitution_vals', None)
+        vals.pop('financial_institution_vals', None)
         return vals
 
     def _get_invoice_payment_means_vals_list(self, invoice):
@@ -197,7 +198,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         for vals in vals_list:
             vals['currency_dp'] = 2
-            for subtotal_vals in vals.get('TaxSubtotal_vals', []):
+            for subtotal_vals in vals.get('tax_subtotal_vals', []):
                 subtotal_vals.pop('percent', None)
                 subtotal_vals['currency_dp'] = 2
 
@@ -216,10 +217,10 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # OVERRIDE
         vals = super()._get_invoice_line_vals(line, taxes_vals)
 
-        vals.pop('TaxTotal_vals', None)
+        vals.pop('tax_total_vals', None)
 
         vals['currency_dp'] = 2
-        vals['Price_vals']['currency_dp'] = 2
+        vals['price_vals']['currency_dp'] = 2
 
         return vals
 
@@ -234,13 +235,13 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             'profile_id': 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0',
             'currency_dp': 2,
         })
-        vals['vals']['LegalMonetaryTotal_vals']['currency_dp'] = 2
+        vals['vals']['legal_monetary_total_vals']['currency_dp'] = 2
 
         # [NL-R-001] For suppliers in the Netherlands, if the document is a creditnote, the document MUST
         # contain an invoice reference (cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID)
         if vals['supplier'].country_id.code == 'NL' and 'refund' in invoice.move_type:
             vals['vals'].update({
-                'BillingReference_vals': {
+                'billing_reference_vals': {
                     'id': invoice.ref,
                     'issue_date': None,
                 }
@@ -285,23 +286,23 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # note: no need to check account_number, because it's a required field for a partner_bank
             'cen_en16931_payment_account_identifier': self._check_required_fields(
                 invoice, 'partner_bank_id'
-            ) if vals['vals']['PaymentMeans_vals_list'][0]['payment_means_code'] in (30, 58) else None,
+            ) if vals['vals']['payment_means_vals_list'][0]['payment_means_code'] in (30, 58) else None,
             # [BR-62]-The Seller electronic address (BT-34) shall have a Scheme identifier.
             # if this fails, it might just be a missing country when mapping the country to the EAS code
             'cen_en16931_seller_EAS': self._check_required_fields(
-                vals['vals']['AccountingSupplierParty_vals']['Party_vals']['endpoint_id_attrs'], 'schemeID',
+                vals['vals']['accounting_supplier_party_vals']['party_vals']['endpoint_id_attrs'], 'schemeID',
                 _("No Electronic Address Scheme (EAS) could be found for %s.", vals['customer'].name)
             ),
             # [BR-63]-The Buyer electronic address (BT-49) shall have a Scheme identifier.
             # if this fails, it might just be a missing country when mapping the country to the EAS code
             'cen_en16931_buyer_EAS': self._check_required_fields(
-                vals['vals']['AccountingCustomerParty_vals']['Party_vals']['endpoint_id_attrs'], 'schemeID',
+                vals['vals']['accounting_customer_party_vals']['party_vals']['endpoint_id_attrs'], 'schemeID',
                 _("No Electronic Address Scheme (EAS) could be found for %s.", vals['customer'].name)
             ),
             # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
             'cen_en16931_delivery_country_code': self._check_required_fields(
-                vals['vals']['Delivery_vals_list'][0], 'Location_vals',
+                vals['vals']['delivery_vals_list'][0], 'location_vals',
                 _("For intracommunity supply, the delivery address should be included.")
             ) if intracom_delivery else None,
 
@@ -309,10 +310,10 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14)
             # shall not be blank.
             'cen_en16931_delivery_date_invoicing_period': self._check_required_fields(
-                vals['vals']['Delivery_vals_list'][0], 'actual_delivery_date',
+                vals['vals']['delivery_vals_list'][0], 'actual_delivery_date',
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) and self._check_required_fields(
-                vals['vals']['InvoicePeriod_vals_list'][0], ['start_date', 'end_date'],
+                vals['vals']['invoice_period_vals_list'][0], ['start_date', 'end_date'],
                 _("For intracommunity supply, the actual delivery date or the invoicing period should be included.")
             ) if intracom_delivery else None,
         }

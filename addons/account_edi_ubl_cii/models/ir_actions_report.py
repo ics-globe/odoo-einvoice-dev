@@ -6,6 +6,8 @@ from odoo import models
 from lxml import etree
 import base64
 from xml.sax.saxutils import escape, quoteattr
+from odoo.tools import cleanup_xml_node
+
 
 
 class IrActionsReport(models.Model):
@@ -46,8 +48,7 @@ class IrActionsReport(models.Model):
 
                     anchor_index = tree.index(anchor_elements[0])
                     tree.insert(anchor_index, etree.fromstring(to_inject))
-                    new_xml = etree.tostring(tree, pretty_print=True)
-                    new_xml = self.env['account.edi.common']._cleanup_xml_content(new_xml).encode('utf-8')
+                    new_xml = etree.tostring(cleanup_xml_node(tree))
                     edi_attachment.write({
                         'res_model': 'account.move',
                         'res_id': record.id,

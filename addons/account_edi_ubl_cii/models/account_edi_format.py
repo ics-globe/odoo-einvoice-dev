@@ -27,7 +27,6 @@ FORMAT_CODE_TO_CLASS_SUFFIX = {
 }
 
 class AccountEdiFormat(models.Model):
-    _name = 'account.edi.format'
     _inherit = 'account.edi.format'
 
     ####################################################
@@ -54,7 +53,7 @@ class AccountEdiFormat(models.Model):
                 return self.env['account.edi.xml.ubl_21']
         return
 
-    def _is_generation_possible(self, company):
+    def _check_ubl_cii_availability(self, company):
         """
         Returns a boolean indicating whether it is possible to generate an xml file using one of the formats from this
         module or not
@@ -70,7 +69,7 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if not self._is_generation_possible(invoice.company_id):
+        if not self._check_ubl_cii_availability(invoice.company_id):
             return super()._is_required_for_invoice(invoice)
 
         if invoice.move_type not in ('out_invoice', 'out_refund'):
@@ -96,7 +95,7 @@ class AccountEdiFormat(models.Model):
             return super()._post_invoice_edi(invoices)
 
         # if the builder is empty (for instance, Bis 3 cannot be generated if the company is not in EAS)
-        if not self._is_generation_possible(invoices[0].company_id):
+        if not self._check_ubl_cii_availability(invoices[0].company_id):
             for invoice in invoices:
                 # we don't want the edi_document to appear on the account_move, tab "EDI documents" with state
                 # 'To Send' forever (because it will never be generated), otherwise, we cannot uncheck the edi_format
@@ -117,7 +116,7 @@ class AccountEdiFormat(models.Model):
 
             attachment_create_vals = {
                 'name': res['invoice_filename'](invoice),
-                'datas': base64.encodebytes(xml_content.encode('utf-8')),
+                'datas': base64.encodebytes(xml_content),
                 'mimetype': 'application/xml'
             }
             # we don't want the facturx xml to appear in the attachment of the invoice when confirming it
@@ -187,7 +186,7 @@ class AccountEdiFormat(models.Model):
                 ('company_id', '=', self.env.company.id), ('type', '=', 'purchase')
             ], limit=1)
 
-        if not self._is_generation_possible(journal.company_id):
+        if not self._check_ubl_cii_availability(journal.company_id):
             return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
         # infer the xml builder
@@ -204,7 +203,7 @@ class AccountEdiFormat(models.Model):
         # OVERRIDE
         self.ensure_one()
 
-        if not self._is_generation_possible(invoice.company_id):
+        if not self._check_ubl_cii_availability(invoice.company_id):
             return super()._update_invoice_from_xml_tree(filename, tree, invoice)
 
         # infer the xml builder

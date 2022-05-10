@@ -12,7 +12,7 @@
             <cbc:CountrySubentity t-out="vals.get('country_subentity')"/>
             <cbc:CountrySubentityCode t-out="vals.get('country_subentity_code')"/>
             <cac:Country>
-                <t t-set="country_vals" t-value="vals.get('Country_vals', {})"/>
+                <t t-set="country_vals" t-value="vals.get('country_vals', {})"/>
                 <cbc:IdentificationCode
                     t-att="country_vals.get('identification_code_attrs', {})"
                     t-out="country_vals.get('identification_code')"/>
@@ -29,24 +29,24 @@
             <cbc:EndpointID
                     t-att="vals.get('endpoint_id_attrs', {})"
                     t-out="vals.get('endpoint_id')"/>
-            <t t-foreach="vals.get('PartyIdentification_vals', [])" t-as="party_vals">
+            <t t-foreach="vals.get('party_identification_vals', [])" t-as="party_vals">
                 <cac:PartyIdentification>
                     <cbc:ID
                         t-att="party_vals.get('id_attrs', {})"
                         t-out="party_vals.get('id')"/>
                 </cac:PartyIdentification>
             </t>
-            <t t-foreach="vals.get('PartyName_vals', [])" t-as="party_vals">
+            <t t-foreach="vals.get('party_name_vals', [])" t-as="party_vals">
                 <cac:PartyName>
                     <cbc:Name t-out="party_vals.get('name')"/>
                 </cac:PartyName>
             </t>
             <cac:PostalAddress>
                 <t t-call="{{AddressType_template}}">
-                    <t t-set="vals" t-value="vals.get('PostalAddress_vals', {})"/>
+                    <t t-set="vals" t-value="vals.get('postal_address_vals', {})"/>
                 </t>
             </cac:PostalAddress>
-            <t t-foreach="vals.get('PartyTaxScheme_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('party_tax_scheme_vals', [])" t-as="foreach_vals">
                 <cac:PartyTaxScheme>
                     <cbc:RegistrationName t-out="foreach_vals.get('registration_name')"/>
                     <cbc:CompanyID
@@ -54,7 +54,7 @@
                             t-out="foreach_vals.get('company_id')"/>
                     <cac:RegistrationAddress>
                         <t t-call="{{AddressType_template}}">
-                            <t t-set="vals" t-value="foreach_vals.get('RegistrationAddress_vals', {})"/>
+                            <t t-set="vals" t-value="foreach_vals.get('registration_address_vals', {})"/>
                         </t>
                     </cac:RegistrationAddress>
                     <cac:TaxScheme>
@@ -63,7 +63,7 @@
                 </cac:PartyTaxScheme>
             </t>
 
-            <t t-foreach="vals.get('PartyLegalEntity_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('party_legal_entity_vals', [])" t-as="foreach_vals">
                 <cac:PartyLegalEntity>
                     <cbc:RegistrationName t-out="foreach_vals.get('registration_name')"/>
                     <cbc:CompanyID
@@ -71,17 +71,17 @@
                             t-out="foreach_vals.get('company_id')"/>
                     <cac:RegistrationAddress>
                         <t t-call="{{AddressType_template}}">
-                            <t t-set="vals" t-value="foreach_vals.get('RegistrationAddress_vals', {})"/>
+                            <t t-set="vals" t-value="foreach_vals.get('registration_address_vals', {})"/>
                         </t>
                     </cac:RegistrationAddress>
                 </cac:PartyLegalEntity>
             </t>
             <cac:Contact>
-                <t t-set="vals" t-value="vals.get('Contact_vals', {})"/>
-                <cbc:ID t-out="vals.get('id')"/>
-                <cbc:Name t-out="vals.get('name')"/>
-                <cbc:Telephone t-out="vals.get('telephone')"/>
-                <cbc:ElectronicMail t-out="vals.get('electronic_mail')"/>
+                <t t-set="contact_vals" t-value="vals.get('contact_vals', {})"/>
+                <cbc:ID t-out="contact_vals.get('id')"/>
+                <cbc:Name t-out="contact_vals.get('name')"/>
+                <cbc:Telephone t-out="contact_vals.get('telephone')"/>
+                <cbc:ElectronicMail t-out="contact_vals.get('electronic_mail')"/>
             </cac:Contact>
         </t>
     </template>
@@ -99,24 +99,24 @@
                 <cbc:PaymentID t-out="payment_id"/>
             </t>
             <cac:PayeeFinancialAccount>
-                <t t-set="foreach_vals" t-value="vals.get('PayeeFinancialAccount_vals', {})"/>
+                <t t-set="payee_financial_account_vals" t-value="vals.get('payee_financial_account_vals', {})"/>
                 <cbc:ID
-                    t-att="foreach_vals.get('id_attrs', {})"
-                    t-out="foreach_vals.get('id')"/>
+                    t-att="payee_financial_account_vals.get('id_attrs', {})"
+                    t-out="payee_financial_account_vals.get('id')"/>
                 <cac:FinancialInstitutionBranch>
-                    <t t-set="financial_inst_vals" t-value="foreach_vals.get('FinancialInstitutionBranch_vals', {})"/>
+                    <t t-set="financial_institution_branch_vals" t-value="payee_financial_account_vals.get('financial_institution_branch_vals', {})"/>
                     <cbc:ID
-                        t-att="financial_inst_vals.get('id_attrs', {})"
-                        t-out="financial_inst_vals.get('id')"/>
+                        t-att="financial_institution_branch_vals.get('id_attrs', {})"
+                        t-out="financial_institution_branch_vals.get('id')"/>
                     <cac:FinancialInstitution>
-                        <t t-set="foreach_vals" t-value="financial_inst_vals.get('FinancialInstitution_vals', {})"/>
+                        <t t-set="financial_institution_vals" t-value="financial_institution_branch_vals.get('financial_institution_vals', {})"/>
                         <cbc:ID
-                            t-att="foreach_vals.get('id_attrs', {})"
-                            t-out="foreach_vals.get('id')"/>
-                        <cbc:Name t-out="foreach_vals.get('name')"/>
+                            t-att="financial_institution_vals.get('id_attrs', {})"
+                            t-out="financial_institution_vals.get('id')"/>
+                        <cbc:Name t-out="financial_institution_vals.get('name')"/>
                         <cac:Address>
                             <t t-call="{{AddressType_template}}">
-                                <t t-set="vals" t-value="foreach_vals.get('Address_vals', {})"/>
+                                <t t-set="vals" t-value="financial_institution_vals.get('address_vals', {})"/>
                             </t>
                         </cac:Address>
                     </cac:FinancialInstitution>
@@ -134,7 +134,6 @@
                 t-out="vals.get('id')"/>
             <cbc:Name t-out="vals.get('name')"/>
             <cbc:Percent t-out="vals.get('percent')"/>
-            <!-- Only include below <TaxSubtotal>, not below <Item> -->
             <cbc:TaxExemptionReasonCode
                     t-out="vals.get('tax_exemption_reason_code')"/>
             <cbc:TaxExemptionReason
@@ -152,7 +151,7 @@
             <cbc:TaxAmount
                     t-att-currencyID="vals['currency'].name"
                     t-out="format_float(vals.get('tax_amount'), vals.get('currency_dp'))"/>
-            <t t-foreach="vals.get('TaxSubtotal_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('tax_subtotal_vals', [])" t-as="foreach_vals">
                 <cac:TaxSubtotal>
                     <cbc:TaxableAmount
                         t-att-currencyID="foreach_vals['currency'].name"
@@ -163,7 +162,7 @@
                     <cbc:Percent t-out="foreach_vals.get('percent')"/>
                     <cac:TaxCategory>
                         <t t-call="{{TaxCategoryType_template}}">
-                            <t t-set="vals" t-value="foreach_vals.get('TaxCategory_vals', {})"/>
+                            <t t-set="vals" t-value="foreach_vals.get('tax_category_vals', {})"/>
                         </t>
                     </cac:TaxCategory>
                 </cac:TaxSubtotal>
@@ -182,7 +181,7 @@
             <cbc:Amount
                     t-att-currencyID="vals.get('currency_name')"
                     t-out="format_float(vals.get('amount'), vals.get('currency_dp'))"/>
-            <t t-foreach="vals.get('TaxCategory_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('tax_category_vals', [])" t-as="foreach_vals">
                 <cac:TaxCategory>
                     <t t-call="{{TaxCategoryType_template}}">
                         <t t-set="vals" t-value="foreach_vals"/>
@@ -206,7 +205,6 @@
                     t-if="invoice.move_type == 'out_refund'"
                     t-att="vals.get('invoiced_quantity_attrs', {})"
                     t-out="vals.get('invoiced_quantity')"/>
-            <!-- /!\ The total amount for the Credit Note Line, including Allowance Charges but net of taxes. -->
             <cbc:LineExtensionAmount
                     t-att-currencyID="vals['currency'].name"
                     t-out="format_float(vals.get('line_extension_amount'), vals.get('currency_dp'))"/>
@@ -216,7 +214,7 @@
              http://www.datypic.com/sc/ubl20/e-cac_InvoiceLine.html
              -->
             <t t-if="invoice.move_type == 'out_invoice'">
-                <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
                     <cac:AllowanceCharge>
                         <t t-call="{{AllowanceChargeType_template}}">
                             <t t-set="vals" t-value="foreach_vals"/>
@@ -224,7 +222,7 @@
                     </cac:AllowanceCharge>
                 </t>
             </t>
-            <t t-foreach="vals.get('TaxTotal_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('tax_total_vals', [])" t-as="foreach_vals">
                 <cac:TaxTotal>
                     <t t-call="{{TaxTotalType_template}}">
                         <t t-set="vals" t-value="foreach_vals"/>
@@ -232,13 +230,13 @@
                 </cac:TaxTotal>
             </t>
             <cac:Item>
-                <t t-set="item_vals" t-value="vals.get('Item_vals', {})"/>
+                <t t-set="item_vals" t-value="vals.get('item_vals', {})"/>
                 <cbc:Description t-out="item_vals.get('description')"/>
                 <cbc:Name t-out="item_vals.get('name')"/>
                 <cac:SellersItemIdentification>
-                    <cbc:ID t-out="item_vals.get('SellersItemIdentification_vals', {}).get('id')"/>
+                    <cbc:ID t-out="item_vals.get('sellers_item_identification_vals', {}).get('id')"/>
                 </cac:SellersItemIdentification>
-                <t t-foreach="item_vals.get('ClassifiedTaxCategory_vals', [])" t-as="foreach_vals">
+                <t t-foreach="item_vals.get('classified_tax_category_vals', [])" t-as="foreach_vals">
                     <cac:ClassifiedTaxCategory>
                         <t t-call="{{TaxCategoryType_template}}">
                             <t t-set="vals" t-value="foreach_vals"/>
@@ -247,10 +245,10 @@
                 </t>
             </cac:Item>
             <cac:Price>
-                <t t-set="vals" t-value="vals.get('Price_vals', {})"/>
+                <t t-set="vals" t-value="vals.get('price_vals', {})"/>
                 <cbc:PriceAmount
-                t-att-currencyID="vals['currency'].name"
-                t-out="format_float(vals.get('price_amount'), vals.get('currency_dp'))"/>
+                        t-att-currencyID="vals['currency'].name"
+                        t-out="format_float(vals.get('price_amount'), vals.get('currency_dp'))"/>
                 <!-- nbr of item units to which the price applies), i.e.: 1 Dozen = 12 units, not mandatory -->
                 <cbc:BaseQuantity
                         t-att="vals.get('base_quantity_attrs', {})"
@@ -279,7 +277,7 @@
             <cbc:DocumentCurrencyCode
                     t-att="vals.get('document_currency_code_attrs', {})"
                     t-out="invoice.currency_id.name.upper()"/>
-            <t t-foreach="vals.get('InvoicePeriod_vals_list', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('invoice_period_vals_list', [])" t-as="foreach_vals">
                 <cac:InvoicePeriod>
                     <cbc:StartDate t-out="foreach_vals.get('start_date')"/>
                     <cbc:EndDate t-out="foreach_vals.get('end_date')"/>
@@ -288,36 +286,36 @@
             <cac:OrderReference>
                 <cbc:ID t-out="vals.get('order_reference')"/>
             </cac:OrderReference>
-            <cac:BillingReference t-if="vals.get('BillingReference_vals')">
+            <cac:BillingReference t-if="vals.get('billing_reference_vals')">
                 <cac:InvoiceDocumentReference>
-                    <cbc:ID t-out="vals['BillingReference_vals'].get('id')"/>
-                    <cbc:IssueDate t-out="vals['BillingReference_vals'].get('issue_date')"/>
+                    <cbc:ID t-out="vals['billing_reference_vals'].get('id')"/>
+                    <cbc:IssueDate t-out="vals['billing_reference_vals'].get('issue_date')"/>
                 </cac:InvoiceDocumentReference>
             </cac:BillingReference>
             <cac:AccountingSupplierParty>
-                <t t-set="accounting_supplier_vals" t-value="vals.get('AccountingSupplierParty_vals', {})"/>
+                <t t-set="accounting_supplier_vals" t-value="vals.get('accounting_supplier_party_vals', {})"/>
                 <cac:Party>
                     <t t-call="{{PartyType_template}}">
-                        <t t-set="vals" t-value="accounting_supplier_vals.get('Party_vals', {})"/>
+                        <t t-set="vals" t-value="accounting_supplier_vals.get('party_vals', {})"/>
                     </t>
                 </cac:Party>
             </cac:AccountingSupplierParty>
             <cac:AccountingCustomerParty>
-                <t t-set="accounting_customer_vals" t-value="vals.get('AccountingCustomerParty_vals', {})"/>
+                <t t-set="accounting_customer_vals" t-value="vals.get('accounting_customer_party_vals', {})"/>
                 <cac:Party>
                     <t t-call="{{PartyType_template}}">
-                        <t t-set="vals" t-value="accounting_customer_vals.get('Party_vals', {})"/>
+                        <t t-set="vals" t-value="accounting_customer_vals.get('party_vals', {})"/>
                     </t>
                 </cac:Party>
             </cac:AccountingCustomerParty>
-            <t id="Delivery_foreach" t-foreach="vals.get('Delivery_vals_list', [])" t-as="foreach_vals">
+            <t id="delivery_foreach" t-foreach="vals.get('delivery_vals_list', [])" t-as="foreach_vals">
                 <cac:Delivery>
                     <cbc:ActualDeliveryDate t-out="foreach_vals.get('actual_delivery_date')"/>
                     <cac:DeliveryLocation>
                         <cac:Address>
                             <t t-call="{{AddressType_template}}">
                                 <t t-set="vals"
-                                   t-value="foreach_vals.get('Location_vals', {}).get('DeliveryAddress_vals', {})"/>
+                                   t-value="foreach_vals.get('location_vals', {}).get('delivery_address_vals', {})"/>
                             </t>
                         </cac:Address>
                     </cac:DeliveryLocation>
@@ -328,7 +326,7 @@
             http://www.datypic.com/sc/ubl20/e-ns19_Invoice.html
             http://www.datypic.com/sc/ubl20/e-ns14_CreditNote.html -->
             <t t-if="invoice.move_type == 'out_invoice'">
-                <t t-foreach="vals.get('PaymentMeans_vals_list', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('payment_means_vals_list', [])" t-as="foreach_vals">
                     <cac:PaymentMeans>
                         <t t-call="{{PaymentMeansType_template}}">
                             <t t-set="vals" t-value="foreach_vals"/>
@@ -336,21 +334,21 @@
                     </cac:PaymentMeans>
                 </t>
             </t>
-            <t t-foreach="vals.get('PaymentTerms_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('payment_terms_vals', [])" t-as="foreach_vals">
                 <cac:PaymentTerms>
                     <t t-foreach="foreach_vals.get('note_vals', [])" t-as="note">
                         <cbc:Note t-out="note"/>
                     </t>
                 </cac:PaymentTerms>
             </t>
-            <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
                 <cac:AllowanceCharge>
                     <t t-call="{{AllowanceChargeType_template}}">
                         <t t-set="vals" t-value="foreach_vals"/>
                     </t>
                 </cac:AllowanceCharge>
             </t>
-            <t t-foreach="vals.get('TaxTotal_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('tax_total_vals', [])" t-as="foreach_vals">
                 <cac:TaxTotal>
                     <t t-call="{{TaxTotalType_template}}">
                         <t t-set="vals" t-value="foreach_vals"/>
@@ -358,7 +356,7 @@
                 </cac:TaxTotal>
             </t>
             <cac:LegalMonetaryTotal>
-                <t t-set="monetary_tot_vals" t-value="vals.get('LegalMonetaryTotal_vals', {})"/>
+                <t t-set="monetary_tot_vals" t-value="vals.get('legal_monetary_total_vals', {})"/>
                 <cbc:LineExtensionAmount
                     t-att-currencyID="monetary_tot_vals['currency'].name"
                     t-out="format_float(monetary_tot_vals.get('line_extension_amount'), monetary_tot_vals.get('currency_dp'))"/>
@@ -378,7 +376,7 @@
                     t-att-currencyID="monetary_tot_vals['currency'].name"
                     t-out="format_float(monetary_tot_vals.get('payable_amount'), monetary_tot_vals.get('currency_dp'))"/>
             </cac:LegalMonetaryTotal>
-            <t t-foreach="vals.get('InvoiceLine_vals', [])" t-as="foreach_vals">
+            <t t-foreach="vals.get('invoice_line_vals', [])" t-as="foreach_vals">
                 <cac:InvoiceLine t-if="invoice.move_type == 'out_invoice'">
                     <t t-call="{{InvoiceLineType_template}}">
                         <t t-set="vals" t-value="foreach_vals"/>

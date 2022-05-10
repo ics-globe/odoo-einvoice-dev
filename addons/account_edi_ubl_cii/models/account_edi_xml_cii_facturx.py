@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, _
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, float_repr, is_html_empty, html2plaintext
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, float_repr, is_html_empty, html2plaintext, cleanup_xml_node
+from lxml import etree
 
 from datetime import datetime
 
@@ -98,7 +99,7 @@ class AccountEdiXmlCII(models.AbstractModel):
 
     def _check_non_0_rate_tax(self, vals):
         for line_vals in vals['invoice_line_vals_list']:
-            tax_rate_list = line_vals['line'].tax_ids.mapped("amount")
+            tax_rate_list = line_vals['line'].tax_ids.flatten_taxes_hierarchy().mapped("amount")
             if not any([rate > 0 for rate in tax_rate_list]):
                 return _("When the Canary Island General Indirect Tax (IGIC) applies, the tax rate on "
                          "each invoice line should be greater than 0.")
@@ -116,7 +117,7 @@ class AccountEdiXmlCII(models.AbstractModel):
     def _get_exchanged_document_vals(self, invoice):
         return {
             'id': invoice.name,
-            'type_code': '381' if 'refund' in invoice.move_type else '380',
+            'type_code': '380' if invoice.move_type == 'out_invoice' else '381',
             'issue_date_time': invoice.invoice_date,
             'included_note': html2plaintext(invoice.narration) if invoice.narration else "",
         }
@@ -135,8 +136,14 @@ class AccountEdiXmlCII(models.AbstractModel):
         # Create file content.
         tax_details = invoice._prepare_edi_tax_details()
 
-        seller_siret = 'siret' in invoice.company_id._fields and invoice.company_id.siret or invoice.company_id.company_registry
-        buyer_siret = 'siret' in invoice.commercial_partner_id._fields and invoice.commercial_partner_id.siret
+        if 'siret' in invoice.company_id._fields and invoice.company_id.siret:
+            seller_siret = invoice.company_id.siret
+        else:
+            seller_siret = invoice.company_id.company_registry
+
+        buyer_siret = False
+        if 'siret' in invoice.commercial_partner_id._fields and invoice.commercial_partner_id.siret:
+            buyer_siret = invoice.commercial_partner_id.siret
 
         template_values = {
             **invoice._prepare_edi_vals_to_export(),
@@ -158,7 +165,7 @@ class AccountEdiXmlCII(models.AbstractModel):
             # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement / ApplicableTradeTax
             for tax_detail_vals in template_values['tax_details']['invoice_line_tax_details'][line]['tax_details'].values():
                 tax = tax_detail_vals['tax']
-                tax_detail_vals['unece_tax_category_code'] = self._get_tax_unece_codes(invoice, tax)[0]
+                tax_detail_vals['tax_category_code'] = self._get_tax_unece_codes(invoice, tax).get('tax_category_code')
                 tax_detail_vals['amount_type'] = tax.amount_type
                 tax_detail_vals['amount'] = tax.amount
 
@@ -171,16 +178,14 @@ class AccountEdiXmlCII(models.AbstractModel):
             # if 0.0 is expected and -0.0 is given.
             amount_currency = tax_detail_vals['tax_amount_currency']
             tax_detail_vals['calculated_amount'] = template_values['balance_multiplicator'] * amount_currency if amount_currency != 0 else 0
-            tax_category_code, tax_exemption_reason_code, tax_exemption_reason = self._get_tax_unece_codes(invoice, tax)
-            tax_detail_vals['unece_tax_category_code'] = tax_category_code
-            tax_detail_vals['exemption_reason'] = tax_exemption_reason
-            tax_detail_vals['exemption_reason_code'] = tax_exemption_reason_code
+            tax_unece_codes = self._get_tax_unece_codes(invoice, tax)
+            tax_detail_vals.update(tax_unece_codes)
 
-            if tax_category_code == 'K':
+            if tax_unece_codes.get('tax_category_code') == 'K':
                 template_values['intracom_delivery'] = True
             # [BR - IC - 11] - In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14) shall not be blank.
-            if tax_category_code == 'K' and not template_values['scheduled_delivery_time']:
+            if tax_unece_codes.get('tax_category_code') == 'K' and not template_values['scheduled_delivery_time']:
                 date_range = self._get_invoicing_period(invoice)
                 template_values['billing_start'] = min(date_range)
                 template_values['billing_end'] = max(date_range)
@@ -198,8 +203,9 @@ class AccountEdiXmlCII(models.AbstractModel):
     def _export_invoice(self, invoice):
         vals = self._export_invoice_vals(invoice)
         template = self.env.ref('account_edi_ubl_cii.account_invoice_facturx_export_22')
-        errors = self._check_constraints(self._export_invoice_constraints(invoice, vals))
-        return self._cleanup_xml_content(template._render(vals)), set(errors)
+        tmp = self._export_invoice_constraints(invoice, vals)
+        errors = [constraint for constraint in tmp.values() if constraint]
+        return etree.tostring(cleanup_xml_node(template._render(vals))), set(errors)
 
     # -------------------------------------------------------------------------
     # IMPORT

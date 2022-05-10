@@ -7,7 +7,7 @@
                 <!-- AllowanceCharge and TaxTotal are swapped in the CreditLine
                 w.r.t InvoiceLine. see: http://www.datypic.com/sc/ubl21/e-cac_InvoiceLine.html
                 vs http://www.datypic.com/sc/ubl21/e-cac_CreditNoteLine.html-->
-                <t t-foreach="vals.get('AllowanceCharge_vals', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
                     <cac:AllowanceCharge
                         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
@@ -45,9 +45,9 @@
                     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
                     t-out="vals.get('buyer_reference')"/>
         </xpath>
-        <xpath expr="//*[@id='Delivery_foreach']" position="after">
+        <xpath expr="//*[@id='delivery_foreach']" position="after">
             <t t-if="invoice.move_type == 'out_refund'">
-                <t t-foreach="vals.get('PaymentMeans_vals_list', [])" t-as="foreach_vals">
+                <t t-foreach="vals.get('payment_means_vals_list', [])" t-as="foreach_vals">
                     <cac:PaymentMeans
                         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
                         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"

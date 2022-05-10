@@ -2,7 +2,8 @@
 
 from odoo import models, _
 from odoo.osv import expression
-from odoo.tools import html2plaintext
+from odoo.tools import html2plaintext, cleanup_xml_node
+from lxml import etree
 
 
 class AccountEdiXmlUBL20(models.AbstractModel):
@@ -44,14 +45,14 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'postal_zone': partner.zip,
             'country_subentity': partner.state_id.name,
             'country_subentity_code': partner.state_id.code,
-            'Country_vals': self._get_country_vals(partner.country_id),
+            'country_vals': self._get_country_vals(partner.country_id),
         }
 
     def _get_partner_party_tax_scheme_vals_list(self, partner, role):
         return [{
             'registration_name': partner.name,
             'company_id': partner.vat,
-            'RegistrationAddress_vals': self._get_partner_address_vals(partner),
+            'registration_address_vals': self._get_partner_address_vals(partner),
             'TaxScheme_vals': {},
             'tax_scheme_id': 'VAT',
         }]
@@ -64,7 +65,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             'registration_name': commercial_partner.name,
             'company_id': commercial_partner.vat,
-            'RegistrationAddress_vals': self._get_partner_address_vals(commercial_partner),
+            'registration_address_vals': self._get_partner_address_vals(commercial_partner),
         }]
 
     def _get_partner_contact_vals(self, partner):
@@ -78,12 +79,12 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     def _get_partner_party_vals(self, partner, role):
         return {
             'partner': partner,
-            'PartyIdentification_vals': self._get_partner_party_identification_vals_list(partner),
-            'PartyName_vals': [{'name': partner.name}],
-            'PostalAddress_vals': self._get_partner_address_vals(partner),
-            'PartyTaxScheme_vals': self._get_partner_party_tax_scheme_vals_list(partner, role),
-            'PartyLegalEntity_vals': self._get_partner_party_legal_entity_vals_list(partner),
-            'Contact_vals': self._get_partner_contact_vals(partner),
+            'party_identification_vals': self._get_partner_party_identification_vals_list(partner),
+            'party_name_vals': [{'name': partner.name}],
+            'postal_address_vals': self._get_partner_address_vals(partner),
+            'party_tax_scheme_vals': self._get_partner_party_tax_scheme_vals_list(partner, role),
+            'party_legal_entity_vals': self._get_partner_party_legal_entity_vals_list(partner),
+            'contact_vals': self._get_partner_contact_vals(partner),
         }
 
     def _get_invoice_period_vals_list(self, invoice):
@@ -102,8 +103,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         if 'partner_shipping_id' in invoice._fields:
             return [{
                 'actual_delivery_date': None,
-                'Location_vals': {
-                    'DeliveryAddress_vals': self._get_partner_address_vals(invoice.partner_shipping_id),
+                'location_vals': {
+                    'delivery_address_vals': self._get_partner_address_vals(invoice.partner_shipping_id),
                 },
             }]
 
@@ -115,7 +116,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'postal_zone': bank.zip,
             'country_subentity': bank.state.name,
             'country_subentity_code': bank.state.code,
-            'Country_vals': self._get_country_vals(bank.country),
+            'country_vals': self._get_country_vals(bank.country),
         }
 
     def _get_financial_institution_vals(self, bank):
@@ -125,7 +126,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'id': bank.bic,
             'id_attrs': {'schemeID': 'BIC'},
             'name': bank.name,
-            'Address_vals': self._get_bank_address_vals(bank),
+            'address_vals': self._get_bank_address_vals(bank),
         }
 
     def _get_financial_institution_branch_vals(self, bank):
@@ -134,7 +135,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             'id': bank.bic,
             'id_attrs': {'schemeID': 'BIC'},
-            'FinancialInstitution_vals': self._get_financial_institution_vals(bank),
+            'financial_institution_vals': self._get_financial_institution_vals(bank),
         }
 
     def _get_financial_account_vals(self, partner_bank):
@@ -144,7 +145,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         }
 
         if partner_bank.bank_id:
-            vals['FinancialInstitutionBranch_vals'] = self._get_financial_institution_branch_vals(partner_bank.bank_id)
+            vals['financial_institution_branch_vals'] = self._get_financial_institution_branch_vals(partner_bank.bank_id)
 
         return vals
 
@@ -158,7 +159,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         }
 
         if invoice.partner_bank_id:
-            vals['PayeeFinancialAccount_vals'] = self._get_financial_account_vals(invoice.partner_bank_id)
+            vals['payee_financial_account_vals'] = self._get_financial_account_vals(invoice.partner_bank_id)
 
         return [vals]
 
@@ -176,13 +177,13 @@ class AccountEdiXmlUBL20(models.AbstractModel):
             'currency': invoice.currency_id,
             'currency_dp': invoice.currency_id.decimal_places,
             'tax_amount': balance_sign * taxes_vals['tax_amount_currency'],
-            'TaxSubtotal_vals': [{
+            'tax_subtotal_vals': [{
                 'currency': invoice.currency_id,
                 'currency_dp': invoice.currency_id.decimal_places,
                 'taxable_amount': balance_sign * vals['base_amount_currency'],
                 'tax_amount': balance_sign * vals['tax_amount_currency'],
                 'percent': vals['_tax_category_vals_']['percent'],
-                'TaxCategory_vals': vals['_tax_category_vals_'],
+                'tax_category_vals': vals['_tax_category_vals_'],
             } for vals in taxes_vals['tax_details'].values()],
         }]
 
@@ -210,11 +211,11 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             # Identifier of the product.
             # TODO: 'barcode' ?
-            'SellersItemIdentification_vals': {'id': product.code},
+            'sellers_item_identification_vals': {'id': product.code},
 
             # The main tax applied. Only one is allowed.
             # TODO: eco-tax? recupel? *~*
-            'ClassifiedTaxCategory_vals': tax_category_vals_list,
+            'classified_tax_category_vals': tax_category_vals_list,
         }
 
     def _get_document_allowance_charge_vals_list(self, invoice):
@@ -334,10 +335,10 @@ class AccountEdiXmlUBL20(models.AbstractModel):
 
             'line_extension_amount': line.price_subtotal,
 
-            'AllowanceCharge_vals': allowance_charge_vals_list,
-            'TaxTotal_vals': self._get_invoice_tax_totals_vals_list(line.move_id, taxes_vals),
-            'Item_vals': self._get_invoice_line_item_vals(line, taxes_vals),
-            'Price_vals': self._get_invoice_line_price_vals(line),
+            'allowance_charge_vals': allowance_charge_vals_list,
+            'tax_total_vals': self._get_invoice_tax_totals_vals_list(line.move_id, taxes_vals),
+            'item_vals': self._get_invoice_line_item_vals(line, taxes_vals),
+            'price_vals': self._get_invoice_line_price_vals(line),
         }
 
     def _export_invoice_vals(self, invoice):
@@ -401,20 +402,20 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                 'due_date': invoice.invoice_date_due,
                 'note_vals': [html2plaintext(invoice.narration)] if invoice.narration else [],
                 'order_reference': invoice.invoice_origin,
-                'AccountingSupplierParty_vals': {
-                    'Party_vals': self._get_partner_party_vals(supplier, role='supplier'),
+                'accounting_supplier_party_vals': {
+                    'party_vals': self._get_partner_party_vals(supplier, role='supplier'),
                 },
-                'AccountingCustomerParty_vals': {
-                    'Party_vals': self._get_partner_party_vals(customer, role='customer'),
+                'accounting_customer_party_vals': {
+                    'party_vals': self._get_partner_party_vals(customer, role='customer'),
                 },
-                'InvoicePeriod_vals_list': self._get_invoice_period_vals_list(invoice),
-                'Delivery_vals_list': self._get_delivery_vals_list(invoice),
-                'PaymentMeans_vals_list': self._get_invoice_payment_means_vals_list(invoice),
-                'PaymentTerms_vals': self._get_invoice_payment_terms_vals_list(invoice),
-                # allowances at the document level, the allowances on invoices (eg. discount) are on InvoiceLine_vals
-                'AllowanceCharge_vals': document_allowance_charge_vals_list,
-                'TaxTotal_vals': self._get_invoice_tax_totals_vals_list(invoice, taxes_vals),
-                'LegalMonetaryTotal_vals': {
+                'invoice_period_vals_list': self._get_invoice_period_vals_list(invoice),
+                'delivery_vals_list': self._get_delivery_vals_list(invoice),
+                'payment_means_vals_list': self._get_invoice_payment_means_vals_list(invoice),
+                'payment_terms_vals': self._get_invoice_payment_terms_vals_list(invoice),
+                # allowances at the document level, the allowances on invoices (eg. discount) are on invoice_line_vals
+                'allowance_charge_vals': document_allowance_charge_vals_list,
+                'tax_total_vals': self._get_invoice_tax_totals_vals_list(invoice, taxes_vals),
+                'legal_monetary_total_vals': {
                     'currency': invoice.currency_id,
                     'currency_dp': invoice.currency_id.decimal_places,
                     'line_extension_amount': line_extension_amount,
@@ -424,7 +425,7 @@ class AccountEdiXmlUBL20(models.AbstractModel):
                     'prepaid_amount': invoice.amount_total - invoice.amount_residual,
                     'payable_amount': invoice.amount_residual,
                 },
-                'InvoiceLine_vals': invoice_line_vals_list,
+                'invoice_line_vals': invoice_line_vals_list,
                 'currency_dp': invoice.currency_id.decimal_places,  # currency decimal places
             },
         }
@@ -452,8 +453,8 @@ class AccountEdiXmlUBL20(models.AbstractModel):
     def _export_invoice(self, invoice):
         vals = self._export_invoice_vals(invoice)
         template = self.env.ref(vals['main_template'])
-        errors = self._check_constraints(self._export_invoice_constraints(invoice, vals))
-        return self._cleanup_xml_content(template._render(vals)), set(errors)
+        errors = [constraint for constraint in self._export_invoice_constraints(invoice, vals).values() if constraint]
+        return etree.tostring(cleanup_xml_node(template._render(vals))), set(errors)
 
     # -------------------------------------------------------------------------
     # IMPORT

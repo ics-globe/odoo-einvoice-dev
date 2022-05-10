@@ -29,8 +29,7 @@
                     <ram:SpecifiedLineTradeAgreement>
                         <!-- Line information: unit_price (discount is below the taxes) -->
                         <ram:GrossPriceProductTradePrice>
-                            <ram:ChargeAmount
-                                t-out="format_monetary(line.price_unit, 2)"/>
+                            <ram:ChargeAmount t-out="format_monetary(line.price_unit, 2)"/>
                             <!-- TODO: remove basis_qty ? -->
                             <ram:BasisQuantity
                                 t-att-unitCode="line_vals.get('unece_uom_code')"
@@ -65,7 +64,7 @@
                            t-as="tax_detail_vals">
                             <ram:ApplicableTradeTax t-if="tax_detail_vals['amount_type'] == 'percent'">
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:CategoryCode t-out="tax_detail_vals['unece_tax_category_code']"/>
+                                <ram:CategoryCode t-out="tax_detail_vals['tax_category_code']"/>
                                 <ram:RateApplicablePercent t-out="tax_detail_vals['amount']"/>
                             </ram:ApplicableTradeTax>
                         </t>
@@ -83,12 +82,10 @@
 
                         <!-- Subtotal. -->
                         <ram:SpecifiedTradeSettlementLineMonetarySummation>
-                            <ram:LineTotalAmount
-                                t-out="format_monetary(line.price_subtotal, 2)"/>
+                            <ram:LineTotalAmount t-out="format_monetary(line.price_subtotal, 2)"/>
                         </ram:SpecifiedTradeSettlementLineMonetarySummation>
 
                     </ram:SpecifiedLineTradeSettlement>
-
                 </ram:IncludedSupplyChainTradeLineItem>
             </t>
         </template>
@@ -191,7 +188,7 @@
 
                         <!-- Reference. -->
                         <ram:BuyerOrderReferencedDocument>
-                            <ram:IssuerAssignedID t-out="record.payment_reference if record.payment_reference else record.name"/>
+                            <ram:IssuerAssignedID t-out="record.payment_reference or record.name"/>
                         </ram:BuyerOrderReferencedDocument>
                         <ram:ContractReferencedDocument>
                             <ram:IssuerAssignedID t-out="record.ref"/>
@@ -202,10 +199,9 @@
                     <ram:ApplicableHeaderTradeDelivery>
                         <ram:ShipToTradeParty>
                             <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
-                                <t t-if="'partner_shipping_id' in record._fields and record.partner_shipping_id"
-                                   t-set="partner" t-value="record.partner_shipping_id"/>
-                                <t t-else=""
-                                   t-set="partner" t-value="record.commercial_partner_id"/>
+                                <t t-set="partner"
+                                   t-value="record.partner_shipping_id if 'partner_shipping_id' in record._fields
+                                            else record.commercial_partner_id"/>
                             </t>
                         </ram:ShipToTradeParty>
 
@@ -237,16 +233,16 @@
                         </ram:SpecifiedTradeSettlementPaymentMeans>
 
                         <!-- Tax Summary. -->
-                        <t t-foreach="tax_details.get('tax_details', []).values()" t-as="tax_detail_vals">
+                        <t t-foreach="tax_details.get('tax_details', {}).values()" t-as="tax_detail_vals">
                             <ram:ApplicableTradeTax>
                                 <ram:CalculatedAmount
                                     t-out="format_monetary(tax_detail_vals.get('calculated_amount'), 2)"/>
                                 <ram:TypeCode>VAT</ram:TypeCode>
-                                <ram:ExemptionReason t-out="tax_detail_vals.get('exemption_reason')"/>
+                                <ram:ExemptionReason t-out="tax_detail_vals.get('tax_exemption_reason')"/>
                                 <ram:BasisAmount
                                     t-out="format_monetary(balance_multiplicator * tax_detail_vals['base_amount_currency'], 2)"/>
-                                <ram:CategoryCode t-out="tax_detail_vals['unece_tax_category_code']"/>
-                                <ram:ExemptionReasonCode t-out="tax_detail_vals['exemption_reason_code']"/>
+                                <ram:CategoryCode t-out="tax_detail_vals['tax_category_code']"/>
+                                <ram:ExemptionReasonCode t-out="tax_detail_vals['tax_exemption_reason_code']"/>
                                 <!-- 5 = Tax is exigible on the date on the invoice -->
                                 <ram:DueDateTypeCode>5</ram:DueDateTypeCode>
                                 <ram:RateApplicablePercent
@@ -294,87 +290,5 @@
             </rsm:CrossIndustryInvoice>
         </template>
 
-        <template id="account_invoice_pdfa_3_facturx_metadata_22">
-            <x:xmpmeta xmlns:x="adobe:ns:meta/">
-                <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                    <rdf:Description xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" rdf:about="">
-                        <pdfaid:part>3</pdfaid:part>
-                        <pdfaid:conformance>B</pdfaid:conformance>
-                    </rdf:Description>
-                    <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" rdf:about="">
-                        <dc:title>
-                            <rdf:Alt>
-                                <rdf:li t-att="{'xml:lang': 'x-default'}" t-out="title"/>
-                            </rdf:Alt>
-                        </dc:title>
-                        <dc:creator>
-                            <rdf:Seq>
-                                <rdf:li>Odoo</rdf:li>
-                            </rdf:Seq>
-                        </dc:creator>
-                        <dc:description>
-                            <rdf:Alt>
-                                <rdf:li t-att="{'xml:lang': 'x-default'}">Invoice generated by Odoo</rdf:li>
-                            </rdf:Alt>
-                        </dc:description>
-                    </rdf:Description>
-                    <rdf:Description xmlns:pdf="http://ns.adobe.com/pdf/1.3/" rdf:about="">
-                        <pdf:Producer>Odoo</pdf:Producer>
-                    </rdf:Description>
-                    <rdf:Description xmlns:xmp="http://ns.adobe.com/xap/1.0/" rdf:about="">
-                        <xmp:CreatorTool>Odoo</xmp:CreatorTool>
-                        <xmp:CreateDate t-out="date"/>
-                        <xmp:ModifyDate t-out="date"/>
-                    </rdf:Description>
-                    <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
-                                     xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
-                                     xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#" rdf:about="">
-                        <pdfaExtension:schemas>
-                            <rdf:Bag>
-                                <rdf:li rdf:parseType="Resource">
-                                    <pdfaSchema:schema>Factur-X PDFA Extension Schema</pdfaSchema:schema>
-                                    <pdfaSchema:namespaceURI>urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#</pdfaSchema:namespaceURI>
-                                    <pdfaSchema:prefix>fx</pdfaSchema:prefix>
-                                    <pdfaSchema:property>
-                                        <rdf:Seq>
-                                            <rdf:li rdf:parseType="Resource">
-                                                <pdfaProperty:name>DocumentFileName</pdfaProperty:name>
-                                                <pdfaProperty:valueType>Text</pdfaProperty:valueType>
-                                                <pdfaProperty:category>external</pdfaProperty:category>
-                                                <pdfaProperty:description>name of the embedded XML invoice file</pdfaProperty:description>
-                                            </rdf:li>
-                                            <rdf:li rdf:parseType="Resource">
-                                                <pdfaProperty:name>DocumentType</pdfaProperty:name>
-                                                <pdfaProperty:valueType>Text</pdfaProperty:valueType>
-                                                <pdfaProperty:category>external</pdfaProperty:category>
-                                                <pdfaProperty:description>INVOICE</pdfaProperty:description>
-                                            </rdf:li>
-                                            <rdf:li rdf:parseType="Resource">
-                                                <pdfaProperty:name>Version</pdfaProperty:name>
-                                                <pdfaProperty:valueType>Text</pdfaProperty:valueType>
-                                                <pdfaProperty:category>external</pdfaProperty:category>
-                                                <pdfaProperty:description>The actual version of the Factur-X XML schema</pdfaProperty:description>
-                                            </rdf:li>
-                                            <rdf:li rdf:parseType="Resource">
-                                                <pdfaProperty:name>ConformanceLevel</pdfaProperty:name>
-                                                <pdfaProperty:valueType>Text</pdfaProperty:valueType>
-                                                <pdfaProperty:category>external</pdfaProperty:category>
-                                                <pdfaProperty:description>The conformance level of the embedded Factur-X data</pdfaProperty:description>
-                                            </rdf:li>
-                                        </rdf:Seq>
-                                    </pdfaSchema:property>
-                                </rdf:li>
-                            </rdf:Bag>
-                        </pdfaExtension:schemas>
-                    </rdf:Description>
-                    <rdf:Description xmlns:fx="urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#" rdf:about="">
-                        <fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>
-                        <fx:DocumentFileName>factur-x.xml</fx:DocumentFileName>
-                        <fx:DocumentType>INVOICE</fx:DocumentType>
-                        <fx:Version>1.0</fx:Version>
-                    </rdf:Description>
-                </rdf:RDF>
-            </x:xmpmeta>
-        </template>
     </data>
 </odoo>
