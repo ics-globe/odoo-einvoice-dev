@@ -67,7 +67,7 @@ export class OpenMilestone extends MilestoneComponent {
         this.rpc = useService("rpc");
         this.milestone = useState(this.props.milestone);
         this.state = useState({
-            colorClass: this.milestone.is_deadline_exceeded ? "o_milestone_danger" : "",
+            colorClass: this.milestone.is_deadline_exceeded && !this.milestone.can_be_marked_as_done ? "o_milestone_danger" : this.milestone.can_be_marked_as_done ? "o_color_green" : "",
             checkboxIcon: this.milestone.is_reached ? "fa-check-square-o" : "fa-square-o",
         });
         onWillUpdateProps(this.onWillUpdateProps);
