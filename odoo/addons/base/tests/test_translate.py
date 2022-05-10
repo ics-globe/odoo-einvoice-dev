@@ -691,29 +691,28 @@ class TestXMLTranslation(TransactionCase):
         # `arch_db` is in `_write` instead of `create` because `arch_db` is the inverse of `arch`.
         # We need to flush `arch_db` before creating the translations otherwise the translation for which there is no value will be deleted,
         # while the `test_sync_update` specifically needs empty translations
-        view.flush()
 
-        # view_xml_id = view.export_data(['id']).get('datas')[0][0]
-        # for lang, trans_terms in kwargs.items():
-        #     po_string = ''
-        #     for src, val in zip(terms, trans_terms):
-        #         po_string += '''
-        #         #. module: __export__
-        #         #: model_terms:ir.ui.view,arch_db:%s
-        #         msgid "%s"
-        #         msgstr "%s"
-        #         ''' % (view_xml_id, src, val)
-        #     with io.BytesIO(bytes(po_string, encoding='utf-8')) as f:
-        #         f.name = 'dummy'
-        #         trans_load_data(self.env.cr, f, 'po', lang, verbose=True, create_empty_translation=True, overwrite=True)
-
-        val = {'en_US': archf % terms}
+        view_xml_id = view.export_data(['id']).get('datas')[0][0]
         for lang, trans_terms in kwargs.items():
-            val[lang] = archf % trans_terms
-        query = """UPDATE ir_ui_view
-                      SET arch_db = %s
-                    WHERE id = %s"""
-        self.env.cr.execute(query, (Json(val), view.id))
+            po_string = ''
+            for src, val in zip(terms, trans_terms):
+                po_string += '''
+                #. module: __export__
+                #: model_terms:ir.ui.view,arch_db:%s
+                msgid "%s"
+                msgstr "%s"
+                ''' % (view_xml_id, src, val)
+            with io.BytesIO(bytes(po_string, encoding='utf-8')) as f:
+                f.name = 'dummy'
+                trans_load_data(self.env.cr, f, 'po', lang, verbose=True, create_empty_translation=True, overwrite=True)
+
+        # val = {'en_US': archf % terms}
+        # for lang, trans_terms in kwargs.items():
+        #     val[lang] = archf % trans_terms
+        # query = """UPDATE ir_ui_view
+        #               SET arch_db = %s
+        #             WHERE id = %s"""
+        # self.env.cr.execute(query, (Json(val), view.id))
         view.flush()
         view.invalidate_cache()
         return view
@@ -762,7 +761,7 @@ class TestXMLTranslation(TransactionCase):
         terms_en = ('Bread and cheeze',)
         terms_fr = ('Pain et fromage',)
         terms_nl = ('Brood and kaas',)
-        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
+        view = self.create_view(archf, terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
 
         env_nolang = self.env(context={})
         env_en = self.env(context={'lang': 'en_US'})
@@ -785,7 +784,7 @@ class TestXMLTranslation(TransactionCase):
         self.assertEqual(view.with_env(env_fr).arch_db, archf % terms_fr)
         self.assertEqual(view.with_env(env_nl).arch_db, archf % terms_nl)
 
-        view = self.create_view(archf, terms_fr, en_US=terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
+        view = self.create_view(archf, terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
         # modify source term in view in another language with close term
         new_terms_fr = ('Pains et fromage',)
         view.with_env(env_fr).write({'arch_db': archf % new_terms_fr})
@@ -802,7 +801,7 @@ class TestXMLTranslation(TransactionCase):
         terms_en = ('Bread and cheese', 'Fork')
         terms_fr = ('Pain et fromage', 'Fourchette')
         terms_nl = ('Brood and kaas', 'Vork')
-        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
+        view = self.create_view(archf, terms_en, fr_FR=terms_fr, nl_NL=terms_nl)
 
         env_nolang = self.env(context={})
         env_en = self.env(context={'lang': 'en_US'})
