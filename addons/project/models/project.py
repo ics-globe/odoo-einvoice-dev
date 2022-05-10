@@ -11,7 +11,7 @@ from random import randint
 from odoo import api, Command, fields, models, tools, SUPERUSER_ID, _, _lt
 from odoo.addons.rating.models import rating_data
 from odoo.exceptions import UserError, ValidationError, AccessError
-from odoo.osv.expression import OR, AND
+from odoo.osv import expression
 from odoo.tools.misc import get_lang
 
 from .project_task_recurrence import DAYS, WEEKS
@@ -1099,6 +1099,11 @@ class Task(models.Model):
         readonly=False,
         store=True,
     )
+    has_late_and_not_reached_milestone = fields.Boolean(
+        compute='_compute_has_late_and_not_reached_milestone',
+        search='_search_has_late_and_not_reached_milestone',
+        groups='project.group_project_milestone',
+    )
 
     # Task Dependencies fields
     allow_task_dependencies = fields.Boolean(related='project_id.allow_task_dependencies')
@@ -1897,7 +1902,7 @@ class Task(models.Model):
             recurrence_domain = []
             if recurrence_update == 'subsequent':
                 for task in self:
-                    recurrence_domain = OR([recurrence_domain, ['&', ('recurrence_id', '=', task.recurrence_id.id), ('create_date', '>=', task.create_date)]])
+                    recurrence_domain = expression.OR([recurrence_domain, ['&', ('recurrence_id', '=', task.recurrence_id.id), ('create_date', '>=', task.create_date)]])
             else:
                 recurrence_domain = [('recurrence_id', 'in', self.recurrence_id.ids)]
             tasks |= self.env['project.task'].search(recurrence_domain)
@@ -1978,6 +1983,32 @@ class Task(models.Model):
         for task in self:
             if task.project_id != task.milestone_id.project_id:
                 task.milestone_id = False
+
+    def _compute_has_late_and_not_reached_milestone(self):
+        if all(not task.project_id or not task.allow_milestones for task in self):
+            self.has_late_and_not_reached_milestone = False
+            return
+        late_milestones = self.env['project.milestone']._search([
+            ('id', 'in', self.milestone_id.ids),
+            ('is_reached', '=', False),
+            ('deadline', '<', fields.Date.today()),
+        ])
+        for task in self:
+            task.has_late_and_not_reached_milestone = task.project_id and task.allow_milestones and task.milestone_id.id in late_milestones
+
+    def _search_has_late_and_not_reached_milestone(self, operator, value):
+        if operator not in ('=', '!=') or not isinstance(value, bool):
+            raise NotImplementedError(f'The search does not support the {operator} operator or {value} value.')
+        domain = [
+            ('allow_milestones', '=', True),
+            ('milestone_id', '!=', False),
+            ('milestone_id.is_reached', '=', False),
+            ('milestone_id.deadline', '!=', False), ('milestone_id.deadline', '<', fields.Date.today())
+        ]
+        if (operator == '!=' and value) or (operator == '=' and not value):
+            domain.insert(0, expression.NOT_OPERATOR)
+            domain = expression.distribute_not(domain)
+        return domain
 
     # ---------------------------------------------------
     # Mail gateway
@@ -2433,7 +2464,7 @@ class ProjectTags(models.Model):
     ]
 
     def _get_project_tags_domain(self, domain, project_id):
-        return AND([
+        return expression.AND([
             domain,
             ['|', ('task_ids.project_id', '=', project_id), ('project_ids', 'in', project_id)]
         ])

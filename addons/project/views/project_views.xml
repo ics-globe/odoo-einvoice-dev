@@ -36,6 +36,7 @@
                     <filter string="Closed" name="closed_tasks" domain="[('is_closed', '!=', False)]"/>
                     <separator/>
                     <filter string="Tasks Due Today" name="tasks_due_today" domain="[('date_deadline', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter string="Late Milestones" name="late_milestone" domain="[('has_late_and_not_reached_milestone', '=', True)]" groups="project.group_project_milestone"/>
                     <filter string="Late Tasks" name="late" domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
                     <separator/>
                     <filter name="rating_satisfied" string="Satisfied" domain="[('rating_avg', '&gt;=', 3.66)]" groups="project.group_project_rating"/>
@@ -1294,6 +1295,7 @@
                     <field name="child_text"/>
                     <field name="is_private"/>
                     <field name="rating_active"/>
+                    <field name="has_late_and_not_reached_milestone" />
                     <field name="allow_milestones" />
                     <progressbar field="kanban_state" colors='{"done": "success", "blocked": "danger", "normal": "muted"}'/>
                     <templates>
@@ -1308,7 +1310,7 @@
                                         </strong>
                                         <t t-if="!record.is_private.raw_value">
                                             <span invisible="context.get('default_project_id', False)"><br/><field name="project_id" required="1"/></span>
-                                            <span t-if="record.allow_milestones.raw_value and record.milestone_id.raw_value" groups="project.group_project_milestone">
+                                            <span t-if="record.allow_milestones.raw_value and record.milestone_id.raw_value" t-attf-class="{{record.has_late_and_not_reached_milestone.raw_value ? 'text-danger' : ''}}" groups="project.group_project_milestone">
                                                 <br/>
                                                 <field name="milestone_id" />
                                             </span>
@@ -1433,8 +1435,8 @@
             <field name="model">project.task</field>
             <field eval="2" name="priority"/>
             <field name="arch" type="xml">
-                <calendar date_start="date_deadline" string="Tasks" mode="month" 
-                          color="color" event_limit="5" hide_time="true" 
+                <calendar date_start="date_deadline" string="Tasks" mode="month"
+                          color="color" event_limit="5" hide_time="true"
                           event_open_popup="true" quick_add="false" show_unusual_days="True"
                           js_class="project_calendar"
                           scales="month,year">
