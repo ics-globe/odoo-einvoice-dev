@@ -3,7 +3,8 @@
 
 import base64
 
-from odoo import fields, models, api
+from odoo import _, fields, models, api
+from odoo.exceptions import UserError
 
 
 class IrMailServer(models.Model):
@@ -16,6 +17,18 @@ class IrMailServer(models.Model):
         selection_add=[('gmail', 'Gmail OAuth Authentication')],
         ondelete={'gmail': 'set default'})
 
+    def _compute_smtp_authentication_info(self):
+        gmail_servers = self.filtered(lambda server: server.smtp_authentication == 'gmail')
+        gmail_servers.smtp_authentication_info = _(
+            'Connect your personal Gmail account using OAuth. \n'
+            'This server will only be able to send emails for your email address. \n'
+            'You will be redirected to the Gmail login page where you will '
+            'need to accept the permission and then copy / paste the authorization code '
+            'in Odoo. \n'
+            'If you plan to use only this account, you should set "mail.default.from" '
+            'in the system parameter view to your Outlook email address.')
+        super(IrMailServer, self - gmail_servers)._compute_smtp_authentication_info()
+
     @api.onchange('smtp_encryption')
     def _onchange_encryption(self):
         """Do not change the SMTP configuration if it's a Gmail server
@@ -24,7 +37,7 @@ class IrMailServer(models.Model):
             super(IrMailServer, self)._onchange_encryption()
 
     @api.onchange('smtp_authentication')
-    def _onchange_smtp_authentication(self):
+    def _onchange_smtp_authentication_gmail(self):
         if self.smtp_authentication == 'gmail':
             self.smtp_host = 'smtp.gmail.com'
             self.smtp_encryption = 'starttls'
@@ -34,6 +47,33 @@ class IrMailServer(models.Model):
             self.google_gmail_refresh_token = False
             self.google_gmail_access_token = False
             self.google_gmail_access_token_expiration = False
+
+    @api.onchange('smtp_user', 'smtp_authentication')
+    def _on_change_smtp_user_gmail(self):
+        """The Gmail mail servers can only be used for the user personal email address."""
+        if self.smtp_authentication == 'gmail':
+            self.from_filter = self.smtp_user
+
+    @api.constrains('smtp_authentication', 'smtp_pass', 'smtp_encryption', 'from_filter', 'smtp_user')
+    def _check_use_google_gmail_service(self):
+        for server in self:
+            if server.smtp_authentication != 'gmail':
+                continue
+
+            if server.smtp_pass:
+                raise UserError(_(
+                    'Please leave the password field empty for Gmail mail server %r. '
+                    'The OAuth process does not require it', server.name))
+
+            if server.smtp_encryption != 'starttls':
+                raise UserError(_(
+                    'Incorrect Connection Security for Gmail mail server %r. '
+                    'Please set it to "TLS (STARTTLS)".', server.name))
+
+            if server.from_filter != server.smtp_user:
+                raise UserError(_(
+                    'This server %r can only be used for your personal email address. '
+                    'Please fill the "from_filter" field with %r.', server.name, server.smtp_user))
 
     def _smtp_login(self, connection, smtp_user, smtp_password):
         if len(self) == 1 and self.smtp_authentication == 'gmail':

@@ -4,7 +4,8 @@
 import logging
 import time
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -59,6 +60,21 @@ class GoogleGmailMixin(models.AbstractModel):
             values['google_gmail_access_token_expiration'] = False
 
         return super(GoogleGmailMixin, self).write(values)
+
+    def open_google_gmail_uri(self):
+        """Open the URL to accept the Gmail permission."""
+        self.ensure_one()
+
+        if not self.env.user.has_group('base.group_system'):
+            raise AccessError(_('Only the administrator can link an Gmail mail server.'))
+
+        if not self.google_gmail_uri:
+            raise UserError(_('Please configure your Gmail credentials.'))
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': self.google_gmail_uri,
+        }
 
     def _generate_oauth2_string(self, user, refresh_token):
         """Generate a OAuth2 string which can be used for authentication.

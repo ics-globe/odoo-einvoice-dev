@@ -6,24 +6,20 @@
         <field name="inherit_id" ref="base.ir_mail_server_form"/>
         <field name="arch" type="xml">
             <field name="smtp_user" position="after">
+                <field name="google_gmail_uri" invisible="1"/>
                 <field string="Authorization Code" name="google_gmail_authorization_code" password="True"
-                    attrs="{'required': [('smtp_authentication', '=', 'gmail')], 'invisible': [('smtp_authentication', '!=', 'gmail')]}"/>
-                <field name="google_gmail_uri"
-                    class="fa fa-arrow-right oe_edit_only"
-                    widget="url"
-                    text=" Get an Authorization Code"
-                    attrs="{'invisible': ['|', ('smtp_authentication', '!=', 'gmail'), ('google_gmail_uri', '=', False)]}"
-                    nolabel="1"/>
-                <div class="alert alert-warning" role="alert"
+                    attrs="{'invisible': [('smtp_authentication', '!=', 'gmail')]}"/>
+                <button class="alert alert-warning d-block mt-2 text-left" role="alert" nolabel="1" colspan="8"
+                    type="action" name="%(base.res_config_setting_act_window)d" icon="fa-arrow-right"
                     attrs="{'invisible': ['|', ('smtp_authentication', '!=', 'gmail'), ('google_gmail_uri', '!=', False)]}">
-                    Setup your Gmail API credentials to link a Gmail account.
-                </div>
-            </field>
-            <field name="smtp_user" position="attributes">
-                <attribute name="attrs">{'invisible' : [('smtp_authentication', '!=', 'login'), ('smtp_authentication', '!=', 'gmail')]}</attribute>
-            </field>
-            <field name="smtp_pass" position="attributes">
-                <attribute name="attrs">{'invisible' : [('smtp_authentication', '=', 'gmail')]}</attribute>
+                    Setup your Gmail API credentials in the general settings to link a Gmail account.
+                </button>
+                <button type="object" colspan="8"
+                    name="open_google_gmail_uri" class="btn-link px-0"
+                    attrs="{'invisible': ['|', ('smtp_authentication', '!=', 'gmail'), ('google_gmail_uri', '=', False)]}">
+                    <i class="fa fa-arrow-right"/>
+                    Get an Authorization code
+                </button>
             </field>
         </field>
     </record>
