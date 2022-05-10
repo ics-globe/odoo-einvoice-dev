@@ -8,8 +8,7 @@
     position: relative;
 }
 
-.o_RtcCallParticipantCard_avatarFrame {
-    display: flex;
+.o_RtcCallParticipantCard_overlayFrame {
     user-select: none;
     aspect-ratio: 16/9;
 
@@ -86,7 +85,7 @@
     position: absolute;
     display: flex;
     flex-direction: row-reverse;
-    margin: map-get($spacers, 2);
+    margin: #{"min(1%, 5px)"};
     right: 0%;
     top: 0%;
 }
