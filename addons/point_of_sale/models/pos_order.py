@@ -616,7 +616,7 @@ class PosOrder(models.Model):
             self._create_order_picking()
         return res
 
-    def _generate_pos_order_invoice(self):
+    def _generate_pos_order_invoice(self, no_post=False):
         moves = self.env['account.move']
 
         for order in self:
@@ -628,7 +628,7 @@ class PosOrder(models.Model):
             if not order.partner_id:
                 raise UserError(_('Please provide a partner for the sale.'))
 
-            move_vals = order._prepare_invoice_vals()
+            move_vals = order._prepare_invoice_vals(no_post)
             new_move = order._create_invoice(move_vals)
 
             order.write({'account_move': new_move.id, 'state': 'invoiced'})
