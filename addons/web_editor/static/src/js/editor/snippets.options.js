@@ -4918,7 +4918,6 @@ registry.ReplaceMedia = SnippetOptionWidget.extend({
     },
 });
 
-let isImageOptimizationDeactivated;
 /*
  * Abstract option to be extended by the ImageTools and BackgroundOptimize
  * options that handles all the common parts.
@@ -4941,21 +4940,6 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
         weightEl.classList.add('o_we_image_weight', 'o_we_tag', 'd-none');
         weightEl.title = _t("Size");
         this.$weight = $(weightEl);
-
-        if (isImageOptimizationDeactivated === undefined) {
-            isImageOptimizationDeactivated = await this._rpc({
-                route: '/web_editor/is_website_images_optimization_deactivated',
-                params: {
-                    website: Boolean(this.$target[0].closest('#wrapwrap')),
-                },
-            });
-        }
-        if (isImageOptimizationDeactivated) {
-            const warningEl = document.createElement('i');
-            warningEl.classList.add('fa', 'fa-exclamation-triangle', 'mr-2', 'text-warning');
-            warningEl.title = _t("Automatic Images optimization is disabled");
-            this.$warning = $(warningEl);
-        }
     },
 
     //--------------------------------------------------------------------------
@@ -5173,7 +5157,7 @@ const ImageHandlerOption = SnippetOptionWidget.extend({
     async _autoOptimizeImage() {
         await this._loadImageInfo();
         await this._rerenderXML();
-        if (!this.$warning) {
+        if (!this.$el[0].closest('#oe_snippets').querySelector('#o_warning_img_opti_disabled')) {
             this._getImg().dataset.resizeWidth = this.optimizedWidth;
         }
         await this._applyOptions();
@@ -5591,9 +5575,6 @@ registry.ImageTools = ImageHandlerOption.extend({
         const leftPanelEl = this.$overlay.data('$optionsSection')[0];
         const titleTextEl = leftPanelEl.querySelector('we-title > span');
         this.$weight.appendTo(titleTextEl);
-        if (this.$warning) {
-            this.$warning.prependTo(titleTextEl);
-        }
     },
     /**
      * @override

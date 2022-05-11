@@ -714,8 +714,3 @@ class Web_Editor(http.Controller):
         channel = (request.db, 'editor_collaboration', model_name, field_name, int(res_id))
         bus_data.update({'model_name': model_name, 'field_name': field_name, 'res_id': res_id})
         request.env['bus.bus']._sendone(channel, 'editor_collaboration', bus_data)
-
-    @http.route('/web_editor/is_website_images_optimization_deactivated', type='json', auth='user')
-    def is_website_images_optimization_activated(self, website):
-        return request.env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization', '') or \
-            (request.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', '') and website)

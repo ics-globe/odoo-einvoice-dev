@@ -13,7 +13,7 @@
             <button type="button" class="btn btn-primary" data-action="save" title="Save record" accesskey="s">Save</button>
         </form>
     </div>
-    <div t-if="('website_id' in request.params['kwargs']['context'] and env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization')) or env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization')">
+    <div id="o_warning_img_opti_disabled" t-if="('website_id' in request.params['kwargs']['context'] and env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization')) or env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization')">
         <i class="fa fa-exclamation-triangle ml-2 mr-2 text-warning"/>
         <span>Automatic Images optimization is disabled</span>
     </div>
