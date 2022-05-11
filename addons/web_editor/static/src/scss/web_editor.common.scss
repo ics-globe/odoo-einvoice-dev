@@ -128,6 +128,9 @@ img.ml-auto, img.mx-auto {
 .fa.d-block.mx-auto {
     text-align: center;
 }
+.fa.card-img, .fa.card-img-top, .fa.card-img-bottom {
+    width: auto;
+}
 
 div.media_iframe_video {
     margin: 0 auto;
