@@ -370,6 +370,10 @@ class MailPluginController(http.Controller):
         partner_values['title'] = partner.function
         partner_values['enrichment_info'] = None
 
+        if not partner_values['name']:
+            # Always ensure that the partner has a name
+            partner_values['name'] = partner_values['email']
+
         can_write_on_partner = partner.check_access_rights('write', raise_exception=False)
         if can_write_on_partner:
             try:
