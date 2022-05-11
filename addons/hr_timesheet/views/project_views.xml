@@ -259,7 +259,7 @@
             <field name="inherit_id" ref="project.view_project"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='date']" position="after">
-                    <field name="allocated_hours" widget="timesheet_uom_no_toggle" optional="show" attrs="{'invisible' : [('allocated_hours', '=', 0)]}"/>
+                    <field name="allocated_hours" widget="timesheet_uom_no_toggle" optional="hide" attrs="{'invisible' : [('allocated_hours', '=', 0)]}"/>
                 </xpath>
             </field>
         </record>
@@ -270,7 +270,7 @@
             <field name="inherit_id" ref="project.view_task_tree2" />
             <field eval="2" name="priority"/>
             <field name="arch" type="xml">
-                <field name="company_id" position="after">
+                <field name="date_deadline" position="before">
                     <field name="allow_subtasks" invisible="1"/>
                     <field name="planned_hours" widget="timesheet_uom_no_toggle" sum="Initially Planned Hours" optional="hide"/>
                     <field name="effective_hours" widget="timesheet_uom" sum="Effective Hours" optional="show"/>

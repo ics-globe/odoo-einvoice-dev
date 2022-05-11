@@ -21,11 +21,13 @@
                     <field name="user_ids" filter_domain="[('user_ids', 'ilike', self), ('user_ids.active', 'in', [True, False])]"/>
                     <field string="Project" name="display_project_id"/>
                     <field name="stage_id"/>
-                    <field name="partner_id" operator="child_of"/>
+                    <field name="personal_stage_id"/>
                     <field name="parent_id"/>
+                    <field name="partner_id" operator="child_of"/>
                     <field name="rating_last_text"/>
                     <filter string="My Tasks" name="my_tasks" domain="[('user_ids', 'in', uid)]"/>
                     <filter string="Followed Tasks" name="followed_by_me" domain="[('message_is_follower', '=', True)]"/>
+                    <filter string="My Projects" name="my_projects" domain="[('project_id.user_id', '=', uid)]"/>
                     <filter string="Unassigned" name="unassigned" domain="[('user_ids', '=', False)]"/>
                     <separator/>
                     <filter string="High Priority" name="high_priority" domain="[('priority', '=', 1)]"/>
@@ -57,10 +59,9 @@
                         <filter string="Personal Stage" name="personal_stage" context="{'group_by': 'personal_stage_type_ids'}"/>
                         <filter string="Assignees" name="user" context="{'group_by': 'user_ids'}"/>
                         <filter string="Project" name="project" context="{'group_by': 'project_id'}"/>
+                        <filter string="Status" name="kanban_state" context="{'group_by': 'kanban_state'}"/>
                         <filter string="Customer" name="customer" context="{'group_by': 'partner_id'}"/>
-                        <filter string="Kanban State" name="kanban_state" context="{'group_by': 'kanban_state'}"/>
                         <filter string="Deadline" name="date_deadline" context="{'group_by': 'date_deadline'}"/>
-                        <filter string="Creation Date" name="group_create_date" context="{'group_by': 'create_date'}"/>
                     </group>
                 </search>
             </field>
@@ -573,9 +574,10 @@
                     <field name="name" string="Project"/>
                     <field name="tag_ids"/>
                     <field name="user_id" string="Project Manager"/>
+                    <field name="stage_id" groups="project.group_project_stages"/>
                     <field name="partner_id" string="Customer" filter_domain="[('partner_id', 'child_of', self)]"/>
                     <field name="analytic_account_id"/>
-                    <field name="stage_id" groups="project.group_project_stages"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
                     <filter string="My Projects" name="own_projects" domain="[('user_id', '=', uid)]"/>
                     <filter string="My Favorites" name="my_projects" domain="[('favorite_user_ids', 'in', uid)]"/>
                     <filter string="Followed" name="followed_by_me" domain="[('message_is_follower', '=', True)]"/>
@@ -600,6 +602,7 @@
                         <filter string="Customer" name="Partner" context="{'group_by': 'partner_id'}"/>
                         <filter string="Status" name="status" context="{'group_by': 'last_update_status'}"/>
                         <filter string="Stage" name="groupby_stage" context="{'group_by': 'stage_id'}" groups="project.group_project_stages"/>
+                        <filter string="Company" name="company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
                     </group>
                 </search>
             </field>
@@ -619,11 +622,11 @@
                     <field name="privacy_visibility" optional="hide"/>
                     <field name="company_id" optional="show"  groups="base.group_multi_company" options="{'no_create': True, 'no_create_edit': True}"/>
                     <field name="analytic_account_id" optional="hide" groups="analytic.group_analytic_accounting"/>
-                    <field name="date_start" string="Start Date" widget="daterange" options="{'related_end_date': 'date'}"/>
-                    <field name="date" string="End Date" widget="daterange" options="{'related_start_date': 'date_start'}"/>
+                    <field name="date_start" string="Start Date" widget="daterange" options="{'related_end_date': 'date'}" optional="hide"/>
+                    <field name="date" string="End Date" widget="daterange" options="{'related_start_date': 'date_start'}" optional="hide"/>
                     <field name="user_id" optional="show" string="Project Manager" widget="many2one_avatar_user" options="{'no_open':True, 'no_create': True, 'no_create_edit': True}"/>
                     <field name="last_update_color" invisible="1"/>
-                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="show"/>
                     <field name="last_update_status" string="Status" nolabel="1" optional="show" widget="status_with_color" options="{'color_field': 'last_update_color', 'hide_label': True}"/>
                     <field name="stage_id" options="{'no_open': True}" optional="show"/>
                 </tree>
@@ -1349,19 +1352,19 @@
                     <field name="name" widget="name_with_subtask_count"/>
                     <field name="child_text" invisible="1"/>
                     <field name="project_id" widget="project_private_task" optional="show" readonly="1"/>
-                    <field name="partner_id" optional="hide"/>
+                    <field name="partner_id" optional="show"/>
                     <field name="parent_id" optional="hide" attrs="{'invisible': [('allow_subtasks', '=', False)]}" groups="base.group_no_one"/>
                     <field name="user_ids" optional="show" widget="many2many_avatar_user" domain="[('share', '=', False), ('active', '=', True)]"/>
                     <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                    <field name="date_deadline" optional="show" widget="remaining_days" attrs="{'invisible': [('is_closed', '=', True)]}"/>
                     <field name="activity_ids" string="Next Activity" widget="list_activity" optional="show"/>
-                    <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible': [('is_closed', '=', True)]}"/>
                     <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="show" context="{'project_id': project_id}"/>
                     <field name="rating_active" invisible="1"/>
                     <field name="rating_last_text" string="Rating" decoration-danger="rating_last_text == 'ko'"
                         decoration-warning="rating_last_text == 'ok'" decoration-success="rating_last_text == 'top'"
                         attrs="{'invisible': ['|', ('rating_active', '=', False), ('rating_last_text', '=', 'none')]}"
                         class="font-weight-bold" widget="badge" optional="hide" groups="project.group_project_rating"/>
-                    <field name="kanban_state" widget="state_selection" optional="show" options="{'hide_label': True}" nolabel="1"/>
+                    <field name="kanban_state" string="Status" widget="state_selection" optional="show" options="{'hide_label': True}" nolabel="1"/>
                     <field name="stage_id" invisible="context.get('set_visible',False)" optional="show" readonly="not context.get('default_project_id')"/>
                     <field name="recurrence_id" invisible="1" />
                 </tree>
