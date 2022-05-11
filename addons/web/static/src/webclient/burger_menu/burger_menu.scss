@@ -34,7 +34,7 @@
         }
 
         // Menu entries size and layout
-        .dropdown-item, .dropdown-toggle {
+        .span, .dropdown-toggle {
             > span {
                 min-height: $o-navbar-height-xs;
                 padding-left: $o-horizontal-padding;
@@ -69,7 +69,7 @@
             }
         }
 
-        .dropdown-item span, .dropdown-toggle {
+        span {
             @include o-hover-text-color(rgba($-base-color, .8), $-base-color);
         }
 
