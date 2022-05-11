@@ -151,7 +151,10 @@
             <t t-foreach="state.columns" t-as="column" t-key="getColumnKey(column, column_index)">
                 <t t-if="column.type === 'field'">
                     <td class="o_data_cell" t-att-class="getCellClass(column, record)" t-att-title="getCellTitle(column, record)" t-on-click="() => this.onCellClicked(record, column)">
-                        <Field t-if="!evalModifier(column.modifiers.invisible, record)" name="column.name" record="record" type="column.widget" />
+                        <t t-if="!evalModifier(column.modifiers.invisible, record)">
+                            <Field t-if="column.widget" name="column.name" record="record" type="column.widget" />
+                            <t t-else="" t-esc="getCellValue(column, record)"/>
+                        </t>
                     </td>
                 </t>
                 <t t-if="column.type === 'button_group'">

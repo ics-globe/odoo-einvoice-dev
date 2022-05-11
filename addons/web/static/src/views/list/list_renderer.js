@@ -470,6 +470,20 @@ export class ListRenderer extends Component {
         return formatter(record.data[fieldName], formatOptions);
     }
 
+    getCellValue(column, record) {
+        const fieldName = column.name;
+        const fieldType = this.fields[fieldName].type;
+        const formatter = formatterRegistry.get(fieldType, (val) => val);
+        const formatOptions = {
+            escape: false,
+            data: record.data,
+            isPassword: "password" in column.attrs,
+            digits: column.attrs.digits && JSON.parse(column.attrs.digits),
+            field: record.fields[fieldName],
+        };
+        return formatter(record.data[fieldName], formatOptions);
+    }
+
     evalModifier(modifier, record) {
         return !!(modifier && new Domain(modifier).contains(record.evalContext));
     }
