@@ -100,7 +100,7 @@ class AccountMove(models.Model):
             for doc in move.edi_document_ids:
                 if doc.edi_format_id._needs_web_services() \
                         and doc.state in ('sent', 'to_cancel') \
-                        and move.is_invoice(include_receipts=True) \
+                        and move._is_edi_invoice(include_receipts=True) \
                         and doc.edi_format_id._is_required_for_invoice(move):
                     move.show_reset_to_draft_button = False
                     break
@@ -116,7 +116,7 @@ class AccountMove(models.Model):
 
             move.edi_show_cancel_button = any([doc.edi_format_id._needs_web_services()
                                                and doc.state == 'sent'
-                                               and move.is_invoice(include_receipts=True)
+                                               and move._is_edi_invoice(include_receipts=True)
                                                and doc.edi_format_id._is_required_for_invoice(move)
                                               for doc in move.edi_document_ids])
 
@@ -127,9 +127,13 @@ class AccountMove(models.Model):
         for move in self:
             move.edi_show_abandon_cancel_button = any(doc.edi_format_id._needs_web_services()
                                                       and doc.state == 'to_cancel'
-                                                      and move.is_invoice(include_receipts=True)
+                                                      and move._is_edi_invoice(include_receipts=True)
                                                       and doc.edi_format_id._is_required_for_invoice(move)
                                                       for doc in move.edi_document_ids)
+
+    def _is_edi_invoice(self, include_receipts=False):
+        """To be overridden for special cases where entry types need to be sent. """
+        return self.is_invoice(include_receipts=include_receipts)
 
     ####################################################
     # Export Electronic Document
@@ -503,7 +507,7 @@ class AccountMove(models.Model):
         edi_document_vals_list = []
         for move in posted:
             for edi_format in move.journal_id.edi_format_ids:
-                is_edi_needed = move.is_invoice(include_receipts=False) and edi_format._is_required_for_invoice(move)
+                is_edi_needed = move._is_edi_invoice(include_receipts=False) and edi_format._is_required_for_invoice(move)
 
                 if is_edi_needed:
                     errors = edi_format._check_move_configuration(move)
@@ -565,7 +569,7 @@ class AccountMove(models.Model):
                 if doc.edi_format_id._needs_web_services() \
                         and doc.attachment_id \
                         and doc.state == 'sent' \
-                        and move.is_invoice(include_receipts=True) \
+                        and move._is_edi_invoice(include_receipts=True) \
                         and doc.edi_format_id._is_required_for_invoice(move):
                     to_cancel_documents |= doc
                     is_move_marked = True
@@ -582,7 +586,7 @@ class AccountMove(models.Model):
             is_move_marked = False
             for doc in move.edi_document_ids:
                 if doc.state == 'to_cancel' \
-                        and move.is_invoice(include_receipts=True) \
+                        and move._is_edi_invoice(include_receipts=True) \
                         and doc.edi_format_id._is_required_for_invoice(move):
                     documents |= doc
                     is_move_marked = True
