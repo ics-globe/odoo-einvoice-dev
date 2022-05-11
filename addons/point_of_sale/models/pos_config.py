@@ -133,8 +133,6 @@ class PosConfig(models.Model):
     is_posbox = fields.Boolean("PosBox")
     is_header_or_footer = fields.Boolean("Custom Header & Footer")
     module_pos_hr = fields.Boolean(help="Show employee login screen")
-    module_pos_coupon = fields.Boolean("Coupons & Promotions", help="Use coupon and promotion programs in this PoS configuration.")
-    module_pos_gift_card = fields.Boolean(string="Gift Card")
     amount_authorized_diff = fields.Float('Amount Authorized Difference',
         help="This field depicts the maximum difference allowed between the ending balance and the theoretical cash when "
              "closing a session, for non-POS managers. If this maximum is reached, the user will have an error message at "

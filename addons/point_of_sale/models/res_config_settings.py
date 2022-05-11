@@ -38,9 +38,7 @@ class ResConfigSettings(models.TransientModel):
     is_cashdrawer_displayed = fields.Boolean(compute='_compute_is_cashdrawer_displayed')
 
     # pos.config fields
-    pos_module_pos_coupon = fields.Boolean(related='pos_config_id.module_pos_coupon', readonly=False, string="Coupons & Promotions (PoS)")
     pos_module_pos_discount = fields.Boolean(related='pos_config_id.module_pos_discount', readonly=False)
-    pos_module_pos_gift_card = fields.Boolean(related='pos_config_id.module_pos_gift_card', readonly=False, string="Gift Card (PoS)")
     pos_module_pos_hr = fields.Boolean(related='pos_config_id.module_pos_hr', readonly=False)
     pos_module_pos_loyalty = fields.Boolean(related='pos_config_id.module_pos_loyalty', readonly=False)
     pos_module_pos_restaurant = fields.Boolean(related='pos_config_id.module_pos_restaurant', readonly=False)
