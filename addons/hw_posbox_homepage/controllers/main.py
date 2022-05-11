@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
@@ -16,7 +17,7 @@ from odoo.modules.module import get_resource_path
 
 from odoo.addons.hw_drivers.main import iot_devices
 from odoo.addons.hw_drivers.tools import helpers
-from odoo.addons.web.controllers.home import Home
+from odoo.addons.web.controllers import main as web
 
 _logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ six_payment_terminal_template = jinja_env.get_template('six_payment_terminal.htm
 list_credential_template = jinja_env.get_template('list_credential.html')
 upgrade_page_template = jinja_env.get_template('upgrade_page.html')
 
-class IoTboxHomepage(Home):
+class IoTboxHomepage(web.Home):
     def __init__(self):
         super(IoTboxHomepage,self).__init__()
         self.updating = threading.Lock()
@@ -355,4 +356,16 @@ class IoTboxHomepage(Home):
         except Exception as e:
             self.clean_partition()
             _logger.error('A error encountered : %s ' % e)
+            return Response(str(e), status=500)
+
+    @http.route('/restart_odoo_or_reboot', type='json', auth='none', cors='*', csrf=False)
+    def restart_odoo_or_reboot(self, arg):
+        try:
+            if arg == 'restart_odoo':
+                helpers.odoo_restart(3)
+            else:
+                subprocess.call(['sudo', 'reboot'])
+            return Response('success', status=200)
+        except Exception as e:
+            _logger.error('An error encountered : %s ', e)
             return Response(str(e), status=500)

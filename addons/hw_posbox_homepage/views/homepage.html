@@ -1,6 +1,25 @@
 {% extends "layout.html" %}
+{% from "loading.html" import loading_block_ui %}
 {% block head %}
 <style>
+    .btn-sm-restart {
+        display: flex;
+        min-width: 100%;
+        justify-content: center;
+    }
+    .item-restart {
+        display: flex;
+        flex-direction: column;
+        margin-left: auto;
+        max-width: 100%;
+    }
+    .text-green-primary {
+        display: flex;
+        width: 100%;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        justify-content: center;
+    }
     table {
         width: 100%;
         border-collapse: collapse;
@@ -81,10 +100,78 @@
             content.css('max-height', maxHeight);
         });
     });
-</script>
+    function restart_odoo_or_reboot(message_title, action, success_title, error_message)
+    {
+        var restart_end_delay = 3000;
+        return function() {
+            $('.loading-block').removeClass('o_hide');
+            $('.message-title').text(message_title);
+            $('.message-status').text('Please wait');
+            $.ajax({
+                url: '/restart_odoo_or_reboot/',
+                dataType: 'json',
+                type: 'post',
+                data: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: 'call',
+                    params: {arg:action},
+                }),
+                contentType: 'application/json'
+            }).done(function() {
+                var myInterval = setInterval(function() {
+                    $.ajax({
+                        url:'/',
+                        timeout: 30000
+                    }).done(async function() {
+                        clearInterval(myInterval);
+                        $('.message-title').text(success_title);
+                        $('.message-status').text('Reloading the page');
+                        await new Promise(resolve => setTimeout(resolve, restart_end_delay));
+                        $('.loading-block').addClass('o_hide');
+                        location.reload();
+                    })
+                }, 4000)
+            }).fail(async function() {
+                $('.message-title').text('Error');
+                $('.message-status').text(error_message);
+                await new Promise(resolve => setTimeout(resolve, restart_end_delay));
+                $('.loading-block').addClass('o_hide');
+            })
+        }
+    }
+    $(function(){
+        var msg = {
+            title: 'Rebooting the IoT box',
+            action: 'reboot_iot_box',
+            success: 'Sucessfully rebooted the IoT Box',
+            error: 'Failed to reboot the IoT box'
+        }
+        $('#reboot_iot_box').click(restart_odoo_or_reboot(msg.title, msg.action, msg.success, msg.error))
+    })
+    $(function(){
+       var msg = {
+            title: 'Restarting Odoo',
+            action: 'restart_odoo',
+            success: 'Sucessfully restarted Odoo',
+            error: 'Failed to restart Odoo'
+        }
+        $('#restart_odoo').click(restart_odoo_or_reboot(msg.title, msg.action, msg.success, msg.error))
+    })
+    </script>
 {% endblock %}
 {% block content %}
-    <h2 class="text-center text-green">Your IoT Box is up and running</h2>
+    <div class="collapse item-restart">
+        <div class="collapsible item-restart">
+            <div class="title arrow-down">Restart</div>
+            <div class="content">
+                <div class="device-status">
+                    <button class="btn btn-sm btn-sm-restart" href="#" id="reboot_iot_box">Reboot the IoT Box</button>
+                    <button class="btn btn-sm btn-sm-restart" href="#" id="restart_odoo">Restart Odoo service</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2 class="text-center text-green text-green-primary">Your IoT Box is up and running</h2>
     <table align="center" cellpadding="3">
         <tr>
             <td class="heading">Name</td>
@@ -149,4 +236,5 @@
         <a class="btn" style="margin-left: 10px;" href='/list_credential'>Credential</a>
         {% endif %}
     </div>
+    {{ loading_block_ui(loading_message) }}
 {% endblock %}
