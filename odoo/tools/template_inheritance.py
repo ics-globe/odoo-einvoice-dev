@@ -134,6 +134,7 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
         if node is not None:
             pos = spec.get('position', 'inside')
             if pos == 'replace':
+<<<<<<< HEAD
                 mode = spec.get('mode', 'outer')
                 if mode == "outer":
                     for loc in spec.xpath(".//*[text()='$0']"):
@@ -186,6 +187,41 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
 
                 else:
                     raise ValueError(_("Invalid mode attribute:") + " '%s'" % mode)
+=======
+                for loc in spec.xpath(".//*[text()='$0']"):
+                    loc.text = ''
+                    loc.append(copy.deepcopy(node))
+                if node.getparent() is None:
+                    spec_content = None
+                    comment = None
+                    for content in spec:
+                        if content.tag is not etree.Comment:
+                            spec_content = content
+                            break
+                        else:
+                            comment = content
+                    source = copy.deepcopy(spec_content)
+                    if comment is not None:
+                        text = source.text
+                        source.text = None
+                        comment.tail = text
+                        source.insert(0, comment)
+                else:
+                    # TODO ideally the notion of 'inherit_branding' should
+                    # not exist in this function. Given the current state of
+                    # the code, it is however necessary to know where nodes
+                    # were removed when distributing branding. As a stable
+                    # fix, this solution was chosen: the location is marked
+                    # with a "ProcessingInstruction" which will not impact
+                    # the "Element" structure of the resulting tree.
+                    if inherit_branding:
+                        node.addprevious(etree.ProcessingInstruction('apply-inheritance-specs-node-removal', node.tag))
+                    for child in spec:
+                        if child.get('position') == 'move':
+                            child = extract(child)
+                        node.addprevious(child)
+                    node.getparent().remove(node)
+>>>>>>> 39ac24a468e... temp
             elif pos == 'attributes':
                 for child in spec.getiterator('attribute'):
                     attribute = child.get('name')
