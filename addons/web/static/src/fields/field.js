@@ -72,6 +72,7 @@ export function fieldVisualFeedback(record, fieldName) {
 
 export class Field extends Component {
     setup() {
+        window._nbFields++;
         this.FieldComponent = this.props.record.activeFields[this.props.name].FieldComponent;
         if (!this.FieldComponent) {
             this.FieldComponent = getFieldClassFromRegistry(null, this.type, this.props.name, null);
