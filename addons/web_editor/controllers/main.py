@@ -200,11 +200,13 @@ class Web_Editor(http.Controller):
     @http.route('/web_editor/attachment/add_data', type='json', auth='user', methods=['POST'], website=True)
     def add_data(self, name, data, is_image, quality=0, width=0, height=0, res_id=False, res_model='ir.ui.view', website=False, **kwargs):
         data = b64decode(data)
+        context = None
         if is_image:
             format_error_msg = _("Uploaded image's format is not supported. Try with: %s", ', '.join(SUPPORTED_IMAGE_EXTENSIONS))
             try:
-                if website and request.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', ''):
+                if (website and request.env['ir.config_parameter'].sudo().get_param('website.no_quality_optimization', '')) or request.env['ir.config_parameter'].sudo().get_param('global.no_quality_optimization', ''):
                     quality = -1 # disable image quality optimization
+                    context = {'image_no_postprocess': True}
                 data = tools.image_process(data, size=(width, height), quality=quality, verify_resolution=True)
                 mimetype = guess_mimetype(data)
                 if mimetype not in SUPPORTED_IMAGE_MIMETYPES:
@@ -217,7 +219,7 @@ class Web_Editor(http.Controller):
                 return {'error': e.args[0]}
 
         self._clean_context()
-        attachment = self._attachment_create(name=name, data=data, res_id=res_id, res_model=res_model)
+        attachment = self._attachment_create(name=name, data=data, res_id=res_id, res_model=res_model, context=context)
         return attachment._get_media_info()
 
     @http.route('/web_editor/attachment/add_url', type='json', auth='user', methods=['POST'], website=True)
@@ -289,7 +291,7 @@ class Web_Editor(http.Controller):
             'original': (attachment.original_id or attachment).read(['id', 'image_src', 'mimetype'])[0],
         }
 
-    def _attachment_create(self, name='', data=False, url=False, res_id=False, res_model='ir.ui.view'):
+    def _attachment_create(self, name='', data=False, url=False, res_id=False, res_model='ir.ui.view',context=None):
         """Create and return a new attachment."""
         if name.lower().endswith('.bmp'):
             # Avoid mismatch between content type and mimetype, see commit msg
@@ -319,8 +321,10 @@ class Web_Editor(http.Controller):
             })
         else:
             raise UserError(_("You need to specify either data or url to create an attachment."))
-
-        attachment = request.env['ir.attachment'].create(attachment_data)
+        if context:
+            attachment = request.env['ir.attachment'].with_context(context).create(attachment_data)
+        else:
+            attachment = request.env['ir.attachment'].create(attachment_data)
         return attachment
 
     def _clean_context(self):
