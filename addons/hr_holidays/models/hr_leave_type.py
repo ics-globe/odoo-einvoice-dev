@@ -244,43 +244,35 @@ class HolidaysType(models.Model):
 
         for request in requests:
             status_dict = result[request.employee_id.id][request.holiday_status_id.id]
-            if not request.holiday_allocation_id or request.holiday_allocation_id in allocations:
-                status_dict['virtual_remaining_leaves'] -= (request.number_of_hours_display
-                                                        if request.leave_type_request_unit == 'hour'
-                                                        else request.number_of_days)
-            if request.holiday_status_id.requires_allocation == 'no':
-                status_dict['virtual_leaves_taken'] += (request.number_of_hours_display
+            status_dict['virtual_remaining_leaves'] -= (request.number_of_hours_display
                                                     if request.leave_type_request_unit == 'hour'
                                                     else request.number_of_days)
-                if request.state == 'validate':
-                    status_dict['leaves_taken'] += (request.number_of_hours_display
+            status_dict['virtual_leaves_taken'] += (request.number_of_hours_display
                                                 if request.leave_type_request_unit == 'hour'
                                                 else request.number_of_days)
-                    status_dict['remaining_leaves'] -= (request.number_of_hours_display
-                                                    if request.leave_type_request_unit == 'hour'
-                                                    else request.number_of_days)
+            if request.state == 'validate':
+                status_dict['leaves_taken'] += (request.number_of_hours_display
+                                            if request.leave_type_request_unit == 'hour'
+                                            else request.number_of_days)
+                status_dict['remaining_leaves'] -= (request.number_of_hours_display
+                                                if request.leave_type_request_unit == 'hour'
+                                                else request.number_of_days)
 
         for allocation in allocations.sudo():
             status_dict = result[allocation.employee_id.id][allocation.holiday_status_id.id]
             if allocation.state == 'validate':
+                # note: add only validated allocation even for the virtual
+                # count; otherwise pending then refused allocation allow
+                # the employee to create more leaves than possible
                 status_dict['virtual_remaining_leaves'] += (allocation.number_of_hours_display
-                                                        if allocation.type_request_unit == 'hour'
-                                                        else allocation.number_of_days)
-                if allocation.holiday_status_id.requires_allocation == 'no':
-                    # note: add only validated allocation even for the virtual
-                    # count; otherwise pending then refused allocation allow
-                    # the employee to create more leaves than possible
-                    status_dict['max_leaves'] += (allocation.number_of_hours_display
-                                                if allocation.type_request_unit == 'hour'
-                                                else allocation.number_of_days)
-                    status_dict['remaining_leaves'] += (allocation.number_of_hours_display
-                                                    if allocation.type_request_unit == 'hour'
-                                                    else allocation.number_of_days)
-                else:
-                    remaining_leaves = allocation.max_leaves - allocation.leaves_taken
-                    status_dict['max_leaves'] += allocation.max_leaves
-                    status_dict['remaining_leaves'] += remaining_leaves
-                    status_dict['leaves_taken'] += allocation.leaves_taken
+                                                          if allocation.type_request_unit == 'hour'
+                                                          else allocation.number_of_days)
+                status_dict['max_leaves'] += (allocation.number_of_hours_display
+                                            if allocation.type_request_unit == 'hour'
+                                            else allocation.number_of_days)
+                status_dict['remaining_leaves'] += (allocation.number_of_hours_display
+                                                  if allocation.type_request_unit == 'hour'
+                                                  else allocation.number_of_days)
         return result
 
     @api.model

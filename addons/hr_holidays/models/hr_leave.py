@@ -292,12 +292,6 @@ class HolidaysRequest(models.Model):
                            self._table, ['date_to', 'date_from'])
         return res
 
-    @api.constrains('holiday_status_id', 'number_of_days')
-    def _check_allocation_duration(self):
-        for holiday in self:
-            if holiday.holiday_status_id.requires_allocation == 'yes' and holiday.holiday_allocation_id and holiday.number_of_days > holiday.holiday_allocation_id.number_of_days:
-                raise ValidationError(_("You have several allocations for those type and period.\nPlease split your request to fit in their number of days."))
-
     @api.depends_context('uid')
     def _compute_description(self):
         self.check_access_rights('read')
@@ -335,10 +329,7 @@ class HolidaysRequest(models.Model):
 
     @api.depends('holiday_status_id.requires_allocation', 'validation_type', 'employee_id', 'date_from', 'date_to')
     def _compute_from_holiday_status_id(self):
-        invalid_self = self.filtered(lambda leave: not leave.date_to or not leave.date_from)
-        if invalid_self:
-            invalid_self.update({'holiday_allocation_id': False})
-            self = self - invalid_self
+        self -= self.filtered(lambda leave: not leave.date_to or not leave.date_from)
         if not self:
             return
         allocations = self.env['hr.leave.allocation'].search_read(
@@ -375,7 +366,7 @@ class HolidaysRequest(models.Model):
                         if allocation['max_leaves'] >= allocation_taken_number_of_units + leave_number_of_units:
                             found_allocation = allocation['id']
                             break
-                leave.holiday_allocation_id = self.env['hr.leave.allocation'].browse(found_allocation) if found_allocation else False
+                leave.holiday_allocation_id = False
             else:
                 leave.holiday_allocation_id = False
 
@@ -667,14 +658,14 @@ class HolidaysRequest(models.Model):
 
     @api.constrains('state', 'number_of_days', 'holiday_status_id')
     def _check_holidays(self):
+        mapped_days = self.mapped('holiday_status_id').get_employees_days(self.mapped('employee_id').ids)
         for holiday in self:
-            if holiday.holiday_type != 'employee' or not holiday.employee_id or not holiday.holiday_status_id or holiday.holiday_status_id.requires_allocation == 'no':
+            if holiday.holiday_type != 'employee' or not holiday.employee_id or holiday.holiday_status_id.requires_allocation == 'no':
                 continue
-            mapped_days = holiday.holiday_status_id.get_employees_days([holiday.employee_id.id], holiday.date_from)
             leave_days = mapped_days[holiday.employee_id.id][holiday.holiday_status_id.id]
             if float_compare(leave_days['remaining_leaves'], 0, precision_digits=2) == -1 or float_compare(leave_days['virtual_remaining_leaves'], 0, precision_digits=2) == -1:
                 raise ValidationError(_('The number of remaining time off is not sufficient for this time off type.\n'
-                                        'Please also check the time off waiting for validation.') + '\n- %s' % holiday.display_name)
+                                        'Please also check the time off waiting for validation.'))
 
     @api.constrains('date_from', 'date_to', 'employee_id')
     def _check_date_state(self):
@@ -799,18 +790,8 @@ class HolidaysRequest(models.Model):
         employee = self.env['hr.employee'].browse(employee_id)
         if employee.user_id:
             self.message_subscribe(partner_ids=employee.user_id.partner_id.ids)
-
-    @api.constrains('holiday_allocation_id')
-    def _check_allocation_id(self):
-        for leave in self:
-            if leave.holiday_type == 'employee' and not leave.multi_employee and\
-                leave.holiday_status_id.requires_allocation == 'yes' and not leave.holiday_allocation_id:
-                raise ValidationError(_(
-                    'Could not find an allocation of type %(leave_type)s for the requested time period.',
-                    leave_type=leave.holiday_status_id.display_name,
-                ) + '\n- %s' % (leave.employee_id.name))
-
-    @api.constrains('holiday_allocation_id', 'date_to', 'date_from')
+    """
+    @api.constrains('date_to', 'date_from')
     def _check_leave_type_validity(self):
         for leave in self:
             vstart = leave.holiday_allocation_id.date_from
@@ -839,6 +820,7 @@ class HolidaysRequest(models.Model):
                         leave_type=leave.holiday_status_id.display_name,
                         date=vstop
                     ))
+    """
 
     def _check_double_validation_rules(self, employees, state):
         if self.user_has_groups('hr_holidays.group_hr_holidays_manager'):
@@ -881,7 +863,7 @@ class HolidaysRequest(models.Model):
 
         holidays = super(HolidaysRequest, self.with_context(mail_create_nosubscribe=True)).create(vals_list)
 
-        holidays.filtered(lambda holiday: not holiday.holiday_allocation_id).with_user(SUPERUSER_ID)._compute_from_holiday_status_id()
+        # holidays.filtered(lambda holiday: not holiday.holiday_allocation_id).with_user(SUPERUSER_ID)._compute_from_holiday_status_id()
 
         for holiday in holidays:
             if not self._context.get('leave_fast_create'):
