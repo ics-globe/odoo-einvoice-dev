@@ -11,7 +11,8 @@
         <iframe t-att-src="initialUrl"
             t-ref="iframe"
             class="o_iframe"
-            t-att-class="{ 'o_is_mobile': this.websiteContext.isMobile }"/>
+            t-att-class="{ 'o_is_mobile': this.websiteContext.isMobile }"
+            is-ready="false"/>
     </div>
     <WebsiteEditorComponent t-if="websiteContext.edition"
         reloadIframe.bind="this.reloadIframe"/>
