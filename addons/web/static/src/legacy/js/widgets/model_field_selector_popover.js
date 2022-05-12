@@ -463,7 +463,7 @@ var ModelFieldSelectorPopOver = Widget.extend({
         this.$(".o_field_selector_page").replaceWith(core.qweb.render(this.baseTemplate + ".defaultValue", {
             line: {
                 string: this.defaultValue.length ? this.defaultValue : "-",
-                description: this.defaultValue.length ? _("As a default value") : _t("Enter a default value"),
+                description: this.defaultValue.length ? _("As a default text") : _t("Enter a default text in case no value is set"),
             }
         }));
         this.$input.val(this.chain.join(".") + (this.defaultValue ? " OR " + this.defaultValue : ""));

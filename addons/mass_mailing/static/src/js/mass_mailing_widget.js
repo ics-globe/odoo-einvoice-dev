@@ -326,10 +326,10 @@ var MassMailingFieldHtml = FieldHtml.extend({
         // add the commandBar (powerbox) option to open the Dynamic Placeholder generator
         options.powerboxCommands = [
             {
-                groupName: 'Advanced edition',
-                title: 'Dynamic placeholder',
-                description: 'Open the dynamic placeholder tool.',
-                fontawesome: 'fa-terminal',
+                groupName: 'Marketing Tools',
+                title: 'Dynamic Placeholder',
+                description: ' Insert personalized content',
+                fontawesome: 'fa-magic',
                 callback: () => {
                     const baseModel = this.recordData && this.recordData.mailing_model_real ? this.recordData.mailing_model_real : undefined;
                     // openDynamicPlaceholder need to be trigered after the focus from powerBox prevalidate
