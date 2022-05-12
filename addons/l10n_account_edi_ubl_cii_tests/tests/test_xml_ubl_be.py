@@ -244,8 +244,8 @@ class TestUBLBE(TestUBLCommon):
     ####################################################
 
     def test_import_invoice_xml(self):
-        self._import_invoice_from_file(subfolder='test_files', filename='test_be_out_invoice.xml',
-                                       amount_total=3164.22, amount_tax=482.22, currency='USD')
+        self._import_invoice_from_file(subfolder='test_files', filename='test_be_out_invoice.xml', amount_total=3164.22,
+                                       amount_tax=482.22, currency_id=self.currency_data['currency'].id)
 
     def test_import_export_invoice_xml(self):
         """
@@ -293,10 +293,10 @@ class TestUBLBE(TestUBLCommon):
         self._import_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
                                        amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
         self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
-                                       amount_total=1200, amount_tax=0, currency='GBP')
+                                       amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)
         self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
-                                       amount_total=3200, amount_tax=0, currency='SEK')
+                                       amount_total=3200, amount_tax=0, currency_id=self.env.ref('base.SEK').id)
         self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
                                        amount_total=8550, amount_tax=1550)
         self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
-                                       amount_total=1200, amount_tax=0, currency='GBP')
+                                       amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)

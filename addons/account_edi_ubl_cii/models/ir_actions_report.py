@@ -13,6 +13,7 @@ from odoo.tools import cleanup_xml_node
 class IrActionsReport(models.Model):
     _inherit = 'ir.actions.report'
 
+    # EXTENDS account
     def _postprocess_pdf_report(self, record, buffer):
         """
         Add the pdf report in XML as base64 string.

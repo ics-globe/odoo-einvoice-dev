@@ -11,6 +11,7 @@ class AccountEdiXmlUBLDE(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    # OVERRIDE account.edi.xml.ubl_bis3
     def _get_xml_builder(self, format_code, company):
         # the EDI option will only appear on the journal of german companies
         if format_code == 'ubl_de' and company.country_id.code == 'DE':
@@ -23,8 +24,8 @@ class AccountEdiXmlUBLDE(models.AbstractModel):
                 },
             }
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _export_invoice_vals(self, invoice):
-        # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
 
         vals['vals'].update({
@@ -34,8 +35,8 @@ class AccountEdiXmlUBLDE(models.AbstractModel):
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _export_invoice_constraints(self, invoice, vals):
-        # OVERRIDE
         constraints = super()._export_invoice_constraints(invoice, vals)
 
         constraints.update({

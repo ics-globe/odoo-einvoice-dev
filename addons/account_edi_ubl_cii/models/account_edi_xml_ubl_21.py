@@ -11,6 +11,7 @@ class AccountEdiXmlUBL21(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    # OVERRIDE account.edi.xml.ubl_20
     def _get_xml_builder(self, format_code, company):
         if format_code == 'ubl_2_1':
             return {
@@ -22,8 +23,8 @@ class AccountEdiXmlUBL21(models.AbstractModel):
                 },
             }
 
+    # EXTENDS account.edi.xml.ubl_20
     def _export_invoice_vals(self, invoice):
-        # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
 
         vals.update({

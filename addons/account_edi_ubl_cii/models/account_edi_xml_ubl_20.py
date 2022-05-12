@@ -91,22 +91,25 @@ class AccountEdiXmlUBL20(models.AbstractModel):
         """
         For now, we cannot fill this data from an invoice
         This corresponds to the 'delivery or invoice period'. For UBL Bis 3, in the case of intra-community supply,
-        the Actual delivery date (BT-72) or the Invoicing period (BG-14) should be present.
+        the Actual delivery date (BT-72) or the Invoicing period (BG-14) should be present under the form:
+        {
+            'start_date': str,
+            'end_date': str,
+        }.
         """
-        return [{
-            'start_date': None,
-            'end_date': None,
-        }]
+        return []
 
     def _get_delivery_vals_list(self, invoice):
         # the data is optional, except for ubl bis3 (see the override, where we need to set a default delivery address)
         if 'partner_shipping_id' in invoice._fields:
             return [{
                 'actual_delivery_date': None,
-                'location_vals': {
+                'delivery_location_vals': {
                     'delivery_address_vals': self._get_partner_address_vals(invoice.partner_shipping_id),
                 },
             }]
+        else:
+            return []
 
     def _get_bank_address_vals(self, bank):
         return {

@@ -65,8 +65,8 @@ class AccountEdiFormat(models.Model):
     # Export: Account.edi.format override
     ####################################################
 
+    # EXTENDS account_edi
     def _is_required_for_invoice(self, invoice):
-        # OVERRIDE
         self.ensure_one()
 
         if not self._check_ubl_cii_availability(invoice.company_id):
@@ -76,8 +76,8 @@ class AccountEdiFormat(models.Model):
             return False
         return True
 
+    # EXTENDS account_edi
     def _is_enabled_by_default_on_journal(self, journal):
-        # OVERRIDE
         self.ensure_one()
 
         # only treat the format created in this module, for the others (like facturx_1_0_05, nlcius_1, ehf_3),
@@ -87,8 +87,8 @@ class AccountEdiFormat(models.Model):
 
         return super()._is_enabled_by_default_on_journal(journal)
 
+    # EXTENDS account_edi
     def _post_invoice_edi(self, invoices, test_mode=False):
-        # OVERRIDE
         self.ensure_one()
 
         if self.code not in FORMAT_CODE_TO_CLASS_SUFFIX:
@@ -142,14 +142,15 @@ class AccountEdiFormat(models.Model):
 
         return res
 
+    # EXTENDS account_edi
     def _is_embedding_to_invoice_pdf_needed(self):
-        # OVERRIDE
         self.ensure_one()
 
         if self.code == 'facturx_1_0_05':
             return True
         return super()._is_embedding_to_invoice_pdf_needed()
 
+    # EXTENDS account_edi
     def _prepare_invoice_report(self, pdf_writer, edi_document):
         self.ensure_one()
         if self.code != 'facturx_1_0_05':
@@ -176,8 +177,8 @@ class AccountEdiFormat(models.Model):
     # Import: Account.edi.format override
     ####################################################
 
+    # EXTENDS account_edi
     def _create_invoice_from_xml_tree(self, filename, tree, journal=None):
-        # OVERRIDE
         self.ensure_one()
 
         if not journal:
@@ -199,8 +200,8 @@ class AccountEdiFormat(models.Model):
 
         return super()._create_invoice_from_xml_tree(filename, tree, journal=journal)
 
+    # EXTENDS account_edi
     def _update_invoice_from_xml_tree(self, filename, tree, invoice):
-        # OVERRIDE
         self.ensure_one()
 
         if not self._check_ubl_cii_availability(invoice.company_id):

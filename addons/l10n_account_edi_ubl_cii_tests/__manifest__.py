@@ -15,7 +15,7 @@
         'l10n_de',
         'l10n_nl_edi',
     ],
-    'data': [],
+    'category': 'Hidden/Tests',
     'installable': True,
     'application': False,
     'auto_install': False,

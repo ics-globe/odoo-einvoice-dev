@@ -29,6 +29,7 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    # OVERRIDE account.edi.xml.ubl_bis3
     def _get_xml_builder(self, format_code, company):
         # the EDI option will only appear on the journal of netherlands companies
         if format_code == 'nlcius_1' and company.country_id.code == 'NL':
@@ -41,8 +42,8 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
                 },
             }
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _get_tax_category_list(self, invoice, taxes):
-        # OVERRIDE
         vals_list = super()._get_tax_category_list(invoice, taxes)
         for tax in vals_list:
             # [BR-NL-35] The use of a tax exemption reason code (cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory
@@ -50,16 +51,16 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
             tax.pop('tax_exemption_reason_code')
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _get_partner_address_vals(self, partner):
-        # OVERRIDE
         vals = super()._get_partner_address_vals(partner)
         # [BR-NL-28] The use of a country subdivision (cac:AccountingCustomerParty/cac:Party/cac:PostalAddress
         # /cbc:CountrySubentity) is not recommended
         vals.pop('country_subentity')
         return vals
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _get_invoice_line_allowance_vals_list(self, line):
-        # OVERRIDE
         vals_list = super()._get_invoice_line_allowance_vals_list(line)
         # [BR-NL-32] Use of Discount reason code ( AllowanceChargeReasonCode ) is not recommended.
         # [BR-EN-34] Use of Charge reason code ( AllowanceChargeReasonCode ) is not recommended.
@@ -70,21 +71,19 @@ class AccountEdiXmlUBLNL(models.AbstractModel):
                 vals.pop('allowance_charge_reason_code')
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _get_invoice_payment_means_vals_list(self, invoice):
-        # OVERRIDE
         vals_list = super()._get_invoice_payment_means_vals_list(invoice)
         # [BR-NL-29] The use of a payment means text (cac:PaymentMeans/cbc:PaymentMeansCode/@name) is not recommended
         for vals in vals_list:
             vals.pop('payment_means_code_attrs')
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_bis3
     def _export_invoice_vals(self, invoice):
-        # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
 
-        vals['vals'].update({
-            'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:fdc:nen.nl:nlcius:v1.0',
-        })
+        vals['vals']['customization_id'] = 'urn:cen.eu:en16931:2017#compliant#urn:fdc:nen.nl:nlcius:v1.0'
 
         # [BR-NL-24] Use of previous invoice date ( IssueDate ) is not recommended.
         # vals['vals'].pop('issue_date')  # careful, this causes other errors from the validator...

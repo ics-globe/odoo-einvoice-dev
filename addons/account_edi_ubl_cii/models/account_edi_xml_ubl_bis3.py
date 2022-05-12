@@ -15,6 +15,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
     # EXPORT
     # -------------------------------------------------------------------------
 
+    # OVERRIDE account.edi.xml.ubl_21
     def _get_xml_builder(self, format_code, company):
         # if a the company country is not in the EAS mapping, nothing is generated
         if format_code == 'ubl_bis3' and company.country_id.code in COUNTRY_EAS:
@@ -27,16 +28,16 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
                 },
             }
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_country_vals(self, country):
-        # OVERRIDE
         vals = super()._get_country_vals(country)
 
         vals.pop('name', None)
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_party_tax_scheme_vals_list(self, partner, role):
-        # OVERRIDE
         vals_list = super()._get_partner_party_tax_scheme_vals_list(partner, role)
 
         for vals in vals_list:
@@ -54,8 +55,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_party_legal_entity_vals_list(self, partner):
-        # OVERRIDE
         vals_list = super()._get_partner_party_legal_entity_vals_list(partner)
 
         for vals in vals_list:
@@ -70,16 +71,16 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_contact_vals(self, partner):
-        # OVERRIDE
         vals = super()._get_partner_contact_vals(partner)
 
         vals.pop('id', None)
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_party_vals(self, partner, role):
-        # OVERRIDE
         vals = super()._get_partner_party_vals(partner, role)
 
         vals['endpoint_id'] = partner.vat
@@ -95,30 +96,33 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         # [BR-NL-10] At a Dutch supplier, for a Dutch customer ( AccountingCustomerParty ) the customer registration
         # number must be filled with Chamber of Commerce or OIN. SchemeID may only contain 106 (Chamber of
         # Commerce number) or 190 (OIN number).
-        if partner.country_code == 'NL' and ('l10n_nl_oin' in partner._fields or 'l10n_nl_kvk' in partner._fields):
-            endpoint = partner.l10n_nl_oin or partner.l10n_nl_kvk
-            scheme = '0190' if partner.l10n_nl_oin else '0106'
-            vals.update({
-                'endpoint_id': endpoint,
-                'endpoint_id_attrs': {'schemeID': scheme},
-            })
+        if partner.country_code == 'NL' and 'l10n_nl_oin' in partner._fields:
+            if partner.l10n_nl_oin:
+                vals.update({
+                    'endpoint_id': partner.l10n_nl_oin,
+                    'endpoint_id_attrs': {'schemeID': '0190'},
+                })
+            elif partner.l10n_nl_kvk:
+                vals.update({
+                    'endpoint_id': partner.l10n_nl_kvk,
+                    'endpoint_id_attrs': {'schemeID': '0106'},
+                })
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_party_identification_vals_list(self, partner):
-        # OVERRIDE
         vals = super()._get_partner_party_identification_vals_list(partner)
 
         if partner.country_code == 'NL':
             endpoint = partner.l10n_nl_oin or partner.l10n_nl_kvk
             vals.append({
                 'id': endpoint,
-                'id_attrs': None,
             })
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_delivery_vals_list(self, invoice):
-        # OVERRIDE
         supplier = invoice.company_id.partner_id.commercial_partner_id
         customer = invoice.commercial_partner_id
 
@@ -146,21 +150,21 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return [{
             'actual_delivery_date': invoice.invoice_date,
-            'location_vals': {
+            'delivery_location_vals': {
                 'delivery_address_vals': self._get_partner_address_vals(partner_shipping),
             },
         }]
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_partner_address_vals(self, partner):
-        # OVERRIDE
         vals = super()._get_partner_address_vals(partner)
         # schematron/openpeppol/3.13.0/xslt/CEN-EN16931-UBL.xslt
         # [UBL-CR-225]-A UBL invoice should not include the AccountingCustomerParty Party PostalAddress CountrySubentityCode
         vals.pop('country_subentity_code', None)
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_financial_institution_branch_vals(self, bank):
-        # OVERRIDE
         vals = super()._get_financial_institution_branch_vals(bank)
         # schematron/openpeppol/3.13.0/xslt/CEN-EN16931-UBL.xslt
         # [UBL-CR-664]-A UBL invoice should not include the FinancialInstitutionBranch FinancialInstitution
@@ -169,8 +173,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         vals.pop('financial_institution_vals', None)
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_invoice_payment_means_vals_list(self, invoice):
-        # OVERRIDE
         vals_list = super()._get_invoice_payment_means_vals_list(invoice)
 
         for vals in vals_list:
@@ -181,8 +185,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_tax_category_list(self, invoice, taxes):
-        # OVERRIDE
         vals_list = super()._get_tax_category_list(invoice, taxes)
 
         for vals in vals_list:
@@ -192,8 +196,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_invoice_tax_totals_vals_list(self, invoice, taxes_vals):
-        # OVERRIDE
         vals_list = super()._get_invoice_tax_totals_vals_list(invoice, taxes_vals)
 
         for vals in vals_list:
@@ -204,8 +208,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_invoice_line_allowance_vals_list(self, line):
-        # OVERRIDE
         vals_list = super()._get_invoice_line_allowance_vals_list(line)
 
         for vals in vals_list:
@@ -213,8 +217,8 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals_list
 
+    # EXTENDS account.edi.xml.ubl_21
     def _get_invoice_line_vals(self, line, taxes_vals):
-        # OVERRIDE
         vals = super()._get_invoice_line_vals(line, taxes_vals)
 
         vals.pop('tax_total_vals', None)
@@ -224,11 +228,9 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _export_invoice_vals(self, invoice):
-        # OVERRIDE
         vals = super()._export_invoice_vals(invoice)
-
-        #vals['PartyType_template'] = 'account_edi_ubl_cii.ubl_bis3_PartyType'
 
         vals['vals'].update({
             'customization_id': 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0',
@@ -249,6 +251,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
 
         return vals
 
+    # EXTENDS account.edi.xml.ubl_21
     def _export_invoice_constraints(self, invoice, vals):
         constraints = super()._export_invoice_constraints(invoice, vals)
         constraints.update(
@@ -266,8 +269,9 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
         This xslt was obtained by transforming the corresponding sch
         https://docs.peppol.eu/poacc/billing/3.0/files/CEN-EN16931-UBL.sch.
         """
-        intracom_delivery = (vals['customer'].country_id in self.env.ref('base.europe').country_ids
-                             and vals['supplier'].country_id in self.env.ref('base.europe').country_ids
+        eu_countries = self.env.ref('base.europe').country_ids
+        intracom_delivery = (vals['customer'].country_id in eu_countries
+                             and vals['supplier'].country_id in eu_countries
                              and vals['customer'].country_id != vals['supplier'].country_id)
 
         constraints = {
@@ -302,7 +306,7 @@ class AccountEdiXmlUBLBIS3(models.AbstractModel):
             # [BR-IC-12]-In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Deliver to country code (BT-80) shall not be blank.
             'cen_en16931_delivery_country_code': self._check_required_fields(
-                vals['vals']['delivery_vals_list'][0], 'location_vals',
+                vals['vals']['delivery_vals_list'][0], 'delivery_location_vals',
                 _("For intracommunity supply, the delivery address should be included.")
             ) if intracom_delivery else None,
 

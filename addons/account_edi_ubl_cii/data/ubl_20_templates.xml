@@ -315,7 +315,7 @@
                         <cac:Address>
                             <t t-call="{{AddressType_template}}">
                                 <t t-set="vals"
-                                   t-value="foreach_vals.get('location_vals', {}).get('delivery_address_vals', {})"/>
+                                   t-value="foreach_vals.get('delivery_location_vals', {}).get('delivery_address_vals', {})"/>
                             </t>
                         </cac:Address>
                     </cac:DeliveryLocation>

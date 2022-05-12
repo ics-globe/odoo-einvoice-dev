@@ -134,7 +134,13 @@ class AccountEdiXmlCII(models.AbstractModel):
             return float_repr(number, decimal_places)
 
         # Create file content.
-        tax_details = invoice._prepare_edi_tax_details()
+        tax_details = invoice._prepare_edi_tax_details(
+            grouping_key_generator=lambda tax_values: {
+                **self._get_tax_unece_codes(invoice, tax_values['tax_id']),
+                'amount': tax_values['tax_id'].amount,
+                'amount_type': tax_values['tax_id'].amount_type,
+            }
+        )
 
         if 'siret' in invoice.company_id._fields and invoice.company_id.siret:
             seller_siret = invoice.company_id.siret
@@ -162,41 +168,30 @@ class AccountEdiXmlCII(models.AbstractModel):
         for line_vals in template_values['invoice_line_vals_list']:
             line = line_vals['line']
             line_vals['unece_uom_code'] = self._get_uom_unece_code(line)
-            # data used for IncludedSupplyChainTradeLineItem / SpecifiedLineTradeSettlement / ApplicableTradeTax
-            for tax_detail_vals in template_values['tax_details']['invoice_line_tax_details'][line]['tax_details'].values():
-                tax = tax_detail_vals['tax']
-                tax_detail_vals['tax_category_code'] = self._get_tax_unece_codes(invoice, tax).get('tax_category_code')
-                tax_detail_vals['amount_type'] = tax.amount_type
-                tax_detail_vals['amount'] = tax.amount
 
         # data used for ApplicableHeaderTradeSettlement / ApplicableTradeTax (at the end of the xml)
         for tax_detail_vals in template_values['tax_details']['tax_details'].values():
-            tax = tax_detail_vals['tax']
-            tax_detail_vals['amount_type'] = tax.amount_type
-            tax_detail_vals['amount'] = tax.amount
             # /!\ -0.0 == 0.0 in python but not in XSLT, so it can raise a fatal error when validating the XML
             # if 0.0 is expected and -0.0 is given.
             amount_currency = tax_detail_vals['tax_amount_currency']
             tax_detail_vals['calculated_amount'] = template_values['balance_multiplicator'] * amount_currency if amount_currency != 0 else 0
-            tax_unece_codes = self._get_tax_unece_codes(invoice, tax)
-            tax_detail_vals.update(tax_unece_codes)
 
-            if tax_unece_codes.get('tax_category_code') == 'K':
+            if tax_detail_vals.get('tax_category_code') == 'K':
                 template_values['intracom_delivery'] = True
             # [BR - IC - 11] - In an Invoice with a VAT breakdown (BG-23) where the VAT category code (BT-118) is
             # "Intra-community supply" the Actual delivery date (BT-72) or the Invoicing period (BG-14) shall not be blank.
-            if tax_unece_codes.get('tax_category_code') == 'K' and not template_values['scheduled_delivery_time']:
+            if tax_detail_vals.get('tax_category_code') == 'K' and not template_values['scheduled_delivery_time']:
                 date_range = self._get_invoicing_period(invoice)
                 template_values['billing_start'] = min(date_range)
                 template_values['billing_end'] = max(date_range)
 
-        # TODO: One of the difference between XRechnung and Facturx is the following. Submitting a Facturx to XRechnung
-        #   validator raises a warning, but submitting a XRechnung to Facturx raises an error. Thus, it's safer
-        #   to always use the french tag
-        #supplier = invoice.company_id.partner_id.commercial_partner_id
-        #if supplier.country_id.code == 'DE':
-        #    template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
-        template_values['document_context_id'] = "urn:cen.eu:en16931:2017"
+        # One of the difference between XRechnung and Facturx is the following. Submitting a Facturx to XRechnung
+        # validator raises a warning, but submitting a XRechnung to Facturx raises an error.
+        supplier = invoice.company_id.partner_id.commercial_partner_id
+        if supplier.country_id.code == 'DE':
+            template_values['document_context_id'] = "urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2"
+        else:
+            template_values['document_context_id'] = "urn:cen.eu:en16931:2017"
 
         return template_values
 

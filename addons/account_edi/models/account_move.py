@@ -159,7 +159,7 @@ class AccountMove(models.Model):
                 tax_details['base_amount_currency'] += tax_values['base_amount_currency']
         tax_details['tax_amount'] += tax_values['tax_amount']
         tax_details['tax_amount_currency'] += tax_values['tax_amount_currency']
-        tax_details['exemption_reason'] = tax_values['tax_id'].name
+        tax_details['exemption_reason'] = tax_values['tax_id'].name  # TODO: remove in master when merging account_edi_ubl_cii (only used by account_edi_facturx)
         tax_details['group_tax_details'].append(tax_values)
 
     def _prepare_edi_tax_details(self, filter_to_apply=None, filter_invl_to_apply=None, grouping_key_generator=None, compute_mode='tax_details'):

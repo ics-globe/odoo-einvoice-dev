@@ -111,7 +111,11 @@ class AccountEdiCommon(models.AbstractModel):
         https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/cac-TaxTotal/cac-TaxSubtotal/cac-TaxCategory/cbc-TaxExemptionReasonCode/
         https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/
         https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/
-        :returns: (tax_category_code, tax_exemption_reason_code, tax_exemption_reason)
+        :returns: {
+            tax_category_code: str,
+            tax_exemption_reason_code: str,
+            tax_exemption_reason: str,
+        }
         """
         def create_dict(tax_category_code=None, tax_exemption_reason_code=None, tax_exemption_reason=None):
             return {

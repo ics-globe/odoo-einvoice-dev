@@ -205,5 +205,5 @@ class TestUBLNL(TestUBLCommon):
 
     def test_import_invoice_xml(self):
         # ddd test files https://github.com/peppolautoriteit-nl/validation ?
-        self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml',
-                                       amount_total=3083.58, amount_tax=401.58, currency='USD')
+        self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml', amount_total=3083.58,
+                                       amount_tax=401.58, currency_id=self.currency_data['currency'].id)

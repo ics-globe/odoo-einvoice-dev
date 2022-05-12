@@ -83,26 +83,30 @@ class TestUBLCommon(AccountEdiTestCommon):
         self.assertTrue(new_invoice)
         self.assert_same_invoice(invoice, new_invoice)
 
-    def _import_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, move_type='in_invoice', currency='EUR'):
-        # import the file as a new invoice / update the invoice from file
-        # assert that the amount_total, amount_tax, currency is correct
-        invoice = self._create_empty_vendor_bill()
-        invoice.move_type = move_type
+    def _import_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, move_type='in_invoice', currency_id=None):
+        if not currency_id:
+            currency_id = self.env.ref('base.EUR').id
+
+        # Create empty account.move, then update a file
+        if move_type == 'in_invoice':
+            invoice = self._create_empty_vendor_bill()
+        else:
+            invoice = self.env['account.move'].create({
+                'move_type': move_type,
+                'journal_id': self.company_data['default_journal_purchase'].id,
+            })
         invoice_count = len(self.env['account.move'].search([]))
+
+        # Import the file to fill the empty invoice
         self.update_invoice_from_file('l10n_account_edi_ubl_cii_tests', subfolder, filename, invoice)
 
+        # Checks
         self.assertEqual(len(self.env['account.move'].search([])), invoice_count)
-
-        self.assertEqual(invoice.amount_total, amount_total)
-        self.assertEqual(invoice.amount_tax, amount_tax)
-        self.assertEqual(invoice.currency_id.name, currency)
-
-        self.create_invoice_from_file('l10n_account_edi_ubl_cii_tests', subfolder, filename)
-
-        self.assertEqual(invoice.amount_total, amount_total)
-        self.assertEqual(invoice.amount_tax, amount_tax)
-        self.assertEqual(invoice.currency_id.name, currency)
-        self.assertEqual(len(self.env['account.move'].search([])), invoice_count + 1)
+        self.assertRecordValues(invoice, [{
+            'amount_total': amount_total,
+            'amount_tax': amount_tax,
+            'currency_id': currency_id,
+        }])
 
     # -------------------------------------------------------------------------
     # EXPORT
@@ -153,11 +157,6 @@ class TestUBLCommon(AccountEdiTestCommon):
         xml_content = base64.b64decode(attachment.with_context(bin_size=False).datas)
         xml_etree = self.get_xml_tree_from_string(xml_content)
 
-        # DEBUG: uncomment to get the generated xml and then, be able to submit it online for validation.
-        #if export_file:
-        #    with file_open(export_file, 'wb+') as f:
-        #        f.write(xml_content)
-
         expected_file_path = get_resource_path('l10n_account_edi_ubl_cii_tests', 'test_files', expected_file)
         expected_etree = self.get_xml_tree_from_string(file_open(expected_file_path, "r").read())
 
@@ -165,11 +164,6 @@ class TestUBLCommon(AccountEdiTestCommon):
             expected_etree,
             xpaths
         )
-
-        # DEBUG: uncomment to get the generated xml to which the xpath modifications have been applied
-        #from lxml import etree
-        #et = etree.ElementTree(modified_etree)
-        #et.write('modified_etree.xml', pretty_print=True)
 
         self.assertXmlTreeEqual(
             xml_etree,

@@ -223,8 +223,8 @@ class TestUBLDE(TestUBLCommon):
     ####################################################
 
     def test_import_invoice_xml(self):
-        self._import_invoice_from_file(subfolder='test_files', filename='test_de_out_invoice.xml',
-                                       amount_total=3083.58, amount_tax=401.58, currency='USD')
+        self._import_invoice_from_file(subfolder='test_files', filename='test_de_out_invoice.xml', amount_total=3083.58,
+                                       amount_tax=401.58, currency_id=self.currency_data['currency'].id)
 
     def test_import_export_invoice_xml(self):
         """

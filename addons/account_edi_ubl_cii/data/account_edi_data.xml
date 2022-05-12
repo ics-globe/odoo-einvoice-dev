@@ -2,17 +2,10 @@
 <odoo>
     <data>
         <!--
-        In master, after removing the old modules, create the formats here
-        TODO: name of the formats: make a distinction between facturx and xrechnung
+        TODO ?: name of the formats: make a distinction between facturx and xrechnung
             since the constraints are not the same... ? (for instance: XRechnung requires a reference on the buyer
             but not facturx (except in some cases for chorus pro), XRechnung requires ram:DefinedTradeContact, ...)
             For now: XRechnung in CII is not supported but Facturx is (Germany can still use XRechnung in UBL)-->
-        <!--
-        <record id="facturx_cii" model="account.edi.format">
-            <field name="name">Factur-X CII (France)</field>
-            <field name="code">facturx_cii</field>
-        </record>
-        -->
 
         <record id="ubl_bis3" model="account.edi.format">
             <field name="name">Peppol BIS Billing 3.0</field>
@@ -23,22 +16,5 @@
             <field name="name">XRechnung UBL (Germany)</field>
             <field name="code">ubl_de</field>
         </record>
-
-        <!--
-        <record id="ubl_nl" model="account.edi.format">
-            <field name="name">NLCIUS (Netherlands)</field>
-            <field name="code">ubl_nl</field>
-        </record>
-
-        <record id="ubl_no" model="account.edi.format">
-            <field name="name">EHF Billing/Fakturering 3.0 (Norway)</field>
-            <field name="code">ubl_no</field>
-        </record>
-
-        <record id="ubl_21" model="account.edi.format">
-            <field name="name">UBL 2.1</field>
-            <field name="code">ubl_21</field>
-        </record>
-        -->
     </data>
 </odoo>

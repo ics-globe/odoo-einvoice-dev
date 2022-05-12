@@ -546,12 +546,12 @@ class AccountEdiFormat(models.Model):
                     vat_prefix_regex = '([A-z]{2})?'
 
                 self._cr.execute(f'''
-                            SELECT res_partner.id
-                            FROM {tables}
-                            WHERE {where_clause}
-                            AND res_partner.vat ~ %s
-                            LIMIT 1
-                        ''', where_params + ['^%s0*%s$' % (vat_prefix_regex, vat_only_numeric)])
+                    SELECT res_partner.id
+                    FROM {tables}
+                    WHERE {where_clause}
+                    AND res_partner.vat ~ %s
+                    LIMIT 1
+                ''', where_params + ['^%s0*%s$' % (vat_prefix_regex, vat_only_numeric)])
                 partner_row = self._cr.fetchone()
                 if partner_row:
                     partner = self.env['res.partner'].browse(partner_row[0])
