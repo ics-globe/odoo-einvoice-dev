@@ -391,24 +391,23 @@
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
                             <div class="o_kanban_card_header o_kanban_record_top">
-                                <div>
+                                <div class="o_kanban_workorder_title">
                                     <h4 class="o_primary">
                                         <span><t t-esc="record.production_id.value"/></span> - <span><t t-esc="record.name.value"/></span>
                                     </h4>
                                     <div class="o_kanban_record_bottom">
-                                        <h5 class="oe_kanban_bottom_left">
+                                        <h5 class="o_kanban_bottom_left">
                                             <span><t t-esc="record.product_id.value"/>, </span> <span><t t-esc="record.qty_production.value"/> <t t-esc="record.product_uom_id.value"/></span>
                                         </h5>
                                     </div>
                                 </div>
-                                <div>
-                                    <h5><span class="o_kanban_card_header_title">Date</span></h5>
-                                    <span class="d-flex" t-esc="record.date_planned_start.value or record.production_date.value"/>
+                                <div class="o_kanban_workorder_date">
+                                    <h5><span class="d-flex" t-esc="record.date_planned_start.value or record.production_date.value"/></h5>
                                 </div>
-                                <div >
+                                <div class="o_kanban_workorder_status">
                                     <div class="o_kanban_record_bottom">
                                         <div class="oe_kanban_top_right">
-                                            <h2 class="ml8">
+                                            <h2>
                                                 <span t-attf-class="badge #{['progress'].indexOf(record.state.raw_value) > -1 ? 'badge-warning' : ['ready', 'waiting', 'pending'].indexOf(record.state.raw_value) > -1 ? 'badge-primary' : ['done'].indexOf(record.state.raw_value) > -1 ? 'badge-success' : ['cancel'].indexOf(record.state.raw_value) > -1 ? 'badge-muted' : 'badge-danger'}">
                                                     <t t-esc="record.state.value"/>
                                                 </span>
