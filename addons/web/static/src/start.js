@@ -41,7 +41,7 @@ export async function startWebClient(Webclient) {
     mapLegacyEnvToWowlEnv(legacyEnv, env);
     const app = new App(Webclient, {
         env,
-        dev: env.debug,
+        dev: false,
         templates: window.__OWL_TEMPLATES__,
         translatableAttributes: ["data-tooltip"],
         translateFn: env._t,
