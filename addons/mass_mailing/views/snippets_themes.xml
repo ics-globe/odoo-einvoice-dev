@@ -90,6 +90,7 @@
                     <t t-snippet="mass_mailing.s_blockquote" t-thumbnail="/mass_mailing/static/src/img/snippets_thumbs/s_blockquote.svg"/>
                     <t t-snippet="mass_mailing.s_hr" t-thumbnail="/web_editor/static/src/img/snippets_thumbs/s_hr.svg"/>
                     <t t-snippet="mass_mailing.s_text_highlight" t-thumbnail="/mass_mailing/static/src/img/snippets_thumbs/s_text_highlight.svg"/>
+                    <t t-snippet="mass_mailing.social_links_snippet" t-thumbnail="/mass_mailing/static/src/img/snippets_thumbs/s_social_media.svg"/>
                 </div>
             </div>
             <div id="email_designer_default_footer" class="o_panel">
@@ -304,6 +305,12 @@
     </a>
 </template>
 
+<template id="social_links_snippet" name="Social Media">
+    <div class="s_mail_social_media o_not_editable">
+        <t t-call="mass_mailing.social_links"/>
+    </div>
+</template>
+
 <!-- Border -->
 <template id="snippet_options_border_line_widgets">
     <we-row t-att-string="label">
@@ -448,7 +455,7 @@
         t-att-data-selector="so_snippet_addition_selector"
         data-drop-in=":not(p).oe_structure:not(.oe_structure_solo), :not(.o_mega_menu):not(p)[data-oe-type=html], :not(p).oe_structure.oe_structure_solo:not(:has(> section, > div))"/>
 
-    <t t-set="so_content_addition_selector" t-translation="off">.s_mail_blockquote, .s_mail_alert, .s_rating, .s_hr, .s_mail_text_highlight</t>
+    <t t-set="so_content_addition_selector" t-translation="off">.s_mail_blockquote, .s_mail_alert, .s_rating, .s_hr, .s_mail_text_highlight, .s_mail_social_media</t>
     <div id="so_content_addition"
         t-att-data-selector="so_content_addition_selector"
         t-attf-data-drop-near="p, h1, h2, h3, ul, ol, .row > div > img, #{so_content_addition_selector}"
@@ -805,7 +812,7 @@
         </we-select>
     </div>
     <div data-js="SocialMediaMassMailing"
-         data-selector=".o_mail_footer_social,.o_mail_header_social"
+         data-selector=".o_mail_footer_social,.o_mail_header_social,.s_mail_social_media"
          data-exclude=".o_mail_social_no_snippet_option">
             <we-list string="Social Networks" data-add-item-title="Add New Social Network"
                 data-render-list-items="" data-has-default="multiple" data-name="social_media_list"
