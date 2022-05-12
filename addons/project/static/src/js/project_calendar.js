@@ -6,6 +6,8 @@ import CalendarView from 'web.CalendarView';
 import viewRegistry from 'web.view_registry';
 import { ProjectControlPanel } from '@project/js/project_control_panel';
 import CalendarRenderer from 'web.CalendarRenderer';
+import { qweb as QWeb }from 'web.core';
+
 
 const ProjectCalendarController = CalendarController.extend({
     _renderButtonsParameters() {
@@ -26,23 +28,21 @@ const ProjectCalendarController = CalendarController.extend({
 
 const ProjectCalendarRenderer = CalendarRenderer.extend({
 
-    /**
-    * @override
-    * @private
-    */
-    _onPopoverShown: function($popoverElement, calendarPopover) {
-        this._super.apply(this, arguments);
-        calendarPopover.$fieldsList.forEach((key, value) => {
-            const widgetField = key[0].lastChild.firstChild;
-            if (widgetField.className.includes('o_priority')) {
-                $('.card-header h4').prepend(widgetField);
-                key.remove();
-            }
-            if (widgetField.className.includes('o_selection')) {
-                $('a[name="stage_id"]').prepend(widgetField);
-                key.remove();
-            }
-        })
+    _getPopoverParams: function (eventData) {debugger
+        const params = this._super(...arguments);
+        let PriorityIcon;
+        const priority = eventData.extendedProps.record.priority;
+
+        if (priority === '1') {
+            PriorityIcon = 'fa-star color_yellow';
+        } else if(priority) {
+            PriorityIcon = 'fa-star-o';
+        }
+
+        params.template = QWeb.render('project.calendar.popover.placeholder', {
+            PriorityIcon: PriorityIcon,
+        });
+        return params;
     },
 });
 const ProjectCalendarModel = CalendarModel.extend({

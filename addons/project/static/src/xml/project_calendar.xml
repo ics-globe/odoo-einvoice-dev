@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+
+    <t t-name="project.calendar.popover.placeholder">
+        <div t-attf-class="o_cw_popover popover card shadow #{typeof color === 'number' ? _.str.sprintf('o_calendar_color_%s', color) : ''}" role="tooltip">
+            <div class="arrow"/>
+            <div class="card-header d-flex justify-content-between py-2 pr-2">
+                <i t-if="PriorityIcon" t-attf-class="fa {{PriorityIcon}} fa-lg"></i>
+                <h4 class="popover-header border-0 p-0 pt-1"/>
+                <div class="ml-4">
+                    <span class="o_cw_popover_close ml-1"><i class="fa fa-close small"/></span>
+                </div>
+            </div>
+            <div class="o_cw_body">
+            </div>
+        </div>
+    </t>
+
+</templates>

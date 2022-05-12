@@ -1397,7 +1397,7 @@
                     <field name="project_id" widget="project_private_task"/>
                     <field name="user_ids" widget="many2many_avatar_user"/>
                     <field name="partner_id" attrs="{'invisible': [('partner_id', '=', False)]}"/>
-                    <field name="priority" widget="priority"/>
+                    <field name="priority" widget="priority" invisible="1"/>
                     <field name="date_deadline"/>
                     <field name="tag_ids" widget="many2many_tags" attrs="{'invisible': [('tag_ids', '=', [])]}"/>
                     <field name="stage_id"/>
