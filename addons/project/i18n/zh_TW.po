@@ -884,12 +884,12 @@ msgstr "指派給我"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+msgid "assignee"
 msgstr ""
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+msgid "assignees"
 msgstr ""
 
 #. module: project

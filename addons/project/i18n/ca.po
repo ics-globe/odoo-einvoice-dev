@@ -925,12 +925,12 @@ msgstr "Assignar a mi"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+msgid "assignee"
 msgstr "assignat"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+msgid "assignees"
 msgstr "assignats"
 
 #. module: project

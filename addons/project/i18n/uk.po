@@ -985,12 +985,12 @@ msgstr "Призначити мені"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+msgid "assignee"
 msgstr "виконавець"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+msgid "assignees"
 msgstr "виконавці"
 
 #. module: project

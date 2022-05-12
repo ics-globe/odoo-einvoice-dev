@@ -987,13 +987,13 @@ msgid "Assign to Me"
 msgstr "Me l'assigner"
 
 #. module: project
-#: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+#: model_terms:ir.ui.view,arch_db:project.project_sharing_project_task_view_kanban
+msgid "assignee"
 msgstr ""
 
 #. module: project
-#: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+#: model_terms:ir.ui.view,arch_db:project.project_sharing_project_task_view_kanban
+msgid "assignees"
 msgstr ""
 
 #. module: project

@@ -992,12 +992,12 @@ msgstr "Asignarme a mí"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+msgid "assignee"
 msgstr "Asignatario"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+msgid "assignees"
 msgstr "Asignatario"
 
 #. module: project

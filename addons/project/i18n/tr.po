@@ -909,12 +909,12 @@ msgstr "Bana Ata"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignee"
+msgid "assignee"
 msgstr "atanan"
 
 #. module: project
 #: model_terms:ir.ui.view,help:project.project_sharing_project_task_view_kanban
-msgid " assignees"
+msgid "assignees"
 msgstr "atananlar"
 
 #. module: project
