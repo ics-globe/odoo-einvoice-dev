@@ -708,13 +708,27 @@ var KanbanActivity = BasicActivity.extend({
             this._renderDropdown();
         }
     },
+    _isDropdownExitingWindow: function() {
+        return this.$('.dropdown-toggle').offset()['left'] + this.$('.o_activity').outerWidth() > window.innerWidth
+    },
+    _scrollIntoDropdownIfNeeded: function() {
+        var target = this.$('.o_activity > .o_schedule_activity').get(0);
+        if (target.getBoundingClientRect().bottom > window.innerHeight) {
+            // Bottom align the target
+            target.scrollIntoView(false);
+        }
+        if (target.getBoundingClientRect().top < 0) {
+            // Top align the target
+            target.scrollIntoView();
+        }
+    },
     /**
      * @private
      */
     _renderDropdown: function () {
         var self = this;
         this.$('.o_activity')
-            .toggleClass('dropdown-menu-right', config.device.isMobile)
+            .toggleClass('dropdown-menu-right', config.device.isMobile || this._isDropdownExitingWindow())
             .html(QWeb.render('mail.KanbanActivityLoading'));
         return _readActivities(this, this.value.res_ids).then(function (activities) {
             activities = setFileUploadID(activities);
@@ -725,6 +739,7 @@ var KanbanActivity = BasicActivity.extend({
                 widget: self,
             }));
             self._bindOnUploadAction(activities);
+            self._scrollIntoDropdownIfNeeded();
         });
     },
     /**
