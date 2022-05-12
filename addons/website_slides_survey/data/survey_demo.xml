@@ -21,6 +21,7 @@
             <field name="title">Furniture</field>
             <field name="survey_id" ref="furniture_certification" />
             <field name="sequence">1</field>
+            <field name="question_type" eval="False"/>
             <field name="is_page" eval="True"/>
             <field name="description">&lt;p&gt;Test your furniture knowledge!&lt;/p&gt;</field>
         </record>
