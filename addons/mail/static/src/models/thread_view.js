@@ -89,7 +89,7 @@ registerModel({
          */
         _computeRtcCallViewer() {
             return (this.thread && this.thread.model === 'mail.channel' && this.thread.rtcSessions.length > 0)
-                ? insertAndReplace()
+                ? insertAndReplace({ thread: replace(this.thread) })
                 : clear();
         },
         /**

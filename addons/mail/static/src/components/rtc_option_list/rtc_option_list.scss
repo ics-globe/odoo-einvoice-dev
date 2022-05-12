@@ -23,6 +23,15 @@
     @include text-truncate();
 }
 
+.o_RtcOptionList_checkBox {
+    margin: map-get($spacers, 1);
+    padding: map-get($spacers, 1);
+}
+
+.o_RtcOptionList_checkBoxLabel {
+    margin: map-get($spacers, 1);
+}
+
 // ------------------------------------------------------------------
 // Style
 // ------------------------------------------------------------------
@@ -48,4 +57,8 @@
     @include hover-focus () {
         outline: none;
     }
+}
+
+.o_RtcOptionList_separator {
+    background-color: $border-color;
 }

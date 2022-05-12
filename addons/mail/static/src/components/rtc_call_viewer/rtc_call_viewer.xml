@@ -3,37 +3,44 @@
 
 <t t-name="mail.RtcCallViewer" owl="1">
     <t t-if="rtcCallViewer">
-        <div class="o_RtcCallViewer" t-att-class="{ 'o-fullScreen': rtcCallViewer.isFullScreen, 'o-isMinimized': rtcCallViewer.isMinimized }" t-attf-class="{{ className }}" t-ref="root">
+        <div
+            class="o_RtcCallViewer"
+            t-att-class="{ 'o-fullScreen': rtcCallViewer.isFullScreen, 'o-isMinimized': rtcCallViewer.isMinimized}"
+            t-attf-class="{{ className }}"
+            t-on-mouseleave="rtcCallViewer.onMouseLeave"
+            t-ref="root"
+        >
             <!-- Used to make the component depend on the window size and trigger an update when the window size changes. -->
             <t t-set="dummy" t-value="messaging and messaging.device and messaging.device.globalWindowInnerHeight and messaging.device.globalWindowInnerWidth"/>
 
             <!-- Call members display -->
             <div class="o_RtcCallViewer_participantContainer" t-on-click="rtcCallViewer.onClick" t-on-mousemove="rtcCallViewer.onMouseMove">
-                <t t-if="rtcCallViewer.layout !== 'tiled'">
-                    <div class="o_RtcCallViewer_mainParticipantContainer justify-content-center mw-100 mh-100">
-                        <t t-if="rtcCallViewer.mainParticipantCard">
-                            <RtcCallParticipantCard className="'o_RtcCallViewer_participantCard w-100'" record="rtcCallViewer.mainParticipantCard"/>
+                <t t-if="rtcCallViewer.mainParticipantCard">
+                    <div class="o_RtcCallViewer_mainParticipantContainer justify-content-center mw-100 mh-100 position-relative">
+                        <RtcCallParticipantCard className="'o_RtcCallViewer_participantCard w-100'" record="rtcCallViewer.mainParticipantCard"/>
+                        <t t-if="rtcCallViewer.showOverlay">
+                            <t t-if="!rtcCallViewer.hasSidebar">
+                                <i class="o_RtcCallViewer_sidebarButton position-absolute fa fa-arrow-left" title="Show sidebar" t-on-click="rtcCallViewer.onClickShowSidebar"/>
+                            </t>
+                            <t t-elif="rtcCallViewer.hasSidebar">
+                                <i class="o_RtcCallViewer_sidebarButton position-absolute fa fa-arrow-right" title="hide sidebar" t-on-click="rtcCallViewer.onClickHideSidebar"/>
+                            </t>
                         </t>
                     </div>
                 </t>
-                <t t-if="rtcCallViewer.layout !== 'spotlight'">
+                <t t-if="rtcCallViewer.tileParticipantCards.length > 0">
                     <div
                         class="o_RtcCallViewer_grid"
-                        t-att-class="{
-                            'o-isTiled': rtcCallViewer.layout === 'tiled',
-                            'o-isSidebar': rtcCallViewer.layout === 'sidebar',
-                        }"
+                        t-att-class="{ 'o-isSidebar': rtcCallViewer.hasSidebar and rtcCallViewer.mainParticipantCard, 'o-isTiled': !rtcCallViewer.mainParticipantCard }"
                         t-ref="tileContainer"
                         t-attf-style="--height:{{state.tileHeight}}px; --width:{{state.tileWidth}}px; --columns:{{state.columnCount}};"
                     >
                         <t t-foreach="rtcCallViewer.tileParticipantCards" t-as="participantCard" t-key="'grid_tile_'+participantCard.localId">
-                            <t t-if="!rtcCallViewer.filterVideoGrid or (participantCard.rtcSession and participantCard.rtcSession.videoStream)">
-                                <!-- maybe filter focused partner out? -->
-                                <RtcCallParticipantCard
-                                    className="'o_RtcCallViewer_participantCard o_RtcCallViewer_gridTile mw-100'"
-                                    record="participantCard"
-                                />
-                            </t>
+                            <!-- maybe filter focused partner out? -->
+                            <RtcCallParticipantCard
+                                className="'o_RtcCallViewer_participantCard o_RtcCallViewer_gridTile mw-100'"
+                                record="participantCard"
+                            />
                         </t>
                     </div>
                 </t>
@@ -52,14 +59,6 @@
             <t t-if="messaging.userSetting.rtcConfigurationMenu.isOpen">
                 <Dialog size="'small'" title="rtcCallViewer.settingsTitle" onClosed="rtcCallViewer.onRtcSettingsDialogClosed">
                     <RtcConfigurationMenu record="messaging.userSetting.rtcConfigurationMenu"/>
-                    <t t-set-slot="buttons">
-                        <!-- Explicit No buttons -->
-                    </t>
-                </Dialog>
-            </t>
-            <t t-if="rtcCallViewer.rtcLayoutMenu">
-                <Dialog size="'small'" title="rtcCallViewer.layoutSettingsTitle" onClosed="rtcCallViewer.onLayoutSettingsDialogClosed">
-                    <RtcLayoutMenu record="rtcCallViewer.rtcLayoutMenu"/>
                     <t t-set-slot="buttons">
                         <!-- Explicit No buttons -->
                     </t>

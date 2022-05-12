@@ -20,6 +20,28 @@ registerModel({
             const transceivers = this.peerConnection.getTransceivers();
             return transceivers[this.messaging.rtc.orderedTransceiverNames.indexOf(trackKind)];
         },
+        /**
+         * Sets the direction of the video transceiver of a given session.
+         *
+         * @param {boolean} allowReception
+         */
+        setVideoReceiverActivity(allowReception) {
+            const rtc = this.rtcSession.rtcAsConnectedSession;
+            if (!rtc) {
+                return;
+            }
+            const transceiver = this.getTransceiver('video');
+            if (!transceiver) {
+                return;
+            }
+            if (allowReception) {
+                transceiver.direction = rtc.videoTrack ? 'sendrecv' : 'recvonly';
+                console.log(`download from ${this.rtcSession.name}: allowed`); // TODO remove
+            } else {
+                transceiver.direction = rtc.videoTrack ? 'sendonly' : 'inactive';
+                console.log(`download from ${this.rtcSession.name}: disallowed`); // TODO remove
+            }
+        },
     },
     fields: {
         /**

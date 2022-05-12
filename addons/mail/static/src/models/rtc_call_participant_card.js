@@ -2,14 +2,14 @@
 
 import { registerModel } from '@mail/model/model_core';
 import { attr, one } from '@mail/model/model_field';
-import { clear, insertAndReplace } from '@mail/model/model_field_command';
+import { clear, insertAndReplace, link, unlink } from '@mail/model/model_field_command';
 import { isEventHandled, markEventHandled } from '@mail/utils/utils';
 
 import { sprintf } from '@web/core/utils/strings';
 
 registerModel({
     name: 'RtcCallParticipantCard',
-    identifyingFields: ['relationalId'],
+    identifyingFields: [['rtcSession', 'invitedPartner', 'invitedGuest'], ['rtcCallViewerOfMainCard', 'rtcCallViewerOfTile']],
     recordMethods: {
         /**
          * @param {Event} ev
@@ -24,9 +24,11 @@ registerModel({
             if (isEventHandled(ev, 'CallParticipantCard.clickVolumeAnchor')) {
                 return;
             }
-            if (!this.invitedPartner && !this.invitedGuest) {
-                if (!this.isMinimized) {
-                    this.messaging.toggleFocusedRtcSession(this.rtcSession.id);
+            if (this.rtcSession) {
+                if (this.callViewer.activeRtcSession === this.rtcSession && this.rtcCallViewerOfMainCard) {
+                    this.callViewer.update({ activeRtcSession: unlink() });
+                } else {
+                    this.callViewer.update({ activeRtcSession: link(this.rtcSession) });
                 }
                 return;
             }
@@ -85,6 +87,18 @@ registerModel({
         },
         /**
          * @private
+         * @returns {mail.rtcCallViewer}
+         */
+        _computeCallViewer() {
+            const callViewer = this.rtcCallViewerOfMainCard || this.rtcCallViewerOfTile;
+            if (callViewer) {
+                return link(callViewer);
+            } else {
+                return clear();
+            }
+        },
+        /**
+         * @private
          * @returns {boolean}
          */
         _computeHasConnectionInfo() {
@@ -111,8 +125,7 @@ registerModel({
          * @returns {boolean}
          */
         _computeIsMinimized() {
-            const callViewer = this.rtcCallViewerOfMainCard || this.rtcCallViewerOfTile;
-            return Boolean(callViewer && callViewer.isMinimized);
+            return Boolean(this.callViewer && this.callViewer.isMinimized);
         },
         /**
          * @private
@@ -198,11 +211,15 @@ registerModel({
         /**
          * If set, this card represents an invitation of this guest to this call.
          */
-        invitedGuest: one('Guest'),
+        invitedGuest: one('Guest', {
+            readonly: true,
+         }),
         /**
          * If set, this card represents an invitation of this partner to this call.
          */
-        invitedPartner: one('Partner'),
+        invitedPartner: one('Partner', {
+            readonly: true,
+         }),
         /**
          * States whether this card is representing a person with a pending
          * invitation.
@@ -238,28 +255,33 @@ registerModel({
             compute: '_computeOutboundConnectionTypeText',
         }),
         /**
-         * Unique id for this session provided when instantiated.
+         * The callViewer that displays this card.
          */
-        relationalId: attr({
-            readonly: true,
-            required: true,
+        callViewer: one('RtcCallViewer', {
+            compute: '_computeCallViewer',
+            inverse: 'participantCards',
         }),
         /**
          * The callViewer for which this card is the spotlight.
          */
         rtcCallViewerOfMainCard: one('RtcCallViewer', {
             inverse: 'mainParticipantCard',
+            readonly: true,
         }),
         /**
          * The callViewer for which this card is one of the tiles.
          */
         rtcCallViewerOfTile: one('RtcCallViewer', {
             inverse: 'tileParticipantCards',
+            readonly: true,
         }),
         /**
          * If set, this card represents a rtcSession.
          */
-        rtcSession: one('RtcSession'),
+        rtcSession: one('RtcSession', {
+            inverse: 'callParticipantCards',
+            readonly: true,
+        }),
         rtcVideoView: one('RtcVideoView', {
             compute: '_computeRtcVideoView',
             inverse: 'rtcCallParticipantCardOwner',

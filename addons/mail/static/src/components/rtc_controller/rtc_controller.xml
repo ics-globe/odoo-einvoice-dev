@@ -58,7 +58,7 @@
                                 <i class="fa fa-desktop" t-att-class="{ 'fa-lg': !rtcController.isSmall }"/>
                             </div>
                         </button>
-                        <Popover position="'top'">
+                        <Popover position="'top'" popoverClass="'o_RtcController_popover'">
                             <button class="o_RtcController_button"
                                 aria-label="More"
                                 title="More"

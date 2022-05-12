@@ -3,6 +3,7 @@
 import { registerModel } from '@mail/model/model_core';
 import { attr, many, one } from '@mail/model/model_field';
 import { clear, replace } from '@mail/model/model_field_command';
+import { OnChange } from '@mail/model/model_onchange';
 
 registerModel({
     name: 'RtcSession',
@@ -162,11 +163,9 @@ registerModel({
                 return;
             }
             const track = trackKind === 'audio' ? this.rtcAsConnectedSession.audioTrack : this.rtcAsConnectedSession.videoTrack;
-            const fullDirection = track ? 'sendrecv' : 'recvonly';
-            const limitedDirection = track ? 'sendonly' : 'inactive';
-            let transceiverDirection = fullDirection;
-            if (trackKind === 'video') {
-                transceiverDirection = !this.messaging.focusedRtcSession || this.messaging.focusedRtcSession === this ? fullDirection : limitedDirection;
+            let transceiverDirection = track ? 'sendrecv' : 'recvonly';
+            if (trackKind === 'video' && !this.callParticipantCards) {
+                transceiverDirection = track ? 'sendonly' : 'inactive';
             }
             let transceiver;
             if (initTransceiver) {
@@ -324,6 +323,18 @@ registerModel({
             );
         },
         /**
+         * Ensures that whether we download the videoStream is based on the
+         * presence of cards that should display that stream.
+         *
+         * @private
+         */
+        _onChangeCallParticipantCards() {
+            if (!this.channel || !this.channel.rtc || !this.rtcPeerConnection) {
+                return;
+            }
+            this.rtcPeerConnection.setVideoReceiverActivity(this.callParticipantCards && this.callParticipantCards.length > 0);
+        },
+        /**
          * cleanly removes the audio stream of the session
          *
          * @private
@@ -448,6 +459,14 @@ registerModel({
          */
         calledChannels: many('Thread', {
             inverse: 'rtcInvitingSession',
+        }),
+        /**
+         * The participant cards of this session,
+         * this is used to know how many views are displaying this session.
+         */
+        callParticipantCards: many('RtcCallParticipantCard', {
+            inverse: 'rtcSession',
+            isCausal: true,
         }),
         /**
          * States whether there is currently an error with the audio element.
@@ -583,4 +602,10 @@ registerModel({
             compute: '_computeVolume',
         }),
     },
+    onChanges: [
+        new OnChange({
+            dependencies: ['callParticipantCards'],
+            methodName: '_onChangeCallParticipantCards',
+        }),
+    ],
 });
