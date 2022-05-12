@@ -127,6 +127,23 @@ class IrMailServer(models.Model):
             elif mail_server.smtp_ssl_private_key and not mail_server.smtp_ssl_certificate:
                 raise UserError(_('SSL certificate is missing for %s.', mail_server.name))
 
+    def write(self, vals):
+        if vals.get('active', True):
+            return super(IrMailServer, self).write(vals)
+        active_usages = self._active_usages_compute()
+        if len(active_usages) > 0:
+            raise UserError(
+                _('You cannot archive this outgoing mail server because it is still used in the following cases:\n%s.',
+                  '\n'.join(map(lambda u: '- %s' % u, active_usages))))
+        return super(IrMailServer, self).write(vals)
+
+    def _active_usages_compute(self):
+        """ Compute a user-friendly list of the current use of this outgoing mail server.
+        This method must be overridden by all modules that uses this class in order to complete the list with
+        user-friendly string describing the active elements that could send mail through the instance of this class. """
+        self.ensure_one()
+        return []
+
     def _get_test_email_addresses(self):
         self.ensure_one()
         email_from = self.env.user.email
@@ -231,6 +248,8 @@ class IrMailServer(models.Model):
         ssl_context = None
 
         if mail_server:
+            if not mail_server.active:
+                raise UserError(_('The server "%s" cannot be used because it is archived.', mail_server.display_name))
             smtp_server = mail_server.smtp_host
             smtp_port = mail_server.smtp_port
             if mail_server.smtp_authentication == "certificate":

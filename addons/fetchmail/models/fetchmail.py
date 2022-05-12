@@ -107,6 +107,8 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
 
     def connect(self):
         self.ensure_one()
+        if not self.active:
+            raise UserError(_('The server "%s" cannot be used because it is archived.', self.display_name))
         connection_type = self._get_connection_type()
         if connection_type == 'imap':
             if self.is_ssl:
@@ -167,7 +169,7 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
     @api.model
     def _fetch_mails(self):
         """ Method called by cron to fetch mails from servers """
-        return self.search([('state', '=', 'done'), ('server_type', '!=', 'local')]).fetch_mail()
+        return self.search([('state', '=', 'done'), ('server_type', '!=', 'local'), ('active', '=', True)]).fetch_mail()
 
     def fetch_mail(self):
         """ WARNING: meant for cron usage only - will commit() after each email! """
