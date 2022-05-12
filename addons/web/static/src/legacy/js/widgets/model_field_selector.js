@@ -62,9 +62,10 @@ var ModelFieldSelector = Widget.extend({
         }, options || {});
 
         this.dirty = false;
+        this.popOver = new ModelFieldSelectorPopOver(parent, model, chain, options);
+
         if (!this.options.readonly) {
             _.extend(this.events, this.editionEvents);
-            this.popOver = new ModelFieldSelectorPopOver(parent, model, chain, options);
             this.popOver.appendTo($("<div/>"));
             this.popOver.on("field_selector_render", undefined, this._render.bind(this));
             this.popOver.on("field_selector_started", undefined, () => {
@@ -78,9 +79,7 @@ var ModelFieldSelector = Widget.extend({
      * @returns {Promise}
      */
     willStart: function () {
-        return Promise.all([
-            this._super.apply(this, arguments),
-        ]);
+        return this._super.apply(this, arguments);
     },
     /**
      * @see Widget.start
@@ -89,6 +88,10 @@ var ModelFieldSelector = Widget.extend({
     start: function () {
         this.$value = this.$(".o_field_selector_value");
         this.$valid = this.$(".o_field_selector_warning");
+
+        if (this.options.readonly) {
+            this.popOver._prefill().then(this._render.bind(this));
+        }
 
         return this._super.apply(this, arguments);
     },
