@@ -59,6 +59,9 @@
                 .o_mail_table_styles {
                     width: 100% !important;
                 }
+                .s_header_social table td, .s_header_text_social table td, .s_header_logo table td {
+                	text-align: center !important;
+                }
             }
             @media screen and (max-width: 1135px) {
                 td {
