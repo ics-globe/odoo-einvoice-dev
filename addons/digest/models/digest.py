@@ -11,6 +11,7 @@ from markupsafe import Markup
 from odoo import api, fields, models, tools, _
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 from odoo.exceptions import AccessError
+from odoo.osv import expression
 from odoo.tools.float_utils import float_round
 
 _logger = logging.getLogger(__name__)
@@ -54,20 +55,71 @@ class Digest(models.Model):
             digest.available_fields = ', '.join(kpis_values_fields)
 
     def _get_kpi_compute_parameters(self):
-        return fields.Datetime.to_string(self._context.get('start_datetime')), fields.Datetime.to_string(self._context.get('end_datetime')), self.env.company
+        companies = self.company_id
+
+        if any(not digest.company_id for digest in self):
+            # No company: we will use the current company to compute the KPIs
+            companies |= self.env.company
+
+        return (
+            fields.Datetime.to_string(self._context.get('start_datetime')),
+            fields.Datetime.to_string(self._context.get('end_datetime')),
+            companies,
+        )
 
     def _compute_kpi_res_users_connected_value(self):
-        for record in self:
-            start, end, company = record._get_kpi_compute_parameters()
-            user_connected = self.env['res.users'].search_count([('company_id', '=', company.id), ('login_date', '>=', start), ('login_date', '<', end)])
-            record.kpi_res_users_connected_value = user_connected
+        self._compute_company_based_kpi(
+            'res.users',
+            'kpi_res_users_connected_value',
+            date_field='login_date',
+        )
 
     def _compute_kpi_mail_message_total_value(self):
+        start, end, __ = self._get_kpi_compute_parameters()
         discussion_subtype_id = self.env.ref('mail.mt_comment').id
-        for record in self:
-            start, end, company = record._get_kpi_compute_parameters()
-            total_messages = self.env['mail.message'].search_count([('create_date', '>=', start), ('create_date', '<', end), ('subtype_id', '=', discussion_subtype_id), ('message_type', 'in', ['comment', 'email'])])
-            record.kpi_mail_message_total_value = total_messages
+        self.kpi_mail_message_total_value = self.env['mail.message'].search_count([
+            ('create_date', '>=', start),
+            ('create_date', '<', end),
+            ('subtype_id', '=', discussion_subtype_id),
+            ('message_type', 'in', ('comment', 'email')),
+        ])
+
+    def _compute_company_based_kpi(self, model, field_name, date_field='create_date',
+                                   domain=None, sum_field=None):
+        """Generic method that compute the KPI on a given model.
+
+        :param model: Model on which we will count the number of record
+            This model must have a "company_id" field
+        :param field_name: Field name on which we will write the KPI
+        :param date_field: Field used for the date range
+        :param domain: Additional domain for the search
+        :param sum_field: Field to sum to obtain the KPI,
+            if None it will count the number of records
+        """
+        start, end, companies = self._get_kpi_compute_parameters()
+
+        search_domain = [
+            ('company_id', 'in', companies.ids),
+            (date_field, '>=', start),
+            (date_field, '<', end),
+        ]
+
+        if domain:
+            search_domain = expression.AND([search_domain, domain])
+
+        values = self.env[model]._read_group(
+            domain=search_domain,
+            fields=[f'{sum_field}:sum' if sum_field else 'id'],
+            groupby=['company_id'],
+        )
+
+        values_per_company = {
+            value['company_id'][0]: value[sum_field] if sum_field else value['company_id_count']
+            for value in values
+        }
+        for digest in self:
+            company_id = digest.company_id.id or self.env.company.id
+            digest[field_name] = values_per_company.get(company_id, 0)
 
     @api.onchange('periodicity')
     def _onchange_periodicity(self):
