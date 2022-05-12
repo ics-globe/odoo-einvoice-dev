@@ -519,4 +519,6 @@ class ProductTemplate(models.Model):
         return pricelist
 
     def _website_show_quick_add(self):
-        return self.sale_ok
+        website = self.env['website'].get_current_website()
+        prevent_zero_price_sale = website and website.prevent_zero_price_sale
+        return self.sale_ok and (self._get_contextual_price() or not prevent_zero_price_sale)
