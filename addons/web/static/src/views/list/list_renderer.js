@@ -64,33 +64,33 @@ export class ListRenderer extends Component {
         this.activeRowId = null;
 
         // profiling
-        const times = [];
-        const NbRuns = 100;
-        let total = 0;
-        let start;
-        owl.onWillRender(() => {
-            window._nbFields = 0;
-            start = Date.now();
-        });
-        owl.onPatched(async () => {
-            const t = Date.now() - start;
-            total += t;
-            times.push(t);
-            await new Promise((r) => setTimeout(r));
-            if (times.length < NbRuns) {
-                window._nbFields = 0;
-                document.querySelector(".o_pager_next").click();
-            } else {
-                console.log(`Nb runs: ${NbRuns}`);
-                console.log(`Dev: ${odoo.__WOWL_DEBUG__.root.__owl__.app.dev}`);
-                console.log(`Nb fields: ${window._nbFields}`);
-                console.log(`Mean: ${total / NbRuns}ms`);
-                console.log(`Median: ${times.sort((v1, v2) => (v1 < v2 ? -1 : 1))[NbRuns / 2]}ms`);
-                console.log(`Min: ${times[0]}`);
-                console.log(`Max: ${times[NbRuns - 1]}`);
-                console.log(times);
-            }
-        });
+        // const times = [];
+        // const NbRuns = 10;
+        // let total = 0;
+        // let start;
+        // owl.onWillRender(() => {
+        //     window._nbFields = 0;
+        //     start = Date.now();
+        // });
+        // owl.onPatched(async () => {
+        //     const t = Date.now() - start;
+        //     total += t;
+        //     times.push(t);
+        //     await new Promise((r) => setTimeout(r));
+        //     if (times.length < NbRuns) {
+        //         window._nbFields = 0;
+        //         document.querySelector(".o_pager_next").click();
+        //     } else {
+        //         console.log(`Nb runs: ${NbRuns}`);
+        //         console.log(`Dev: ${odoo.__WOWL_DEBUG__.root.__owl__.app.dev}`);
+        //         console.log(`Nb fields: ${window._nbFields}`);
+        //         console.log(`Mean: ${total / NbRuns}ms`);
+        //         console.log(`Median: ${times.sort((v1, v2) => (v1 < v2 ? -1 : 1))[NbRuns / 2]}ms`);
+        //         console.log(`Min: ${times[0]}`);
+        //         console.log(`Max: ${times[NbRuns - 1]}`);
+        //         console.log(times);
+        //     }
+        // });
 
         onMounted(() => {
             this.activeElement = this.uiService.activeElement;

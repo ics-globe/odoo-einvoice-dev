@@ -152,8 +152,8 @@
                 <t t-if="column.type === 'field'">
                     <td class="o_data_cell" t-att-class="getCellClass(column, record)" t-att-title="getCellTitle(column, record)" t-on-click="() => this.onCellClicked(record, column)">
                         <t t-if="!evalModifier(column.modifiers.invisible, record)">
-                            <Field t-if="column.widget" name="column.name" record="record" type="column.widget" />
-                            <t t-else="" t-esc="getCellValue(column, record)"/>
+                            <Field name="column.name" record="record" type="column.widget" />
+                            <!-- <t t-else="" t-esc="getCellValue(column, record)"/> -->
                         </t>
                     </td>
                 </t>

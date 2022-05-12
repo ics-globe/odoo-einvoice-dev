@@ -1560,6 +1560,7 @@
         });
     }
     const reactiveCache = new WeakMap();
+    // window.reactiveCache = reactiveCache;
     /**
      * Creates a reactive proxy for an object. Reading data on the reactive object
      * subscribes to changes to the data. Writing data on the object will cause the
@@ -1601,6 +1602,7 @@
         if (!reactiveCache.has(target)) {
             reactiveCache.set(target, new Map());
         }
+        debugger
         const reactivesForTarget = reactiveCache.get(target);
         if (!reactivesForTarget.has(callback)) {
             const targetRawType = rawType(target);
