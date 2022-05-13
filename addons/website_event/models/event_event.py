@@ -565,7 +565,6 @@ class Event(models.Model):
                 LEFT JOIN res_partner p ON p.{id} = {table}.{address_id}
                 LEFT JOIN res_country c ON c.{id} = p.{country_id}
                 WHERE p.{city} ilike {search}
-                OR c.{name} ilike {search}
                 LIMIT {limit}
             """).format(
                 table=sql.Identifier(self._table),
@@ -573,7 +572,6 @@ class Event(models.Model):
                 address_id=sql.Identifier('address_id'),
                 city=sql.Identifier('city'),
                 country_id=sql.Identifier('country_id'),
-                name=sql.Identifier('name'),
                 search=sql.Placeholder('search'),
                 limit=sql.Placeholder('limit'),
             )
