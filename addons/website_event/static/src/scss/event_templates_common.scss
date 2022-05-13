@@ -1,3 +1,18 @@
+$o-wevent-color-ratio-bg: 15%;
+$o-wevent-bg-color-0: mix(theme-color('primary'), $body-bg, $o-wevent-color-ratio-bg);
+$o-wevent-bg-color-1: mix($o-wevent-bg-color-0, #E9ECEF);
+$o-wevent-color: mix(theme-color('primary'), $body-color, $o-wevent-color-ratio-bg);
+
+.o_wevent_theme_bg_0 {
+    background-color: $o-wevent-bg-color-0 !important;
+    color: $o-wevent-color;
+}
+
+.o_wevent_theme_bg_1 {
+    background-color: $o-wevent-bg-color-1 !important;
+    color: $o-wevent-color;
+}
+
 .o_wevent_index, .o_wevent_event {
 
     // Simple colored tags according to assigned background color
@@ -24,11 +39,11 @@
     // Complex colored tags according to assigned background color with hover effect
     @for $size from 1 through length($o-colors) {
         .o_tag_color_hovered_#{$size - 1} {
-            $background-color: white;
+            $background-color: $o-wevent-bg-color-0;
             // no color selected
             @if $size == 1 {
                 & {
-                    color: black;
+                    color: color-yiq($background-color);
                     background-color: $background-color;
                     box-shadow: inset 0 0 0 1px nth($o-colors, $size);
                 }
@@ -53,8 +68,8 @@
 
     .o_wevent_index_topbar_filters {
         .dropdown-toggle {
-            border: $border-width solid gray('400');
-            @include o-bg-color(gray('white'), $with-extras: false);
+            border: $border-width solid mix(theme-color('primary'), gray('400'));
+            color: $o-wevent-color;
             @include border-radius($dropdown-border-radius);
             @include hover-focus {
                 border-color: theme-color('primary');
@@ -93,10 +108,6 @@
             opacity: 0.4;
         }
         // background color-based for new styling
-        .event_color_0 {
-            // bg-100 background but DO NOT extend bg-100 as it messes with text-muted colors
-            background-color: #F8F9FA;
-        }
         .event_color_1 {
             background-color: rgba(240, 96, 80, 0.2);
         }
@@ -152,7 +163,7 @@
 
             // Left panel
             .o_wevent_online_page_aside {
-
+                @extend .o_wevent_theme_bg_0;
                 // Left panel: content display
                 .o_wevent_online_page_aside_content {
                     border: 1px solid $border-color;

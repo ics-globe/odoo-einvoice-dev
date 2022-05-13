@@ -21,6 +21,8 @@
     .o_wesponsor_card {
         .card-body {
             padding: 1rem;
+            background-color: $o-wevent-bg-color-0 !important;
+            color: $o-wevent-color;
         }
 
         .card-footer {
@@ -81,6 +83,8 @@
      */
 
     .o_wevent_online_page_container {
+        background-color: $o-wevent-bg-color-0;
+        color: $o-wevent-color;
 
         // Jitsi container
         #o_wsponsor_jitsi_iframe {

@@ -15,7 +15,7 @@
             <!-- Drag/Drop Area -->
             <div id="oe_structure_we_index_1" class="oe_structure oe_empty"/>
             <!-- Content -->
-            <div t-attf-class="o_wevent_events_list #{opt_events_list_cards and 'opt_event_list_cards_bg'}">
+            <div class="o_wevent_events_list">
                 <div class="container">
                     <div class="row">
                         <t t-call="website_event.searched_tags"/>
@@ -79,7 +79,7 @@
 <template id="searched_tags" name="Searched tags">
     <div class="d-flex align-items-center mt16">
         <t t-foreach="search_tags" t-as="tag">
-            <span class="align-items-baseline border d-inline-flex pl-2 rounded ml16 mb-2 bg-white">
+            <span t-attf-class="align-items-baseline border d-inline-flex pl-2 rounded ml16 mb-2 #{'o_tag_color_%s' % tag.color if tag.color else ''}">
                 <i class="fa fa-tag mr-2 text-muted"/>
                 <t t-out="tag.display_name"/>
                 <a t-att-href="'/event?%s' % keep_query('*', tags=str((search_tags - tag).ids))" class="btn border-0 py-1">&#215;</a>
@@ -172,7 +172,7 @@
                                 <t t-set="_record" t-value="event"/>
 
                                 <!-- Short Date -->
-                                <div class="o_wevent_event_date position-absolute bg-white shadow-sm text-dark">
+                                <div class="o_wevent_event_date position-absolute shadow-sm">
                                     <span t-field="event.date_begin" t-options="{'tz_name': event.date_tz, 'format': 'LLL'}" class="o_wevent_event_month"/>
                                     <span t-field="event.date_begin" t-options="{'tz_name': event.date_tz, 'format': 'dd'}" class="o_wevent_event_day oe_hide_on_date_edit"/>
                                 </div>
