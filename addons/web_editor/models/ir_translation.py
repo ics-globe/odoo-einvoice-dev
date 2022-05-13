@@ -7,20 +7,20 @@ from odoo import models, api
 from odoo.tools.translate import encode, xml_translate, html_translate
 
 
-def edit_translation_mapping(data):
-    data = dict(data, model=data['name'].partition(',')[0], value=data['value'] or data['src'])
-    return '<span data-oe-model="%(model)s" data-oe-translation-id="%(id)s" data-oe-translation-state="%(state)s">%(value)s</span>' % data
+# def edit_translation_mapping(data):
+#     data = dict(data, model=data['name'].partition(',')[0], value=data['value'] or data['src'])
+#     return '<span data-oe-model="%(model)s" data-oe-translation-id="%(id)s" data-oe-translation-state="%(state)s">%(value)s</span>' % data
 
 
-class IrTranslation(models.Model):
+class IrTranslation(models.TransientModel):
     _inherit = 'ir.translation'
 
-    @api.model
-    def _get_terms_mapping(self, field, records):
-        if self._context.get('edit_translations'):
-            self.insert_missing(field, records)
-            return edit_translation_mapping
-        return super(IrTranslation, self)._get_terms_mapping(field, records)
+    # @api.model
+    # def _get_terms_mapping(self, field, records):
+    #     if self._context.get('edit_translations'):
+    #         self.insert_missing(field, records)
+    #         return edit_translation_mapping
+    #     return super(IrTranslation, self)._get_terms_mapping(field, records)
 
     def save_html(self, value):
         """ Convert the HTML fragment ``value`` to XML if necessary, and write

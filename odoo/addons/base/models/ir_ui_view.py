@@ -304,7 +304,12 @@ actual arch.
                 else:
                     _logger.warning("View %s: Full path [%s] cannot be found.", xml_id, view.arch_fs)
                     arch_fs = False
-            view.arch = pycompat.to_text(arch_fs or view.arch_db)
+            arch = pycompat.to_text(arch_fs or view.arch_db)
+            if self._context.get('edit_translations'):
+                translations = self.env['ir.translation'].create(self.env['ir.translation'].get_translation_vals_list_for_record(view, field_names=['arch_db'], langs=[self.env.lang or 'en_US'], without_en=True))
+                term_to_id_state = {translation.value or translation.src: (translation.id, translation.state) for translation in translations}
+                arch = self._fields['arch_db'].translate(lambda term: f'<span data-oe-tmp="aaa" data-oe-model="ir.ui.view" data-oe-translation-id="{term_to_id_state[term][0]}" data-oe-translation-state="{term_to_id_state[term][1]}">{term}</span>', arch)
+            view.arch = arch
 
     def _inverse_arch(self):
         for view in self:

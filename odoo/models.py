@@ -3346,6 +3346,63 @@ Fields:
 
         return self._read_format(fnames=fields, load=load)
 
+    def fetch_fields_translations(self, fnames):
+        """ fetch translations in cache """
+        # TODO CWG: check read access right and rules:
+        if fnames:
+            if not all(self._fields[fname].translate for fname in fnames):
+                raise UserError(_('You can only fetch translations for translated fields'))
+        else:
+            fnames = self._fields.keys()
+
+        self.flush(fnames)
+        cache = self.env.cache
+
+        query = f"""SELECT {', '.join(fnames)}, id FROM {self._table} WHERE id in %s"""
+        cr = self.env.cr
+        langs = self.with_context(active_test=True).search([]).mapped('code')
+        for sub_ids in cr.split_for_in_conditions(self.ids):
+            cr.execute(query, (sub_ids,))
+            for row in cr.fetchall():
+                record = self.browse(row[-1])
+                for i in range(len(fnames)):
+                    val_langs = row[i] or {}
+                    value_en = val_langs.get('en_US')
+                    for lang in langs:
+                        cache.set(record.with_context(lang=lang), self._fields[fnames[i]], val_langs.get(lang, value_en))
+
+    @api.model
+    def set_field_term_translations(self, fname, lang, translation_dictionary):
+        """ set translations for model and model terms
+        :param str fname: field name
+        :param str lang: language (lang != 'en_US' because if an en_US term is changed
+         all non-translated terms in other languages are also needed to be changed
+        :param dict translation_dictionary: {record_id: {term_old_value: term_new_value}}
+        """
+
+        # TODO CWG: check write access right and rules:
+        field = self._fields[fname]
+        if lang == 'en_US':
+            return False
+        if not callable(field.translate):
+            return False  # or raise error
+        towrite = self.env.all.towrite[self._name]
+        cache = self.env.cache
+
+        # flush is not necessary
+        # it is better to call fetch_fields_translations before this method
+        for id, old_value in zip(translation_dictionary.keys(), self.with_context(lang=lang).mapped(fname)):
+            id = int(id)
+            # TODO CWG: make sure translation_dictionary doesn't translate to emtpy or check the logic in xml/html translate
+            new_value = field.translate(translation_dictionary[id].get, old_value)
+            record = self.browse(id).with_context(lang=lang)
+            cache.set(record, record._fields[fname], new_value)
+            if fname not in towrite[id] or not towrite[id][fname]:
+                towrite[id][fname] = field.convert_to_column(new_value, record)
+            else:
+                towrite[id][fname].adapted.update(field.convert_to_column(new_value, record).adapted)
+        return True
+
     def _read_format(self, fnames, load='_classic_read'):
         """Returns a list of dictionaries mapping field names to their values,
         with one dictionary per record that exists.
