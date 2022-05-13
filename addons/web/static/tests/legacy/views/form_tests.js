@@ -6359,7 +6359,7 @@ QUnit.module('Views', {
 
         await testUtils.dom.click(form.$('.o_external_button'));
         // Close modal
-        await testUtils.dom.click($('.modal').last().find('button[class="close"]'));
+        await testUtils.dom.click($('.modal').last().find('button[class="btn-close"]'));
         assert.notStrictEqual($(".o_content").scrollTop(), 0,
             "scroll position should not be 0 after closing modal");
         assert.containsNone(document.body, '.modal', 'There should be no modal');
