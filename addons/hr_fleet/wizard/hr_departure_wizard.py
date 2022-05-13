@@ -13,7 +13,7 @@ class HrDepartureWizard(models.TransientModel):
     def action_register_departure(self):
         super(HrDepartureWizard, self).action_register_departure()
         if self.release_campany_car:
-            self._free_campany_car()
+            self.sudo()._free_campany_car()
 
     def _free_campany_car(self):
         """Find all fleet.vehichle.assignation.log records that link to the employee, if there is no 
