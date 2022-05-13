@@ -16,7 +16,13 @@ class WebsiteSwitcherSystray extends Component {
         return this.websiteService.websites.map((website) => ({
             name: website.name,
             callback: () => {
-                this.websiteService.goToWebsite({ websiteId: website.id });
+                if (website.domain && website.domain !== window.location.origin) {
+                    const { location: { pathname, search, hash } } = this.websiteService.contentWindow;
+                    const path = pathname + search + hash;
+                    window.location.href = `${website.domain}/web#action=website.website_editor&path=${encodeURI(path)}&website_id=${website.id}`;
+                } else {
+                    this.websiteService.goToWebsite({ websiteId: website.id });
+                }
             },
         }));
     }
