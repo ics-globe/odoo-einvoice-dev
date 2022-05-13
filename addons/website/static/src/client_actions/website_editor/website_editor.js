@@ -28,7 +28,11 @@ export class WebsiteEditorClientAction extends Component {
         onWillStart(async () => {
             this.isWebsitePublisher = await this.user.hasGroup('website.group_website_publisher');
             await this.websiteService.fetchWebsites();
-            this.initialUrl = `/website/force/${this.websiteId}?path=${this.path}`;
+            if (this.websiteDomain && this.websiteDomain !== window.location.origin) {
+                window.location.href = `${this.websiteDomain}/web#action=website.website_editor&path=${this.path}&website_id=${this.websiteId}`;
+            } else {
+                this.initialUrl = `/website/force/${this.websiteId}?path=${this.path}`;
+            }
         });
 
         useEffect(() => {
@@ -102,12 +106,13 @@ export class WebsiteEditorClientAction extends Component {
     get websiteId() {
         let websiteId = this.props.action.context.params && this.props.action.context.params.website_id;
         if (!websiteId) {
-            websiteId = this.websiteService.currentWebsite && this.websiteService.currentWebsite.id;
-        }
-        if (!websiteId) {
             websiteId = this.websiteService.websites[0].id;
         }
         return websiteId;
+    }
+
+    get websiteDomain() {
+        return this.websiteService.websites.find(website => website.id === this.websiteId).domain;
     }
 
     get path() {
