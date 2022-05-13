@@ -126,6 +126,7 @@ odoo.define('payment_stripe.payment_form', require => {
                                 city: ev.paymentMethod.billing_details.address.city,
                                 country: ev.paymentMethod.billing_details.address.country,
                                 state: ev.paymentMethod.billing_details.address.state,
+                                partner_id: parseInt(self.txContext.partnerId),
                             },
                             shipping: {
                                 name: ev.shippingAddress.recipient,
@@ -137,7 +138,6 @@ odoo.define('payment_stripe.payment_form', require => {
                                 country: ev.shippingAddress.country,
                                 state: ev.shippingAddress.region,
                             },
-                            partner_id: parseInt(self.txContext.partnerId),
                         }
                     }).then((partner_id) => {
                         self.txContext.partnerId = parseInt(partner_id)

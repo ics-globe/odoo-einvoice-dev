@@ -131,6 +131,7 @@ odoo.define('payment.express_mixin', require => {
                 'flow': 'direct',
                 'tokenization_requested': false,
                 'landing_route': this.txContext.landingRoute,
+                'add_id_to_landing_route': true,
                 'access_token': this.txContext.accessToken
                     ? this.txContext.accessToken : undefined,
                 'csrf_token': core.csrf_token,

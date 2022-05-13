@@ -887,49 +887,198 @@ class WebsiteSale(http.Controller):
         render_values.update(self._get_country_related_render_values(kw, render_values))
         return request.render("website_sale.address", render_values)
 
-    @http.route(['/shop/express/address'], type='json', methods=['POST'], auth="public", website=True, sitemap=False)
-    def address_json(self, **post):
+    @http.route(
+        ['/shop/express/address'], type='json', methods=['POST'],
+        auth="public", website=True, sitemap=False,
+    )
+    def express_address(self, **post):
         """ TODO VCR: do a proper docstring
-        TODO VCR: CHECK IF Existing Partner
+        TODO VCR: FIX ADDRESS CHANGING
         """
         order = request.website.sale_get_order()
 
         mode = (False, False)
 
-        partner_id = int(post.get('partner_id', -1))
+        partner_id = int(post['billing']['partner_id'])
 
+        # If the partner is a logged in user, the partner id will always be greater than zero.
         if partner_id > 0:
-            # Proccess existing partner
-            return
-        elif partner_id == -1:
-            # Create Billing partner
-            mode = ('new', 'billing')
-            billing_country_id = request.env["res.country"].search([('code', '=', post['billing']['country'])], limit=1).id
-            post['billing']['country_id'] = billing_country_id
-            billing_pre_values = self.values_preprocess(order, mode, post['billing'])
-            billing_errors, billing_error_msg = self.checkout_form_validate(mode, post['billing'], billing_pre_values)
-            billing_new_values, billing_errors, billing_error_msg = self.values_postprocess(order, mode, billing_pre_values, billing_errors, billing_error_msg)
-            billing_partner_id = self._checkout_form_save(mode, billing_new_values, post['billing'])
-            if not billing_errors:  # We Need to set billing partner first to be able to save shipping partner
-                order.partner_id = billing_partner_id
-                order.partner_invoice_id = billing_partner_id
+            # Processing Billing information.
+            billing_country_id = request.env["res.country"].search([
+                ('code', '=', post['billing']['country']),
+            ], limit=1).id
+            billing_state_id = request.env["res.country.state"].search([
+                ('country_id', '=', billing_country_id),
+                ('code', '=', post['billing']['state']),
+            ], limit=1).id
+            partner_sudo = request.env['res.partner'].with_context(
+                show_address=1
+            ).browse(partner_id).sudo()
+            # When the billing contact informations are different than the one send over this
+            # route, update the billing contact.
+            if (
+                partner_sudo.country_id.id != billing_country_id or
+                partner_sudo.state_id.id != billing_state_id or
+                partner_sudo.zip != post['billing']['zip'] or
+                partner_sudo.city != post['billing']['city'] or
+                partner_sudo.street != post['billing']['street'] or
+                partner_sudo.street2 != post['billing']['street2'] or
+                partner_sudo.phone != post['billing']['phone'] or
+                partner_sudo.email != post['billing']['email'] or
+                partner_sudo.name != post['billing']['name']
+            ):
+                mode = ('edit', 'billing')
+                post['billing']['country_id'] = billing_country_id
+                post['billing']['state_id'] = billing_state_id
+                billing_pre_values = self.values_preprocess(order, mode, post['billing'])
+                billing_errors, billing_error_msg = self.checkout_form_validate(
+                    mode, post['billing'], billing_pre_values
+                )
+                billing_new_values, billing_errors, billing_error_msg = self.values_postprocess(
+                    order, mode, billing_pre_values, billing_errors, billing_error_msg
+                )
+                billing_partner_id = self._checkout_form_save(
+                    mode, billing_new_values, post['billing']
+                )
+                if not billing_errors:
+                    # We need to set billing partner first to be able to save shipping partner.
+                    order.partner_id = billing_partner_id
+                    # This is the *only* thing that the front end user will see/edit anyway when
+                    # choosing billing address.
+                    order.partner_invoice_id = billing_partner_id
+                else:
+                    billing_errors['error_message'] = billing_error_msg
+                    raise ValidationError(billing_errors)
+            else:
+                billing_partner_id = partner_id
 
-                # Create Shipping partner
+            # Processing Shipping information.
+            shipping_partners_sudo = request.env['res.partner'].with_context(
+                show_address=1
+            ).sudo().search([
+                ('id', 'child_of', order.partner_id.commercial_partner_id.ids),
+            ])
+            order.partner_shipping_id = False  # Remove the predefined shipping partner id
+            for shipping_partner in shipping_partners_sudo:
+                shipping_country_id = request.env["res.country"].search([
+                    ('code', '=', post['shipping']['country']),
+                ], limit=1).id
+                shipping_state_id = request.env["res.country.state"].search([
+                    ('country_id', '=', shipping_country_id),
+                    ('code', '=', post['shipping']['state']),
+                ], limit=1).id
+                # Check if a child partner doesn't already exists with the same informations.
+                if (
+                    shipping_partner.country_id.id == shipping_country_id and
+                    shipping_partner.state_id.id == shipping_state_id and
+                    shipping_partner.zip == post['shipping']['zip'] and
+                    shipping_partner.city == post['shipping']['city'] and
+                    shipping_partner.street == post['shipping']['street'] and
+                    shipping_partner.street2 == post['shipping'].get('street2', False) and
+                    shipping_partner.phone == post['shipping']['phone'] and
+                    shipping_partner.name == post['shipping']['name']
+                ):
+                    order.partner_shipping_id = shipping_partner.id
+                    break
+            if not order.partner_shipping_id:
                 mode = ('new', 'shipping')
-                shipping_country_id = request.env["res.country"].search([('code', '=', post['shipping']['country'])], limit=1).id
+                shipping_country_id = request.env["res.country"].search(
+                    [('code', '=', post['shipping']['country']),
+                ], limit=1).id
                 post['shipping']['country_id'] = shipping_country_id
+                if post['shipping']['state']:
+                    shipping_state_id = request.env["res.country.state"].search([
+                        ('country_id', '=', shipping_country_id),
+                        ('code', '=', post['shipping']['state']),
+                    ], limit=1).id
+                    post['shipping']['state_id'] = shipping_state_id
                 shipping_pre_values = self.values_preprocess(order, mode, post['shipping'])
-                shipping_errors, shipping_error_msg = self.checkout_form_validate(mode, post['shipping'], shipping_pre_values)
-                shipping_new_values, shipping_errors, shipping_error_msg = self.values_postprocess(order, mode, shipping_pre_values, shipping_errors, shipping_error_msg)
-                shipping_partner_id = self._checkout_form_save(mode, shipping_new_values, post['billing'])
+                shipping_errors, shipping_error_msg = self.checkout_form_validate(
+                    mode, post['shipping'], shipping_pre_values
+                )
+                shipping_new_values, shipping_errors, shipping_error_msg = self.values_postprocess(
+                    order, mode, shipping_pre_values, shipping_errors, shipping_error_msg
+                )
+                shipping_partner_id = self._checkout_form_save(
+                    mode, shipping_new_values, post['billing']
+                )
                 if not shipping_errors:
                     order.partner_shipping_id = shipping_partner_id
                 else:
                     shipping_errors['error_message'] = shipping_error_msg
-                    return shipping_errors
+                    raise ValidationError(shipping_errors)
+
+        # If the partner is a public user, the partner id will always be '-1'.
+        elif partner_id == -1:
+            # Create Billing partner
+            mode = ('new', 'billing')
+            billing_country_id = request.env["res.country"].search([
+                ('code', '=', post['billing']['country']),
+            ], limit=1).id
+            post['billing']['country_id'] = billing_country_id
+            if post['billing']['state']:
+                billing_state_id = request.env["res.country.state"].search([
+                    ('country_id', '=', billing_country_id),
+                    ('code', '=', post['billing']['state']),
+                ], limit=1).id
+                post['billing']['state_id'] = billing_state_id
+            billing_pre_values = self.values_preprocess(order, mode, post['billing'])
+            billing_errors, billing_error_msg = self.checkout_form_validate(
+                mode, post['billing'], billing_pre_values
+            )
+            billing_new_values, billing_errors, billing_error_msg = self.values_postprocess(
+                order, mode, billing_pre_values, billing_errors, billing_error_msg
+            )
+            billing_partner_id = self._checkout_form_save(mode, billing_new_values, post['billing'])
+            if not billing_errors:
+                # We Need to set billing partner first to be able to save shipping partner
+                order.partner_id = billing_partner_id
+                # This is the *only* thing that the front end user will see/edit anyway when
+                # choosing billing address
+                order.partner_invoice_id = billing_partner_id
+
+                # Processing Shipping information.
+                shipping_country_id = request.env["res.country"].search([
+                    ('code', '=', post['shipping']['country']),
+                ], limit=1).id
+                shipping_state_id = request.env["res.country.state"].search([
+                    ('country_id', '=', shipping_country_id),
+                    ('code', '=', post['shipping']['state']),
+                ], limit=1).id
+                if (
+                    order.partner_id.country_id.id == shipping_country_id and
+                    order.partner_id.state_id.id == shipping_state_id and
+                    order.partner_id.zip == post['shipping']['zip'] and
+                    order.partner_id.city == post['shipping']['city'] and
+                    order.partner_id.street == post['shipping']['street'] and
+                    order.partner_id.street2 == post['shipping'].get('street2', False) and
+                    order.partner_id.name == post['shipping']['name']
+                    # We don't check the phone bc it isn't send with Google Pay
+                ):
+                    order.partner_shipping_id = billing_partner_id
+                else:  # Create Shipping partner
+                    mode = ('new', 'shipping')
+                    post['shipping']['country_id'] = shipping_country_id
+                    if post['shipping']['state']:
+                        post['shipping']['state_id'] = shipping_state_id
+                    shipping_pre_values = self.values_preprocess(order, mode, post['shipping'])
+                    shipping_errors, shipping_error_msg = self.checkout_form_validate(
+                        mode, post['shipping'], shipping_pre_values
+                    )
+                    shipping_new_values, shipping_errors, shipping_error_msg = self.values_postprocess(
+                        order, mode, shipping_pre_values, shipping_errors, shipping_error_msg
+                    )
+                    shipping_partner_id = self._checkout_form_save(
+                        mode, shipping_new_values, post['shipping']
+                    )
+                    if not shipping_errors:
+                        order.partner_shipping_id = shipping_partner_id
+                    else:
+                        shipping_errors['error_message'] = shipping_error_msg
+                        raise ValidationError(shipping_errors)
             else:
                 billing_errors['error_message'] = billing_error_msg
-                return billing_errors
+                raise ValidationError(billing_errors)
         else:
             return BadRequest()
 
@@ -1362,5 +1511,7 @@ class PaymentPortal(payment_portal.PaymentPortal):
         if last_tx:
             PaymentPostProcessing.remove_transactions(last_tx)
         request.session['__website_sale_last_tx_id'] = tx_sudo.id
+        if kwargs.pop('add_id_to_landing_route', False):
+            tx_sudo.landing_route += f'?transaction_id={tx_sudo.id}'
 
         return tx_sudo._get_processing_values()
