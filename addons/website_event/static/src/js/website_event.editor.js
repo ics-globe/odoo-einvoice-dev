@@ -41,8 +41,7 @@ var EventCreateDialog = Dialog.extend({
                 },
             ]
         });
-        this.eventStart = moment();
-        this.eventEnd = moment().add(1, "d");
+        this._initEventDatetime();
         this._super(parent, options);
     },
 
@@ -182,6 +181,30 @@ var EventCreateDialog = Dialog.extend({
             self.eventEnd = end;
         });
     },
+
+    /**
+     * Initialize the event start and end datetime with round values.
+     * We round the values each half hour:
+     * 09:16 becomes 09:30 and 10:48 becomes 11:00
+     * @private
+     */
+    _initEventDatetime: function () {
+        const now = moment();
+        let hour = now.hour();
+        let minute = 0;
+        let daysToAdd = 0;
+        if (now.minute() < 30) {
+            minute = 30;
+        } else if (hour < 23) {
+            hour++;
+        } else {
+            hour = 0;
+            daysToAdd++;
+        }
+        this.eventStart = moment().hour(hour).minute(minute).seconds(0).add(daysToAdd, 'days');
+        this.eventEnd = moment().hour(hour).minute(minute).seconds(0).add(daysToAdd + 1, 'days');
+    },
+
     /**
      * @private
      */
