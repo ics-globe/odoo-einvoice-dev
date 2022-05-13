@@ -151,7 +151,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         invoice_form = Form(self.env['account.move'].with_context(default_move_type='in_invoice', account_predictive_bills_disable_prediction=True))
         invoice_form.partner_id = self.partner_a
         invoice_form.invoice_payment_term_id = self.env.ref('account.account_payment_term_30days')
-        with invoice_form.invoice_line_ids.new() as line_form:
+        with invoice_form.line_ids.new() as line_form:
             line_form.product_id = self.product_a
         invoice_form.invoice_date = fields.Date.from_string('2021-09-01')
         invoice = invoice_form.save()
@@ -164,7 +164,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_in_invoice_line_onchange_product_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.product_id = self.product_b
         move_form.save()
 
@@ -255,7 +255,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         move_form.invoice_date = fields.Date.from_string('2019-01-01')
         move_form.currency_id = self.currency_data['currency']
         move_form.fiscal_position_id = fiscal_position
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = product
         invoice = move_form.save()
 
@@ -306,7 +306,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
         uom_dozen = self.env.ref('uom.product_uom_dozen')
         with Form(invoice) as move_form:
-            with move_form.invoice_line_ids.edit(0) as line_form:
+            with move_form.line_ids.edit(0) as line_form:
                 line_form.product_uom_id = uom_dozen
 
         self.assertInvoiceValues(invoice, [
@@ -400,7 +400,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         move_form.invoice_date = fields.Date.from_string('2019-01-01')
         move_form.currency_id = self.currency_data['currency']
         move_form.fiscal_position_id = fiscal_position
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = product
         invoice = move_form.save()
 
@@ -451,7 +451,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
         uom_dozen = self.env.ref('uom.product_uom_dozen')
         with Form(invoice) as move_form:
-            with move_form.invoice_line_ids.edit(0) as line_form:
+            with move_form.line_ids.edit(0) as line_form:
                 line_form.product_uom_id = uom_dozen
 
         self.assertInvoiceValues(invoice, [
@@ -504,7 +504,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_in_invoice_line_onchange_business_fields_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             # Current price_unit is 800.
             # We set quantity = 4, discount = 50%, price_unit = 400. The debit/credit fields don't change because (4 * 400) * 0.5 = 800.
             line_form.quantity = 4
@@ -693,11 +693,11 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
         # Remove lines and recreate them to apply the fiscal position.
         move_form = Form(self.invoice)
-        move_form.invoice_line_ids.remove(0)
-        move_form.invoice_line_ids.remove(0)
-        with move_form.invoice_line_ids.new() as line_form:
+        move_form.line_ids.remove(0)
+        move_form.line_ids.remove(0)
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = self.product_a
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = self.product_b
         move_form.save()
 
@@ -756,7 +756,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_in_invoice_line_onchange_taxes_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.price_unit = 960
             line_form.tax_ids.add(self.tax_armageddon)
         move_form.save()
@@ -864,7 +864,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         ], self.move_vals)
 
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.price_unit = 799.99
         move_form.save()
 
@@ -923,7 +923,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_cash_rounding_id': self.cash_rounding_b.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {
                     'product_id': self.product_a.id,
                     'price_unit': 799.99,
@@ -1088,7 +1088,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             # 0.045 * 0.1 = 0.0045. As the foreign currency has a 0.001 rounding,
             # the result should be 0.005 after rounding.
             line_form.quantity = 0.1
@@ -1191,8 +1191,8 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         copy_invoice = self.invoice.copy()
 
         move_form = Form(self.invoice)
-        move_form.invoice_line_ids.remove(0)
-        move_form.invoice_line_ids.remove(0)
+        move_form.line_ids.remove(0)
+        move_form.line_ids.remove(0)
         move_form.invoice_vendor_bill_id = copy_invoice
         move_form.save()
 
@@ -1447,7 +1447,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -1507,7 +1507,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -1517,7 +1517,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             ],
         })
         move.write({
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_2['product_id'],
                     'product_uom_id': self.product_line_vals_2['product_uom_id'],
@@ -1579,7 +1579,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -1646,7 +1646,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -1777,7 +1777,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2017-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, None, {
                     'name': self.product_line_vals_1['name'],
                     'product_id': self.product_line_vals_1['product_id'],
@@ -1799,7 +1799,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         move.action_post()
 
         wizard = self.env['account.automatic.entry.wizard']\
-            .with_context(active_model='account.move.line', active_ids=move.invoice_line_ids.ids).create({
+            .with_context(active_model='account.move.line', active_ids=move.line_ids.ids).create({
             'action': 'change_period',
             'date': '2018-01-01',
             'percentage': 60,

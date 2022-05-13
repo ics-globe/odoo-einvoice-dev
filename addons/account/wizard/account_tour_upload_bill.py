@@ -100,7 +100,7 @@ class AccountTourUploadBill(models.TransientModel):
                 'invoice_date': invoice_date,
                 'invoice_date_due': invoice_date + timedelta(days=30),
                 'journal_id': purchase_journal.id,
-                'invoice_line_ids': [
+                'line_ids': [
                     Command.create({
                         'name': "[FURN_8999] Three-Seat Sofa",
                         'quantity': 5,

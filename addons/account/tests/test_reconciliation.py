@@ -32,7 +32,7 @@ class TestReconciliationExec(TestAccountReconciliationCommon):
             'invoice_date': '%s-07-01' % time.strftime('%Y'),
             'date': '%s-07-01' % time.strftime('%Y'),
             'currency_id': self.currency_usd_id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'quantity': 1, 'price_unit': 50.0, 'name': 'test'})
             ],
         })
@@ -246,7 +246,7 @@ class TestReconciliationExec(TestAccountReconciliationCommon):
             'currency_id': self.currency_usd_id,
             'invoice_date': '%s-07-01' % time.strftime('%Y'),
             'date': '%s-07-01' % time.strftime('%Y'),
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'product_id': self.product.id, 'quantity': 1, 'price_unit': 50.0})
             ],
         })
@@ -256,7 +256,7 @@ class TestReconciliationExec(TestAccountReconciliationCommon):
             'currency_id': self.currency_usd_id,
             'invoice_date': '%s-08-01' % time.strftime('%Y'),
             'date': '%s-08-01' % time.strftime('%Y'),
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'product_id': self.product.id, 'quantity': 1, 'price_unit': 50.0})
             ],
         })
@@ -548,12 +548,12 @@ class TestReconciliationExec(TestAccountReconciliationCommon):
             'invoice_date': '%s-01-01' % time.strftime('%Y'),
             'date': '%s-01-01' % time.strftime('%Y'),
             'currency_id': self.currency_usd_id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'quantity': 1, 'price_unit': 100.0, 'name': 'product that cost 100'})
             ],
         })
         invoice_cust_1.action_post()
-        aml = invoice_cust_1.invoice_line_ids[0]
+        aml = invoice_cust_1.line_ids[0]
         self.assertEqual(aml.credit, 50.0)
         #####
         # Day 2: Receive payment for half invoice Cust/1 (in USD)

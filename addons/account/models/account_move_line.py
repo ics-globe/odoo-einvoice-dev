@@ -13,7 +13,7 @@ INTEGRITY_HASH_LINE_FIELDS = ('debit', 'credit', 'account_id', 'partner_id')
 class AccountMoveLine(models.Model):
     _name = "account.move.line"
     _description = "Journal Item"
-    _order = "date desc, move_name desc, id"
+    _order = "date desc, move_name desc, sequence, id"
     _check_company_auto = True
 
     # ==== Parent fields ====
@@ -27,6 +27,7 @@ class AccountMoveLine(models.Model):
     company_currency_id = fields.Many2one(related='move_id.company_currency_id', string='Company Currency',
         readonly=True, store=True,
         help='Utility field to express amount currency')
+    sequence = fields.Integer()
 
     # === Accountable fields === #
     account_id = fields.Many2one(
@@ -59,11 +60,12 @@ class AccountMoveLine(models.Model):
         compute='_compute_cumulated_balance',
         help="Cumulated balance depending on the domain and the order chosen in the view.")
     currency_rate = fields.Float(
-        compute='_compute_currency_rate', store=True, readonly=False, precompute=True,
+        compute='_compute_currency_rate',
+        help="Currency rate from company currency to document currency.",
     )
     amount_currency = fields.Monetary(
         string='Amount in Currency',
-        compute='_compute_amount_currency', inverse='_inverse_amount_currency',
+        compute='_compute_amount_currency', inverse='_inverse_amount_currency', store=True, readonly=False,
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
     currency_id = fields.Many2one(
         'res.currency', string='Currency', required=True,
@@ -298,17 +300,19 @@ class AccountMoveLine(models.Model):
                 date=line.move_id.date or fields.Date.context_today(line),
             )
 
-    @api.depends('balance', 'currency_rate')
+    @api.depends('currency_rate')
     def _compute_amount_currency(self):
         for line in self:
-            line.amount_currency = line.currency_id.round(line.balance * line.currency_rate)
+            if not line.amount_currency:
+                line.amount_currency = line.currency_id.round(line.balance * line.currency_rate)
 
-    @api.onchange('amount_currency')
+    @api.onchange('amount_currency', 'currency_rate', 'currency_id')
     def _inverse_amount_currency(self):
         for line in self:
-            balance = line.currency_id.round(line.amount_currency / line.currency_rate)
-            if line.balance != balance:
-                line.balance = balance
+            balance = line.company_id.currency_id.round(line.amount_currency / line.currency_rate)
+            # print('ac', line.amount_currency, line.balance)
+            # if line.balance != balance:
+            #     line.balance = balance
             # currency_rate = line.amount_currency / line.balance if line.balance else 1
             # if line.currency_rate != currency_rate:
             #     line.currency_rate = currency_rate
@@ -347,7 +351,7 @@ class AccountMoveLine(models.Model):
         for record in self:
             record.cumulated_balance = result[record.id]
 
-    @api.depends('debit', 'credit', 'currency_rate', 'account_id', 'currency_id', 'move_id.state', 'company_id',
+    @api.depends('debit', 'credit', 'amount_currency', 'account_id', 'currency_id', 'move_id.state', 'company_id',
                  'matched_debit_ids', 'matched_credit_ids')
     def _compute_amount_residual(self):
         """ Computes the residual amount of a move line from a reconcilable account in the company currency and the line's currency.
@@ -569,8 +573,8 @@ class AccountMoveLine(models.Model):
                 vals.pop('credit', None)
             else:
                 vals['balance'] = vals.pop('debit', 0) - vals.pop('credit', 0)
-        if 'balance' in vals and 'amount_currency' in vals:
-            vals['currency_rate'] = vals.pop('amount_currency') / vals['balance'] if vals['balance'] else 1
+        # if 'balance' in vals and 'amount_currency' in vals:
+        #     vals['currency_rate'] = vals.pop('amount_currency') / vals['balance'] if vals['balance'] else 1
         return vals
 
     @api.model_create_multi

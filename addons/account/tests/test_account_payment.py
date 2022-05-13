@@ -720,7 +720,7 @@ class TestAccountPayment(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'name': '50 to pay',
                 'price_unit': 50.0,
                 'quantity': 1,

@@ -16,7 +16,7 @@ class TestAccountTax(AccountTestInvoicingCommon):
         self.env['account.move'].create({
             'move_type': 'out_invoice',
             'date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {
                     'name': 'invoice_line',
                     'quantity': 1.0,

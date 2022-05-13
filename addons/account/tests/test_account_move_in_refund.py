@@ -135,7 +135,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
 
     def test_in_refund_line_onchange_product_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.product_id = self.product_b
         move_form.save()
 
@@ -187,7 +187,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
 
     def test_in_refund_line_onchange_business_fields_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             # Current price_unit is 800.
             # We set quantity = 4, discount = 50%, price_unit = 400. The debit/credit fields don't change because (4 * 400) * 0.5 = 800.
             line_form.quantity = 4
@@ -376,11 +376,11 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
 
         # Remove lines and recreate them to apply the fiscal position.
         move_form = Form(self.invoice)
-        move_form.invoice_line_ids.remove(0)
-        move_form.invoice_line_ids.remove(0)
-        with move_form.invoice_line_ids.new() as line_form:
+        move_form.line_ids.remove(0)
+        move_form.line_ids.remove(0)
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = self.product_a
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.product_id = self.product_b
         move_form.save()
 
@@ -439,7 +439,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
 
     def test_in_refund_line_onchange_taxes_1(self):
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.price_unit = 960
             line_form.tax_ids.add(self.tax_armageddon)
         move_form.save()
@@ -547,7 +547,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         ], self.move_vals)
 
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             line_form.price_unit = 799.99
         move_form.save()
 
@@ -606,7 +606,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_cash_rounding_id': self.cash_rounding_b.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {
                     'product_id': self.product_a.id,
                     'price_unit': 799.99,
@@ -771,7 +771,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         })
 
         move_form = Form(self.invoice)
-        with move_form.invoice_line_ids.edit(0) as line_form:
+        with move_form.line_ids.edit(0) as line_form:
             # 0.045 * 0.1 = 0.0045. As the foreign currency has a 0.001 rounding,
             # the result should be 0.005 after rounding.
             line_form.quantity = 0.1
@@ -874,8 +874,8 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         copy_invoice = self.invoice.copy()
 
         move_form = Form(self.invoice)
-        move_form.invoice_line_ids.remove(0)
-        move_form.invoice_line_ids.remove(0)
+        move_form.line_ids.remove(0)
+        move_form.line_ids.remove(0)
         move_form.invoice_vendor_bill_id = copy_invoice
         move_form.save()
 
@@ -895,7 +895,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -955,7 +955,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_1['product_id'],
                     'product_uom_id': self.product_line_vals_1['product_uom_id'],
@@ -965,7 +965,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             ],
         })
         move.write({
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'product_id': self.product_line_vals_2['product_id'],
                     'product_uom_id': self.product_line_vals_2['product_uom_id'],
@@ -1022,7 +1022,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             'invoice_date': fields.Date.from_string('2019-01-01'),
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.pay_terms_a.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, None, self.product_line_vals_1),
                 (0, None, self.product_line_vals_2),
             ]

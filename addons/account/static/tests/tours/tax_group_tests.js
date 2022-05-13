@@ -43,15 +43,15 @@ tour.register('account_tax_group', {
     // Add First product
     {
         content: "Add items",
-        trigger: 'div[name="invoice_line_ids"] .o_field_x2many_list_row_add a:contains("Add a line")',
+        trigger: 'div[name="line_ids"] .o_field_x2many_list_row_add a:contains("Add a line")',
     },
     {
         content: "Select input",
-        trigger: 'div[name="invoice_line_ids"] .o_list_view .o_selected_row .o_list_many2one:first input',
+        trigger: 'div[name="line_ids"] .o_list_view .o_selected_row .o_list_many2one:first input',
     },
     {
         content: "Type item",
-        trigger: 'div[name="invoice_line_ids"] .o_list_view .o_selected_row .o_list_many2one:first input',
+        trigger: 'div[name="line_ids"] .o_list_view .o_selected_row .o_list_many2one:first input',
         run: "text Large Desk",
     },
     {
@@ -90,16 +90,16 @@ tour.register('account_tax_group', {
     // Modify the quantity of the object
     {
         content: "Select item quantity",
-        trigger: 'div[name="invoice_line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"]',
+        trigger: 'div[name="line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"]',
     },
     {
         content: "Change item quantity",
-        trigger: 'div[name="invoice_line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"] input',
+        trigger: 'div[name="line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"] input',
         run: 'text 2',
     },
     {
         content: "Valid the new value",
-        trigger: 'div[name="invoice_line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"] input',
+        trigger: 'div[name="line_ids"] .o_list_view tbody tr.o_data_row .o_list_number[title="1.00"] input',
         run: function (actions) {
             let keydownEvent = jQuery.Event('keydown');
             keydownEvent.which = 13;

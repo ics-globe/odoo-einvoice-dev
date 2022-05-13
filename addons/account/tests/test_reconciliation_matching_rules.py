@@ -173,7 +173,7 @@ class TestReconciliationMatchingRules(AccountTestInvoicingCommon):
             invoice_form.ref = ref
         if name:
             invoice_form.name = name
-        with invoice_form.invoice_line_ids.new() as invoice_line_form:
+        with invoice_form.line_ids.new() as invoice_line_form:
             invoice_line_form.name = 'xxxx'
             invoice_line_form.quantity = 1
             invoice_line_form.price_unit = amount

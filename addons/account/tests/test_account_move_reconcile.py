@@ -2364,7 +2364,7 @@ class TestAccountMoveReconcile(AccountTestInvoicingCommon):
         tax = self.cash_basis_tax_a_third_amount
 
         # line with analytic account, will generate 2 lines in CABA move
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.name = "test line with analytic account"
             line_form.product_id = self.product_a
             line_form.tax_ids.clear()
@@ -2374,7 +2374,7 @@ class TestAccountMoveReconcile(AccountTestInvoicingCommon):
 
         # line with analytic account, will generate other 2 lines in CABA move
         # even if the tax is the same
-        with move_form.invoice_line_ids.new() as line_form:
+        with move_form.line_ids.new() as line_form:
             line_form.name = "test line"
             line_form.product_id = self.product_a
             line_form.tax_ids.clear()
@@ -2482,7 +2482,7 @@ class TestAccountMoveReconcile(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
             'date': '2019-01-01',
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'name': 'line',
                 'account_id': self.company_data['default_account_expense'].id,
                 'price_unit': 1000.0,
@@ -2547,7 +2547,7 @@ class TestAccountMoveReconcile(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_date': '2021-07-01',
             'fiscal_position_id': foreign_vat_fpos.id,
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': "test",
                     'price_unit': 100,

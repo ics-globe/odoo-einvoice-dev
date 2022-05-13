@@ -882,7 +882,7 @@ class TestAccountBankStatementLine(TestAccountBankStatementCommon):
                 'date': fields.Date.from_string('2016-01-01'),
                 'partner_id': self.partner_a.id,
                 'currency_id': counterpart_currency.id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'name': 'counterpart line, same amount',
                         'account_id': self.company_data['default_account_revenue'].id,
@@ -897,7 +897,7 @@ class TestAccountBankStatementLine(TestAccountBankStatementCommon):
                 'date': fields.Date.from_string('2016-01-01'),
                 'partner_id': self.partner_a.id,
                 'currency_id': counterpart_currency.id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'name': 'counterpart line, lower amount',
                         'account_id': self.company_data['default_account_revenue'].id,
@@ -912,7 +912,7 @@ class TestAccountBankStatementLine(TestAccountBankStatementCommon):
                 'date': fields.Date.from_string('2016-01-01'),
                 'partner_id': self.partner_a.id,
                 'currency_id': counterpart_currency.id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'name': 'counterpart line, bigger amount',
                         'account_id': self.company_data['default_account_revenue'].id,

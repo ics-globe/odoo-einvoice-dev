@@ -52,7 +52,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
             'currency_id': cls.currency_data['currency'].id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1000.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1000.0})],
         })
         cls.out_invoice_2 = cls.env['account.move'].create({
             'move_type': 'out_invoice',
@@ -60,21 +60,21 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
             'currency_id': cls.currency_data['currency'].id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 2000.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 2000.0})],
         })
         cls.out_invoice_3 = cls.env['account.move'].create({
             'move_type': 'out_invoice',
             'date': '2017-01-01',
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 12.01})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 12.01})],
         })
         cls.out_invoice_4 = cls.env['account.move'].create({
             'move_type': 'out_invoice',
             'date': '2017-01-01',
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 11.99})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 11.99})],
         })
         (cls.out_invoice_1 + cls.out_invoice_2 + cls.out_invoice_3 + cls.out_invoice_4).action_post()
 
@@ -84,14 +84,14 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'date': '2017-01-01',
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1000.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1000.0})],
         })
         cls.in_invoice_2 = cls.env['account.move'].create({
             'move_type': 'in_invoice',
             'date': '2017-01-01',
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 2000.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 2000.0})],
         })
         cls.in_invoice_3 = cls.env['account.move'].create({
             'move_type': 'in_invoice',
@@ -99,7 +99,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_b.id,
             'currency_id': cls.currency_data['currency'].id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 3000.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 3000.0})],
         })
         (cls.in_invoice_1 + cls.in_invoice_2 + cls.in_invoice_3).action_post()
 
@@ -109,7 +109,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
             'date': '2017-01-01',
             'invoice_date': '2017-01-01',
             'partner_id': cls.partner_a.id,
-            'invoice_line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1600.0})],
+            'line_ids': [(0, 0, {'product_id': cls.product_a.id, 'price_unit': 1600.0})],
         })
         cls.in_refund_1.action_post()
 

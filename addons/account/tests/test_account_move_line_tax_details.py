@@ -65,7 +65,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -168,7 +168,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
         })
 
         invoice.write({
-            'invoice_line_ids': [Command.update(base_lines[0].id, {
+            'line_ids': [Command.update(base_lines[0].id, {
                 'tax_ids': [Command.set(tax_group.ids)],
             })],
         })
@@ -252,7 +252,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -348,7 +348,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -402,7 +402,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -473,7 +473,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2021-08-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': "affecting",
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -553,7 +553,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line%s' % i,
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -634,7 +634,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_a.id,
                 'invoice_date': '2019-01-01',
-                'invoice_line_ids': [
+                'line_ids': [
                     Command.create({
                         'name': 'line1',
                         'account_id': self.company_data['default_account_revenue'].id,
@@ -681,7 +681,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -744,7 +744,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -804,7 +804,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -1054,7 +1054,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -1102,7 +1102,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -1143,7 +1143,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -1180,7 +1180,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.create({
                     'name': 'line1',
                     'account_id': self.company_data['default_account_revenue'].id,
@@ -1226,7 +1226,7 @@ class TestAccountTaxDetailsReport(AccountTestInvoicingCommon):
         })
 
         invoice.write({
-            'invoice_line_ids': [
+            'line_ids': [
                 Command.update(base_lines[0].id, {'tax_ids': [Command.set(tax_group.ids)]}),
                 Command.update(base_lines[1].id, {'tax_ids': [Command.set(tax_group.ids)]}),
             ],

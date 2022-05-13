@@ -121,7 +121,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': self.partner_a.id,
             'currency_id': self.curr_1.id,
-            'invoice_line_ids': [(0, 0, {'name': '/', 'price_unit': 2500.0})],
+            'line_ids': [(0, 0, {'name': '/', 'price_unit': 2500.0})],
         })
         out_invoice.action_post()
 
@@ -132,7 +132,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': self.partner_a.id,
             'currency_id': self.curr_1.id,
-            'invoice_line_ids': [(0, 0, {'name': '/', 'price_unit': 2500.0})],
+            'line_ids': [(0, 0, {'name': '/', 'price_unit': 2500.0})],
         })
         in_invoice.action_post()
 
@@ -157,7 +157,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': self.partner_a.id,
             'currency_id': self.curr_2.id,
-            'invoice_line_ids': [(0, 0, {'name': '/', 'price_unit': 7500.0})],
+            'line_ids': [(0, 0, {'name': '/', 'price_unit': 7500.0})],
         })
         out_invoice.action_post()
 
@@ -168,7 +168,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
             'invoice_date': '2017-01-01',
             'partner_id': self.partner_a.id,
             'currency_id': self.curr_2.id,
-            'invoice_line_ids': [(0, 0, {'name': '/', 'price_unit': 7500.0})],
+            'line_ids': [(0, 0, {'name': '/', 'price_unit': 7500.0})],
         })
         in_invoice.action_post()
 

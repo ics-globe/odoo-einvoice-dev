@@ -10,7 +10,7 @@ QUnit.module('section_and_note', {
         this.data = {
             invoice: {
                 fields: {
-                    invoice_line_ids: {
+                    line_ids: {
                         string: "Lines",
                         type: 'one2many',
                         relation: 'invoice_line',
@@ -18,7 +18,7 @@ QUnit.module('section_and_note', {
                     },
                 },
                 records: [
-                    {id: 1, invoice_line_ids: [1, 2]},
+                    {id: 1, line_ids: [1, 2]},
                 ],
             },
             invoice_line: {
@@ -53,7 +53,7 @@ QUnit.module('section_and_note', {
             model: 'invoice',
             data: this.data,
             arch: '<form>' +
-                    '<field name="invoice_line_ids" widget="section_and_note_one2many"/>' +
+                    '<field name="line_ids" widget="section_and_note_one2many"/>' +
                 '</form>',
             archs: {
                 'invoice_line,false,list': '<tree editable="bottom">' +
@@ -64,7 +64,7 @@ QUnit.module('section_and_note', {
             res_id: 1,
         });
 
-        assert.hasClass(form.$('[name="invoice_line_ids"] table'), 'o_section_and_note_list_view');
+        assert.hasClass(form.$('[name="line_ids"] table'), 'o_section_and_note_list_view');
 
         // section should be displayed correctly
         var $tr0 = form.$('tr.o_data_row:eq(0)');

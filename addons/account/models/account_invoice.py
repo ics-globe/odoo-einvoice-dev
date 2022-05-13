@@ -4,7 +4,7 @@ from itertools import zip_longest
 from markupsafe import Markup
 import re
 
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, Command
 from odoo.addons.account.models.account_move import TYPE_REVERSE_MAP
 from odoo.exceptions import ValidationError, RedirectWarning, UserError
 from odoo.tools import (
@@ -41,6 +41,7 @@ class AccountInvoice(models.AbstractModel):
     _name = 'account.invoice'
 
     # /!\ invoice_line_ids is just a subset of line_ids.
+    # TODO sanitize create/write vals
     invoice_line_ids = fields.One2many(
         'account.move.line',
         'move_id',
@@ -436,6 +437,7 @@ class AccountInvoice(models.AbstractModel):
         'line_ids.matched_credit_ids.credit_move_id.move_id.line_ids.amount_residual',
         'line_ids.matched_credit_ids.credit_move_id.move_id.line_ids.amount_residual_currency',
         'direction_sign',
+        'move_type',
         'line_ids.debit',
         'line_ids.credit',
         'line_ids.currency_id',
@@ -469,19 +471,19 @@ class AccountInvoice(models.AbstractModel):
                 if move._payment_state_matters():
                     # === Invoices ===
 
-                    if not line.exclude_from_invoice_tab:
+                    if line.display_type in ('product', 'rounding'):
                         # Untaxed amount.
                         total_untaxed += line.balance
                         total_untaxed_currency += line.amount_currency
                         total += line.balance
                         total_currency += line.amount_currency
-                    elif line.tax_line_id:
+                    elif line.display_type == 'tax':
                         # Tax amount.
                         total_tax += line.balance
                         total_tax_currency += line.amount_currency
                         total += line.balance
                         total_currency += line.amount_currency
-                    elif line.account_id.user_type_id.type in ('receivable', 'payable'):
+                    elif line.display_type == 'payment_term':
                         # Residual amount.
                         total_to_pay += line.balance
                         total_residual += line.amount_residual
@@ -503,7 +505,6 @@ class AccountInvoice(models.AbstractModel):
             move.amount_total_signed = abs(total) if move.move_type == 'entry' else -total
             move.amount_residual_signed = total_residual
             move.amount_total_in_currency_signed = abs(move.amount_total) if move.move_type == 'entry' else -(sign * move.amount_total)
-
 
     def _inverse_amount_total(self):
         return
@@ -560,29 +561,36 @@ class AccountInvoice(models.AbstractModel):
 
             invoice.payment_state = new_pmt_state
 
-    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_signed')
+    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_in_currency_signed')
     def _compute_needed_terms(self):
         for invoice in self:
             invoice.needed_terms = {}
             if invoice.is_invoice():
                 if invoice.invoice_payment_term_id:
-                    for date, amount in invoice.invoice_payment_term_id.compute(
-                        invoice.amount_total_signed,
+                    for date, (company_amount, foreign_amount) in invoice.invoice_payment_term_id.compute(
+                        company_value=invoice.amount_total_signed,
+                        foreign_value=invoice.amount_total_in_currency_signed,
                         date_ref=invoice.invoice_date or fields.Date.today(),
                         currency=invoice.currency_id,
                     ):
                         key = frozendict({'move_id': invoice.id, 'date_maturity': fields.Date.to_date(date)})
-                        values = {'balance': amount, 'name': invoice.payment_reference or ''}
+                        values = {
+                            'balance': company_amount,
+                            'amount_currency': foreign_amount,
+                            'name': invoice.payment_reference or '',
+                        }
                         if key not in invoice.needed_terms:
                             invoice.needed_terms[key] = values
                         else:
                             invoice.needed_terms[key]['balance'] += values['balance']
+                            invoice.needed_terms[key]['amount_currency'] += values['amount_currency']
                 else:
                     invoice.needed_terms[frozendict({
                         'move_id': invoice.id,
                         'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
                     })] = {
                         'balance': invoice.amount_total_signed,
+                        'amount_currency': invoice.amount_total_in_currency_signed,
                         'name': invoice.payment_reference or '',
                     }
 
@@ -674,7 +682,17 @@ class AccountInvoice(models.AbstractModel):
             reconciled_vals.append(self._get_reconciled_vals(partial, amount, counterpart_line))
         return reconciled_vals
 
-    @api.depends('line_ids.currency_rate', 'line_ids.tax_base_amount', 'line_ids.tax_line_id', 'partner_id', 'currency_id', 'amount_total', 'amount_untaxed')
+    @api.depends(
+        'invoice_line_ids.currency_rate',
+        'invoice_line_ids.tax_base_amount',
+        'invoice_line_ids.tax_line_id',
+        'invoice_line_ids.price_total',
+        'invoice_line_ids.price_subtotal',
+        'partner_id',
+        'currency_id',
+        'amount_total',
+        'amount_untaxed',
+    )
     def _compute_tax_totals(self):
         """ Computed field used for custom widget's rendering.
             Only set on invoices.
@@ -686,11 +704,14 @@ class AccountInvoice(models.AbstractModel):
                 continue
 
             tax_lines_data = move._prepare_tax_lines_data_for_totals_from_invoice()
+            # TODO
+            amount_total = sum(self.invoice_line_ids.mapped('price_total'))
+            amount_untaxed = sum(self.invoice_line_ids.mapped('price_subtotal'))
             move.tax_totals = self._get_tax_totals(
                 move.partner_id,
                 tax_lines_data,
-                move.amount_total,
-                move.amount_untaxed,
+                amount_total,
+                amount_untaxed,
                 move.currency_id,
             )
 
@@ -710,14 +731,14 @@ class AccountInvoice(models.AbstractModel):
         tax_line_id_filter = tax_line_id_filter or (lambda aml, tax: True)
         tax_ids_filter = tax_ids_filter or (lambda aml, tax: True)
 
-        balance_multiplicator = -1 if self.is_inbound() else 1
+        balance_multiplicator = -1 if self.is_outbound() else 1
         tax_lines_data = []
 
-        for line in self.line_ids:
+        for line in self.invoice_line_ids:
             if line.tax_line_id and tax_line_id_filter(line, line.tax_line_id):
                 tax_lines_data.append({
                     'line_key': 'tax_line_%s' % line.id,
-                    'tax_amount': line.amount_currency * balance_multiplicator,
+                    'tax_amount': line.price_subtotal * balance_multiplicator,
                     'tax': line.tax_line_id,
                 })
 
@@ -726,7 +747,7 @@ class AccountInvoice(models.AbstractModel):
                     if tax_ids_filter(line, base_tax):
                         tax_lines_data.append({
                             'line_key': 'base_line_%s' % line.id,
-                            'base_amount': line.amount_currency * balance_multiplicator,
+                            'base_amount': line.price_subtotal * balance_multiplicator,
                             'tax': base_tax,
                             'tax_affecting_base': line.tax_line_id,
                         })
@@ -940,7 +961,7 @@ class AccountInvoice(models.AbstractModel):
         for move in self.with_context(active_test=False):
             move.display_inactive_currency_warning = not move.currency_id.active
 
-    @api.depends('company_id.account_fiscal_country_id', 'fiscal_position_id.country_id', 'fiscal_position_id.foreign_vat')
+    @api.depends('company_id.account_fiscal_country_id', 'fiscal_position_id', 'fiscal_position_id.country_id', 'fiscal_position_id.foreign_vat')
     def _compute_tax_country_id(self):
         for record in self:
             if record.fiscal_position_id.foreign_vat:
@@ -988,6 +1009,7 @@ class AccountInvoice(models.AbstractModel):
     # -------------------------------------------------------------------------
 
     def _inverse_tax_totals(self):
+        return
         for move in self:
             if not move.is_invoice(include_receipts=True):
                 continue
@@ -1062,6 +1084,7 @@ class AccountInvoice(models.AbstractModel):
         a different country than the one allowed by the fiscal country or the fiscal position.
         This contrains ensure such account.move cannot be kept, as they could generate inconsistencies in the reports.
         """
+        self._compute_tax_country_id()  # TODO uh?
         for record in self:
             amls = record.line_ids
             impacted_countries = amls.tax_ids.country_id | amls.tax_line_id.country_id | amls.tax_tag_ids.country_id
@@ -1169,14 +1192,12 @@ class AccountInvoice(models.AbstractModel):
             '''
             rounding_line_vals = {
                 'balance': diff_balance,
-                'quantity': 1.0,
                 'partner_id': self.partner_id.id,
                 'move_id': self.id,
                 'currency_id': self.currency_id.id,
                 'company_id': self.company_id.id,
                 'company_currency_id': self.company_id.currency_id.id,
                 'display_type': 'rounding',
-                'sequence': 9999,
             }
 
             if self.invoice_cash_rounding_id.strategy == 'biggest_tax':
@@ -1194,6 +1215,7 @@ class AccountInvoice(models.AbstractModel):
                     'account_id': biggest_tax_line.account_id.id,
                     'tax_repartition_line_id': biggest_tax_line.tax_repartition_line_id.id,
                     'tax_tag_ids': [(6, 0, biggest_tax_line.tax_tag_ids.ids)],
+                    'tax_ids': [Command.set(biggest_tax_line.tax_ids.ids)]
                 })
 
             elif self.invoice_cash_rounding_id.strategy == 'add_invoice_line':
@@ -1204,14 +1226,12 @@ class AccountInvoice(models.AbstractModel):
                 rounding_line_vals.update({
                     'name': self.invoice_cash_rounding_id.name,
                     'account_id': account_id,
+                    'tax_ids': [Command.clear()]
                 })
 
             # Create or update the cash rounding line.
             if cash_rounding_line:
-                cash_rounding_line.update({
-                    'balance': rounding_line_vals['debit'] - rounding_line_vals['credit'],
-                    'account_id': rounding_line_vals['account_id'],
-                })
+                cash_rounding_line.write(rounding_line_vals)
             else:
                 cash_rounding_line = self.env['account.move.line'].create(rounding_line_vals)
 
@@ -1247,6 +1267,12 @@ class AccountInvoice(models.AbstractModel):
         _apply_cash_rounding(self, diff_balance, diff_amount_currency, existing_cash_rounding_line)
 
     @contextmanager
+    def _sync_rounding_lines(self):
+        yield
+        for invoice in self:
+            invoice._recompute_cash_rounding_lines()
+
+    @contextmanager
     def _sync_dynamic_line(self, existing_fname, needed_fname, line_type):
         def existing():
             return {line[existing_fname]: line for line in self.line_ids if line[existing_fname]}
@@ -1262,6 +1288,7 @@ class AccountInvoice(models.AbstractModel):
                     needed[key] = dict(values)
                 else:
                     needed[key]['balance'] += values['balance']
+                    needed[key]['amount_currency'] += values['amount_currency']
         before2after = {
             before: after
             for before, bline in existing_before.items()
@@ -1273,6 +1300,7 @@ class AccountInvoice(models.AbstractModel):
             line.id
             for key, line in existing_before.items()
             if key not in needed
+            and key in existing_after
             and before2after[key] not in needed
         }
         to_create = {
@@ -1281,26 +1309,28 @@ class AccountInvoice(models.AbstractModel):
             if key not in existing_after
         }
         to_write = {
-            existing_after[key]: values['balance']
+            existing_after[key]: values
             for key, values in needed.items()
-            if key in existing_before and existing_after[key].balance != values['balance']
+            if key in existing_after
+            and any(existing_after[key][fname] != values[fname] for fname in values)
         }
 
         # from pprint import pprint
         # print()
         # print(f"======== SYNC {line_type} ==========")
-        # print('before')
+        # print('= before')
         # pprint(existing_before)
-        # print('after')
+        # print('= after')
         # pprint(existing_after)
-        # print('needed')
+        # print('= needed')
         # pprint(needed)
         # pprint([line_type, to_create, to_write, to_delete])
+        # print(f"====================================")
 
         while to_delete and to_create:
             key, values = to_create.popitem()
             line_id = to_delete.pop()
-            self.env['account.move.line'].browse(line_id).update(
+            self.env['account.move.line'].browse(line_id).write(
                 {**key, **values, 'display_type': line_type}
             )
         if to_delete:
@@ -1311,8 +1341,8 @@ class AccountInvoice(models.AbstractModel):
                 for key, values in to_create.items()
             ])
         if to_write:
-            for line, balance in to_write.items():
-                line.balance = balance
+            for line, values in to_write.items():
+                line.write(values)
 
     @contextmanager
     def _sync_invoice(self):
@@ -1339,6 +1369,7 @@ class AccountInvoice(models.AbstractModel):
                 move.line_ids.filtered(lambda l: l.display_type == 'payment_term').name = after[move]['payment_reference']
             if changing('commercial_partner_id'):
                 move.line_ids.partner_id = after[move]['commercial_partner_id']
+        self.line_ids._sync_invoice()
 
     @contextmanager
     def _sync_dynamic_lines(self):
@@ -1353,6 +1384,7 @@ class AccountInvoice(models.AbstractModel):
                 needed_fname='needed_terms',
                 line_type='payment_term',
             ))
+            stack.enter_context(self._sync_rounding_lines())
             stack.enter_context(self._sync_dynamic_line(
                 existing_fname='tax_key',
                 needed_fname='line_ids.compute_all_tax',
@@ -1360,13 +1392,13 @@ class AccountInvoice(models.AbstractModel):
             ))
             stack.enter_context(self._sync_invoice())
             yield
-        self._check_balanced()
+        # self._check_balanced()
 
     @api.model_create_multi
     def create(self, vals_list):
-        moves = super().create(vals_list)
         from pprint import pprint
         # pprint(['create', vals_list])
+        moves = super().create(vals_list)
         with moves._sync_dynamic_lines():
             pass
         return moves
@@ -1407,8 +1439,6 @@ class AccountInvoice(models.AbstractModel):
 
             # Handle case when the invoice_date is not set. In that case, the invoice_date is set at today and then,
             # lines are recomputed accordingly.
-            # /!\ 'check_move_validity' must be there since the dynamic lines will be recomputed outside the 'onchange'
-            # environment.
             if not invoice.invoice_date:
                 if invoice.is_sale_document(include_receipts=True):
                     invoice.invoice_date = fields.Date.context_today(self)
@@ -1573,9 +1603,18 @@ class AccountInvoice(models.AbstractModel):
                 'move_type': move.move_type.replace('invoice', 'refund'),
                 'partner_bank_id': False,
                 'currency_id': move.currency_id.id,  # TODO uh?
+                'line_ids': [
+                    Command.update(line.id, {
+                        'quantity': -line.quantity,
+                        'price_unit': -line.price_unit,
+                    })
+                    if line.quantity < 0 else
+                    Command.update(line.id, {  # TODO not the best, mostly need to trigger a write
+                        'amount_currency': -line.amount_currency,
+                    })
+                    for line in move.line_ids.filtered(lambda l: l.display_type == 'product')
+                ]
             })
-            for line in move.invoice_line_ids:
-                line.quantity = -line.quantity
 
     def action_register_payment(self):
         ''' Open the account.payment.register wizard to pay the selected journal entries.

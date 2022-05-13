@@ -50,16 +50,16 @@ tour.register('account_tour', {
         content: Markup(_t("Once everything is set, you are good to continue. You will be able to edit this later in the <b>Customers</b> menu.")),
         auto: true,
     }, {
-        trigger: "div[name=invoice_line_ids] .o_field_x2many_list_row_add a:not([data-context])",
+        trigger: "div[name=line_ids] .o_field_x2many_list_row_add a:not([data-context])",
         extra_trigger: "[name=move_type][raw-value=out_invoice]",
         content: _t("Add a line to your invoice"),
     }, {
-        trigger: "div[name=invoice_line_ids] textarea[name=name]",
+        trigger: "div[name=line_ids] textarea[name=name]",
         extra_trigger: "[name=move_type][raw-value=out_invoice]",
         content: _t("Fill in the details of the line."),
         position: "bottom",
     }, {
-        trigger: "div[name=invoice_line_ids] input[name=price_unit]",
+        trigger: "div[name=line_ids] input[name=price_unit]",
         extra_trigger: "[name=move_type][raw-value=out_invoice]",
         content: _t("Set a price"),
         position: "bottom",

@@ -82,7 +82,7 @@ class TestInvoiceTaxes(AccountTestInvoicingCommon):
         vals = {
             'move_type': inv_type,
             'partner_id': self.partner_a.id,
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'name': 'xxxx',
                 'quantity': 1,
                 'price_unit': amount,
@@ -633,7 +633,7 @@ class TestInvoiceTaxes(AccountTestInvoicingCommon):
             'currency_id': self.currency_data['currency'].id,
             'invoice_date': '2018-01-01',
             'date': '2018-01-01',
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'name': 'xxxx',
                 'quantity': 20000,
                 'price_unit': 2.82,
@@ -678,7 +678,7 @@ class TestInvoiceTaxes(AccountTestInvoicingCommon):
             'currency_id': self.currency_data['currency'].id,
             'invoice_date': '2018-01-01',
             'date': '2018-01-01',
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'name': 'xxxx',
                 'quantity': 1,
                 'price_unit': 155.32,

@@ -82,7 +82,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-01',
-            'invoice_line_ids': invoice_lines_vals,
+            'line_ids': invoice_lines_vals,
         })
 
     def test_multiple_tax_lines(self):

@@ -17,7 +17,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'partner_id': cls.partner_a.id,
                 'invoice_date': fields.Date.from_string('2016-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 3,
@@ -34,7 +34,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'move_type': 'out_receipt',
                 'invoice_date': fields.Date.from_string('2016-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 1,
@@ -47,7 +47,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'partner_id': cls.partner_a.id,
                 'invoice_date': fields.Date.from_string('2017-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 1,
@@ -60,7 +60,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'partner_id': cls.partner_a.id,
                 'invoice_date': fields.Date.from_string('2016-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 1,
@@ -73,7 +73,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'partner_id': cls.partner_a.id,
                 'invoice_date': fields.Date.from_string('2016-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 1,
@@ -86,7 +86,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
                 'partner_id': cls.partner_a.id,
                 'invoice_date': fields.Date.from_string('2017-01-01'),
                 'currency_id': cls.currency_data['currency'].id,
-                'invoice_line_ids': [
+                'line_ids': [
                     (0, None, {
                         'product_id': cls.product_a.id,
                         'quantity': 1,

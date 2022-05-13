@@ -11,7 +11,6 @@ class AccountInvoiceLine(models.AbstractModel):
     _name = "account.invoice.line"
 
     currency_id = fields.Many2one('res.currency')  # compatibility for field definition
-    # account_id = fields.Many2one(compute='_compute_account_id', store=True, readonly=False, precompute=True)
 
     display_type = fields.Selection(
         selection=[
@@ -24,16 +23,16 @@ class AccountInvoiceLine(models.AbstractModel):
         ],
         default='product',
     )
+    sequence = fields.Integer(compute='_compute_sequence', store=True, readonly=False, precompute=True)
     exclude_from_invoice_tab = fields.Boolean(
         compute='_compute_exclude_from_invoice_tab',
-        help="Technical field used to exclude some lines from the invoice_line_ids "
+        help="Technical field used to exclude some lines from the line_ids "
              "tab in the form view.",
         store=True,  # TODO do not store
     )
-    sequence = fields.Integer(default=10)
     quantity = fields.Float(
         string='Quantity',
-        default=1.0,
+        compute='_compute_quantity', store=True, readonly=False, precompute=True,
         digits='Product Unit of Measure',
         help="The optional quantity expressed by this line, eg: number of product sold. "
              "The quantity is not a legal requirement but is very useful for some reports.",
@@ -67,12 +66,12 @@ class AccountInvoiceLine(models.AbstractModel):
     )
     price_subtotal = fields.Monetary(
         string='Subtotal',
-        compute='_compute_totals', store=True, readonly=False, precompute=True,
+        compute='_compute_totals',
         currency_field='currency_id',
     )
     price_total = fields.Monetary(
         string='Total',
-        compute='_compute_totals', store=True, readonly=False, precompute=True,
+        compute='_compute_totals',
         currency_field='currency_id',
     )
     date_maturity = fields.Date(
@@ -199,7 +198,7 @@ class AccountInvoiceLine(models.AbstractModel):
                 for model, id, internal_type, account_id in self.env.cr.fetchall()
             }
             for line in term_lines:
-                internal_type = 'receivable' if line.move_id.is_inbound() else 'payable'
+                internal_type = 'receivable' if line.move_id.is_sale_document() else 'payable'
                 move = line.move_id
                 line.account_id = (
                     accounts.get(('account.move', move.id, None))
@@ -213,30 +212,54 @@ class AccountInvoiceLine(models.AbstractModel):
     @api.depends('display_type')
     def _compute_exclude_from_invoice_tab(self):
         for line in self:
-            line.exclude_from_invoice_tab = line.display_type in ('tax', 'payment_term')
+            line.exclude_from_invoice_tab = line.display_type in ('tax', 'payment_term', 'rounding')
 
     @api.depends('product_id')
     def _compute_product_uom_id(self):
         for line in self:
             line.product_uom_id = line.product_id.uom_id
 
+    @api.depends('display_type')
+    def _compute_quantity(self):
+        for line in self:
+            line.quantity = 1 if line.display_type == 'product' else False
+
+    @api.depends('display_type')
+    def _compute_sequence(self):
+        seq_map = {
+            'tax': 8000,
+            'rounding': 9999,
+            'payment_term': 10000,
+        }
+        for line in self:
+            line.sequence = seq_map.get(line.display_type, 100)
+
     @api.depends('quantity', 'discount', 'price_unit', 'tax_ids', 'currency_id')
     def _compute_totals(self):
         for line in self:
             if line.exclude_from_invoice_tab:
-                continue
-            line.update(line._get_price_total_and_subtotal_model(
-                price_unit=line.price_unit,
-                quantity=line.quantity,
-                discount=line.discount,
-                currency=line.currency_id,
-                product=line.product_id,
-                partner=line.partner_id,
-                taxes=line.tax_ids,
-                move_type=line.move_id.move_type,
-            ))
+                line.price_total = line.price_subtotal = False
+            # Compute 'price_subtotal'.
+            line_discount_price_unit = line.price_unit * (1 - (line.discount / 100.0))
+            subtotal = line.quantity * line_discount_price_unit
 
-    @api.depends('product_id', 'product_uom_id', 'currency_rate')
+            # Compute 'price_total'.
+            if line.tax_ids:
+                force_sign = -1 if line.move_id.move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
+                taxes_res = line.tax_ids.with_context(force_sign=force_sign).compute_all(
+                    line_discount_price_unit,
+                    quantity=line.quantity,
+                    currency=line.currency_id,
+                    product=line.product_id,
+                    partner=line.partner_id,
+                    is_refund=line.move_id.move_type in ('out_refund', 'in_refund'),
+                )
+                line.price_subtotal = taxes_res['total_excluded']
+                line.price_total = taxes_res['total_included']
+            else:
+                line.price_total = line.price_subtotal = subtotal
+
+    @api.depends('product_id', 'product_uom_id')
     def _compute_price_unit(self):
         for line in self:
             if not line.product_id or line.display_type in ('line_section', 'line_note'):
@@ -312,7 +335,7 @@ class AccountInvoiceLine(models.AbstractModel):
         # if currency and currency != company_currency:
         #     product_price_unit = company_currency._convert(product_price_unit, currency, company, move_date)
 
-        return product_price_unit  * self.currency_rate
+        return product_price_unit# * self.currency_rate
 
     @api.depends('product_id', 'product_uom_id')
     def _compute_tax_ids(self):
@@ -375,13 +398,14 @@ class AccountInvoiceLine(models.AbstractModel):
                     'move_id': line.move_id.id,
                 })
             else:
-                line.tax_key = False
+                line.tax_key = frozendict({'id': line.id})
 
     @api.depends('tax_ids', 'currency_id', 'partner_id', 'analytic_tag_ids', 'analytic_account_id', 'balance', 'partner_id', 'move_id.partner_id')
     def _compute_all_tax(self):
         for line in self:
-            compute_all = line.tax_ids.with_context(force_sign=-1 if line.move_id.is_inbound() else 1).compute_all(
-                line.price_unit / line.currency_rate * (1 - line.discount / 100) or -line.balance,
+            sign = -1 if line.move_id.is_inbound() else 1
+            compute_all_currency = line.tax_ids.with_context(force_sign=sign).compute_all(
+                sign * line.price_unit * (1 - line.discount / 100) or line.amount_currency,
                 currency=line.currency_id,
                 quantity=line.quantity,
                 product=line.product_id,
@@ -390,21 +414,39 @@ class AccountInvoiceLine(models.AbstractModel):
                 handle_price_include=line.move_id.is_invoice(),
                 include_caba_tags=line.move_id.always_tax_exigible,
             )
-            line.compute_all_tax = {frozendict({
-                'tax_repartition_line_id': tax['tax_repartition_line_id'],
-                'group_tax_id': tax['group'] and tax['group'].id or False,
-                'account_id': tax['account_id'] or line.account_id.id,
-                'currency_id': line.currency_id.id,
-                'analytic_tag_ids': [(6, 0, tax['analytic'] and line.analytic_tag_ids.ids or [])],
-                'analytic_account_id': tax['analytic'] and line.analytic_account_id.id,
-                'tax_ids': [(6, 0, tax['tax_ids'])],
-                'tax_tag_ids': [(6, 0, tax['tag_ids'])],
-                'partner_id': (line.move_id or line).partner_id.id,
-                'move_id': line.move_id.id,
-            }): {
-                'name': tax['name'],
-                'balance': -tax['amount']
-            } for tax in compute_all['taxes']}
+            compute_all = line.tax_ids.with_context(force_sign=sign).compute_all(
+                sign * line.price_unit / line.currency_rate * (1 - line.discount / 100) or line.balance,
+                currency=line.currency_id,
+                quantity=line.quantity,
+                product=line.product_id,
+                partner=line.move_id.partner_id or line.partner_id,
+                is_refund=line.move_id.move_type in ('in_refund', 'out_refund'),
+                handle_price_include=line.move_id.is_invoice(),
+                include_caba_tags=line.move_id.always_tax_exigible,
+            )
+            line.compute_all_tax = {
+                frozendict({
+                    'tax_repartition_line_id': tax['tax_repartition_line_id'],
+                    'group_tax_id': tax['group'] and tax['group'].id or False,
+                    'account_id': tax['account_id'] or line.account_id.id,
+                    'currency_id': line.currency_id.id,
+                    'analytic_tag_ids': [(6, 0, tax['analytic'] and line.analytic_tag_ids.ids or [])],
+                    'analytic_account_id': tax['analytic'] and line.analytic_account_id.id,
+                    'tax_ids': [(6, 0, tax['tax_ids'])],
+                    'tax_tag_ids': [(6, 0, tax['tag_ids'])],
+                    'partner_id': (line.move_id or line).partner_id.id,
+                    'move_id': line.move_id.id,
+                }): {
+                    'name': tax['name'],
+                    'balance': tax['amount'],
+                    'amount_currency': tax_currency['amount'],
+                }
+                for tax, tax_currency in zip(compute_all['taxes'], compute_all_currency['taxes'])
+            }
+            if not line.tax_repartition_line_id:
+                line.compute_all_tax[frozendict({'id': line.id})] = {
+                    'tax_tag_ids': self.env['account.account.tag'].browse(compute_all['base_tags']),
+                }
 
     @api.depends('date_maturity')
     def _compute_term_key(self):
@@ -446,40 +488,6 @@ class AccountInvoiceLine(models.AbstractModel):
                 )
                 if rec:
                     record.analytic_tag_ids = rec.analytic_tag_ids
-
-    @api.model
-    def _get_price_total_and_subtotal_model(self, price_unit, quantity, discount, currency, product, partner, taxes, move_type):
-        ''' This method is used to compute 'price_total' & 'price_subtotal'.
-
-        :param price_unit:  The current price unit.
-        :param quantity:    The current quantity.
-        :param discount:    The current discount.
-        :param currency:    The line's currency.
-        :param product:     The line's product.
-        :param partner:     The line's partner.
-        :param taxes:       The applied taxes.
-        :param move_type:   The type of the move.
-        :return:            A dictionary containing 'price_subtotal' & 'price_total'.
-        '''
-        res = {}
-
-        # Compute 'price_subtotal'.
-        line_discount_price_unit = price_unit * (1 - (discount / 100.0))
-        subtotal = quantity * line_discount_price_unit
-
-        # Compute 'price_total'.
-        if taxes:
-            force_sign = -1 if move_type in ('out_invoice', 'in_refund', 'out_receipt') else 1
-            taxes_res = taxes._origin.with_context(force_sign=force_sign).compute_all(line_discount_price_unit,
-                quantity=quantity, currency=currency, product=product, partner=partner, is_refund=move_type in ('out_refund', 'in_refund'))
-            res['price_subtotal'] = taxes_res['total_excluded']
-            res['price_total'] = taxes_res['total_included']
-        else:
-            res['price_total'] = res['price_subtotal'] = subtotal
-        #In case of multi currency, round before it's use for computing debit credit
-        if currency:
-            res = {k: currency.round(v) for k, v in res.items()}
-        return res
 
     # -------------------------------------------------------------------------
     # ANALYTIC
@@ -591,22 +599,17 @@ class AccountInvoiceLine(models.AbstractModel):
                 line._copy_data_extend_business_fields(values)
         return res
 
-    @contextmanager
-    def _sync_invoice(self, create=False):
-        def values():
-            return {
-                line: {
-                    'price_subtotal': line.price_subtotal,
-                }
-                for line in self.filtered(lambda l: l.move_id.is_invoice())
-            }
-        before = values() if not create else {line: {} for line in self}
-        yield
-        after = values()
-
-        for line in self.filtered(lambda l: l.move_id.is_invoice()):
-            if line.display_type == 'product' and before[line].get('price_subtotal') != after[line]['price_subtotal']:
-                line.balance = -after[line]['price_subtotal'] / line.currency_rate
+    def _sync_invoice(self):
+        if self.env.context.get('skip_sync_invoice'):
+            return  # avoid infinite recursion
+        for line in self.with_context(skip_sync_invoice=True).filtered(lambda l: l.move_id.is_invoice() and l.display_type == 'product'):
+            sign = line.move_id.direction_sign
+            balance = sign * line.company_id.currency_id.round(line.price_subtotal / line.currency_rate)
+            amount_currency = sign * line.currency_id.round(line.price_subtotal)
+            if line.amount_currency != amount_currency:
+                line.amount_currency = amount_currency
+            if line.balance != line.amount_currency / line.currency_rate:
+                line.balance = balance
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -615,8 +618,9 @@ class AccountInvoiceLine(models.AbstractModel):
         moves = self.env['account.move'].browse({vals['move_id'] for vals in vals_list})
         with moves._sync_dynamic_lines():
             lines = super().create(vals_list)
-            with lines.with_context(check_move_validity=False)._sync_invoice(create=True):
-                pass
+            lines.with_context(check_move_validity=False)._sync_invoice()
+        if self.env.context.get('check_move_validity', True):
+            lines.move_id._check_balanced()
         return lines
 
     def write(self, vals):
@@ -624,8 +628,11 @@ class AccountInvoiceLine(models.AbstractModel):
             return True
         from pprint import pprint
         # pprint(['write', self, vals])
-        with self.move_id._sync_dynamic_lines(), self.with_context(check_move_validity=False)._sync_invoice():
+        with self.move_id._sync_dynamic_lines():
             res = super().write(vals)
+            self.with_context(check_move_validity=False)._sync_invoice()
+        if self.env.context.get('check_move_validity', True):
+            self.move_id._check_balanced()
         return res
 
     # -------------------------------------------------------------------------

@@ -175,7 +175,7 @@ class TaxReportTest(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
             'date': '1992-12-22',
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'quantity': 1, 'price_unit': 42, 'tax_ids': [(6, 0, test_tax.ids)]}),
             ],
         })

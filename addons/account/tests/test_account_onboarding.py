@@ -22,7 +22,7 @@ class TestTourRenderInvoiceReport(AccountTestInvoicingHttpCommon):
             'partner_id': cls.partner_a.id,
             'invoice_date': '2019-05-01',
             'date': '2019-05-01',
-            'invoice_line_ids': [
+            'line_ids': [
                 (0, 0, {'name': 'line1', 'price_unit': 100.0}),
             ],
         })

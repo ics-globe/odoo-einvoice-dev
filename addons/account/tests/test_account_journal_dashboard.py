@@ -17,7 +17,7 @@ class TestAccountJournalDashboard(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-21',
             'date': '2019-01-21',
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'product_id': self.product_a.id,
                 'quantity': 40.0,
                 'name': 'product test 1',
@@ -31,7 +31,7 @@ class TestAccountJournalDashboard(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'invoice_date': '2019-01-21',
             'date': '2019-01-21',
-            'invoice_line_ids': [(0, 0, {
+            'line_ids': [(0, 0, {
                 'product_id': self.product_a.id,
                 'quantity': 1.0,
                 'name': 'product test 1',

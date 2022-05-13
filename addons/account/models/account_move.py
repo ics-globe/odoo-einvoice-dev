@@ -988,6 +988,7 @@ class AccountMove(models.Model):
         reverse_moves.write({'line_ids': [
             Command.update(line.id, {'balance': -line.balance})
             for line in reverse_moves.line_ids
+            if line.move_id.move_type == 'entry'
         ]})
         reverse_moves._check_balanced()
 
