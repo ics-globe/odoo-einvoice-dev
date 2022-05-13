@@ -446,7 +446,7 @@ class CustomerPortal(Controller):
         if report_type not in ('html', 'pdf', 'text'):
             raise UserError(_("Invalid report type: %s", report_type))
 
-        Report = request.env['ir.actions.report'].with_user(SUPERUSER_ID)
+        Report = request.env['ir.actions.report'].sudo()
 
         if hasattr(model, 'company_id'):
             if len(model.company_id) > 1:
