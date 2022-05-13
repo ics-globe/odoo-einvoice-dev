@@ -70,14 +70,15 @@ class Website(models.Model):
             ('go_to_cart', 'Go to cart'),
         ],
         default='stay')
+    auth_signup_uninvited = fields.Selection(default='b2c')
     account_on_checkout = fields.Selection(
         string="Customer Accounts",
         selection=[
-            ('optional', 'Optional'),
-            ('disabled', 'Disabled (buy as guest)'),
-            ('mandatory', 'Mandatory (no guest checkout)'),
+            ("disabled", "can't"),
+            ("optional", "can"),
+            ("mandatory", "must"),
         ],
-        default='optional')
+        default="optional")
 
     @api.depends('all_pricelist_ids')
     def _compute_pricelist_ids(self):

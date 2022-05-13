@@ -30,20 +30,7 @@
             <div id="website_info_settings" position="after">
                 <h2>Shop - Checkout Process</h2>
                 <div class="row mt16 o_settings_container" id="website_shop_checkout">
-                    <div class="col-12 col-lg-6 o_setting_box" id="cart_redirect_setting">
-                        <div class="o_setting_right_pane">
-                            <label for="add_to_cart_action" string="Add to Cart"/>
-                            <div class="text-muted">
-                                What should be done on "Add to Cart"?
-                            </div>
-                            <div class="content-group">
-                                <div class="row mt16 ml-4">
-                                    <field name="add_to_cart_action" widget="radio"/>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="col-12 col-lg-6 o_setting_box" id="buy_now_setting">
                         <div class="o_setting_left_pane">
                             <field name="enabled_buy_now_button"/>
                         </div>
@@ -76,6 +63,19 @@
                             <label for="module_website_sale_digital"/>
                             <div class="text-muted">
                                 Add download link for customers at the end of checkout
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box" id="cart_redirect_setting">
+                        <div class="o_setting_right_pane">
+                            <label for="add_to_cart_action" string="Add to Cart"/>
+                            <div class="text-muted">
+                                What should be done on "Add to Cart"?
+                            </div>
+                            <div class="content-group">
+                                <div class="row mt16 ml-4">
+                                    <field name="add_to_cart_action" widget="radio"/>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -340,15 +340,18 @@
                 </div>
             </div>
 
-            <div id="cart_redirect_setting" position="after">
+            <div id="buy_now_setting" position="after">
                 <div id="website_login_documents" position="move"/>
             </div>
-            <xpath expr="//div[@id='website_login_documents']/div[hasclass('o_setting_right_pane')]" position="inside">
-                <div class="text-muted" attrs="{'invisible': [('auth_signup_uninvited', '!=', 'b2c')]}">
-                    Choose if you prompt to create an account on check out
-                </div>
-                <div class="mt8 ml-4" attrs="{'invisible': [('auth_signup_uninvited', '!=', 'b2c')]}">
-                    <field name="account_on_checkout" class="w-75" widget="radio"/>
+            <xpath expr="//div[@id='website_login_documents']/div[hasclass('o_setting_right_pane')]" position="replace">
+                <div class="o_setting_right_pane">
+                    <label for="account_on_checkout"/>
+                    <div class="text-muted">
+                        During checkout, customers <field name="account_on_checkout" class="oe_inline"/> create an account.
+                    </div>
+                    <!-- <div class="mt8 ml-4">
+                        <field name="account_on_checkout" class="w-75" widget="radio"/>
+                    </div> -->
                 </div>
             </xpath>
 
