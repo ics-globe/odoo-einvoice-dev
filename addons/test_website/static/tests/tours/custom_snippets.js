@@ -2,6 +2,7 @@ odoo.define('test_website.custom_snippets', function (require) {
 'use strict';
 
 var tour = require('web_tour.tour');
+const wTourUtils = require('website.tour_utils');
 
 /**
  * The purpose of this tour is to check the custom snippets flow:
@@ -23,7 +24,7 @@ var tour = require('web_tour.tour');
  */
 
 tour.register('test_custom_snippet', {
-    url: '/?enable_editor=1',
+    url: wTourUtils.getClientActionUrl('/', true),
     test: true
 }, [
     {
