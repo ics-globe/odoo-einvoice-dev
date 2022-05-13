@@ -23,6 +23,10 @@ class TestUBLCommon(AccountEdiTestCommon):
         real_usd.flush(['name'])
         cls.currency_data['currency'].name = 'USD'
 
+        # remove this tax, otherwise, at import, this tax with children taxes can be selected and the total is wrong
+        cls.tax_armageddon.children_tax_ids.unlink()
+        cls.tax_armageddon.unlink()
+
     @classmethod
     def setup_company_data(cls, company_name, chart_template=None, **kwargs):
         # OVERRIDE to force the company with EUR currency.
@@ -33,16 +37,6 @@ class TestUBLCommon(AccountEdiTestCommon):
         res = super().setup_company_data(company_name, chart_template=chart_template, **kwargs)
         res['company'].currency_id = eur
         return res
-
-    @classmethod
-    def _get_tax_by_xml_id(cls, tax_xml_id):
-        """ Helper to retrieve a tax easily.
-
-        :param tax_xml_id:  The tax template's xml id.
-        :return:            An account.tax record
-        """
-        module, trailing_id = tax_xml_id.split('.')
-        return cls.env.ref(f'{module}.{cls.env.company.id}_{trailing_id}')
 
     def assert_same_invoice(self, invoice1, invoice2, **invoice_kwargs):
         self.assertEqual(len(invoice1.invoice_line_ids), len(invoice2.invoice_line_ids))
@@ -69,11 +63,15 @@ class TestUBLCommon(AccountEdiTestCommon):
         } for line, invoice_line_kwargs in zip(invoice1.invoice_line_ids, invoice_line_kwargs_list)])
 
     # -------------------------------------------------------------------------
-    # IMPORT
+    # IMPORT HELPERS
     # -------------------------------------------------------------------------
 
     @freeze_time('2017-01-01')
-    def _import_invoice(self, invoice, xml_etree, xml_filename):
+    def _assert_imported_invoice_from_etree(self, invoice, xml_etree, xml_filename):
+        """
+        Create an account.move directly from an xml file, asserts the invoice obtained is the same as the expected
+        invoice.
+        """
         new_invoice = self.edi_format._create_invoice_from_xml_tree(
             xml_filename,
             xml_etree,
@@ -83,7 +81,11 @@ class TestUBLCommon(AccountEdiTestCommon):
         self.assertTrue(new_invoice)
         self.assert_same_invoice(invoice, new_invoice)
 
-    def _import_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, move_type='in_invoice', currency_id=None):
+    def _assert_imported_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, move_type='in_invoice', currency_id=None):
+        """
+        Create an empty account.move, update the file to fill its fields, asserts the currency, total and tax amounts
+        are as expected.
+        """
         if not currency_id:
             currency_id = self.env.ref('base.EUR').id
 
@@ -109,11 +111,14 @@ class TestUBLCommon(AccountEdiTestCommon):
         }])
 
     # -------------------------------------------------------------------------
-    # EXPORT
+    # EXPORT HELPERS
     # -------------------------------------------------------------------------
 
     @freeze_time('2017-01-01')
-    def _generate_invoice(self, seller, buyer, **invoice_kwargs):
+    def _generate_move(self, seller, buyer, **invoice_kwargs):
+        """
+        Create and post an account.move.
+        """
         # Setup the seller.
         self.env.company.write({
             'partner_id': seller.id,
@@ -126,7 +131,7 @@ class TestUBLCommon(AccountEdiTestCommon):
         })
 
         move_type = invoice_kwargs['move_type']
-        invoice = self.env['account.move'].create({
+        account_move = self.env['account.move'].create({
             'partner_id': buyer.id,
             'partner_bank_id': (seller if move_type == 'out_invoice' else buyer).bank_ids[:1].id,
             'invoice_payment_term_id': self.pay_terms_b.id,
@@ -144,20 +149,22 @@ class TestUBLCommon(AccountEdiTestCommon):
                 for i, invoice_line_kwargs in enumerate(invoice_kwargs.get('invoice_line_ids', []))
             ],
         })
-        return invoice
-
-    def _export_invoice(self, seller, buyer, xpaths='', expected_file='', export_file=False, **invoice_kwargs):
-        invoice = self._generate_invoice(seller, buyer, **invoice_kwargs)
         # this is needed for formats not enabled by default on the journal
-        invoice.journal_id.edi_format_ids += self.edi_format
-        invoice.action_post()
+        account_move.journal_id.edi_format_ids += self.edi_format
+        account_move.action_post()
+        return account_move
+
+    def _assert_invoice_attachment(self, invoice, xpaths, expected_file):
+        """
+        Get attachment from a posted account.move, and asserts it's the same as the expected xml file.
+        """
         attachment = invoice._get_edi_attachment(self.edi_format)
         self.assertTrue(attachment)
         xml_filename = attachment.name
         xml_content = base64.b64decode(attachment.with_context(bin_size=False).datas)
         xml_etree = self.get_xml_tree_from_string(xml_content)
 
-        expected_file_path = get_resource_path('l10n_account_edi_ubl_cii_tests', 'test_files', expected_file)
+        expected_file_path = get_resource_path('l10n_account_edi_ubl_cii_tests', 'tests/test_files', expected_file)
         expected_etree = self.get_xml_tree_from_string(file_open(expected_file_path, "r").read())
 
         modified_etree = self.with_applied_xpath(
@@ -170,4 +177,4 @@ class TestUBLCommon(AccountEdiTestCommon):
             modified_etree,
         )
 
-        return invoice, xml_etree, xml_filename
+        return xml_etree, xml_filename

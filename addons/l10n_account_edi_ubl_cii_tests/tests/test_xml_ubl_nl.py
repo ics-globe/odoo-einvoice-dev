@@ -57,29 +57,6 @@ class TestUBLNL(TestUBLCommon):
             'country_id': cls.env.ref('base.nl').id,
         })
 
-        cls.acc_bank = cls.env['res.partner.bank'].create({
-            'acc_number': 'NL123456',
-            'partner_id': cls.company_data['company'].partner_id.id,
-        })
-
-        cls.invoice = cls.env['account.move'].create({
-            'move_type': 'out_invoice',
-            'journal_id': cls.journal.id,
-            'partner_id': cls.partner_1.id,
-            'partner_bank_id': cls.acc_bank,
-            'invoice_date': '2017-01-01',
-            'date': '2017-01-01',
-            'currency_id': cls.currency_data['currency'].id,
-            'invoice_line_ids': [(0, 0, {
-                'product_id': cls.product_a.id,
-                'product_uom_id': cls.env.ref('uom.product_uom_dozen').id,
-                'price_unit': 275.0,
-                'quantity': 5,
-                'discount': 20.0,
-                'tax_ids': [(6, 0, cls.tax_19.ids)],
-            })],
-        })
-
     @classmethod
     def setup_company_data(cls, company_name, chart_template):
         # OVERRIDE
@@ -96,28 +73,9 @@ class TestUBLNL(TestUBLCommon):
     ####################################################
 
     def test_export_import_invoice(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
+        invoice = self._generate_move(
             self.partner_1,
             self.partner_2,
-            xpaths='''
-                <xpath expr="./*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                    <PaymentID>___ignore___</PaymentID>
-                </xpath>
-            ''',
-            expected_file='test_nl_out_invoice.xml',
-            export_file='export_out_invoice.xml',
             move_type='out_invoice',
             invoice_line_ids=[
                 {
@@ -144,32 +102,34 @@ class TestUBLNL(TestUBLCommon):
                 },
             ],
         )
-        self.assertEqual(xml_filename[-10:], "nlcius.xml")
-        self._import_invoice(invoice, xml_etree, xml_filename)
-
-    def test_export_import_refund(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
-            self.partner_1,
-            self.partner_2,
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            invoice,
             xpaths='''
                 <xpath expr="./*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
             ''',
-            expected_file='test_nl_out_refund.xml',
-            export_file='export_out_refund.xml',
+            expected_file='test_nl_out_invoice.xml',
+        )
+        self.assertEqual(xml_filename[-10:], "nlcius.xml")
+        self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
+
+    def test_export_import_refund(self):
+        refund = self._generate_move(
+            self.partner_1,
+            self.partner_2,
             move_type='out_refund',
             invoice_line_ids=[
                 {
@@ -196,14 +156,35 @@ class TestUBLNL(TestUBLCommon):
                 },
             ],
         )
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            refund,
+            xpaths='''
+                <xpath expr="./*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
+                    <PaymentID>___ignore___</PaymentID>
+                </xpath>
+            ''',
+            expected_file='test_nl_out_refund.xml',
+        )
         self.assertEqual(xml_filename[-10:], "nlcius.xml")
-        self._import_invoice(invoice, xml_etree, xml_filename)
+        self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
 
     ####################################################
     # Test import
     ####################################################
 
     def test_import_invoice_xml(self):
-        # ddd test files https://github.com/peppolautoriteit-nl/validation ?
-        self._import_invoice_from_file(subfolder='test_files', filename='test_nl_out_invoice.xml', amount_total=3083.58,
+        # test files https://github.com/peppolautoriteit-nl/validation ?
+        self._assert_imported_invoice_from_file(subfolder='tests/test_files', filename='test_nl_out_invoice.xml', amount_total=3083.58,
                                        amount_tax=401.58, currency_id=self.currency_data['currency'].id)

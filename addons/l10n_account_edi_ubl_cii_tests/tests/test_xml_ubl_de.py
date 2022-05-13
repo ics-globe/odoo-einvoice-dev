@@ -52,29 +52,6 @@ class TestUBLDE(TestUBLCommon):
             'country_id': cls.env.ref('base.de').id,
         })
 
-        cls.acc_bank = cls.env['res.partner.bank'].create({
-            'acc_number': 'BE15001559627232',
-            'partner_id': cls.company_data['company'].partner_id.id,
-        })
-
-        cls.invoice = cls.env['account.move'].create({
-            'move_type': 'out_invoice',
-            'journal_id': cls.journal.id,
-            'partner_id': cls.partner_1.id,
-            'partner_bank_id': cls.acc_bank,
-            'invoice_date': '2017-01-01',
-            'date': '2017-01-01',
-            'currency_id': cls.currency_data['currency'].id,
-            'invoice_line_ids': [(0, 0, {
-                'product_id': cls.product_a.id,
-                'product_uom_id': cls.env.ref('uom.product_uom_dozen').id,
-                'price_unit': 275.0,
-                'quantity': 5,
-                'discount': 20.0,
-                'tax_ids': [(6, 0, cls.tax_19.ids)],
-            })],
-        })
-
     @classmethod
     def setup_company_data(cls, company_name, chart_template):
         # OVERRIDE
@@ -92,51 +69,10 @@ class TestUBLDE(TestUBLCommon):
     # Test export - import
     ####################################################
 
-    def test_export_pdf(self):
-        # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
-        self.invoice.action_post()
-        self.assertEqual(self.invoice.edi_document_ids.mapped('name'), ['INV_2017_00001_ubl_de.xml'])
-
-        # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
-        invoice = self._generate_invoice(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 2.0,
-                    'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
-                    'price_unit': 990.0,
-                    'tax_ids': [(6, 0, self.tax_19.ids)],
-                },
-            ],
-        )
-        invoice.action_post()
-
     def test_export_import_invoice(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
+        invoice = self._generate_move(
             self.partner_1,
             self.partner_2,
-            xpaths='''
-                <xpath expr="./*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                    <PaymentID>___ignore___</PaymentID>
-                </xpath>
-            ''',
-            expected_file='test_de_out_invoice.xml',
-            export_file='export_out_invoice.xml',
             move_type='out_invoice',
             invoice_line_ids=[
                 {
@@ -163,32 +99,34 @@ class TestUBLDE(TestUBLCommon):
                 },
             ],
         )
-        self.assertEqual(xml_filename[-10:], "ubl_de.xml")
-        self._import_invoice(invoice, xml_etree, xml_filename)
-
-    def test_export_import_refund(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
-            self.partner_1,
-            self.partner_2,
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            invoice,
             xpaths='''
                 <xpath expr="./*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
                 <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
             ''',
-            expected_file='test_de_out_refund.xml',
-            export_file='export_out_refund.xml',
+            expected_file='test_de_out_invoice.xml',
+        )
+        self.assertEqual(xml_filename[-10:], "ubl_de.xml")
+        self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
+
+    def test_export_import_refund(self):
+        refund = self._generate_move(
+            self.partner_1,
+            self.partner_2,
             move_type='out_refund',
             invoice_line_ids=[
                 {
@@ -215,15 +153,36 @@ class TestUBLDE(TestUBLCommon):
                 },
             ],
         )
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            refund,
+            xpaths='''
+                <xpath expr="./*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
+                    <PaymentID>___ignore___</PaymentID>
+                </xpath>
+            ''',
+            expected_file='test_de_out_refund.xml',
+        )
         self.assertEqual(xml_filename[-10:], "ubl_de.xml")
-        self._import_invoice(invoice, xml_etree, xml_filename)
+        self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
 
     ####################################################
     # Test import
     ####################################################
 
     def test_import_invoice_xml(self):
-        self._import_invoice_from_file(subfolder='test_files', filename='test_de_out_invoice.xml', amount_total=3083.58,
+        self._assert_imported_invoice_from_file(subfolder='tests/test_files', filename='test_de_out_invoice.xml', amount_total=3083.58,
                                        amount_tax=401.58, currency_id=self.currency_data['currency'].id)
 
     def test_import_export_invoice_xml(self):
@@ -231,9 +190,31 @@ class TestUBLDE(TestUBLCommon):
         Test whether the elements which are only specific to ubl_de are correctly exported
         and imported in the xml file
         """
-        partner = self.invoice.commercial_partner_id
-        self.invoice.action_post()
-        attachment = self.invoice._get_edi_attachment(self.edi_format)
+        acc_bank = self.env['res.partner.bank'].create({
+            'acc_number': 'BE15001559627232',
+            'partner_id': self.company_data['company'].partner_id.id,
+        })
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'journal_id': self.journal.id,
+            'partner_id': self.partner_1.id,
+            'partner_bank_id': acc_bank,
+            'invoice_date': '2017-01-01',
+            'date': '2017-01-01',
+            'currency_id': self.currency_data['currency'].id,
+            'invoice_line_ids': [(0, 0, {
+                'product_id': self.product_a.id,
+                'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+                'price_unit': 275.0,
+                'quantity': 5,
+                'discount': 20.0,
+                'tax_ids': [(6, 0, self.tax_19.ids)],
+            })],
+        })
+
+        partner = invoice.commercial_partner_id
+        invoice.action_post()
+        attachment = invoice._get_edi_attachment(self.edi_format)
         self.assertTrue(attachment)
         xml_content = base64.b64decode(attachment.with_context(bin_size=False).datas)
         xml_etree = self.get_xml_tree_from_string(xml_content)

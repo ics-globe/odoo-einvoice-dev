@@ -131,15 +131,15 @@ class AccountEdiDocument(models.Model):
                 if move_result.get('success') is True:
                     document.write({
                         'state': 'sent',
+                        'error': False,
+                        'blocking_level': False,
                     })
-                # TODO: this is done because if we have an error for one of the account.edi.document (eg: bank is
-                #  missing), status is not set to 'sent' (and remains 'To Send'), and then, it's not possible to
-                #  uncheck the account.edi.format on the journal linked to the account.move, because some documents
-                #  have status 'To Send' -> very annoying.
-                document.write({
-                    'error': move_result.get('error', False),
-                    'blocking_level': move_result.get('blocking_level', DEFAULT_BLOCKING_LEVEL) if 'error' in move_result else False,
-                })
+                else:
+                    document.write({
+                        'error': move_result.get('error', False),
+                        'blocking_level': move_result.get('blocking_level',
+                                                          DEFAULT_BLOCKING_LEVEL) if 'error' in move_result else False,
+                    })
 
             # Attachments that are not explicitly linked to a business model could be removed because they are not
             # supposed to have any traceability from the user.

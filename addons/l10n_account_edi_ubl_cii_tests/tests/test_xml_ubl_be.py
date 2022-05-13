@@ -67,14 +67,6 @@ class TestUBLBE(TestUBLCommon):
             'country_id': cls.env.ref('base.be').id,
         })
 
-        cls.tax_0 = cls.env['account.tax'].create({
-            'name': 'tax_0',
-            'amount_type': 'percent',
-            'amount': 0,
-            'type_tax_use': 'sale',
-            'country_id': cls.env.ref('base.be').id,
-        })
-
         cls.acc_bank = cls.env['res.partner.bank'].create({
             'acc_number': 'BE15001559627231',
             'partner_id': cls.company_data['company'].partner_id.id,
@@ -113,51 +105,10 @@ class TestUBLBE(TestUBLCommon):
     # Test export - import
     ####################################################
 
-    def test_export_xml(self):
-        # post the invoice created in the setupclass -> only generate the xml from the edi_format_ref param
-        self.invoice.action_post()
-        self.assertEqual(self.invoice.edi_document_ids.mapped('name'), ['INV_2017_00001_ubl_bis3.xml'])
-
-        # create a new invoice -> generates all the xmls (if multiple), as if we created an invoice in the UI.
-        invoice = self._generate_invoice(
-            self.partner_1,
-            self.partner_2,
-            move_type='out_invoice',
-            invoice_line_ids=[
-                {
-                    'product_id': self.product_a.id,
-                    'quantity': 2.0,
-                    'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
-                    'price_unit': 990.0,
-                    'tax_ids': [(6, 0, self.tax_21.ids)],
-                },
-            ],
-        )
-        invoice.action_post()
-
     def test_export_import_invoice(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
+        invoice = self._generate_move(
             self.partner_1,
             self.partner_2,
-            xpaths='''
-                <xpath expr="./*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
-                    <PaymentID>___ignore___</PaymentID>
-                </xpath>
-            ''',
-            expected_file='test_be_out_invoice.xml',
-            export_file='export_out_invoice.xml',
             move_type='out_invoice',
             invoice_line_ids=[
                 {
@@ -184,32 +135,34 @@ class TestUBLBE(TestUBLCommon):
                 },
             ],
         )
-        self.assertEqual(xml_filename[-12:], "ubl_bis3.xml")  # ensure we test the right format !
-        self._import_invoice(invoice, xml_etree, xml_filename)
-
-    def test_export_import_refund(self):
-        invoice, xml_etree, xml_filename = self._export_invoice(
-            self.partner_1,
-            self.partner_2,
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            invoice,
             xpaths='''
                 <xpath expr="./*[local-name()='ID']" position="replace">
                     <ID>___ignore___</ID>
                 </xpath>
-                <xpath expr="./*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
+                <xpath expr=".//*[local-name()='InvoiceLine'][1]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='InvoiceLine'][2]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='InvoiceLine'][3]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
-                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
-                    <ID>___ignore___</ID>
-                </xpath>
             ''',
-            expected_file='test_be_out_refund.xml',
-            export_file='export_out_refund.xml',
+            expected_file='test_be_out_invoice.xml',
+        )
+        self.assertEqual(xml_filename[-12:], "ubl_bis3.xml")  # ensure we test the right format !
+        self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
+
+    def test_export_import_refund(self):
+        refund = self._generate_move(
+            self.partner_1,
+            self.partner_2,
             move_type='out_refund',
             invoice_line_ids=[
                 {
@@ -236,16 +189,33 @@ class TestUBLBE(TestUBLCommon):
                 },
             ],
         )
+        xml_etree, xml_filename = self._assert_invoice_attachment(
+            refund,
+            xpaths='''
+                <xpath expr="./*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr="./*[local-name()='PaymentMeans']/*[local-name()='PaymentID']" position="replace">
+                    <PaymentID>___ignore___</PaymentID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][1]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][2]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+                <xpath expr=".//*[local-name()='CreditNoteLine'][3]/*[local-name()='ID']" position="replace">
+                    <ID>___ignore___</ID>
+                </xpath>
+            ''',
+            expected_file='test_be_out_refund.xml',
+        )
         self.assertEqual(xml_filename[-12:], "ubl_bis3.xml")
-        self._import_invoice(invoice, xml_etree, xml_filename)
+        self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
 
     ####################################################
     # Test import
     ####################################################
-
-    def test_import_invoice_xml(self):
-        self._import_invoice_from_file(subfolder='test_files', filename='test_be_out_invoice.xml', amount_total=3164.22,
-                                       amount_tax=482.22, currency_id=self.currency_data['currency'].id)
 
     def test_import_export_invoice_xml(self):
         """
@@ -277,26 +247,26 @@ class TestUBLBE(TestUBLCommon):
         created_bill = self.env['account.move'].browse(action_vals['res_id'])
         self.assertTrue(created_bill)
 
-    ####################################################
-    # Test Import
-    ####################################################
+    def test_import_invoice_xml(self):
+        self._assert_imported_invoice_from_file(subfolder='tests/test_files', filename='test_be_out_invoice.xml', amount_total=3164.22,
+                                       amount_tax=482.22, currency_id=self.currency_data['currency'].id)
 
-    def test_open_peppol_xml_import(self):
+    def test_import_invoice_xml_open_peppol_examples(self):
         # Source: https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/rules/examples
-        subfolder = 'test_files/peppol-bis-invoice-3'
-        self._import_invoice_from_file(subfolder=subfolder, filename='Allowance-example.xml', amount_total=6125,
+        subfolder = 'tests/test_files/peppol-bis-invoice-3'
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Allowance-example.xml', amount_total=6125,
                                        amount_tax=1225)
-        self._import_invoice_from_file(subfolder=subfolder, filename='base-creditnote-correction.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-creditnote-correction.xml',
                                        amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        self._import_invoice_from_file(subfolder=subfolder, filename='base-example.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-example.xml',
                                        amount_total=1656.25, amount_tax=331.25)
-        self._import_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
                                        amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
                                        amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)
-        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
                                        amount_total=3200, amount_tax=0, currency_id=self.env.ref('base.SEK').id)
-        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
                                        amount_total=8550, amount_tax=1550)
-        self._import_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
                                        amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)
