@@ -192,7 +192,7 @@ Field.parseFieldNode = function (node, models, modelName, viewType, jsClass) {
         name,
         viewType,
         context: node.getAttribute("context") || "{}",
-        domain: new Domain(node.getAttribute("domain") || []),
+        domain: node.getAttribute("domain") || [],
         string: node.getAttribute("string") || field.string,
         widget,
         modifiers: JSON.parse(node.getAttribute("modifiers") || "{}"),
