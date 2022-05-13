@@ -10,10 +10,10 @@ from odoo.exceptions import UserError
 class IrActionsReport(models.Model):
     _inherit = 'ir.actions.report'
 
-    def _render_qweb_pdf_prepare_streams(self, data, res_ids=None):
+    def _render_qweb_pdf_prepare_streams(self, report_ref, data, res_ids=None):
         # Custom behavior for 'account.report_original_vendor_bill'.
-        if self.report_name != 'account.report_original_vendor_bill':
-            return super()._render_qweb_pdf_prepare_streams(data, res_ids=res_ids)
+        if report_ref != 'account.report_original_vendor_bill':
+            return super()._render_qweb_pdf_prepare_streams(report_ref, data, res_ids=res_ids)
 
         invoices = self.env['account.move'].browse(res_ids)
         if any(x.move_type not in ('in_invoice', 'in_receipt') for x in invoices):

@@ -615,28 +615,28 @@ class IrActionsReport(models.Model):
         writer.write(result_stream)
         return result_stream
 
-    def _render_qweb_pdf_prepare_streams(self, data, res_ids=None):
+    def _render_qweb_pdf_prepare_streams(self, report_ref, data, res_ids=None):
         if not data:
             data = {}
         data.setdefault('report_type', 'pdf')
 
-        # access the report details with sudo() but evaluation context as sudo(False)
-        self_sudo = self.sudo()
+        # access the report details with sudo() but evaluation context as current user
+        report_sudo = self._get_report(report_ref)
 
         collected_streams = OrderedDict()
 
         # Fetch the existing attachments from the database for later use.
         # Reload the stream from the attachment in case of 'attachment_use'.
         if res_ids:
-            records = self.env[self_sudo.model].browse(res_ids)
+            records = self.env[report_sudo.model].browse(res_ids)
             for record in records:
                 stream = None
                 attachment = None
-                if self_sudo.attachment:
-                    attachment = self_sudo.retrieve_attachment(record)
+                if report_sudo.attachment:
+                    attachment = report_sudo.retrieve_attachment(record)
 
                     # Extract the stream from the attachment.
-                    if attachment and self_sudo.attachment_use:
+                    if attachment and report_sudo.attachment_use:
                         stream = io.BytesIO(attachment.raw)
 
                         # Ensure the stream can be saved in Image.
@@ -684,11 +684,11 @@ class IrActionsReport(models.Model):
             if not config['test_enable']:
                 additional_context['commit_assetsbundle'] = True
 
-            html = self_sudo.with_context(**additional_context)._render_qweb_html(res_ids_wo_stream, data=data)[0]
+            html = self.with_context(**additional_context)._render_qweb_html(report_ref, res_ids_wo_stream, data=data)[0]
 
-            bodies, html_ids, header, footer, specific_paperformat_args = self._prepare_html(html, report_model=self_sudo.model)
+            bodies, html_ids, header, footer, specific_paperformat_args = self._prepare_html(html, report_model=report_sudo.model)
 
-            if self_sudo.attachment and set(res_ids) != set(html_ids):
+            if report_sudo.attachment and set(res_ids) != set(html_ids):
                 raise UserError(_(
                     "The report's template %r is wrong, please contact your administrator. \n\n"
                     "Can not separate file to save as attachment because the report's template does not contains the"
@@ -770,7 +770,7 @@ class IrActionsReport(models.Model):
         if (tools.config['test_enable'] or tools.config['test_file']) and not self.env.context.get('force_report_rendering'):
             return self._render_qweb_html(report_ref, res_ids, data=data)
 
-        collected_streams = self._render_qweb_pdf_prepare_streams(data, res_ids=res_ids)
+        collected_streams = self._render_qweb_pdf_prepare_streams(report_ref, data, res_ids=res_ids)
 
         # access the report details with sudo() but keep evaluation context as current user
         report_sudo = self._get_report(report_ref)
