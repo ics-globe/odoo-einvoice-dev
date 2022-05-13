@@ -548,7 +548,7 @@ QUnit.test('do not show messaging seen indicator if before last seen by all mess
         },
     ]);
      await createRootMessagingComponent(env, "Message", {
-        props: { record: threadViewer.threadView.messageViews[0] },
+        props: { record: threadViewer.threadView.messageListView.messageViews[0] },
         target,
     });
 
