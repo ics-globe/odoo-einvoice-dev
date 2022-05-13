@@ -38,6 +38,10 @@ let serverData;
 let target;
 QUnit.module('Views', {
     beforeEach: async function () {
+        // Avoid animation to not have to wait until the tooltip is removed
+        this.initialTooltipDefaultAnimation = Tooltip.Default.animation;
+        Tooltip.Default.animation = false;
+
         registry.category("services").add("scroller", scrollerService);
 
         target = getFixture();
@@ -177,6 +181,9 @@ QUnit.module('Views', {
             actions,
             models: this.data,
         };
+    },
+    afterEach: async function () {
+        Tooltip.Default.animation = this.initialTooltipDefaultAnimation;
     },
 }, function () {
 
@@ -1563,27 +1570,27 @@ QUnit.module('Views', {
 
         const $fooLabel1 = form.$('.o_form_label:nth(0)');
         $fooLabel1.tooltip('show', false);
-        $fooLabel1.trigger($.Event('mouseenter'));
+        $fooLabel1[0].dispatchEvent(new Event('mouseover'));
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(), "foo tooltip");
-        $fooLabel1.trigger($.Event('mouseleave'));
+        $fooLabel1[0].dispatchEvent(new Event('mouseout'));
 
         const $fooLabel2 = form.$('.o_form_label:nth(2)');
         $fooLabel2.tooltip('show', false);
-        $fooLabel2.trigger($.Event('mouseenter'));
+        $fooLabel2[0].dispatchEvent(new Event('mouseover'));
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(), "foo tooltip");
-        $fooLabel2.trigger($.Event('mouseleave'));
+        $fooLabel2[0].dispatchEvent(new Event('mouseout'));
 
         const $barLabel1 = form.$('.o_form_label:nth(1)');
         $barLabel1.tooltip('show', false);
-        $barLabel1.trigger($.Event('mouseenter'));
+        $barLabel1[0].dispatchEvent(new Event('mouseover'));
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(), "bar tooltip");
-        $barLabel1.trigger($.Event('mouseleave'));
+        $barLabel1[0].dispatchEvent(new Event('mouseout'));
 
         const $barLabel2 = form.$('.o_form_label:nth(3)');
         $barLabel2.tooltip('show', false);
-        $barLabel2.trigger($.Event('mouseenter'));
+        $barLabel2[0].dispatchEvent(new Event('mouseover'));
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(), "bar tooltip");
-        $barLabel2.trigger($.Event('mouseleave'));
+        $barLabel2[0].dispatchEvent(new Event('mouseout'));
 
         odoo.debug = initialDebugMode;
         form.destroy();
@@ -8176,6 +8183,7 @@ QUnit.module('Views', {
         assert.strictEqual($('.tooltip .oe_tooltip_string').length, 1,
             "should have rendered a tooltip");
         $secondButton.trigger($.Event('mouseleave'));
+        $secondButton.tooltip('hide');
 
         odoo.debug = initialDebugMode;
         form.destroy();
@@ -8566,6 +8574,7 @@ QUnit.module('Views', {
         assert.strictEqual($('.oe_tooltip_technical>li[data-item="widget"]')[0].lastChild.wholeText.trim(),
             'Many2one (many2one)', "widget description should be correct");
 
+        $field.tooltip('hide');
         odoo.debug = initialDebugMode;
         form.destroy();
     });
@@ -9841,7 +9850,7 @@ QUnit.module('Views', {
         form.$buttons.find('.o_form_buttons_edit').tooltip('show',false);
         assert.strictEqual($('.tooltip .oe_tooltip_string').length, 1,
             "should have rendered a tooltip");
-            await testUtils.nextTick();
+        form.$buttons.find('.o_form_buttons_edit').tooltip('hide');
         form.destroy();
     });
     QUnit.test('if the focus is on the save button, hitting ENTER should save', async function (assert) {
@@ -10127,17 +10136,17 @@ QUnit.module('Views', {
 
         const $productLabel = form.$('.o_form_label:eq(1)');
         $productLabel.tooltip('show', false);
-        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseenter');
+        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseover');
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(),
             "this is a tooltip\n\nValues set here are company-specific.");
-        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseleave');
+        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseout');
 
         const $fooLabel = form.$('.o_form_label:first');
         $fooLabel.tooltip('show', false);
-        await testUtils.dom.triggerMouseEvent($fooLabel, 'mouseenter');
+        await testUtils.dom.triggerMouseEvent($fooLabel, 'mouseover');
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(),
             "Values set here are company-specific.");
-        await testUtils.dom.triggerMouseEvent($fooLabel, 'mouseleave');
+        await testUtils.dom.triggerMouseEvent($fooLabel, 'mouseout');
 
         form.destroy();
     });
@@ -10166,9 +10175,9 @@ QUnit.module('Views', {
         const $productLabel = form.$('.o_form_label');
 
         $productLabel.tooltip('show', false);
-        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseenter');
+        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseover');
         assert.strictEqual($('.tooltip .oe_tooltip_help').text().trim(), "this is a tooltip");
-        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseleave');
+        await testUtils.dom.triggerMouseEvent($productLabel, 'mouseout');
 
         form.destroy();
     });
