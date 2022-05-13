@@ -253,7 +253,7 @@ function registerThemeHomepageTour(name, steps) {
         saveAs: "homepage",
     }, prepend_trigger(
         steps.concat(clickOnSave()),
-        "html[data-view-xmlid='website.homepage'] "
+        ".o_website_editor[data-iframe-view-xmlid='website.homepage'] "
     ));
 }
 
