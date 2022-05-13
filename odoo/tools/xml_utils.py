@@ -257,3 +257,21 @@ def load_xsd_files_from_url(env, url, xsd_name, force_reload=False,
                 _logger.warning("Failed to retrieve XSD file with name %s from ZIP archive", file_name)
 
     return fetched_attachment
+
+
+def validate_xml_from_attachment(env, xml_content, xsd_name, reload_files_function=None):
+    """Try and validate the XML content with an XSD attachment.
+    If the XSD attachment cannot be found in database, (re)load it.
+
+    :param odoo.api.Environment env: environment of calling module
+    :param xml_content: the XML content to validate
+    :param xsd_name: the XSD file name in database
+    :return: the result of the function :func:`odoo.tools.xml_utils._check_with_xsd`
+    """
+    try:
+        _check_with_xsd(xml_content, xsd_name, env)
+    except FileNotFoundError:
+        if not reload_files_function:
+            _logger.warning("You need to provide a function used to (re)load XSD files")
+        reload_files_function()
+        _check_with_xsd(xml_content, xsd_name, env)
