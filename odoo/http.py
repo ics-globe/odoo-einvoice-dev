@@ -132,6 +132,10 @@ from datetime import datetime
 from os.path import join as opj
 
 import babel.core
+import geoip2.database
+import geoip2.models
+import geoip2.errors
+import maxminddb
 import psycopg2
 import werkzeug.datastructures
 import werkzeug.exceptions
@@ -156,7 +160,6 @@ from .modules.registry import Registry
 from .service import security, model as service_model
 from .tools import (config, consteq, date_utils, profiler, resolve_attr,
                     submap, unique, ustr,)
-from .tools.geoipresolver import GeoIPResolver
 from .tools.func import filter_kwargs, lazy_property
 from .tools.mimetypes import guess_mimetype
 from .tools._vendor import sessions
@@ -192,6 +195,14 @@ CSRF_FREE_METHODS = ('GET', 'HEAD', 'OPTIONS', 'TRACE')
 
 # The default csrf token lifetime, a salt against BREACH, one year
 CSRF_TOKEN_SALT = 60 * 60 * 24 * 365
+
+DEPRECATED_GEOIP_API_MESSAGE = (
+    "The geoip dictionnary API is deprecated. Please replace "
+    '"request.geoip[{old_dict_item!r}]" by {new_expression!r}. '
+    "Please note that the latter expression evaluates to None when the "
+    "ip geolocalization failed. You don't need to be clever or use "
+    "getattr() or hasattr()."
+)
 
 # The default lang to use when the browser doesn't specify it
 DEFAULT_LANG = 'en_US'
@@ -830,6 +841,124 @@ class Session(collections.abc.MutableMapping):
         self.is_dirty = True
 
 
+
+# =========================================================
+# GeoIP
+# =========================================================
+
+class GeoIP(collections.abc.Mapping):
+    """
+    Ip Geolocalization utility, determine information such as the
+    country or the timezone of the user based on his IP Address.
+
+    The instances share the same API as `:class:`geoip2.models.City`
+    <https://geoip2.readthedocs.io/en/latest/#geoip2.models.City>`_.
+
+    When the IP couldn't be geolocalized (missing database, bad address)
+    then an empty object is returned. This empty object can be used like
+    a regular one with the exception that all info are set None.
+
+    :param str ip: The IP Address to geo-localize
+
+    .. note:
+
+        The geoip info the the current request are available at
+        :attr:`~odoo.http.request.geoip`.
+
+    .. code-block:
+
+        >>> GeoIP('127.0.0.1').country.iso_code
+        >>> GeoIP('178.33.40.43').country.iso_code  # odoo.com
+        'FR'
+    """
+
+    # Two empty objects used when the geolocalization failed. They have
+    # the sames attributes as real countries/cities except that
+    # accessing them evaluates to None.
+    empty_country = geoip2.models.Country({})
+    empty_city = geoip2.models.City({})
+
+    def __init__(self, ip):
+        self.ip = ip
+
+    @lazy_property
+    def _city_record(self):
+        try:
+            return root.geoip_city_db.city(self.ip)
+        except geoip2.errors.AddressNotFoundError:
+            return self.empty_city
+
+    @lazy_property
+    def _country_record(self):
+        if '_city_record' in vars(self):
+            # the City class inherits from the Country class and the
+            # city record is in cache already, save a geolocalization
+            return self._city_record
+        try:
+            return root.geoip_country_db.country(self.ip)
+        except geoip2.errors.AddressNotFoundError:
+            return self.empty_country
+
+    def __getattr__(self, attr):
+        # Be smart and determine whether the attribute exists on the
+        # country object or on the city object.
+        if hasattr(self.empty_country, attr):
+            return getattr(self._country_record, attr)
+        if hasattr(self.empty_city, attr):
+            return getattr(self._city_record, attr)
+        raise AttributeError(f"{self} has no attribute {attr!r}")
+
+    def __bool__(self):
+        return self.country_name is not None
+
+    # Deprecated dict API
+    def __getitem__(self, item):
+        def warn(old_dict_item, new_expression):
+            warnings.warn(
+                DEPRECATED_GEOIP_API_MESSAGE.format(
+                    old_dict_item=old_dict_item,
+                    new_expression=new_expression,
+                ),
+                DeprecationWarning,
+                stacklevel=3,
+            )
+
+        if item == 'country_name':
+            warn('country_name', '(request.geoip.country.name or request.geoip.continent.name)')
+            return self.country.name or self.continent.name
+
+        if item == 'country_code':
+            warn('country_code', '(request.geoip.country.iso_code or request.geoip.continent.code)')
+            return self.country.iso_code or self.continent.code
+
+        if item == 'city':
+            warn('city', 'request.geoip.city.name')
+            return self.city.name
+
+        if item == 'latitude':
+            warn('latitude', 'request.geoip.location.latitude')
+            return self.location.latitude
+
+        if item == 'longitude':
+            warn('longitude', 'request.geoip.location.longitude')
+            return self.location.longitude
+
+        if item == 'region':
+            warn('region', '(request.geoip.subdivisions[0].iso_code if request.geoip.subdivisions else None)')
+            return self.subdivisions[0].iso_code if self.subdivisions else None
+
+        if item == 'time_zone':
+            warn('time_zone', 'request.geoip.location.time_zone')
+            return self.location.time_zone
+
+        raise KeyError(item)
+
+    def __iter__(self):
+        raise NotImplementedError("The dictionnary GeoIP API is deprecated.")
+
+    def __len__(self):
+        raise NotImplementedError("The dictionnary GeoIP API is deprecated.")
+
 # =========================================================
 # Request and Response
 # =========================================================
@@ -952,6 +1081,8 @@ class Request:
         self.dispatcher = _dispatchers['http'](self)  # until we match
         #self.params = {}  # set by the Dispatcher
 
+        self.geoip = GeoIP(httprequest.remote_addr)
+
         self.session, self.db = self._get_session_and_dbname()
         self.registry = None
         self.env = None
@@ -1045,27 +1176,6 @@ class Request:
 
     _cr = cr
 
-    @property
-    def geoip(self):
-        """
-        Get the remote address geolocalisation.
-
-        When geolocalization is successful, the return value is a
-        dictionary whoose format is:
-
-            {'city': str, 'country_code': str, 'country_name': str,
-             'latitude': float, 'longitude': float, 'region': str,
-             'time_zone': str}
-
-        When geolocalization fails, an empty dict is returned.
-        """
-        if '_geoip' not in self.session:
-            was_dirty = self.session.is_dirty
-            self.session._geoip = (self.registry['ir.http']._geoip_resolve()
-                                   if self.db else self._geoip_resolve())
-            self.session.is_dirty = was_dirty
-        return self.session._geoip
-
     # =====================================================
     # Helpers
     # =====================================================
@@ -1141,11 +1251,6 @@ class Request:
             return lang
         except (ValueError, KeyError):
             return DEFAULT_LANG
-
-    def _geoip_resolve(self):
-        if not (root.geoip_resolver and self.httprequest.remote_addr):
-            return {}
-        return root.geoip_resolver.resolve(self.httprequest.remote_addr) or {}
 
     def get_http_params(self):
         """
@@ -1695,17 +1800,32 @@ class Application:
         _logger.debug('HTTP sessions stored in: %s', path)
         return FilesystemSessionStore(path, session_class=Session, renew_missing=True)
 
-    @lazy_property
-    def geoip_resolver(self):
-        try:
-            return GeoIPResolver.open(config.get('geoip_database'))
-        except Exception as e:
-            _logger.warning('Cannot load GeoIP: %s', e)
-
     def get_db_router(self, db):
         if not db:
             return self.nodb_routing_map
         return request.registry['ir.http'].routing_map()
+
+    @lazy_property
+    def geoip_city_db(self):
+        try:
+            return geoip2.database.Reader(config['geoip_city_db'])
+        except (OSError, maxminddb.InvalidDatabaseError):
+            _logger.debug(
+                "Couldn't load Geoip City file at %s. IP Resolver disabled.",
+                config['geoip_city_db'], exc_info=True
+            )
+            return type('FakeReader', (), {
+                'city': lambda self, ip: GeoIP.empty_city,
+                'country': lambda self, ip: GeoIP.empty_country
+            })()
+
+    @lazy_property
+    def geoip_country_db(self):
+        try:
+            return geoip2.database.Reader(config['geoip_country_db'])
+        except (OSError, maxminddb.InvalidDatabaseError) as exc:
+            _logger.debug("Couldn't load Geoip Country file (%s). Fallbacks on Geoip City.", exc,)
+            return self.geoip_city_db
 
     def set_csp(self, response):
         headers = response.headers

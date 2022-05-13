@@ -13,29 +13,21 @@ from odoo.tools import config, file_open, mute_logger
 from odoo.tools.func import lazy_property
 from odoo.addons.test_http.controllers import CT_JSON
 from odoo.addons.test_http.utils import (
-    MemoryGeoipResolver, MemorySessionStore, HtmlTokenizer
+    MemoryGeoipResolver, MemorySessionStore, HtmlTokenizer, ODOO_COM_IP
 )
-
-GEOIP_ODOO_FARM_2 = {
-    'city': 'Ramillies',
-    'country_code': 'BE',
-    'country_name': 'Belgium',
-    'latitude': 50.6314,
-    'longitude': 4.8573,
-    'region': 'WAL',
-    'time_zone': 'Europe/Brussels'
-}
-
 
 class TestHttpBase(HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        geoip_resolver = MemoryGeoipResolver()
+        session_store = MemorySessionStore(session_class=Session)
+
         cls.addClassCleanup(lazy_property.reset_all, odoo.http.root)
         cls.classPatch(odoo.conf, 'server_wide_modules', ['base', 'web', 'test_http'])
-        lazy_property.reset_all(odoo.http.root)
-        cls.classPatch(odoo.http.root, 'session_store', MemorySessionStore(session_class=Session))
-        cls.classPatch(odoo.http.root, 'geoip_resolver', MemoryGeoipResolver())
+        cls.classPatch(odoo.http.root, 'session_store', session_store)
+        cls.classPatch(odoo.http.root, 'geoip_city_db', geoip_resolver)
+        cls.classPatch(odoo.http.root, 'geoip_country_db', geoip_resolver)
 
     def setUp(self):
         super().setUp()
@@ -543,35 +535,37 @@ class TestHttpSession(TestHttpBase):
                 raise AssertionError(msg) from exc
 
     def test_session2_geoip(self):
-        real_save = odoo.http.root.session_store.save
-        with patch.object(odoo.http.root.geoip_resolver, 'resolve') as mock_resolve,\
-             patch.object(odoo.http.root.session_store, 'save') as mock_save:
-            mock_resolve.return_value = GEOIP_ODOO_FARM_2
-            mock_save.side_effect = real_save
+        res = self.nodb_url_open('/test_http/geoip')
+        res.raise_for_status()
+        self.assertEqual(res.json(), {
+            'city': None,
+            'country_code': None,
+            'country_name': None,
+            'latitude': None,
+            'longitude': None,
+            'region': None,
+            'time_zone': None,
+        })
 
-            # Geoip is lazy: it should be computed only when necessary.
-            self.nodb_url_open('/test_http/greeting').raise_for_status()
-            mock_resolve.assert_not_called()
-
-            # Geoip is like the defaut session: the session should not
-            # be stored only due to geoip.
-            mock_resolve.reset_mock()
-            mock_save.reset_mock()
-            res = self.nodb_url_open('/test_http/geoip')
+        # Fake client IP using proxy_mode and a forged X-Forwarded-For http header
+        headers = {
+            'Host': '',
+            'X-Forwarded-For': ODOO_COM_IP,
+            'X-Forwarded-Host': 'odoo.com',
+            'X-Forwarded-Proto': 'https'
+        }
+        with patch.object(config, 'options', {**config.options, 'proxy_mode': True}):
+            res = self.nodb_url_open('/test_http/geoip', headers=headers)
             res.raise_for_status()
-            self.assertEqual(res.text, str(GEOIP_ODOO_FARM_2))
-            mock_save.assert_not_called()
-
-            # Geoip is cached on the session: we shouldn't geolocate the
-            # same ip multiple times.
-            mock_resolve.reset_mock()
-            mock_save.reset_mock()
-            self.nodb_url_open('/test_http/save_session').raise_for_status()
-            self.nodb_url_open('/test_http/geoip').raise_for_status()
-            res = self.nodb_url_open('/test_http/geoip')
-            res.raise_for_status()
-            self.assertEqual(res.text, str(GEOIP_ODOO_FARM_2))
-            mock_resolve.assert_called_once()
+            self.assertEqual(res.json(), {
+                'city': None,
+                'country_code': 'FR',
+                'country_name': 'France',
+                'latitude': 48.8582,
+                'longitude': 2.3387,
+                'region': None,
+                'time_zone': 'Europe/Paris',
+            })
 
 class TestHttpJsonError(TestHttpBase):
 

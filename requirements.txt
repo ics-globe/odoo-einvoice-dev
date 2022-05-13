@@ -5,6 +5,7 @@ docutils==0.16
 ebaysdk==2.1.5
 freezegun==0.3.11; python_version < '3.8'
 freezegun==0.3.15; python_version >= '3.8'
+geoip2==2.9.0
 gevent==1.5.0 ; python_version == '3.7'
 gevent==20.9.0 ; python_version >= '3.8'
 greenlet==0.4.15 ; python_version == '3.7'
@@ -13,6 +14,7 @@ idna==2.8
 Jinja2==2.11.3 # min version = 2.10.1 (Focal - with security backports)
 libsass==0.18.0
 lxml==4.6.5 # min version = 4.5.0 (Focal - with security backports)
+maxminddb==2.0.3
 MarkupSafe==1.1.0
 num2words==0.5.6
 ofxparse==0.19

@@ -1,14 +1,50 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import geoip2.errors
+import geoip2.models
 from html.parser import HTMLParser
 from odoo.http import FilesystemSessionStore
 from odoo.tools._vendor.sessions import SessionStore
 
 
-class MemoryGeoipResolver:
-    def resolve(self, ip):
-        return {}
+ODOO_COM_IP = '178.33.40.43'
 
+# geoip2.database.Reader("/usr/share/GeoIP/GeoLite2-City.mmdb").city('178.33.40.43')
+ODOO_COM_GEOIP_CITY = geoip2.models.City(
+    {'continent': {'code': 'EU', 'geoname_id': 6255148, 'names': {'de': 'Europa', 'en': 'Europe', 'es': 'Europa', 'fr': 'Europe', 'ja': 'ヨーロッパ', 'pt-BR': 'Europa', 'ru': 'Европа', 'zh-CN': '欧洲'}},
+     'country': {'geoname_id': 3017382, 'is_in_european_union': True, 'iso_code': 'FR', 'names': {'de': 'Frankreich', 'en': 'France', 'es': 'Francia', 'fr': 'France', 'ja': 'フランス共和国', 'pt-BR': 'França', 'ru': 'Франция', 'zh-CN': '法国'}},
+     'location': {'accuracy_radius': 500, 'latitude': 48.8582, 'longitude': 2.3387, 'time_zone': 'Europe/Paris'},
+     'registered_country': {'geoname_id': 3017382, 'is_in_european_union': True, 'iso_code': 'FR', 'names': {'de': 'Frankreich', 'en': 'France', 'es': 'Francia', 'fr': 'France', 'ja': 'フランス共和国', 'pt-BR': 'França', 'ru': 'Франция', 'zh-CN': '法国'}},
+     'traits': {'ip_address': '178.33.40.43', 'prefix_len': 21},
+    }, ['en']
+)
+
+# geoip2.database.Reader("/usr/share/GeoIP/GeoLite2-Country.mmdb").country('178.33.40.43')
+ODOO_COM_GEOIP_COUNTRY = geoip2.models.Country(
+    {'continent': {'code': 'EU', 'geoname_id': 6255148, 'names': {'de': 'Europa', 'en': 'Europe', 'es': 'Europa', 'fr': 'Europe', 'ja': 'ヨーロッパ', 'pt-BR': 'Europa', 'ru': 'Европа', 'zh-CN': '欧洲'}},
+     'country': {'geoname_id': 3017382, 'is_in_european_union': True, 'iso_code': 'FR', 'names': {'de': 'Frankreich', 'en': 'France', 'es': 'Francia', 'fr': 'France', 'ja': 'フランス共和国', 'pt-BR': 'França', 'ru': 'Франция', 'zh-CN': '法国'}},
+     'registered_country': {'geoname_id': 3017382, 'is_in_european_union': True, 'iso_code': 'FR', 'names': {'de': 'Frankreich', 'en': 'France', 'es': 'Francia', 'fr': 'France', 'ja': 'フランス共和国', 'pt-BR': 'França', 'ru': 'Франция', 'zh-CN': '法国'}},
+     'traits': {'ip_address': '178.33.40.43', 'prefix_len': 21},
+    }, ['en']
+)
+
+
+class MemoryGeoipResolver:
+    def __init__(self):
+        self.country_db = {ODOO_COM_IP: ODOO_COM_GEOIP_COUNTRY}
+        self.city_db = {ODOO_COM_IP: ODOO_COM_GEOIP_CITY}
+
+    def country(self, ip):
+        record = self.country_db.get(ip)
+        if not record:
+            raise geoip2.errors.AddressNotFoundError(ip)
+        return record
+
+    def city(self, ip):
+        record = self.city_db.get(ip)
+        if not record:
+            raise geoip2.errors.AddressNotFoundError(ip)
+        return record
 
 class MemorySessionStore(SessionStore):
     def __init__(self, *args, **kwargs):
