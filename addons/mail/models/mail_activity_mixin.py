@@ -57,9 +57,10 @@ class MailActivityMixin(models.AbstractModel):
         ('overdue', 'Overdue'),
         ('today', 'Today'),
         ('planned', 'Planned'),
-        ('schedule an activity', 'schedule an activity')], string='Activity State',
+        ('to_schedule', 'Schedule An Activity')], string='Activity State',
         compute='_compute_activity_state',
         search='_search_activity_state',
+        default="to_schedule",
         groups="base.group_user",
         help='Status based on activities\nOverdue: Due date is already passed\n'
              'Today: Activity date is today\nPlanned: Future activities.')
@@ -128,10 +129,10 @@ class MailActivityMixin(models.AbstractModel):
             elif 'planned' in states:
                 record.activity_state = 'planned'
             else:
-                record.activity_state = 'schedule an activity'
+                record.activity_state = 'to_schedule'
 
     def _search_activity_state(self, operator, value):
-        all_states = {'overdue', 'today', 'planned', False}
+        all_states = {'overdue', 'today', 'planned', 'to_schedule'}
         if operator == '=':
             search_states = {value}
         elif operator == '!=':

@@ -16,6 +16,7 @@ class ReportProjectTaskBurndownChart(models.Model):
 
     task_id = fields.Many2one('project.task', readonly=True)
     project_id = fields.Many2one('project.project', readonly=True)
+    ancestor_id = fields.Many2one('project.task', string="Ancestor Task", index='btree_not_null',groups="project.group_subtask_project")
     display_project_id = fields.Many2one('project.project', readonly=True)
     stage_id = fields.Many2one('project.task.type', readonly=True)
     is_closed = fields.Boolean("Closing Stage", readonly=True, help="Folded in Kanban stages are closing stages.")
@@ -56,6 +57,7 @@ WITH all_moves_stage_task AS (
     -- We're missing the last reached stage
     -- And the tasks without any stage change (which, by definition, are at the last stage)
     SELECT pt.project_id,
+           pt.ancestor_id as ancestor_id,
            pt.id as task_id,
            pt.display_project_id,
            COALESCE(LAG(mm.date) OVER (PARTITION BY mm.res_id ORDER BY mm.id), pt.create_date) as date_begin,
@@ -81,6 +83,7 @@ WITH all_moves_stage_task AS (
     UNION ALL
 
     SELECT pt.project_id,
+           pt.ancestor_id as ancestor_id,
            pt.id as task_id,
            pt.display_project_id,
            COALESCE(md.date, pt.create_date) as date_begin,
@@ -106,6 +109,7 @@ WITH all_moves_stage_task AS (
 )
 SELECT (task_id*10^7 + 10^6 + to_char(d, 'YYMMDD')::integer)::bigint as id,
        project_id,
+       ancestor_id,
        task_id,
        display_project_id,
        stage_id,
@@ -122,6 +126,7 @@ UNION ALL
 
 SELECT (task_id*10^7 + 2*10^6 + to_char(d, 'YYMMDD')::integer)::bigint as id,
        project_id,
+       ancestor_id,
        task_id,
        display_project_id,
        stage_id,
@@ -140,6 +145,7 @@ UNION ALL
 
 SELECT (task_id*10^7 + 3*10^6 + to_char(d, 'YYMMDD')::integer)::bigint as id,
        project_id,
+       ancestor_id,
        task_id,
        display_project_id,
        stage_id,
@@ -158,6 +164,7 @@ UNION ALL
 
 SELECT (task_id*10^7 + 4*10^6 + to_char(d, 'YYMMDD')::integer)::bigint as id,
        project_id,
+       ancestor_id,
        task_id,
        display_project_id,
        stage_id,
@@ -176,6 +183,7 @@ UNION ALL
 
 SELECT (task_id*10^7 + 5*10^6 + to_char(d, 'YYMMDD')::integer)::bigint as id,
        project_id,
+       ancestor_id,
        task_id,
        display_project_id,
        stage_id,

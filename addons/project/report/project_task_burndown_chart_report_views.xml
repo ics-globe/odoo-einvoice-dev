@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <search string="Burndown Chart">
                 <field name="project_id" />
+                <field name="ancestor_id"/>
                 <field name="date_assign"/>
                 <field name="date_deadline"/>
                 <field name="partner_id" filter_domain="[('partner_id', 'child_of', self)]"/>
@@ -21,6 +22,7 @@
                     <filter string="Date" name="date" context="{'group_by': 'date'}" />
                     <filter string="Stage" name="stage" context="{'group_by': 'stage_id'}" />
                     <filter string="Project" name="project" context="{'group_by': 'project_id'}" />
+                    <filter string="Ancestor Task" name="ancestor_id" context="{'group_by': 'ancestor_id'}"/>
                 </group>
             </search>
         </field>

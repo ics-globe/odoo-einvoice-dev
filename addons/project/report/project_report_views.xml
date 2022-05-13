@@ -50,7 +50,7 @@
                     <field name="stage_id"/>
                     <field name="partner_id" operator="child_of"/>
                     <field name="active"/>
-                    <field name="parent_id"/>
+                    <field name="ancestor_id"/>
                     <field name="rating_last_text"/>
                     <field name="date_assign"/>
                     <field name="date_end"/>
@@ -89,6 +89,7 @@
                         <filter string="Personal Stage" name="personal_stage" context="{'group_by': 'personal_stage_type_ids'}"/>
                         <filter string="Assignees" name="User" context="{'group_by': 'user_ids'}"/>
                         <filter string="Project" name="project" context="{'group_by': 'project_id'}"/>
+                        <filter string="Ancestor Task" name="ancestor_id" context="{'group_by': 'ancestor_id'}"/>
                         <filter string="Customer" name="Customer" context="{'group_by': 'partner_id'}"/>
                         <filter string="Kanban State" name="kanban_state" context="{'group_by': 'state'}"/>
                         <filter string="Deadline" name="deadline" context="{'group_by': 'date_deadline'}"/>
