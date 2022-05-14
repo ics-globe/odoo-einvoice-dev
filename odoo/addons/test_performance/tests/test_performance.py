@@ -99,6 +99,62 @@ class TestPerformance(SavepointCaseWithUserDemo):
             for record in records:
                 self.assertEqual(record.with_context(key=3).value_ctx, 3)
 
+    def test_read_base_one2many(self):
+        """ Read records and their one2many field. """
+        records = self.env['test_performance.base'].search([])
+        self.assertEqual(len(records), 5)
+        records.write({'line_ids': [Command.create({'value': 42})]})
+
+        with self.assertQueries(['''
+            SELECT "test_performance_line".id
+            FROM "test_performance_line"
+            WHERE ("test_performance_line"."base_id" IN %s)
+            ORDER BY "test_performance_line"."id"
+        ''', '''
+            SELECT "test_performance_line"."id" AS "id",
+                   "test_performance_line"."base_id" AS "base_id"
+            FROM "test_performance_line"
+            WHERE "test_performance_line".id IN %s
+        ''', '''
+            SELECT "test_performance_line"."id" AS "id",
+                   "test_performance_line"."base_id" AS "base_id",
+                   "test_performance_line"."value" AS "value",
+                   "test_performance_line"."create_uid" AS "create_uid",
+                   "test_performance_line"."create_date" AS "create_date",
+                   "test_performance_line"."write_uid" AS "write_uid",
+                   "test_performance_line"."write_date" AS "write_date"
+            FROM "test_performance_line"
+            WHERE "test_performance_line".id IN %s
+        ''']):
+            records.invalidate_cache()
+            values = []
+            for record in records:
+                for line in record.line_ids:
+                    values.append(line.value)
+
+        # same without field prefetching
+        with self.assertQueries(['''
+            SELECT "test_performance_line".id
+            FROM "test_performance_line"
+            WHERE ("test_performance_line"."base_id" IN %s)
+            ORDER BY "test_performance_line"."id"
+        ''', '''
+            SELECT "test_performance_line"."id" AS "id",
+                   "test_performance_line"."base_id" AS "base_id"
+            FROM "test_performance_line"
+            WHERE "test_performance_line".id IN %s
+        ''', '''
+            SELECT "test_performance_line"."id" AS "id",
+                   "test_performance_line"."value" AS "value"
+            FROM "test_performance_line"
+            WHERE "test_performance_line".id IN %s
+        ''']):
+            records.invalidate_cache()
+            values = []
+            for record in records.with_context(prefetch_fields=False):
+                for line in record.line_ids:
+                    values.append(line.value)
+
     @users('__system__', 'demo')
     @warmup
     def test_write_base(self):
