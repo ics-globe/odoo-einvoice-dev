@@ -562,9 +562,9 @@ class IrAttachment(models.Model):
 
         return len(result) if count else list(result)
 
-    def _read(self, fields):
+    def _read(self, fields, query=None):
         self.check('read')
-        return super(IrAttachment, self)._read(fields)
+        return super(IrAttachment, self)._read(fields, query)
 
     def write(self, vals):
         self.check('write', values=vals)

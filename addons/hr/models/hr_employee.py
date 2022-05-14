@@ -178,14 +178,18 @@ class HrEmployeePrivate(models.Model):
             return super(HrEmployeePrivate, self).name_get()
         return self.env['hr.employee.public'].browse(self.ids).name_get()
 
-    def _read(self, fields):
+    def _read(self, fields, query=None):
         if self.check_access_rights('read', raise_exception=False):
-            return super(HrEmployeePrivate, self)._read(fields)
+            return super(HrEmployeePrivate, self)._read(fields, query)
 
+        if query is not None:
+            self = self.browse(query)
         res = self.env['hr.employee.public'].browse(self.ids).read(fields)
         for r in res:
             record = self.browse(r['id'])
             record._update_cache({k:v for k,v in r.items() if k in fields}, validate=False)
+
+        return self.browse(r['id'] for r in res)
 
     @api.model
     def _cron_check_work_permit_validity(self):

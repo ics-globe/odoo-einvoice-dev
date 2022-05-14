@@ -67,13 +67,14 @@ class Category(models.Model):
             # assign name of last category, and reassign display_name (to normalize it)
             cat.name = names[-1].strip()
 
-    def _read(self, fields):
+    def _read(self, fields, query=None):
         # DLE P45: `test_31_prefetch`,
         # with self.assertRaises(AccessError):
         #     cat1.name
-        if self.search_count([('id', 'in', self._ids), ('name', '=', 'NOACCESS')]):
+        ids = query if query is not None else self._ids
+        if self.search_count([('id', 'in', ids), ('name', '=', 'NOACCESS')]):
             raise AccessError('Sorry')
-        return super(Category, self)._read(fields)
+        return super(Category, self)._read(fields, query)
 
 
 class Discussion(models.Model):
