@@ -18,6 +18,7 @@ from markupsafe import Markup
 import psycopg2
 import pytz
 
+from .osv.query import Query
 from .tools import (
     float_repr, float_round, float_compare, float_is_zero, html_sanitize, human_size,
     pg_varchar, ustr, OrderedSet, pycompat, sql, date_utils, unique,
@@ -3484,7 +3485,13 @@ class One2many(_RelationalMulti):
         inverse_field = comodel._fields[inverse]
         get_id = (lambda rec: rec.id) if inverse_field.type == 'many2one' else int
         domain = self.get_domain_list(records) + [(inverse, 'in', records.ids)]
-        lines = comodel.search(domain)
+
+        line_ids = comodel._search(domain)
+        if isinstance(line_ids, Query):
+            # execute the query, and prefetch the inverse field
+            lines = comodel._read([inverse], line_ids)
+        else:
+            lines = comodel.browse(line_ids)
 
         # group lines by inverse field (without prefetching other fields)
         group = defaultdict(list)
