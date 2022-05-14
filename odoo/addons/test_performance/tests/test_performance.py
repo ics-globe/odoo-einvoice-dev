@@ -107,12 +107,6 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         with self.assertQueries(['''
             SELECT "test_performance_line"."id" AS "id",
-                   "test_performance_line"."base_id" AS "base_id"
-            FROM "test_performance_line"
-            WHERE ("test_performance_line"."base_id" IN %s)
-            ORDER BY "test_performance_line"."id"
-        ''', '''
-            SELECT "test_performance_line"."id" AS "id",
                    "test_performance_line"."base_id" AS "base_id",
                    "test_performance_line"."value" AS "value",
                    "test_performance_line"."create_uid" AS "create_uid",
@@ -120,7 +114,8 @@ class TestPerformance(SavepointCaseWithUserDemo):
                    "test_performance_line"."write_uid" AS "write_uid",
                    "test_performance_line"."write_date" AS "write_date"
             FROM "test_performance_line"
-            WHERE "test_performance_line".id IN %s
+            WHERE ("test_performance_line"."base_id" IN %s)
+            ORDER BY "test_performance_line"."id"
         ''']):
             records.invalidate_cache()
             values = []

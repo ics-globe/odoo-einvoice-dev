@@ -3489,7 +3489,7 @@ class One2many(_RelationalMulti):
         line_ids = comodel._search(domain)
         if isinstance(line_ids, Query):
             # execute the query, and prefetch the inverse field
-            lines = comodel._read([inverse], line_ids)
+            lines = comodel._fetch_field(inverse_field, line_ids)
         else:
             lines = comodel.browse(line_ids)
 

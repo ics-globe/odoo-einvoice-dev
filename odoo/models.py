@@ -3373,7 +3373,7 @@ Fields:
 
         return result
 
-    def _fetch_field(self, field):
+    def _fetch_field(self, field, query=None):
         """ Read from the database in order to fetch ``field`` (:class:`Field`
             instance) for ``self`` in cache.
         """
@@ -3392,10 +3392,13 @@ Fields:
             ]
             if field.name not in fnames:
                 fnames.append(field.name)
-                self = self - self.env.records_to_compute(field)
+                if query is None:
+                    self = self - self.env.records_to_compute(field)
+                else:
+                    self.flush([field.name])
         else:
             fnames = [field.name]
-        self._read(fnames)
+        return self._read(fnames, query)
 
     def _read(self, fields, query=None):
         """ Read the given fields of the records in ``self`` from the database,
