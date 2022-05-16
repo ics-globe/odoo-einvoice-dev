@@ -621,8 +621,8 @@ function fontToImg($editable) {
                 padding += hPadding ? hPadding + 'px' : '0';
             }
             const image = document.createElement('img');
-            image.setAttribute('width', width);
-            image.setAttribute('height', height);
+            image.setAttribute('width', intrinsicWidth);
+            image.setAttribute('height', intrinsicHeight);
             image.setAttribute('src', `/web_editor/font_to_img/${content.charCodeAt(0)}/${window.encodeURI(color)}/${window.encodeURI(bg)}/${Math.max(1, Math.round(intrinsicWidth))}x${Math.max(1, Math.round(intrinsicHeight))}`);
             image.setAttribute('data-class', font.getAttribute('class'));
             image.setAttribute('data-style', style);
