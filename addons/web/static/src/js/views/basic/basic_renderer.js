@@ -639,7 +639,9 @@ var BasicRenderer = AbstractRenderer.extend({
         }
         this.allFieldWidgets[record.id].push(widget);
 
-        widget.__node = node; // TODO get rid of this if possible one day
+        // TODO get rid of this if possible one day
+        // BUT used by widgets to access some attributes of the node not accessible otherwise
+        widget.__node = node;
 
         // Prepare widget rendering and save the related promise
         var def = widget._widgetRenderAndInsert(function () {});
