@@ -107,6 +107,7 @@ var DebouncedField = AbstractField.extend({
                 this._doDebouncedAction = this._doAction;
             }
 
+            this.nodeOptions.keydown_debounce_delay = this.nodeOptions.keydown_debounce_delay || 2000;
             var self = this;
             var debouncedFunction = this._doDebouncedAction;
             this._doDebouncedAction = function () {

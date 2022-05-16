@@ -15,7 +15,7 @@ FieldChar.include({
      */
     init: function () {
         this._super.apply(this, arguments);
-        this._triggerOnchange = _.debounce(this._triggerOnchange, 2000);
+        this._triggerOnchange = _.debounce(this._triggerOnchange, this.nodeOptions.keydown_debounce_delay);
     },
 
 
