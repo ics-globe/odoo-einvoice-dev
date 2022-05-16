@@ -2,7 +2,7 @@
 
 import { registerModel } from '@mail/model/model_core';
 import { attr, one } from '@mail/model/model_field';
-import { clear, insertAndReplace, replace } from '@mail/model/model_field_command';
+import { insertAndReplace, replace } from '@mail/model/model_field_command';
 
 registerModel({
     name: 'DeleteMessageConfirmView',
@@ -33,13 +33,6 @@ registerModel({
         _computeMessage() {
             return replace(this.dialogOwner.messageActionListOwnerAsDeleteConfirm.message);
         },
-        /**
-         * @private
-         * @returns {MessageView}
-         */
-        _computeMessageView() {
-            return this.message ? insertAndReplace({ message: replace(this.message) }) : clear();
-        },
     },
     fields: {
         component: attr(),
@@ -53,12 +46,8 @@ registerModel({
             readonly: true,
             required: true,
         }),
-        /**
-         * Determines the message view that this delete message confirm view
-         * will use to display this message.
-         */
-        messageView: one('MessageView', {
-            compute: '_computeMessageView',
+        messageViewer: one('MessageViewer', {
+            default: insertAndReplace(),
             inverse: 'deleteMessageConfirmViewOwner',
             isCausal: true,
             readonly: true,

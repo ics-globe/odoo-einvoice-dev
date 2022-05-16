@@ -13,6 +13,7 @@ import { sprintf } from '@web/core/utils/strings';
  */
 registerModel({
     name: 'ComposerSuggestion',
+    // TODO SEB clean
     identifyingFields: [['composerViewOwnerAsExtraSuggestion', 'composerViewOwnerAsMainSuggestion'], ['cannedResponse', 'channelCommand', 'partner', 'thread']],
     recordMethods: {
         /**

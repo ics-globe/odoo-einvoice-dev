@@ -7,7 +7,7 @@ import { isEventHandled, markEventHandled } from '@mail/utils/utils';
 
 registerModel({
     name: 'ChatWindow',
-    identifyingFields: ['manager', ['thread', 'managerAsNewMessage']],
+    identifyingFields: [['thread', 'managerAsNewMessage']],
     recordMethods: {
         /**
          * Close this chat window.

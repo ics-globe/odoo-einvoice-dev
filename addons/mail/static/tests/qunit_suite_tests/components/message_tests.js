@@ -502,8 +502,7 @@ QUnit.test('do not show messaging seen indicator if not authored by me', async f
     );
 });
 
-QUnit.skip('do not show messaging seen indicator if before last seen by all message', async function (assert) {
-    // TODO: skip because test should use full chain and not just message (need thread cache to be loaded to generate message list view now)
+QUnit.test('do not show messaging seen indicator if before last seen by all message', async function (assert) {
     assert.expect(3);
 
     const { env, messaging, target } = await start();
@@ -549,7 +548,7 @@ QUnit.skip('do not show messaging seen indicator if before last seen by all mess
         },
     ]);
      await createRootMessagingComponent(env, "Message", {
-        props: { record: threadViewer.threadView.messageListView.messageViews[0] },
+        props: { record: threadViewer.threadView.messageListView.messageViewer.messageViews[0] },
         target,
     });
 

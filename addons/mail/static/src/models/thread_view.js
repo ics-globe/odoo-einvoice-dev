@@ -77,7 +77,7 @@ registerModel({
          * Starts editing the last message of this thread from the current user.
          */
         startEditingLastMessageFromCurrentUser() {
-            const messageViews = this.messageListView.messageViews;
+            const messageViews = this.messageListView.messageViewer.messageViews;
             messageViews.reverse();
             const messageView = messageViews.find(messageViews => messageViews.message.isCurrentUserOrGuestAuthor && messageViews.message.canBeDeleted);
             if (messageView) {
@@ -150,7 +150,7 @@ registerModel({
             if (!this.messageListView) {
                 return clear();
             }
-            const { length, [length - 1]: lastMessageView } = this.messageListView.messageViews;
+            const { length, [length - 1]: lastMessageView } = this.messageListView.messageViewer.messageViews;
             return lastMessageView ? replace(lastMessageView) : clear();
         },
         /**
