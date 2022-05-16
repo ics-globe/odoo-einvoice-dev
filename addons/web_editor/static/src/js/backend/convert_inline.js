@@ -401,7 +401,7 @@ function classToStyle($editable, cssRules) {
                             <tr>
                                 <td style="${node.style.cssText.replace(RE_PADDING_MATCH, '')}" ${
                                     node.parentElement.style.textAlign === 'center' ? 'align="center" ' : ''
-                                }bgcolor="${node.style.backgroundColor}">
+                                }bgcolor="${rgbToHex(node.style.backgroundColor)}">
                 <![endif]`));
                 node.after(document.createComment(`[if mso]>
                                 </td>
