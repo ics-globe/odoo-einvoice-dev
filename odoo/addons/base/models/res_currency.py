@@ -9,6 +9,7 @@ import traceback
 
 from odoo import api, fields, models, tools, _
 from odoo.tools.misc import get_lang
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -59,6 +60,12 @@ class Currency(models.Model):
         self._cr.execute(query, (date, company.id, tuple(self.ids)))
         currency_rates = dict(self._cr.fetchall())
         return currency_rates
+
+    @api.constrains('active')
+    def _check_company_currency_stays_active(self):
+        for currency in self:
+            if not currency.active and self.env['res.company'].search([('currency_id', '=', currency.id)]):
+                raise UserError(_("This currency is set on a company and therefore must be active."))
 
     @api.depends('rate_ids.rate')
     def _compute_current_rate(self):
