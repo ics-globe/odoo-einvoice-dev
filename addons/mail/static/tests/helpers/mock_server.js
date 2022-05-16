@@ -2410,9 +2410,15 @@ MockServer.include({
             menu_id: false, // not useful in QUnit tests
             needaction_inbox_counter: this._mockResPartner_GetNeedactionCount(user.partner_id),
             partner_root: this._mockResPartnerMailPartnerFormat(this.partnerRootId).get(this.partnerRootId),
+<<<<<<< HEAD
             public_partners: [...this._mockResPartnerMailPartnerFormat(this.publicPartnerId).values()],
             shortcodes: this.pyEnv['mail.shortcode'].searchRead([], { fields: ['source', 'substitution'] }),
             starred_counter: this.getRecords('mail.message', [['starred_partner_ids', 'in', user.partner_id]]).length,
+=======
+            publicPartners: [['insert', [{ 'id': this.publicPartnerId }]]],
+            shortcodes: this._mockSearchRead('mail.shortcode', [[], ['source', 'substitution']], {}),
+            starred_counter: this._getRecords('mail.message', [['starred_partner_ids', 'in', user.partner_id]]).length,
+>>>>>>> 9db0e6907aa... temp
         };
     },
     /**
