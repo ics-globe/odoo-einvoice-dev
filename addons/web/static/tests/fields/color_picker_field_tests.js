@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { click, getFixture, triggerEvent } from "../helpers/utils";
+import { click, getFixture } from "../helpers/utils";
 import { makeView, setupViewRegistries } from "../views/helpers";
 
 let serverData;
@@ -43,9 +43,7 @@ QUnit.module("Fields", (hooks) => {
 
     QUnit.module("ColorPickerField");
 
-    QUnit.skipWOWL("can navigate away with TAB", async function (assert) {
-        assert.expect(1);
-
+    QUnit.test("can navigate away with TAB", async function (assert) {
         await makeView({
             type: "form",
             resModel: "partner",
@@ -64,17 +62,29 @@ QUnit.module("Fields", (hooks) => {
         await click(target, ".o_form_button_edit");
 
         // click on the only element (because it's closed) to open the field component
+        assert.containsOnce(target, ".o_field_color_picker button");
+        assert.ok(
+            target.querySelector(".o_field_color_picker button").tabIndex === 0,
+            "the color picker button is tabbable"
+        );
         await click(target, ".o_field_color_picker button");
 
-        await triggerEvent(document.activeElement, null, "keydown", {
-            which: 13, // tab
-        });
-
+        // the color picker is now open
+        const colorButtons = target.querySelectorAll(".o_field_color_picker button");
+        assert.equal(colorButtons.length, 12, "there should be 12 color picker buttons");
+        assert.equal(
+            [...colorButtons].filter((el) => el.tabIndex !== -1).length,
+            1,
+            "only one of the color picker buttons should be tabbable"
+        );
         assert.strictEqual(
             document.activeElement,
-            target.querySelector('.o_field_widget[name="foo"] input'),
-            "foo field should be focused"
+            colorButtons[0],
+            "first color picker button should be focused"
         );
+
+        // only one of the color picker buttons is tabbable AND focused
+        // it means that the next tabbable element will be focused at the next TAB key press.
     });
 
     QUnit.test(

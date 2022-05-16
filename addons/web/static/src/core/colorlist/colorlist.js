@@ -2,13 +2,21 @@
 
 import { _lt } from "@web/core/l10n/translation";
 
-const { Component, useRef, useState, useExternalListener } = owl;
+const { Component, useEffect, useRef, useState, useExternalListener } = owl;
 
 export class ColorList extends Component {
     setup() {
         this.colorlistRef = useRef("colorlist");
         this.state = useState({ isExpanded: false });
         useExternalListener(window, "click", this.onOutsideClick);
+        useEffect((isExpanded) => {
+            if (isExpanded) {
+                const firstButton = this.colorlistRef.el.firstElementChild;
+                if (firstButton) {
+                    firstButton.focus();
+                }
+            }
+        }, () => [this.state.isExpanded]);
     }
     get colors() {
         return this.constructor.COLORS;
