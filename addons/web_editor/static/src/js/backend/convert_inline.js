@@ -428,9 +428,13 @@ function enforceTablesResponsivity(editable) {
         tr.style.setProperty('width', '100%');
     }
     for (const td of editable.querySelectorAll('td[colspan]')) {
-        td.setAttribute('width', '100%');
-        td.style.setProperty('width', '100%');
-        td.style.setProperty('display', 'inline-block'); // Allow cells to wrap.
+        const colspan = +td.getAttribute('colspan');
+        // Don't allow little duos of columns to wrap (eg., col-2 col-10).
+        if (colspan > 2 && colspan < 10 || [...td.parentElement.children].filter(child => child.nodeName === 'TD').length > 2) {
+            td.setAttribute('width', '100%');
+            td.style.setProperty('width', '100%');
+            td.style.setProperty('display', 'inline-block'); // Allow cells to wrap.
+        }
     }
     // Masonry has crazy nested tables that require some extra treatment.
     for (const td of editable.querySelectorAll('.s_masonry_block td')) {
