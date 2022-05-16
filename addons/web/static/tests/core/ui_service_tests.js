@@ -81,7 +81,7 @@ QUnit.test("a component can be the  UI active element: with t-ref delegation", a
 
     const env = await makeTestEnv({ ...baseConfig });
     const ui = env.services.ui;
-    assert.deepEqual(ui.activeElement, document);
+    assert.deepEqual(ui.activeElement, document.body);
 
     const comp = await mount(MyComponent, target, { env });
     assert.deepEqual(ui.activeElement, document.getElementById("owner"));
@@ -89,5 +89,5 @@ QUnit.test("a component can be the  UI active element: with t-ref delegation", a
     comp.render();
     await nextTick();
 
-    assert.deepEqual(ui.activeElement, document);
+    assert.deepEqual(ui.activeElement, document.body);
 });

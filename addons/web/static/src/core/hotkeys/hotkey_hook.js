@@ -2,14 +2,14 @@
 
 import { useService } from "@web/core/utils/hooks";
 
-const { useEffect } = owl;
+const { useEffect, useRef } = owl;
 
 /**
  * This hook will register/unregister the given registration
  * when the caller component will mount/unmount.
  *
  * @param {string} hotkey
- * @param {()=>void} callback
+ * @param {(context: { reference: HTMLElement, target: HTMLElement})=>void} callback
  * @param {Object} options additional options
  * @param {boolean} [options.allowRepeat=false]
  *  allow registration to perform multiple times when hotkey is held down
@@ -18,9 +18,13 @@ const { useEffect } = owl;
  *  even if an editable element is focused
  * @param {boolean} [options.global=false]
  *  allow registration to perform no matter the UI active element
+ * @param {string} [options.reference="hotkey"]
+ *  Reference HTML element of the registration.
  */
 export function useHotkey(hotkey, callback, options = {}) {
     const hotkeyService = useService("hotkey");
+    const reference = useRef(options.reference || "hotkey");
+    Object.assign(options, { reference });
     useEffect(
         () => hotkeyService.add(hotkey, callback, options),
         () => []

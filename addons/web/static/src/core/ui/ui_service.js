@@ -79,10 +79,32 @@ export const uiService = {
         });
 
         // UI active element code
-        let activeElems = [document];
+        /** @type {HTMLElement[]} */
+        let activeElems = [document.body];
+
+        function forceFocusInto(el) {
+            if (el.contains(document.activeElement)) {
+                return;
+            }
+
+            if (el.tabIndex === -1 && !el.hasAttribute("tabindex")) {
+                // This will make the element programmatically focusable.
+                // If you find this weird, see https://html.spec.whatwg.org/multipage/interaction.html#dom-tabindex
+                //
+                // "The default value is −1 otherwise." means that if the element does not have any
+                // explicit [tabindex] attribute, it is equal "0" or "-1" depending on its tagname.
+                //
+                // See also https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+                // which states that setting explicitly this attribute to "-1" would make the
+                // concerned element focusable.
+                el.setAttribute("tabindex", "-1");
+            }
+            el.focus();
+        }
 
         function activateElement(el) {
             activeElems.push(el);
+            forceFocusInto(el);
             bus.trigger("active-element-changed", el);
         }
         function deactivateElement(el) {
