@@ -690,6 +690,8 @@ class Survey(http.Controller):
             'search_finished': post.get('finished') == 'true',
             'search_failed': post.get('failed') == 'true',
             'search_passed': post.get('passed') == 'true',
+            # preview
+            'preview_image': 'results_preview.png',
         }
 
         if survey.session_show_leaderboard:
