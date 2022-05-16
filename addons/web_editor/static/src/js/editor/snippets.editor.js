@@ -59,7 +59,7 @@ function nodeLength(node) {
 $.fn.extend({
     focusIn: function () {
         if (this.length) {
-            const selection = document.getSelection();
+            const selection = this[0].ownerDocument.getSelection();
             selection.removeAllRanges();
 
             const range = new Range();
@@ -72,7 +72,7 @@ $.fn.extend({
     },
     focusInEnd: function () {
         if (this.length) {
-            const selection = document.getSelection();
+            const selection = this[0].ownerDocument.getSelection();
             selection.removeAllRanges();
 
             const range = new Range();
@@ -90,7 +90,7 @@ $.fn.extend({
             return this.selectElement();
         }
         if (this.length) {
-            const selection = document.getSelection();
+            const selection = this[0].ownerDocument.getSelection();
             selection.removeAllRanges();
 
             const range = new Range();
@@ -102,7 +102,7 @@ $.fn.extend({
     },
     selectElement: function () {
         if (this.length) {
-            const selection = document.getSelection();
+            const selection = this[0].ownerDocument.getSelection();
             selection.removeAllRanges();
 
             const element = this[0];
@@ -1365,13 +1365,13 @@ var SnippetsMenu = Widget.extend({
 
         // On keydown add a class on the active overlay to hide it and show it
         // again when the mouse moves
-        this.$document.on('keydown.snippets_menu', () => {
+        this.$body.on('keydown.snippets_menu', () => {
             this.__overlayKeyWasDown = true;
             this.snippetEditors.forEach(editor => {
                 editor.toggleOverlayVisibility(false);
             });
         });
-        this.$document.on('mousemove.snippets_menu, mousedown.snippets_menu', _.throttle(() => {
+        this.$body.on('mousemove.snippets_menu, mousedown.snippets_menu', _.throttle(() => {
             if (!this.__overlayKeyWasDown) {
                 return;
             }
@@ -1409,13 +1409,13 @@ var SnippetsMenu = Widget.extend({
 
         // Auto-selects text elements with a specific class and remove this
         // on text changes
-        this.$document.on('click.snippets_menu', '.o_default_snippet_text', function (ev) {
+        this.$body.on('click.snippets_menu', '.o_default_snippet_text', function (ev) {
             $(ev.target).closest('.o_default_snippet_text').removeClass('o_default_snippet_text');
             $(ev.target).selectContent();
             $(ev.target).removeClass('o_default_snippet_text');
         });
-        this.$document.on('keyup.snippets_menu', function () {
-            const selection = document.getSelection();
+        this.$body.on('keyup.snippets_menu', function () {
+            const selection = this.ownerDocument.getSelection();
             if (!Selection.rangeCount) {
                 return;
             }
@@ -1426,7 +1426,7 @@ var SnippetsMenu = Widget.extend({
             for (const snippetEditor of this.snippetEditors) {
                 this._mutex.exec(() => snippetEditor.destroy());
             }
-            const selection = this.$document[0].getSelection();
+            const selection = this.$body[0].ownerDocument.getSelection();
             if (selection.rangeCount) {
                 const target = selection.getRangeAt(0).startContainer.parentElement;
                 this._activateSnippet($(target));
