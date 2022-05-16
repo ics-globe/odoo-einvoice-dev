@@ -331,11 +331,7 @@ class AccountInvoiceLine(models.AbstractModel):
                         if tax.price_include:
                             product_price_unit += tax_res['amount']
 
-        # Apply currency rate.
-        # if currency and currency != company_currency:
-        #     product_price_unit = company_currency._convert(product_price_unit, currency, company, move_date)
-
-        return product_price_unit# * self.currency_rate
+        return product_price_unit * self.currency_rate
 
     @api.depends('product_id', 'product_uom_id')
     def _compute_tax_ids(self):
@@ -602,13 +598,15 @@ class AccountInvoiceLine(models.AbstractModel):
     def _sync_invoice(self):
         if self.env.context.get('skip_sync_invoice'):
             return  # avoid infinite recursion
-        for line in self.with_context(skip_sync_invoice=True).filtered(lambda l: l.move_id.is_invoice() and l.display_type == 'product'):
+        for line in self.with_context(skip_sync_invoice=True).filtered(lambda l: l.move_id.is_invoice()):
             sign = line.move_id.direction_sign
-            balance = sign * line.company_id.currency_id.round(line.price_subtotal / line.currency_rate)
-            amount_currency = sign * line.currency_id.round(line.price_subtotal)
-            if line.amount_currency != amount_currency:
-                line.amount_currency = amount_currency
-            if line.balance != line.amount_currency / line.currency_rate:
+            if line.display_type == 'product':
+                amount_currency = sign * line.currency_id.round(line.price_subtotal)
+                if line.amount_currency != amount_currency:
+                    line.amount_currency = amount_currency
+            balance = line.company_id.currency_id.round(line.amount_currency / line.currency_rate)
+            amount_currency = line.company_id.currency_id.round(line.balance * line.currency_rate)
+            if line.balance != balance and line.amount_currency != amount_currency:
                 line.balance = balance
 
     @api.model_create_multi

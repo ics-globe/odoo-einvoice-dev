@@ -1276,19 +1276,24 @@ class AccountInvoice(models.AbstractModel):
     def _sync_dynamic_line(self, existing_fname, needed_fname, line_type):
         def existing():
             return {line[existing_fname]: line for line in self.line_ids if line[existing_fname]}
+        def needed():
+            res = {}
+            for computed_needed in self.mapped(needed_fname):
+                for key, values in computed_needed.items():
+                    if key not in res:
+                        res[key] = dict(values)
+                    else:
+                        res[key]['balance'] += values['balance']
+                        res[key]['amount_currency'] += values['amount_currency']
+            return res
 
         existing_before = existing()
+        needed_before = needed()
         yield
         existing_after = existing()
+        needed_after = needed()
 
-        needed = {}
-        for computed_needed in self.mapped(needed_fname):
-            for key, values in computed_needed.items():
-                if key not in needed:
-                    needed[key] = dict(values)
-                else:
-                    needed[key]['balance'] += values['balance']
-                    needed[key]['amount_currency'] += values['amount_currency']
+        # old key to new key for the same line
         before2after = {
             before: after
             for before, bline in existing_before.items()
@@ -1296,21 +1301,33 @@ class AccountInvoice(models.AbstractModel):
             if bline == aline
         }
 
+        # do not alter manually inputted values if there is no change done in business field
+        if needed_after == needed_before:
+            return
+        if set(needed_before) == set(needed_after) and all(
+            needed_before[key]['amount_currency'] == needed_after[key]['amount_currency']
+            for key in needed_after
+            if 'amount_currency' in needed_after[key]
+        ):
+            for key in needed_after.keys():
+                if 'amount_currency' in needed_after[key]:
+                    del needed_after[key]['amount_currency']
+
         to_delete = {
             line.id
             for key, line in existing_before.items()
-            if key not in needed
+            if key not in needed_after
             and key in existing_after
-            and before2after[key] not in needed
+            and before2after[key] not in needed_after
         }
         to_create = {
             key: values
-            for key, values in needed.items()
+            for key, values in needed_after.items()
             if key not in existing_after
         }
         to_write = {
             existing_after[key]: values
-            for key, values in needed.items()
+            for key, values in needed_after.items()
             if key in existing_after
             and any(existing_after[key][fname] != values[fname] for fname in values)
         }
@@ -1318,12 +1335,19 @@ class AccountInvoice(models.AbstractModel):
         # from pprint import pprint
         # print()
         # print(f"======== SYNC {line_type} ==========")
+        # if needed_before == needed_after:
+        #     print('no change', line_type)
+        #     pprint(needed_after)
+        #     print(f"====================================")
+        #     return
+        # pprint(needed_before)
+        # pprint(needed_after)
         # print('= before')
         # pprint(existing_before)
         # print('= after')
         # pprint(existing_after)
         # print('= needed')
-        # pprint(needed)
+        # pprint(needed_after)
         # pprint([line_type, to_create, to_write, to_delete])
         # print(f"====================================")
 
@@ -1392,7 +1416,7 @@ class AccountInvoice(models.AbstractModel):
             ))
             stack.enter_context(self._sync_invoice())
             yield
-        # self._check_balanced()
+        self._check_balanced()
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -1606,7 +1630,6 @@ class AccountInvoice(models.AbstractModel):
                 'line_ids': [
                     Command.update(line.id, {
                         'quantity': -line.quantity,
-                        'price_unit': -line.price_unit,
                     })
                     if line.quantity < 0 else
                     Command.update(line.id, {  # TODO not the best, mostly need to trigger a write

@@ -1143,11 +1143,11 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'account_id': self.product_line_vals_1['account_id'],
                 'partner_id': self.partner_a.id,
                 'product_uom_id': False,
-                'quantity': 1.0,
+                'quantity': False,
                 'discount': 0.0,
-                'price_unit': 119.905,
-                'price_subtotal': 119.905,
-                'price_total': 119.905,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': [],
                 'tax_line_id': tax_price_include.id,
                 'currency_id': self.currency_data['currency'].id,
@@ -1200,11 +1200,11 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'account_id': self.product_line_vals_1['account_id'],
                 'partner_id': self.partner_a.id,
                 'product_uom_id': False,
-                'quantity': 1.0,
+                'quantity': False,
                 'discount': 0.0,
-                'price_unit': -119.905,
-                'price_subtotal': -119.905,
-                'price_total': -119.905,
+                'price_unit': 0.0,
+                'price_subtotal': 0.0,
+                'price_total': 0.0,
                 'tax_ids': [],
                 'tax_line_id': tax_price_include.id,
                 'currency_id': self.currency_data['currency'].id,
@@ -1377,21 +1377,21 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'code': 'TEST1'
         })
 
-        self.invoice.write({'line_ids': [(1, self.invoice.line_ids.ids[0], {
+        self.invoice.write({'invoice_line_ids': [(1, self.invoice.invoice_line_ids.ids[0], {
             'analytic_account_id': analytic_account.id,
         })]})
 
-        self.assertRecordValues(self.invoice.line_ids, [
+        self.assertRecordValues(self.invoice.invoice_line_ids, [
             {'analytic_account_id': analytic_account.id},
             {'analytic_account_id': False},
         ])
 
         # We can remove the analytic account, it is not recomputed by an invalidation
-        self.invoice.write({'line_ids': [(1, self.invoice.line_ids.ids[0], {
+        self.invoice.write({'invoice_line_ids': [(1, self.invoice.invoice_line_ids.ids[0], {
             'analytic_account_id': False,
         })]})
 
-        self.assertRecordValues(self.invoice.line_ids.filtered(lambda l: l.display_type == 'product'), [
+        self.assertRecordValues(self.invoice.invoice_line_ids.filtered(lambda l: l.display_type == 'product'), [
             {'analytic_account_id': False},
             {'analytic_account_id': False},
         ])
@@ -2240,7 +2240,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                     'amount_currency': 1430.0,
                     'debit': 715.0,
                     'date_maturity': frozen_today,
-                    'account_id': self.company_data['default_account_payable'].id,
+                    'account_id': self.company_data['default_account_receivable'].id,
                 },
             ], {
                 **self.move_vals,
@@ -2940,10 +2940,10 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'currency_id': self.currency_data['currency'].id,
             'invoice_payment_term_id': self.env.ref('account.account_payment_term_immediate').id,
             'line_ids': [
-                (0, 0, {'name': 'line1', 'price_unit': 38.73553, 'quantity': 38.0}),
-                (0, 0, {'name': 'line2', 'price_unit': 4083.19000, 'quantity': 222.0}),
-                (0, 0, {'name': 'line3', 'price_unit': 49.45257, 'quantity': 35.0}),
-                (0, 0, {'name': 'line4', 'price_unit': 17.99000, 'quantity': 1.0}),
+                Command.create({'name': 'line1', 'price_unit': 38.73553, 'quantity': 38.0, 'tax_ids': []}),
+                Command.create({'name': 'line2', 'price_unit': 4083.19000, 'quantity': 222.0, 'tax_ids': []}),
+                Command.create({'name': 'line3', 'price_unit': 49.45257, 'quantity': 35.0, 'tax_ids': []}),
+                Command.create({'name': 'line4', 'price_unit': 17.99000, 'quantity': 1.0, 'tax_ids': []}),
             ],
         })
 
