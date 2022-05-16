@@ -13,5 +13,5 @@ class Routing(Home):
         IrHttp = request.env['ir.http'].sudo()
         modules = IrHttp.get_translation_frontend_modules()
         if mods:
-            modules += mods
+            modules += mods.split(',')
         return WebClient().translations(unique, mods=','.join(modules), lang=lang)
