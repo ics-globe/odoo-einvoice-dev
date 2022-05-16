@@ -163,17 +163,21 @@ class account_journal(models.Model):
             data.append({'label':label,'value':0.0, 'type': 'past' if i<0 else 'future'})
 
         # Build SQL query to find amount aggregated by week
-        (select_sql_clause, query_args) = self._get_bar_graph_select_query()
+        query_args = self._get_bar_graph_query_args()
         query = ''
         start_date = (first_day_of_week + timedelta(days=-7))
         for i in range(0,6):
             if i == 0:
-                query += "("+select_sql_clause+" and invoice_date_due < '"+start_date.strftime(DF)+"')"
+                fallback_date = (start_date + timedelta(days=-7))
+                query += "("+self._get_bar_graph_select_clause(fallback_date.strftime(DF))+\
+                         " and invoice_date_due < '"+start_date.strftime(DF)+"')"
             elif i == 5:
-                query += " UNION ALL ("+select_sql_clause+" and invoice_date_due >= '"+start_date.strftime(DF)+"')"
+                query += " UNION ALL ("+self._get_bar_graph_select_clause(start_date.strftime(DF))+\
+                         " and invoice_date_due >= '"+start_date.strftime(DF)+"')"
             else:
                 next_date = start_date + timedelta(days=7)
-                query += " UNION ALL ("+select_sql_clause+" and invoice_date_due >= '"+start_date.strftime(DF)+"' and invoice_date_due < '"+next_date.strftime(DF)+"')"
+                query += " UNION ALL ("+self._get_bar_graph_select_clause(start_date.strftime(DF))+\
+                         " and invoice_date_due >= '"+start_date.strftime(DF)+"' and invoice_date_due < '"+next_date.strftime(DF)+"')"
                 start_date = next_date
         # Ensure results returned by postgres match the order of data list
         query += " ORDER BY aggr_date ASC"
@@ -196,26 +200,35 @@ class account_journal(models.Model):
 
         return [{'values': data, 'title': graph_title, 'key': graph_key, 'is_sample_data': is_sample_data}]
 
-    def _get_bar_graph_select_query(self):
+    def _get_bar_graph_query_args(self):
         """
-        Returns a tuple containing the base SELECT SQL query used to gather
-        the bar graph's data as its first element, and the arguments dictionary
-        for it as its second.
+        Returns the arguments dictionary used to gather the bar graph's data
         """
-        sign = '' if self.type == 'sale' else '-'
-        return ('''
-            SELECT
-                ''' + sign + ''' + SUM(move.amount_residual_signed) AS total,
-                MIN(invoice_date_due) AS aggr_date
-            FROM account_move move
-            WHERE move.journal_id = %(journal_id)s
-            AND move.state = 'posted'
-            AND move.payment_state in ('not_paid', 'partial')
-            AND move.move_type IN %(invoice_types)s
-        ''', {
+        return {
             'invoice_types': tuple(self.env['account.move'].get_invoice_types(True)),
-            'journal_id': self.id
-        })
+            'journal_id': self.id,
+        }
+
+    def _get_bar_graph_select_clause(self, fallback_date):
+        """
+        Returns the SELECT SQL query used to gather the bar graph's data
+        """
+        fallback_date = "'"+fallback_date+"'"
+        sign = '' if self.type == 'sale' else '-'
+        return '''
+                SELECT
+                    ''' + sign + ''' + SUM(move.amount_residual_signed) AS total,
+                    CASE
+                        WHEN MIN(invoice_date_due) IS NULL THEN ''' + fallback_date + '''
+                        ELSE MIN(invoice_date_due) 
+                    END
+                    AS aggr_date
+                FROM account_move move
+                WHERE move.journal_id = %(journal_id)s
+                AND move.state = 'posted'
+                AND move.payment_state in ('not_paid', 'partial')
+                AND move.move_type IN %(invoice_types)s
+            '''
 
     def get_journal_dashboard_datas(self):
         currency = self.currency_id or self.company_id.currency_id
