@@ -267,7 +267,22 @@ class MailThread(models.AbstractModel):
             for thread in threads:
                 subtype = thread._creation_subtype()
                 if subtype:  # if we have a subtype, post message to notify users from _message_auto_subscribe
-                    thread.sudo().message_post(subtype_id=subtype.id, author_id=self.env.user.partner_id.id)
+                    relations = subtype._get_auto_subscription_subtypes(self._name)[4]
+                    body = ''
+                    if relations:
+                        model_name = self.env['ir.model']._get(self._name).display_name
+                        parent_models = [
+                            f'"{p_model_inst.display_name}" ({self.env["ir.model"]._get(p_model_name).display_name})'
+                            for p_model_name, p_model_inst in
+                            ((p_model_name, getattr(thread, f_name))
+                             for p_model_name, f_names in relations.items() for f_name in f_names) if p_model_inst]
+                        if len(parent_models) == 1:
+                            body = _('A new %(model_name)s has been created in the %(parent_model_name)s you follow.',
+                                     model_name=model_name, parent_model_name=parent_models[0])
+                        elif len(parent_models) > 1:
+                            body = _('A new %(model_name)s has been created in one of the %(parent_model_names)s you follow.',
+                                     model_name=model_name, parent_model_names=', '.join(parent_models))
+                    thread.sudo().message_post(subtype_id=subtype.id, author_id=self.env.user.partner_id.id, body=body)
                 else:
                     threads_no_subtype += thread
             if threads_no_subtype:

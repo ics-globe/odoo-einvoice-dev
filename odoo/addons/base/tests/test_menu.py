@@ -28,3 +28,60 @@ class TestMenu(TransactionCase):
 
         orphans =  Menu.search([('id', 'in', all_ids), ('parent_id', '=', False)], order="id")
         self.assertEqual([child1.id, child2.id], orphans.ids)
+
+    def test_best_root_menu_for_model(self):
+        Menu = self.env['ir.ui.menu']
+        Action = self.env['ir.actions.act_window']
+        menu_cpt = 0
+
+        def new_menu(name, parent_id=None, action=None):
+            nonlocal menu_cpt
+            menu_cpt += 1
+            inst = Menu.create({'name': name, 'parent_id': parent_id})
+            if action:
+                inst.action = action
+            return inst
+
+        def new_action(name, res_model, view_mode=None, domain=None, context=None):
+            return Action.create(dict((k, v) for k, v in
+                                      dict(name=name, res_model=res_model, view_mode=view_mode, domain=domain,
+                                           context=context, type='ir.actions.act_window').items() if v))
+
+        # Remove all menus and setup test menu with known results
+        Menu.search([]).unlink()
+
+        menu_root_invoicing = new_menu('Invoicing')
+        menu_invoicing_customer = new_menu('Customers', parent_id=menu_root_invoicing.id)
+        new_menu('Customers', parent_id=menu_invoicing_customer.id,
+                 action=new_action('Customers', res_model='res.partner', view_mode='kanban,tree,form',
+                                   context="""{
+                                       'search_default_customer': 1,
+                                       'res_partner_search_mode': 'customer', 
+                                       'default_is_company': True, 
+                                       'default_customer_rank': 1
+                                   }"""))
+        menu_root_contact = new_menu('Contacts')
+        new_menu('Contacts', parent_id=menu_root_contact.id,
+                 action=new_action('Contacts', res_model='res.partner', view_mode='kanban,tree,form,activity',
+                                   context="{'default_is_company': "+(' '*1000)+"True"+('\n'*1000)+"}", domain='[]'))
+        menu_root_sales = new_menu('Sales')
+        menu_sales_orders = new_menu('Orders', parent_id=menu_root_sales.id)
+        new_menu('Customers', parent_id=menu_sales_orders.id,
+                 action=new_action('Customers', res_model='res.partner', view_mode='kanban,tree,form',
+                                   context="""{
+                                            'search_default_customer': 1,
+                                            'res_partner_search_mode': 'customer', 
+                                            'default_is_company': True, 
+                                            'default_customer_rank': 1
+                                        }"""))
+        menu_root_settings = new_menu('Settings')
+        menu_settings_user_and_companies = new_menu('Users & Companies', parent_id=menu_root_settings.id)
+        new_menu('Companies', parent_id=menu_settings_user_and_companies.id,
+                 action=new_action('Companies', res_model='res.company', view_mode='tree,kanban,form'))
+
+        self.assertEqual(len(Menu._visible_menu_ids()), menu_cpt)
+        self.assertEqual(Menu._get_best_menu_root_for_model('res.partner'), menu_root_contact.id)
+        self.assertEqual(Menu._get_best_menu_root_for_model('res.bank'), None)
+        self.assertEqual(Menu._get_best_menu_root_for_model('res.company'), menu_root_settings.id)
+
+        self.registry.reset_changes()

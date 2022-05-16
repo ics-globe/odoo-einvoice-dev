@@ -14,6 +14,7 @@ from odoo.osv import expression
 
 MENU_ITEM_SEPARATOR = "/"
 NUMBER_PARENS = re.compile(r"\(([0-9]+)\)")
+MODEL_TO_MENU_ACTION_VIEW_MODE_PREFERRED = re.compile(r"kanban|tree|form")
 
 
 class IrUiMenu(models.Model):
@@ -314,3 +315,44 @@ class IrUiMenu(models.Model):
             menu.res_id: menu.complete_name
             for menu in menuitems
         }
+
+    @api.model
+    @tools.ormcache()
+    def _get_model_to_menu_root_info(self):
+        """ Get intermediate cached data useful to determine the best root menu for a given model.
+        The mapping is built from the models associated with ir.actions.act_window linked to menu items and propagated
+        to the root menus.
+        :return: nested dicts that maps res_model as str -> menu_id as int -> (menu_root_id, order_idx) as (int, int)
+          order_idx is a heuristic number that can be used to choose the best candidate (less is preferred)
+        """
+        context = {'ir.ui.menu.full_list': True}
+        menus = self.with_context(context).search([]).sudo()
+
+        # Build a nested dict that maps menu action model to menu root id while keeping the menu.id linked to the action
+        model_to_menu_id_to_menu_root_info = defaultdict(dict)
+        for menu in menus:
+            action = menu.action
+            if action and action.type == 'ir.actions.act_window':
+                order_idx = 0 if len(re.findall(MODEL_TO_MENU_ACTION_VIEW_MODE_PREFERRED, action.view_mode)) > 0 else 5
+                # number of : in context =~ number of variable in the context (dictionary)
+                order_idx += action.context.count(':') if action.context else 0
+                # number of , /3 in domain =~ number of condition
+                order_idx += action.domain.count(',')/3 if action.domain else 0
+                menu_root_id = int(menu.parent_path[:menu.parent_path.index('/')])
+                model_to_menu_id_to_menu_root_info[action.res_model][menu.id] = (menu_root_id, order_idx)
+        return model_to_menu_id_to_menu_root_info
+
+    @api.model
+    def _get_best_menu_root_for_model(self, res_model):
+        """ Get the best menu root id for the given res_model and the access rights of the user.
+        The method tries to find a menu root which has a sub menu visible to the user that has an action linked to the
+        given model. If there are more than one possibility, it uses a simple heuristic to returns the best one.
+        :return (int): the best menu root id or None if not found
+        """
+        # Get menu_ids linked to res_model (through action) and visible by the user
+        self_sudo = self.sudo()
+        menu_id_to_menu_root_info = self_sudo._get_model_to_menu_root_info().get(res_model, dict())
+        menu_ids = self_sudo._visible_menu_ids().intersection(menu_id_to_menu_root_info.keys())
+        # Get the menu root id with the minimal order_idx in the filtered candidate (by visible menu id)
+        return min((menu_id_to_menu_root_info[menu_id] for menu_id in menu_ids),
+                   key=lambda menu_root_order: menu_root_order[1])[0] if menu_ids else None
