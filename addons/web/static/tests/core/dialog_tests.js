@@ -270,7 +270,7 @@ QUnit.module("Components", (hooks) => {
                 this.ui = useService("ui");
                 assert.strictEqual(
                     this.ui.activeElement,
-                    document,
+                    document.body,
                     "UI active element should be the default (document) as Parent is not mounted yet"
                 );
                 onMounted(() => {
@@ -292,7 +292,7 @@ QUnit.module("Components", (hooks) => {
 
         assert.strictEqual(
             env.services.ui.activeElement,
-            document,
+            document.body,
             "UI owner should be reset to the default (document)"
         );
     });
