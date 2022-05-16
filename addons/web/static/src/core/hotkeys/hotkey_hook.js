@@ -23,10 +23,11 @@ const { useEffect, useRef } = owl;
  */
 export function useHotkey(hotkey, callback, options = {}) {
     const hotkeyService = useService("hotkey");
-    const reference = useRef(options.reference || "hotkey");
-    Object.assign(options, { reference });
+    const hotkeyOptions = options.reference
+        ? { ...options, reference: useRef(options.reference) }
+        : options;
     useEffect(
-        () => hotkeyService.add(hotkey, callback, options),
+        () => hotkeyService.add(hotkey, callback, hotkeyOptions),
         () => []
     );
 }
