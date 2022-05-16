@@ -93,3 +93,19 @@ $position-properties: (
 .fst-normal {
   font-style: normal !important;
 }
+
+// == Text Selection
+//------------------------------------------------------------------------------
+// "Bootstrap v5 ready" utility-classes to handle text selection.
+// This class definition can be safely removed after migrating to BTS v5.
+
+$o-user-select-values: all, auto, none;
+$o-user-select-browsers: '-webkit-', '-moz-', '';
+
+@each $value in $o-user-select-values {
+  @each $browser in $o-user-select-browsers {
+    .user-select-#{$value} {
+      #{$browser}user-select: $value !important;
+    }
+  }
+}
