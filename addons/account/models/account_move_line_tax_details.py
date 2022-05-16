@@ -62,7 +62,7 @@ class AccountMoveLine(models.Model):
                     base_line.id AS base_line_id,
                     base_line.id AS src_line_id,
                     base_line.balance AS base_amount,
-                    base_line.balance * base_line.currency_rate::numeric AS base_amount_currency
+                    base_line.amount_currency AS base_amount_currency
                 FROM {tables}
                 LEFT JOIN base_tax_line_mapping ON
                     base_tax_line_mapping.tax_line_id = account_move_line.id
@@ -150,7 +150,7 @@ class AccountMoveLine(models.Model):
                     account_move_line.id AS tax_line_id,
                     base_line.id AS base_line_id,
                     base_line.balance AS base_amount,
-                    base_line.balance * base_line.currency_rate::numeric AS base_amount_currency
+                    base_line.amount_currency AS base_amount_currency
 
                 FROM {tables}
                 JOIN account_tax_repartition_line tax_rep ON
@@ -238,20 +238,20 @@ class AccountMoveLine(models.Model):
                     ) OVER (PARTITION BY tax_line.id, account_move_line.id) AS total_base_amount,
                     account_move_line.balance AS total_tax_amount,
 
-                    base_line.balance * base_line.currency_rate::numeric AS base_amount_currency,
+                    base_line.amount_currency AS base_amount_currency,
                     SUM(
                         CASE WHEN tax.amount_type = 'fixed'
-                        THEN CASE WHEN base_line.balance * base_line.currency_rate::numeric < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
-                        ELSE base_line.balance * base_line.currency_rate::numeric
+                        THEN CASE WHEN base_line.amount_currency < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
+                        ELSE base_line.amount_currency
                         END
                     ) OVER (PARTITION BY tax_line.id, account_move_line.id ORDER BY tax_line.tax_line_id, base_line.id) AS cumulated_base_amount_currency,
                     SUM(
                         CASE WHEN tax.amount_type = 'fixed'
-                        THEN CASE WHEN base_line.balance * base_line.currency_rate::numeric < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
-                        ELSE base_line.balance * base_line.currency_rate::numeric
+                        THEN CASE WHEN base_line.amount_currency < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
+                        ELSE base_line.amount_currency
                         END
                     ) OVER (PARTITION BY tax_line.id, account_move_line.id) AS total_base_amount_currency,
-                    account_move_line.balance * account_move_line.currency_rate::numeric AS total_tax_amount_currency
+                    account_move_line.amount_currency AS total_tax_amount_currency
 
                 FROM {tables}
                 JOIN account_tax tax_include_base_amount ON
@@ -413,17 +413,17 @@ class AccountMoveLine(models.Model):
                     sub.base_amount_currency,
                     SUM(
                         CASE WHEN tax.amount_type = 'fixed'
-                        THEN CASE WHEN base_line.balance * base_line.currency_rate::numeric < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
+                        THEN CASE WHEN base_line.amount_currency < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
                         ELSE sub.base_amount_currency
                         END
                     ) OVER (PARTITION BY tax_line.id ORDER BY tax_line.tax_line_id, sub.base_line_id, sub.src_line_id) AS cumulated_base_amount_currency,
                     SUM(
                         CASE WHEN tax.amount_type = 'fixed'
-                        THEN CASE WHEN base_line.balance * base_line.currency_rate::numeric < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
+                        THEN CASE WHEN base_line.amount_currency < 0 THEN -1 ELSE 1 END * ABS(COALESCE(base_line.quantity, 1.0))
                         ELSE sub.base_amount_currency
                         END
                     ) OVER (PARTITION BY tax_line.id) AS total_base_amount_currency,
-                    tax_line.balance * tax_line.currency_rate::numeric AS total_tax_amount_currency
+                    tax_line.amount_currency AS total_tax_amount_currency
 
                 FROM base_tax_matching_base_amounts sub
                 JOIN account_move_line tax_line ON

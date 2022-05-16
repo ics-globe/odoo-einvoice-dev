@@ -4,8 +4,9 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools import html_escape
 from odoo.tools.misc import formatLang, format_date
 
-from datetime import date
 import ast
+from datetime import date
+from functools import lru_cache
 
 INTEGRITY_HASH_LINE_FIELDS = ('debit', 'credit', 'account_id', 'partner_id')
 
@@ -292,8 +293,16 @@ class AccountMoveLine(models.Model):
 
     @api.depends('currency_id', 'company_id', 'move_id.date')
     def _compute_currency_rate(self):
+        @lru_cache
+        def get_rate(from_currency, to_currency, company, date):
+            return self.env['res.currency']._get_conversion_rate(
+                from_currency=from_currency,
+                to_currency=to_currency,
+                company=company,
+                date=date,
+            )
         for line in self:
-            line.currency_rate = line.currency_id._get_conversion_rate(
+            line.currency_rate = get_rate(
                 from_currency=line.company_currency_id,
                 to_currency=line.currency_id,
                 company=line.company_id,

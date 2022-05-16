@@ -2,8 +2,6 @@
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 
-import json
-
 
 @tagged('post_install', '-at_install')
 class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
@@ -82,7 +80,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
         '''
 
         # Check suggested outstanding payments.
-        to_reconcile_payments_widget_vals = json.loads(invoice.invoice_outstanding_credits_debits_widget)
+        to_reconcile_payments_widget_vals = invoice.invoice_outstanding_credits_debits_widget
 
         self.assertTrue(to_reconcile_payments_widget_vals)
 
@@ -98,7 +96,7 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
         (pay_term_lines + to_reconcile).reconcile()
 
         # Check payments after reconciliation.
-        reconciled_payments_widget_vals = json.loads(invoice.invoice_payments_widget)
+        reconciled_payments_widget_vals = invoice.invoice_payments_widget
 
         self.assertTrue(reconciled_payments_widget_vals)
 

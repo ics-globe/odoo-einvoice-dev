@@ -184,7 +184,7 @@ class TestAccountMoveReconcile(AccountTestInvoicingCommon):
             SELECT
                 line.account_id,
                 COALESCE(SUM(line.balance), 0.0)            AS total_balance,
-                COALESCE(SUM(line.balance * line.currency_rate), 0.0)    AS total_amount_currency
+                COALESCE(SUM(line.amount_currency), 0.0)    AS total_amount_currency
             FROM account_move_line line
             WHERE line.account_id IN %s
             GROUP BY line.account_id

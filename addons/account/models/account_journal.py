@@ -796,7 +796,7 @@ class AccountJournal(models.Model):
             SELECT
                 COUNT(account_move_line.id) AS nb_lines,
                 COALESCE(SUM(account_move_line.balance), 0.0),
-                COALESCE(SUM(account_move_line.balance * account_move_line.currency_rate), 0.0)
+                COALESCE(SUM(account_move_line.amount_currency), 0.0)
             FROM ''' + tables + '''
             WHERE ''' + where_clause + '''
         '''
@@ -867,7 +867,7 @@ class AccountJournal(models.Model):
                 SUM(account_move_line.amount_residual) AS amount_residual,
                 SUM(account_move_line.balance) AS balance,
                 SUM(account_move_line.amount_residual_currency) AS amount_residual_currency,
-                SUM(account_move_line.balance * account_move_line.currency_rate) AS amount_currency
+                SUM(account_move_line.amount_currency) AS amount_currency
             FROM ''' + tables + '''
             JOIN account_account account ON account.id = account_move_line.account_id
             WHERE ''' + where_clause + '''

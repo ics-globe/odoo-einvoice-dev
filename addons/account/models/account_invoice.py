@@ -391,20 +391,14 @@ class AccountInvoice(models.AbstractModel):
             elif move.is_purchase_document(include_receipts=True) and move.partner_id.property_supplier_payment_term_id:
                 move.invoice_payment_term_id = move.partner_id.property_supplier_payment_term_id
 
-    @api.depends('invoice_date', 'highest_name', 'company_id')
+    @api.depends('needed_terms')
     def _compute_invoice_date_due(self):
         today = fields.Date.context_today(self)
         for move in self:
-            if move.invoice_payment_term_id:
-                move.invoice_date_due = max(
-                    (d for d  in move.line_ids.mapped('date_maturity') if d),
-                    default=today,
-                )
-            elif (
-                move.invoice_date
-                and (not move.invoice_date_due or move.invoice_date_due < move.invoice_date)
-            ):
-                move.invoice_date_due = move.invoice_date
+            move.invoice_date_due = move.needed_terms and max(
+                (k['date_maturity'] for k in move.needed_terms.keys() if k),
+                default=False,
+            ) or move.invoice_date_due or today
 
     @api.depends('company_id')
     def _compute_currency_id(self):
@@ -561,7 +555,7 @@ class AccountInvoice(models.AbstractModel):
 
             invoice.payment_state = new_pmt_state
 
-    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_in_currency_signed')
+    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_in_currency_signed', 'invoice_date_due')
     def _compute_needed_terms(self):
         for invoice in self:
             invoice.needed_terms = {}
@@ -570,7 +564,7 @@ class AccountInvoice(models.AbstractModel):
                     for date, (company_amount, foreign_amount) in invoice.invoice_payment_term_id.compute(
                         company_value=invoice.amount_total_signed,
                         foreign_value=invoice.amount_total_in_currency_signed,
-                        date_ref=invoice.invoice_date or fields.Date.today(),
+                        date_ref=invoice.invoice_date or invoice.date or fields.Date.today(),
                         currency=invoice.currency_id,
                     ):
                         key = frozendict({'move_id': invoice.id, 'date_maturity': fields.Date.to_date(date)})
@@ -731,14 +725,13 @@ class AccountInvoice(models.AbstractModel):
         tax_line_id_filter = tax_line_id_filter or (lambda aml, tax: True)
         tax_ids_filter = tax_ids_filter or (lambda aml, tax: True)
 
-        balance_multiplicator = -1 if self.is_outbound() else 1
         tax_lines_data = []
 
-        for line in self.invoice_line_ids:
+        for line in self.line_ids:
             if line.tax_line_id and tax_line_id_filter(line, line.tax_line_id):
                 tax_lines_data.append({
                     'line_key': 'tax_line_%s' % line.id,
-                    'tax_amount': line.price_subtotal * balance_multiplicator,
+                    'tax_amount': -line.amount_currency,
                     'tax': line.tax_line_id,
                 })
 
@@ -747,7 +740,7 @@ class AccountInvoice(models.AbstractModel):
                     if tax_ids_filter(line, base_tax):
                         tax_lines_data.append({
                             'line_key': 'base_line_%s' % line.id,
-                            'base_amount': line.price_subtotal * balance_multiplicator,
+                            'base_amount': -line.amount_currency,
                             'tax': base_tax,
                             'tax_affecting_base': line.tax_line_id,
                         })
@@ -1099,11 +1092,9 @@ class AccountInvoice(models.AbstractModel):
     def _onchange_invoice_vendor_bill(self):
         if self.invoice_vendor_bill_id:
             # Copy invoice lines.
-            for line in self.invoice_vendor_bill_id.line_ids.filtered(lambda l: not l.exclude_from_invoice_tab):
+            for line in self.invoice_vendor_bill_id.invoice_line_ids:
                 copied_vals = line.copy_data()[0]
-                copied_vals['move_id'] = self.id
-                new_line = self.env['account.move.line'].new(copied_vals)
-                # TODO uh? unused?
+                self.line_ids += self.env['account.move.line'].new(copied_vals)
 
             self.currency_id = self.invoice_vendor_bill_id.currency_id
             self.fiscal_position_id = self.invoice_vendor_bill_id.fiscal_position_id

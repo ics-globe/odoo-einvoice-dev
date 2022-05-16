@@ -72,6 +72,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
         invoice_lines_vals = [
             (0, 0, {
                 'name': 'line',
+                'display_type': 'product',
                 'account_id': self.company_data['default_account_revenue'].id,
                 'price_unit': amount,
                 'tax_ids': [(6, 0, taxes.ids)],
@@ -105,6 +106,7 @@ class TestTaxTotals(AccountTestInvoicingCommon):
             (1000, tax_10),
             (1000, tax_20),
         ])
+        print(document.line_ids)
 
         self.assertTaxTotals(document, {
             'amount_total': 3600,

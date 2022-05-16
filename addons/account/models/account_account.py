@@ -499,7 +499,7 @@ class AccountAccount(models.Model):
             UPDATE account_move_line SET
                 reconciled = CASE WHEN balance = 0 THEN true ELSE false END,
                 amount_residual = balance,
-                amount_residual_currency = balance * currency_rate
+                amount_residual_currency = amount_currency
             WHERE full_reconcile_id IS NULL and account_id IN %s
         """
         self.env.cr.execute(query, [tuple(self.ids)])
