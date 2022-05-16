@@ -147,6 +147,8 @@ class TestMailMailRace(common.TransactionCase):
             'state': 'outgoing',
             'recipient_ids': [(4, self.partner.id)]
         })
+        mail_message = mail.mail_message_id
+
         message = self.env['mail.message'].create({
             'subject': 'S',
             'body': 'B',
@@ -193,8 +195,8 @@ class TestMailMailRace(common.TransactionCase):
         self.env['ir.mail_server']._revert_method('send_email')
 
         notif.unlink()
-        message.unlink()
         mail.unlink()
+        (mail_message|message).unlink()
         self.partner.unlink()
         self.env.cr.commit()
 
