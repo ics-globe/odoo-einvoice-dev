@@ -4,7 +4,6 @@ import { registerModel } from '@mail/model/model_core';
 import { attr, many, one } from '@mail/model/model_field';
 import { clear, insert, insertAndReplace, insertAndUnlink, link, replace, unlink } from '@mail/model/model_field_command';
 import { OnChange } from '@mail/model/model_onchange';
-import throttle from '@mail/utils/throttle';
 import { cleanSearchTerm } from '@mail/utils/utils';
 import * as mailUtils from '@mail/js/utils';
 
@@ -26,7 +25,6 @@ registerModel({
     identifyingFields: ['model', 'id'],
     lifecycleHooks: {
         _willDelete() {
-            this.throttleNotifyCurrentPartnerTypingStatus.clear();
             if (this.isTemporary) {
                 for (const message of this.messages) {
                     message.delete();
@@ -919,7 +917,7 @@ registerModel({
                 typingMembers: link(currentPartner),
             });
             // Notify typing status to other members.
-            await this.throttleNotifyCurrentPartnerTypingStatus({ isTyping: true });
+            await this.throttleNotifyCurrentPartnerTypingStatus.do({ isTyping: true });
         },
         /**
          * Called to register a new other member partner that is typing
@@ -1012,7 +1010,7 @@ registerModel({
             if (immediateNotify) {
                 this.throttleNotifyCurrentPartnerTypingStatus.clear();
             }
-            this.throttleNotifyCurrentPartnerTypingStatus({ isTyping: false });
+            this.throttleNotifyCurrentPartnerTypingStatus.do({ isTyping: false });
         },
         /**
          * Called to unregister an other member partner that is no longer typing
@@ -1542,11 +1540,9 @@ registerModel({
          * @returns {Throttle}
          */
         _computeThrottleNotifyCurrentPartnerTypingStatus() {
-            return throttle(
-                this.messaging,
-                ({ isTyping }) => this._notifyCurrentPartnerTypingStatus({ isTyping }),
-                2.5 * 1000
-            );
+            return insertAndReplace({
+                func: ({ isTyping }) => this._notifyCurrentPartnerTypingStatus({ isTyping }),
+            });
         },
         /**
          * @private
@@ -1797,7 +1793,7 @@ registerModel({
         async onCurrentPartnerLongTypingTimeout() {
             this.update({ forceNotifyNextCurrentPartnerTypingStatus: true });
             this.throttleNotifyCurrentPartnerTypingStatus.clear();
-            await this.throttleNotifyCurrentPartnerTypingStatus({ isTyping: true });
+            await this.throttleNotifyCurrentPartnerTypingStatus.do({ isTyping: true });
         },
     },
     fields: {
@@ -2404,8 +2400,10 @@ registerModel({
          *
          * @see _notifyCurrentPartnerTypingStatus
          */
-        throttleNotifyCurrentPartnerTypingStatus: attr({
+        throttleNotifyCurrentPartnerTypingStatus: one('Throttle', {
             compute: '_computeThrottleNotifyCurrentPartnerTypingStatus',
+            inverse: 'threadAsThrottleNotifyCurrentPartnerTypingStatus',
+            isCausal: true,
         }),
         /**
          * States the `Activity` that belongs to `this` and that are due

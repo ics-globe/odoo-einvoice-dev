@@ -1,26 +1,15 @@
 /** @odoo-module **/
 
 import { start } from '@mail/../tests/helpers/test_utils';
-import throttle from '@mail/utils/throttle';
+import { insertAndReplace } from '@mail/model/model_field_command';
+import { ThrottleCanceledError } from '@mail/utils/throttle_canceled_error';
+import { ThrottleReinvokedError } from '@mail/utils/throttle_reinvoked_error';
 import { nextTick } from '@mail/utils/utils';
-
-const { ThrottleReinvokedError, ThrottleCanceledError } = throttle;
 
 QUnit.module('mail', {}, function () {
 QUnit.module('utils', {}, function () {
 QUnit.module('throttle', {}, function () {
-QUnit.module('throttle_tests.js', {
-    async beforeEach() {
-        this.throttles = [];
-    },
-    afterEach() {
-        // Important: tests should cleanly intercept cancelation errors that
-        // may result from this teardown.
-        for (const t of this.throttles) {
-            t.clear();
-        }
-    },
-});
+QUnit.module('throttle_tests.js', {});
 
 QUnit.test('single call', async function (assert) {
     assert.expect(6);
@@ -28,18 +17,14 @@ QUnit.test('single call', async function (assert) {
     const { advanceTime, messaging } = await start({
         hasTimeControl: true,
     });
-
     let hasInvokedFunc = false;
-    const throttledFunc = throttle(
-        messaging,
-        () => {
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {
             hasInvokedFunc = true;
             return 'func_result';
         },
-        0
-    );
-    this.throttles.push(throttledFunc);
-
+        qunitTestOwner1: insertAndReplace(),
+    });
     assert.notOk(
         hasInvokedFunc,
         "func should not have been invoked on immediate throttle initialization"
@@ -51,7 +36,7 @@ QUnit.test('single call', async function (assert) {
         "func should not have been invoked from throttle initialization after 0ms"
     );
 
-    throttledFunc().then(res => {
+    throttledFunc.do().then(res => {
         assert.step('throttle_observed_invoke');
         assert.strictEqual(
             res,
@@ -78,17 +63,14 @@ QUnit.test('2nd (throttled) call', async function (assert) {
     });
 
     let funcCalledAmount = 0;
-    const throttledFunc = throttle(
-        messaging,
-        () => {
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {
             funcCalledAmount++;
             return `func_result_${funcCalledAmount}`;
         },
-        1000
-    );
-    this.throttles.push(throttledFunc);
-
-    throttledFunc().then(result => {
+        qunitTestOwner2: insertAndReplace(),
+    });
+    throttledFunc.do().then(result => {
         assert.step('throttle_observed_invoke_1');
         assert.strictEqual(
             result,
@@ -102,7 +84,7 @@ QUnit.test('2nd (throttled) call', async function (assert) {
         "inner function of throttle should have been invoked on 1st call (immediate return)"
     );
 
-    throttledFunc().then(res => {
+    throttledFunc.do().then(res => {
         assert.step('throttle_observed_invoke_2');
         assert.strictEqual(
             res,
@@ -137,18 +119,15 @@ QUnit.test('throttled call reinvocation', async function (assert) {
     });
 
     let funcCalledAmount = 0;
-    const throttledFunc = throttle(
-        messaging,
-        () => {
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {
             funcCalledAmount++;
             return `func_result_${funcCalledAmount}`;
         },
-        1000,
-        { silentCancelationErrors: false }
-    );
-    this.throttles.push(throttledFunc);
-
-    throttledFunc().then(result => {
+        hasSilentCancelationErrors: false,
+        qunitTestOwner2: insertAndReplace(),
+    });
+    throttledFunc.do().then(result => {
         assert.step('throttle_observed_invoke_1');
         assert.strictEqual(
             result,
@@ -162,7 +141,7 @@ QUnit.test('throttled call reinvocation', async function (assert) {
         "inner function of throttle should have been invoked on 1st call (immediate return)"
     );
 
-    throttledFunc()
+    throttledFunc.do()
         .then(() => {
             throw new Error("2nd throttle call should not be resolved (should have been canceled by reinvocation)");
         })
@@ -185,7 +164,7 @@ QUnit.test('throttled call reinvocation', async function (assert) {
         "inner function of throttle should not have been invoked after 999ms of 2nd call (throttled with 1s internal clock)"
     );
 
-    throttledFunc()
+    throttledFunc.do()
         .then(result => {
             assert.step('throttle_observed_invoke_2');
             assert.strictEqual(
@@ -213,22 +192,18 @@ QUnit.test('flush throttled call', async function (assert) {
     const { advanceTime, messaging } = await start({
         hasTimeControl: true,
     });
-
-    const throttledFunc = throttle(
-        messaging,
-        () => {},
-        1000,
-    );
-    this.throttles.push(throttledFunc);
-
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_1'));
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {},
+        qunitTestOwner2: insertAndReplace(),
+    });
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_1'));
     await nextTick();
     assert.verifySteps(
         ['throttle_observed_invoke_1'],
         "inner function of throttle should have been invoked on 1st call (immediate return)"
     );
 
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_2'));
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_2'));
     await nextTick();
     assert.verifySteps(
         [],
@@ -248,7 +223,7 @@ QUnit.test('flush throttled call', async function (assert) {
         "inner function of throttle should have been invoked from 2nd call after flush"
     );
 
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_3'));
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_3'));
     await nextTick();
     await advanceTime(999);
     assert.verifySteps(
@@ -269,23 +244,19 @@ QUnit.test('cancel throttled call', async function (assert) {
     const { advanceTime, messaging } = await start({
         hasTimeControl: true,
     });
-
-    const throttledFunc = throttle(
-        messaging,
-        () => {},
-        1000,
-        { silentCancelationErrors: false }
-    );
-    this.throttles.push(throttledFunc);
-
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_1'));
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {},
+        hasSilentCancelationErrors: false,
+        qunitTestOwner2: insertAndReplace(),
+    });
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_1'));
     await nextTick();
     assert.verifySteps(
         ['throttle_observed_invoke_1'],
         "inner function of throttle should have been invoked on 1st call (immediate return)"
     );
 
-    throttledFunc()
+    throttledFunc.do()
         .then(() => {
             throw new Error("2nd throttle call should not be resolved (should have been canceled)");
         })
@@ -315,7 +286,7 @@ QUnit.test('cancel throttled call', async function (assert) {
         "2nd throttle function call should have been canceled"
     );
 
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_3'));
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_3'));
     await nextTick();
     assert.verifySteps(
         [],
@@ -335,23 +306,19 @@ QUnit.test('clear throttled call', async function (assert) {
     const { advanceTime, messaging } = await start({
         hasTimeControl: true,
     });
-
-    const throttledFunc = throttle(
-        messaging,
-        () => {},
-        1000,
-        { silentCancelationErrors: false }
-    );
-    this.throttles.push(throttledFunc);
-
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_1'));
+    const throttledFunc = messaging.models['Throttle'].insert({
+        func: () => {},
+        hasSilentCancelationErrors: false,
+        qunitTestOwner2: insertAndReplace(),
+    });
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_1'));
     await nextTick();
     assert.verifySteps(
         ['throttle_observed_invoke_1'],
         "inner function of throttle should have been invoked on 1st call (immediate return)"
     );
 
-    throttledFunc()
+    throttledFunc.do()
         .then(() => {
             throw new Error("2nd throttle call should not be resolved (should have been canceled from clear)");
         })
@@ -381,7 +348,7 @@ QUnit.test('clear throttled call', async function (assert) {
         "2nd throttle function call should have been canceled (from `.clear()`)"
     );
 
-    throttledFunc().then(() => assert.step('throttle_observed_invoke_3'));
+    throttledFunc.do().then(() => assert.step('throttle_observed_invoke_3'));
     await nextTick();
     assert.verifySteps(
         ['throttle_observed_invoke_3'],

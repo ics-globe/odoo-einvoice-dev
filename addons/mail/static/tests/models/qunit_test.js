@@ -42,5 +42,13 @@ registerModel({
             inverse: 'qunitTestOwner2',
             isCausal: true,
         }),
+        throttle1: one('Throttle', {
+            inverse: 'qunitTestOwner1',
+            isCausal: true,
+        }),
+        throttle2: one('Throttle', {
+            inverse: 'qunitTestOwner2',
+            isCausal: true,
+        }),
     },
 });
