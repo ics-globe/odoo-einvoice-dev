@@ -77,6 +77,7 @@ class Article(models.Model):
         [('write', 'write'), ('read', 'read'), ('none', 'none')],
         string='User permission',
         compute='_compute_user_permission')
+    user_is_admin = fields.Boolean(compute="_compute_user_is_admin")
     # categories and ownership
     category = fields.Selection(
         [('workspace', 'Workspace'), ('private', 'Private'), ('shared', 'Shared')],
@@ -236,6 +237,10 @@ class Article(models.Model):
                 parent = parent.parent_id
             articles.inherited_permission = ancestors[-1:].internal_permission
             articles.inherited_permission_parent_id = ancestors[-1:]
+
+    def _compute_user_is_admin(self):
+        for article in self:
+            article.user_is_admin = self.env.user.has_group('base.group_system')
 
     @api.depends_context('uid')
     @api.depends('internal_permission', 'article_member_ids.partner_id', 'article_member_ids.permission')
