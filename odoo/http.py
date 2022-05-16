@@ -899,6 +899,14 @@ class GeoIP(collections.abc.Mapping):
         except geoip2.errors.AddressNotFoundError:
             return self.empty_country
 
+    @property
+    def country_name(self):
+        return self.country.name or self.continent.name
+
+    @property
+    def country_code(self):
+        return self.country.iso_code or self.continent.code
+
     def __getattr__(self, attr):
         # Be smart and determine whether the attribute exists on the
         # country object or on the city object.
@@ -924,12 +932,12 @@ class GeoIP(collections.abc.Mapping):
             )
 
         if item == 'country_name':
-            warn('country_name', '(request.geoip.country.name or request.geoip.continent.name)')
-            return self.country.name or self.continent.name
+            warn('country_name', 'request.geoip.country_name')
+            return self.country_name
 
         if item == 'country_code':
-            warn('country_code', '(request.geoip.country.iso_code or request.geoip.continent.code)')
-            return self.country.iso_code or self.continent.code
+            warn('country_code', 'request.geoip.country_code')
+            return self.country_code
 
         if item == 'city':
             warn('city', 'request.geoip.city.name')
