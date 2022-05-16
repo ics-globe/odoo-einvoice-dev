@@ -6,10 +6,11 @@ import { SimpleDialog } from "@web/core/dialog/dialog";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { sprintf, uniqueId } from "@web/core/utils/strings";
 import { useSortable } from "@web/core/utils/ui";
 import { url } from "@web/core/utils/urls";
+import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { Field } from "@web/fields/field";
 import { fileTypeMagicWordMap } from "@web/fields/image_field";
 import { session } from "@web/session";
@@ -102,7 +103,6 @@ export class KanbanRenderer extends Component {
         this.action = useService("action");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
-        this.mousedownTarget = null;
         this.colors = COLORS;
         this.exampleData = registry.category("kanban_examples").get(examples, null);
         this.ghostColumns = this.generateGhostColumns();
@@ -174,6 +174,50 @@ export class KanbanRenderer extends Component {
         onWillDestroy(() => {
             this.dialogClose.forEach((close) => close());
         });
+
+        useBus(this.env.searchModel, "focus-view", () => {
+            const { model } = this.props.list;
+            if (model.useSampleModel || !model.hasData()) {
+                return;
+            }
+            // Focus first kanban card
+            rootRef.el.querySelector(".o_kanban_record").focus();
+        });
+
+        useHotkey(
+            "Enter",
+            ({ target }) => {
+                if (!target.classList.contains("o_kanban_record")) {
+                    return;
+                }
+
+                // Open first link
+                const firstLink = target.querySelector("a, button");
+                if (firstLink && firstLink instanceof HTMLElement) {
+                    firstLink.click();
+                }
+                return;
+            },
+            { reference: "root" }
+        );
+
+        const arrowsOptions = { reference: "root", allowRepeat: true };
+        useHotkey("ArrowUp", ({ reference }) => this.focusNextCard(reference, "up"), arrowsOptions);
+        useHotkey(
+            "ArrowDown",
+            ({ reference }) => this.focusNextCard(reference, "down"),
+            arrowsOptions
+        );
+        useHotkey(
+            "ArrowLeft",
+            ({ reference }) => this.focusNextCard(reference, "left"),
+            arrowsOptions
+        );
+        useHotkey(
+            "ArrowRight",
+            ({ reference }) => this.focusNextCard(reference, "right"),
+            arrowsOptions
+        );
     }
 
     // ------------------------------------------------------------------------
@@ -553,11 +597,58 @@ export class KanbanRenderer extends Component {
         this.props.openRecord(record);
     }
 
-    onCardClicked(record, ev) {
-        if (ev.target.closest(GLOBAL_CLICK_CANCEL_SELECTORS.join(","))) {
-            return;
+    /**
+     * @param {HTMLElement} zone
+     * @param {"up"|"down"|"left"|"right"} direction
+     */
+    focusNextCard(zone, direction) {
+        const { isGrouped } = this.props.list;
+        const groups = isGrouped ? [...zone.querySelectorAll(".o_kanban_group")] : [zone];
+        const cards = [...groups]
+            .map((group) => [...group.querySelectorAll(".o_kanban_record")])
+            .filter((group) => group.length);
+
+        // Search current card position
+        let iGroup;
+        let iCard;
+        for (iGroup = 0; iGroup < cards.length; iGroup++) {
+            const i = cards[iGroup].indexOf(document.activeElement);
+            if (i !== -1) {
+                iCard = i;
+                break;
+            }
         }
-        this.openRecord(record);
+        // Find next card to focus
+        let nextCard;
+        switch (direction) {
+            case "down":
+                nextCard = iCard < cards[iGroup].length - 1 && cards[iGroup][iCard + 1];
+                break;
+            case "up":
+                nextCard = iCard > 0 && cards[iGroup][iCard - 1];
+                if (!nextCard) {
+                    this.env.searchModel.trigger("focus-search");
+                }
+                break;
+            case "right":
+                if (isGrouped) {
+                    nextCard = iGroup < cards.length - 1 && cards[iGroup + 1][0];
+                } else {
+                    nextCard = iCard < cards[0].length - 1 && cards[0][iCard + 1];
+                }
+                break;
+            case "left":
+                if (isGrouped) {
+                    nextCard = iGroup > 0 && cards[iGroup - 1][0];
+                } else {
+                    nextCard = iCard > 0 && cards[0][iCard - 1];
+                }
+                break;
+        }
+
+        if (nextCard && nextCard instanceof HTMLElement) {
+            nextCard.focus();
+        }
     }
 
     //-------------------------------------------------------------------------
