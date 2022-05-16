@@ -255,7 +255,7 @@
             <field name="partner_id" ref="base.partner_demo_portal"/>
         </record>
         <record id="agr_collaborator" model="project.collaborator">
-            <field name="project_id" search="[('sale_line_id', '=', ref('sale_line_13'))]"/>
+            <field name="project_id" model="project.project" search="[('sale_line_id', '=', ref('sale_line_13'))]"/>
             <field name="partner_id" ref="base.partner_demo_portal"/>
         </record>
 
