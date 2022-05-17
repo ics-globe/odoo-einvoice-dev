@@ -1,5 +1,7 @@
 /** @odoo-module **/
 
+import { useHotkey } from "../hotkeys/hotkey_hook";
+
 const { Component } = owl;
 
 /**
@@ -19,16 +21,22 @@ const { Component } = owl;
 export class CheckBox extends Component {
     setup() {
         this.id = `checkbox-comp-${CheckBox.nextId++}`;
+        useHotkey(
+            "Enter",
+            ({ reference }) => {
+                const oldValue = reference.querySelector("input").checked;
+                this.props.onChange(!oldValue);
+            },
+            { reference: "root", bypassEditableProtection: true }
+        );
     }
 
-    /**
-     * When a click is triggered on an input directly with
-     * Javascript, the disabled attribute is not respected
-     * and the value is changed. This assures a disabled
-     * CheckBox can't be forced to update
-     */
     onChange(ev) {
         if (this.props.disabled) {
+            // When a click is triggered on an input directly with
+            // Javascript, the disabled attribute is not respected
+            // and the value is changed. This assures a disabled
+            // CheckBox can't be forced to update
             ev.target.checked = !ev.target.checked;
             return;
         }
@@ -40,7 +48,6 @@ CheckBox.template = "web.CheckBox";
 CheckBox.nextId = 1;
 CheckBox.defaultProps = {
     onChange: () => {},
-    onKeydown: () => {},
 };
 CheckBox.props = {
     id: {
@@ -60,10 +67,6 @@ CheckBox.props = {
         optional: true,
     },
     onChange: {
-        type: Function,
-        optional: true,
-    },
-    onKeydown: {
         type: Function,
         optional: true,
     },
