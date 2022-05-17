@@ -4,6 +4,15 @@
             width: 350px;
             &:not(.o_kanban_ghost) {
                 height: 180px;
+
+                // white-space: nowrap;
+                // text-overflow: ellipsis;
+                // overflow: hidden;
+
+                // overflow: auto;
+
+                overflow:auto;
+                overflow-wrap: break-word;
             }
         }
 
