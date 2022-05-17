@@ -387,7 +387,7 @@ exports.PosModel = Backbone.Model.extend({
         model:  'product.product',
         fields: ['display_name', 'lst_price', 'standard_price', 'categ_id', 'pos_categ_id', 'taxes_id',
                  'barcode', 'default_code', 'to_weight', 'uom_id', 'description_sale', 'description',
-                 'product_tmpl_id','tracking'],
+                 'product_tmpl_id','tracking','active'],
         order:  _.map(['sequence','default_code','name'], function (name) { return {name: name}; }),
         domain: function(self){
             var domain = ['&', '&', ['sale_ok','=',true],['available_in_pos','=',true],'|',['company_id','=',self.config.company_id[0]],['company_id','=',false]];
@@ -401,7 +401,7 @@ exports.PosModel = Backbone.Model.extend({
             }
             return domain;
         },
-        context: function(self){ return { display_default_code: false }; },
+        context: function(self){ return { display_default_code: false, active_test: false }; },
         loaded: function(self, products){
             var using_company_currency = self.config.currency_id[0] === self.company.currency_id[0];
             var conversion_rate = self.currency.rate / self.company_currency.rate;
@@ -2415,7 +2415,9 @@ exports.Order = Backbone.Model.extend({
         var orderlines = json.lines;
         for (var i = 0; i < orderlines.length; i++) {
             var orderline = orderlines[i][2];
-            this.add_orderline(new exports.Orderline({}, {pos: this.pos, order: this, json: orderline}));
+            if(this.pos.db.get_product_by_id(orderline.product_id).active){
+                this.add_orderline(new exports.Orderline({}, {pos: this.pos, order: this, json: orderline}));
+            }
         }
 
         var paymentlines = json.statement_ids;
