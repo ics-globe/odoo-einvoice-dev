@@ -1362,51 +1362,49 @@ class TestMailgateway(TestMailCommon):
             'name': 'Test',
             'email_from': 'ignasse@example.com',
         })
-        new_msg = test_record.message_ids
-        self.assertEqual(new_msg.body, '<p>%s created</p>' % self.env['ir.model']._get(test_record._name).display_name)
-        self.assertEqual(new_msg.reply_to,
+        init_msg = test_record.message_ids
+        self.assertEqual(init_msg.body, '<p>%s created</p>' % self.env['ir.model']._get(test_record._name).display_name)
+        self.assertEqual(init_msg.reply_to,
                          formataddr((self.env.company.name, f'{self.alias_catchall}@{self.alias_domain}')),
                          'Creation note reply-to currently does not contain name')
-        self.assertEqual(new_msg.subtype_id, self.env.ref('mail.mt_note'))
+        self.assertEqual(init_msg.subtype_id, self.env.ref('mail.mt_note'))
 
-        test_record.message_post('<p>Sent to customer</p>')
-        new_msg = test_record.message_ids[-1]
-        self.assertEqual(new_msg.body, f'<p>Sent to customer</p>')
-        self.assertEqual(new_msg.reply_to,
+        # with self.mock_mail_gateway():
+        #     test_record.message_post(body='<p>Sent to customer</p>',
+        #                              message_type='comment',
+        #                              partner_ids=self.partner_1.ids,
+        #                              subject='Contacting customer',
+        #                              subtype_id=self.env.ref('mail.mt_comment').id,
+        #                             )
+        # post_msg = test_record.message_ids[0]
+        # self.assertEqual(post_msg.body, '<p>Sent to customer</p>')
+        # self.assertTrue(post_msg.message_id)
+        # self.assertEqual(post_msg.parent_id, init_msg)
+        # self.assertEqual(post_msg.reply_to,
+        #                  formataddr(('%s %s' % (self.env.company.name, test_record.name),
+        #                              f'{self.alias_catchall}@{self.alias_domain}')))
+        # self.assertEqual(post_msg.subtype_id, self.env.ref('mail.mt_comment'))
+
+        post_msg = init_msg
+
+        with self.mock_mail_gateway():
+            self.format_and_process(
+                MAIL_TEMPLATE, self.email_from, post_msg.reply_to,
+                cc='',
+                extra='In-Reply-To: %s' % post_msg.message_id,
+                subject='Re: Replies to Record',
+            )
+        reply_msg = test_record.message_ids[0]
+        self.assertIn('Please call me as soon as possible this afternoon', reply_msg.body)
+        self.assertTrue(reply_msg.message_id)
+        self.assertEqual(reply_msg.parent_id, init_msg)
+        self.assertEqual(reply_msg.reply_to,
                          formataddr(('%s %s' % (self.env.company.name, test_record.name),
                                      f'{self.alias_catchall}@{self.alias_domain}')))
-        self.assertEqual(new_msg.subtype_id, self.env.ref('mail.mt_comment'))
-        print(new_msg.message_id)
+        self.assertEqual(reply_msg.subtype_id, self.env.ref('mail.mt_comment'))
 
-        self.format_and_process(
-            MAIL_TEMPLATE, self.email_from, mail_msg.reply_to,
-            cc='',
-            extra='In-Reply-To: %s' % mail_msg.message_id,
-            subject='Re: Replies to Record',
-        )
         print('prout')
         print(prout)
-
-
-        cls.test_model = cls.env['ir.model']._get('mail.test.gateway')
-        cls.email_from = '"Sylvie Lelitre" <test.sylvie.lelitre@agrolait.com>'
-
-        cls.test_record = cls.env['mail.test.gateway'].with_context(cls._test_context).create({
-            'name': 'Test',
-            'email_from': 'ignasse@example.com',
-        }).with_context({})
-
-        cls.partner_1 = cls.env['res.partner'].with_context(cls._test_context).create({
-            'name': 'Valid Lelitre',
-            'email': 'valid.lelitre@agrolait.com',
-        })
-        # groups@.. will cause the creation of new mail.test.gateway
-        cls.alias = cls.env['mail.alias'].create({
-            'alias_name': 'groups',
-            'alias_user_id': False,
-            'alias_model_id': cls.test_model.id,
-            'alias_contact': 'everyone'})
-
 
     # --------------------------------------------------
     # Thread formation: mail gateway corner cases

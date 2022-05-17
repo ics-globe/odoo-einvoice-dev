@@ -249,6 +249,7 @@ class MailMail(models.Model):
             :return: True
         """
         for server_id, batch_ids in self._split_by_server():
+            print(server_id, batch_ids)
             smtp_session = None
             try:
                 smtp_session = self.env['ir.mail_server'].connect(mail_server_id=server_id)

@@ -1034,7 +1034,7 @@ class MailThread(models.AbstractModel):
         # postpone setting message_dict.partner_ids after message_post, to avoid double notifications
         original_partner_ids = message_dict.pop('partner_ids', [])
         thread_id = False
-        for model, thread_id, custom_values, user_id, alias in routes or ():
+        for model, thread_id, custom_values, user_id, _alias in routes or ():
             subtype_id = False
             related_user = self.env['res.users'].browse(user_id)
             Model = self.env[model].with_context(mail_create_nosubscribe=True, mail_create_nolog=True)
@@ -1462,21 +1462,21 @@ class MailThread(models.AbstractModel):
                 stored_date = datetime.datetime.now()
             msg_dict['date'] = stored_date.strftime(tools.DEFAULT_SERVER_DATETIME_FORMAT)
 
-        parent_ids = False
+        parent = False
         if msg_dict['in_reply_to']:
-            parent_ids = self.env['mail.message'].search(
+            parent = self.env['mail.message'].search(
                 [('message_id', '=', msg_dict['in_reply_to'])],
                 order='create_date DESC, id DESC',
                 limit=1)
-        if msg_dict['references'] and not parent_ids:
+        if msg_dict['references'] and not parent:
             references_msg_id_list = tools.mail_header_msgid_re.findall(msg_dict['references'])
-            parent_ids = self.env['mail.message'].search(
+            parent = self.env['mail.message'].search(
                 [('message_id', 'in', [x.strip() for x in references_msg_id_list])],
                 order='create_date DESC, id DESC',
                 limit=1)
-        if parent_ids:
+        if parent:
             msg_dict['parent_id'] = parent_ids.id
-            msg_dict['is_internal'] = parent_ids.subtype_id and parent_ids.subtype_id.internal or False
+            msg_dict['is_internal'] = parent_ids.subtype_id.internal if parent_ids.subtype_id else True
 
         msg_dict.update(self._message_parse_extract_payload(message, save_original=save_original))
         msg_dict.update(self._message_parse_extract_bounce(message, msg_dict))
