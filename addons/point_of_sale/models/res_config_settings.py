@@ -35,7 +35,6 @@ class ResConfigSettings(models.TransientModel):
     update_stock_quantities = fields.Selection(related="company_id.point_of_sale_update_stock_quantities", readonly=False)
     account_default_pos_receivable_account_id = fields.Many2one(string='Default Account Receivable (PoS)', related='company_id.account_default_pos_receivable_account_id', readonly=False)
     is_default_pricelist_displayed = fields.Boolean(compute="_compute_is_default_pricelist_displayed")
-    is_cashdrawer_displayed = fields.Boolean(compute='_compute_is_cashdrawer_displayed')
 
     # pos.config fields
     pos_module_pos_discount = fields.Boolean(related='pos_config_id.module_pos_discount', readonly=False)
@@ -167,10 +166,9 @@ class ResConfigSettings(models.TransientModel):
     def pos_open_ui(self):
         return self.pos_config_id.open_ui()
 
-    @api.depends('pos_iface_print_via_proxy')
-    def _compute_is_cashdrawer_displayed(self):
-        for res_config in self:
-            res_config.is_cashdrawer_displayed = res_config.pos_iface_print_via_proxy
+    @api.model
+    def _is_cashdrawer_displayed(self, res_config):
+        return res_config.pos_iface_print_via_proxy
 
     @api.depends('pos_limit_categories', 'pos_config_id')
     def _compute_pos_iface_available_categ_ids(self):
@@ -196,10 +194,10 @@ class ResConfigSettings(models.TransientModel):
             else:
                 res_config.pos_selectable_categ_ids = self.env['pos.category'].search([])
 
-    @api.depends('is_cashdrawer_displayed', 'pos_config_id')
+    @api.depends('pos_iface_print_via_proxy', 'pos_config_id')
     def _compute_pos_iface_cashdrawer(self):
         for res_config in self:
-            if res_config.is_cashdrawer_displayed:
+            if self._is_cashdrawer_displayed(res_config):
                 res_config.pos_iface_cashdrawer = res_config.pos_config_id.iface_cashdrawer
             else:
                 res_config.pos_iface_cashdrawer = False
