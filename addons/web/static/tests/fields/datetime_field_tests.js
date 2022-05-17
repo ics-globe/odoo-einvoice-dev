@@ -378,11 +378,9 @@ QUnit.module("Fields", (hooks) => {
         }
     );
 
-    QUnit.skipWOWL(
+    QUnit.test(
         "DatetimeField not visible in form view should not capture the focus on keyboard navigation",
         async function (assert) {
-            assert.expect(1);
-
             await makeView({
                 type: "form",
                 resModel: "partner",
@@ -398,6 +396,13 @@ QUnit.module("Fields", (hooks) => {
 
             await click(target, ".o_form_button_edit");
 
+            // Make sure the datetime invisible field is not in the DOM
+            assert.containsOnce(target, ".o_field_widget");
+            assert.containsOnce(target, ".o_field_widget[name]");
+            assert.containsOnce(target, ".o_field_widget[name='txt']");
+            assert.containsNone(target, "[name='datetime']");
+
+            // Simulate tabbing out from the "txt" field
             await triggerEvent(target, ".o_field_widget[name='txt'] textarea", "keydown", {
                 key: "Tab",
             });

@@ -30,6 +30,13 @@ export class CharField extends Component {
     /**
      * @param {Event} ev
      */
+    onInput(ev) {
+        let value = this.parse(ev.target.value);
+        this.props.update(value || false);
+    }
+    /**
+     * @param {Event} ev
+     */
     onChange(ev) {
         let value = this.parse(ev.target.value);
         this.props.update(value || false);
