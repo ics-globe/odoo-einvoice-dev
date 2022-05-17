@@ -110,28 +110,26 @@ class ResConfigSettings(models.TransientModel):
 
         for vals in vals_list:
             pos_config_id = vals.get('pos_config_id', False)
-            if not pos_config_id:
-                continue
+            if pos_config_id:
+                pos_fields_vals = {}
+                for _field in self._fields.values():
+                    val = vals.get(_field.name, None)
 
-            pos_fields_vals = {}
-            for _field in self._fields.values():
-                val = vals.get(_field.name, None)
+                    # Add only to pos_fields_vals if
+                    #   1. _field is in vals -- meaning, the _field is in view.
+                    #   2. _field has 'pos' attribute
+                    if hasattr(_field, 'pos') and val is not None:
+                        pos_fields_vals[getattr(_field, 'pos')] = val
+                        del vals[_field.name]
+                        continue
 
-                # Add only to pos_fields_vals if
-                #   1. _field is in vals -- meaning, the _field is in view.
-                #   2. _field has 'pos' attribute
-                if hasattr(_field, 'pos') and val is not None:
-                    pos_fields_vals[getattr(_field, 'pos')] = val
-                    del vals[_field.name]
-                    continue
+                if vals.get('pos_cash_rounding', False):
+                    vals['group_cash_rounding'] = True
 
-            if vals.get('pos_cash_rounding', False):
-                vals['group_cash_rounding'] = True
+                if vals.get('pos_use_pricelist', False):
+                    vals['group_product_pricelist'] = True
 
-            if vals.get('pos_use_pricelist', False):
-                vals['group_product_pricelist'] = True
-
-            pos_config_id_to_fields_vals_map[pos_config_id] = pos_fields_vals
+                pos_config_id_to_fields_vals_map[pos_config_id] = pos_fields_vals
 
         # STEP: Call super on the modified vals_list.
         # NOTE: When creating `res.config.settings` records, it doesn't write on *unmodified* related fields.
