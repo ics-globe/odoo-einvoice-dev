@@ -491,6 +491,7 @@ class Project(models.Model):
             default = {}
         if not default.get('name'):
             default['name'] = _("%s (copy)") % (self.name)
+        self = self.with_context(mail_auto_subscribe_no_notify=True)
         project = super(Project, self).copy(default)
         for follower in self.message_follower_ids:
             project.message_subscribe(partner_ids=follower.partner_id.ids, subtype_ids=follower.subtype_ids.ids)
@@ -1558,6 +1559,7 @@ class Task(models.Model):
             default['recurrence_id'] = self.recurrence_id.copy().id
         if self.allow_subtasks:
             default['child_ids'] = [child.copy({'name': child.name} if has_default_name else None).id for child in self.child_ids]
+        self = self.with_context(mail_auto_subscribe_no_notify=True)
         task_copy = super(Task, self).copy(default)
         if self.allow_task_dependencies:
             task_mapping = self.env.context.get('task_mapping')
@@ -1964,6 +1966,8 @@ class Task(models.Model):
 
     @api.model
     def _task_message_auto_subscribe_notify(self, users_per_task):
+        if self.env.context.get('mail_auto_subscribe_no_notify'):
+            return
         # Utility method to send assignation notification upon writing/creation.
         template_id = self.env['ir.model.data']._xmlid_to_res_id('project.project_message_user_assigned', raise_if_not_found=False)
         if not template_id:
