@@ -161,7 +161,6 @@ class ResConfigSettings(models.TransientModel):
     def action_pos_config_create_new(self):
         return {
             'view_mode': 'form',
-            'view_id': self.env.ref('point_of_sale.pos_config_view_form').id,
             'res_model': 'pos.config',
             'type': 'ir.actions.act_window',
             'target': 'new',
