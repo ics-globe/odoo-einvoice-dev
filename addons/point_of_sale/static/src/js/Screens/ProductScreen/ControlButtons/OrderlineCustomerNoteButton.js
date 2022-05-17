@@ -29,8 +29,6 @@ odoo.define('point_of_sale.OrderlineCustomerNoteButton', function(require) {
 
     ProductScreen.addControlButton({
         component: OrderlineCustomerNoteButton,
-        // IMPROVEMENT: If condition is not specified, it will always be displayed.
-        condition: () => true,
     });
 
     Registries.Component.add(OrderlineCustomerNoteButton);
