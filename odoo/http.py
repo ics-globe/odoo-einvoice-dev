@@ -1753,8 +1753,144 @@ class Application:
                 with request._get_profiler_context_manager():
                     response = request._serve_db()
             else:
+<<<<<<< HEAD
                 response = request._serve_nodb()
             return response(environ, start_response)
+=======
+                try:
+                    prof = profiler.Profiler(
+                        db=request.session.db,
+                        description=request.httprequest.full_path,
+                        profile_session=request.session.profile_session,
+                        collectors=request.session.profile_collectors,
+                        params=request.session.profile_params,
+                    )
+                    return profiler.Nested(prof, request)
+                except Exception:
+                    _logger.exception("Failure during Profiler creation")
+                    request.session.profile_session = None
+        return request
+
+    def get_db_router(self, db):
+        if not db:
+            return self.nodb_routing_map
+        return request.registry['ir.http'].routing_map()
+
+def db_list(force=False, httprequest=None):
+    try:
+        dbs = odoo.service.db.list_dbs(force)
+    except psycopg2.OperationalError:
+        return []
+    return db_filter(dbs, httprequest=httprequest)
+
+def db_filter(dbs, httprequest=None):
+    httprequest = httprequest or request.httprequest
+    h = httprequest.environ.get('HTTP_HOST', '').split(':')[0]
+    d, _, r = h.partition('.')
+    if d == "www" and r:
+        d = r.partition('.')[0]
+    if odoo.tools.config['dbfilter']:
+        d, h = re.escape(d), re.escape(h)
+        r = odoo.tools.config['dbfilter'].replace('%h', h).replace('%d', d)
+        dbs = [i for i in dbs if re.match(r, i)]
+    elif odoo.tools.config['db_name']:
+        # In case --db-filter is not provided and --database is passed, Odoo will
+        # use the value of --database as a comma separated list of exposed databases.
+        exposed_dbs = set(db.strip() for db in odoo.tools.config['db_name'].split(','))
+        dbs = sorted(exposed_dbs.intersection(dbs))
+    return dbs
+
+def db_monodb(httprequest=None):
+    """
+        Magic function to find the current database.
+
+        Implementation details:
+
+        * Magic
+        * More magic
+
+        Returns ``None`` if the magic is not magic enough.
+    """
+    httprequest = httprequest or request.httprequest
+
+    dbs = db_list(True, httprequest)
+
+    # try the db already in the session
+    db_session = httprequest.session.db
+    if db_session in dbs:
+        return db_session
+
+    # if there is only one possible db, we take that one
+    if len(dbs) == 1:
+        return dbs[0]
+    return None
+
+def send_file(filepath_or_fp, mimetype=None, as_attachment=False, filename=None, mtime=None,
+              add_etags=True, cache_timeout=STATIC_CACHE, conditional=True):
+    """This is a modified version of Flask's send_file()
+
+    Sends the contents of a file to the client. This will use the
+    most efficient method available and configured.  By default it will
+    try to use the WSGI server's file_wrapper support.
+
+    By default it will try to guess the mimetype for you, but you can
+    also explicitly provide one.  For extra security you probably want
+    to send certain files as attachment (HTML for instance).  The mimetype
+    guessing requires a `filename` or an `attachment_filename` to be
+    provided.
+
+    Please never pass filenames to this function from user sources without
+    checking them first.
+
+    :param filepath_or_fp: the filename of the file to send.
+                           Alternatively a file object might be provided
+                           in which case `X-Sendfile` might not work and
+                           fall back to the traditional method.  Make sure
+                           that the file pointer is positioned at the start
+                           of data to send before calling :func:`send_file`.
+    :param mimetype: the mimetype of the file if provided, otherwise
+                     auto detection happens.
+    :param as_attachment: set to `True` if you want to send this file with
+                          a ``Content-Disposition: attachment`` header.
+    :param filename: the filename for the attachment if it differs from the file's filename or
+                     if using file object without 'name' attribute (eg: E-tags with StringIO).
+    :param mtime: last modification time to use for contitional response.
+    :param add_etags: set to `False` to disable attaching of etags.
+    :param conditional: set to `False` to disable conditional responses.
+
+    :param cache_timeout: the timeout in seconds for the headers.
+    """
+    if isinstance(filepath_or_fp, str):
+        if not filename:
+            filename = os.path.basename(filepath_or_fp)
+        file = open(filepath_or_fp, 'rb')
+        if not mtime:
+            mtime = os.path.getmtime(filepath_or_fp)
+    else:
+        file = filepath_or_fp
+        if not filename:
+            filename = getattr(file, 'name', None)
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+
+    if mimetype is None and filename:
+        mimetype = mimetypes.guess_type(filename)[0]
+    if mimetype is None:
+        mimetype = 'application/octet-stream'
+
+    headers = werkzeug.datastructures.Headers()
+    if as_attachment:
+        if filename is None:
+            raise TypeError('filename unavailable, required for sending as attachment')
+        headers.add('Content-Disposition', 'attachment', filename=filename)
+        headers['Content-Length'] = size
+
+    data = wrap_file(request.httprequest.environ, file)
+    rv = Response(data, mimetype=mimetype, headers=headers,
+                                    direct_passthrough=True)
+>>>>>>> a790a9f07b2... temp
 
         except Exception as exc:
             # Valid (2xx/3xx) response returned via werkzeug.exceptions.abort.
