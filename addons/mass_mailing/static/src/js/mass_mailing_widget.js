@@ -49,7 +49,6 @@ var MassMailingFieldHtml = FieldHtml.extend({
      * @override
      */
     commitChanges: async function () {
-        var self = this;
         if (this.mode === 'readonly' || !this.isRendered) {
             return this._super();
         }
@@ -61,23 +60,23 @@ var MassMailingFieldHtml = FieldHtml.extend({
 
         var $editable = this.wysiwyg.getEditable();
         await this.wysiwyg.cleanForSave();
-        return this.wysiwyg.saveModifiedImages(this.$content).then(function () {
-            self._isDirty = self.wysiwyg.isDirty();
-            self._doAction();
+        return this.wysiwyg.saveModifiedImages(this.$content).then(async () => {
+            this._isDirty = this.wysiwyg.isDirty();
+            await this._doAction();
 
             const $editorEnable = $editable.closest('.editor_enable');
             $editorEnable.removeClass('editor_enable');
-            convertInline.toInline($editable, self.cssRules, self.wysiwyg.$iframe);
+            convertInline.toInline($editable, this.cssRules, this.wysiwyg.$iframe);
             $editorEnable.addClass('editor_enable');
 
-            self.trigger_up('field_changed', {
-                dataPointID: self.dataPointID,
-                changes: _.object([fieldName], [self._unWrap($editable.html())])
+            this.trigger_up('field_changed', {
+                dataPointID: this.dataPointID,
+                changes: _.object([fieldName], [this._unWrap($editable.html())])
             });
 
-            $editable.html(self.value);
-            if (self._isDirty && self.mode === 'edit') {
-                return self._doAction();
+            $editable.html(this.value);
+            if (this._isDirty && this.mode === 'edit') {
+                return this._doAction();
             }
         });
     },
