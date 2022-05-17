@@ -15,28 +15,18 @@ export class BooleanField extends Component {
         }
     }
     /**
-     * @param {Event} ev
+     * @param {boolean} newValue
      */
     onChange(newValue) {
         this.props.update(newValue);
     }
     /**
-     * @param {Event} ev
+     * @param {MouseEvent} ev
      */
     onClick(ev) {
         if (ev.composedPath().includes(this.root.el)) {
             this.props.update(!this.props.value);
             ev.preventDefault();
-        }
-    }
-    /**
-     * @param {MouseEvent} ev
-     */
-    onKeydown({ key }) {
-        switch (key) {
-            case "Enter":
-                this.props.update(!this.props.value);
-                break;
         }
     }
 }
