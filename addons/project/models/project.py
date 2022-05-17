@@ -1712,10 +1712,10 @@ class Task(models.Model):
         return super(Task, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         fields_list = {term[0] for term in args if isinstance(term, (tuple, list))}
         self._ensure_fields_are_accessible(fields_list)
-        return super(Task, self)._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
+        return super(Task, self)._search(args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
 
     def mapped(self, func):
         # Note: This will protect the filtered method too

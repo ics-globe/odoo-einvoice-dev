@@ -190,14 +190,14 @@ class Groups(models.Model):
         return where
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         # add explicit ordering if search is sorted on full_name
         if order and order.startswith('full_name'):
             groups = super(Groups, self).search(args)
             groups = groups.sorted('full_name', reverse=order.endswith('DESC'))
             groups = groups[offset:offset+limit] if limit else groups[offset:]
-            return len(groups) if count else groups.ids
-        return super(Groups, self)._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
+            return groups.ids
+        return super(Groups, self)._search(args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
 
     def copy(self, default=None):
         self.ensure_one()
@@ -534,12 +534,12 @@ class Users(models.Model):
         return super(Users, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         if not self.env.su and args:
             domain_fields = {term[0] for term in args if isinstance(term, (tuple, list))}
             if domain_fields.intersection(USER_PRIVATE_FIELDS):
                 raise AccessError(_('Invalid search criterion'))
-        return super(Users, self)._search(args, offset=offset, limit=limit, order=order, count=count,
+        return super(Users, self)._search(args, offset=offset, limit=limit, order=order,
                                           access_rights_uid=access_rights_uid)
 
     @api.model_create_multi

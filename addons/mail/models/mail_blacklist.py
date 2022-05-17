@@ -51,7 +51,7 @@ class MailBlackList(models.Model):
             values['email'] = tools.email_normalize(values['email'])
         return super(MailBlackList, self).write(values)
 
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         """ Override _search in order to grep search on email field and make it
         lower-case and sanitized """
         if args:
@@ -67,7 +67,7 @@ class MailBlackList(models.Model):
                     new_args.append(arg)
         else:
             new_args = args
-        return super(MailBlackList, self)._search(new_args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
+        return super(MailBlackList, self)._search(new_args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
 
     def _add(self, email):
         normalized = tools.email_normalize(email)

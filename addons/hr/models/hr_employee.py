@@ -223,7 +223,7 @@ class HrEmployeePrivate(models.Model):
         return self.env['hr.employee.public'].get_view(view_id, view_type, **options)
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         """
             We override the _search because it is the method that checks the access rights
             This is correct to override the _search. That way we enforce the fact that calling
@@ -233,9 +233,9 @@ class HrEmployeePrivate(models.Model):
             employees exactly match the ids of the related hr.employee.
         """
         if self.check_access_rights('read', raise_exception=False):
-            return super(HrEmployeePrivate, self)._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
-        ids = self.env['hr.employee.public']._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
-        if not count and isinstance(ids, Query):
+            return super(HrEmployeePrivate, self)._search(args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+        ids = self.env['hr.employee.public']._search(args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
+        if isinstance(ids, Query):
             # the result is expected from this table, so we should link tables
             ids = super(HrEmployeePrivate, self.sudo())._search([('id', 'in', ids)])
         return ids

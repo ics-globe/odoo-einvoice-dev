@@ -251,7 +251,7 @@ class Message(models.Model):
         self._cr.execute("""CREATE INDEX IF NOT EXISTS mail_message_model_res_id_id_idx ON mail_message (model, res_id, id)""")
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         """ Override that adds specific access rights of mail.message, to remove
         ids uid could not see according to our custom rules. Please refer to
         check_access_rule for more details about those rules.
@@ -270,17 +270,15 @@ class Message(models.Model):
         if self.env.is_superuser():
             return super(Message, self)._search(
                 args, offset=offset, limit=limit, order=order,
-                count=count, access_rights_uid=access_rights_uid)
+                access_rights_uid=access_rights_uid)
         # Non-employee see only messages with a subtype and not internal
         if not self.env['res.users'].has_group('base.group_user'):
             args = expression.AND([self._get_search_domain_share(), args])
         # Perform a super with count as False, to have the ids, not a counter
         ids = super(Message, self)._search(
             args, offset=offset, limit=limit, order=order,
-            count=False, access_rights_uid=access_rights_uid)
-        if not ids and count:
-            return 0
-        elif not ids:
+            access_rights_uid=access_rights_uid)
+        if not ids:
             return ids
 
         pid = self.env.user.partner_id.id
@@ -314,12 +312,9 @@ class Message(models.Model):
 
         final_ids = author_ids | partner_ids | allowed_ids
 
-        if count:
-            return len(final_ids)
-        else:
-            # re-construct a list based on ids, because set did not keep the original order
-            id_list = [id for id in ids if id in final_ids]
-            return id_list
+        # re-construct a list based on ids, because set did not keep the original order
+        id_list = [id for id in ids if id in final_ids]
+        return id_list
 
     @api.model
     def _find_allowed_model_wise(self, doc_model, doc_dict):

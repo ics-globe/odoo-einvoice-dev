@@ -60,7 +60,7 @@ class PhoneBlackList(models.Model):
             values['number'] = sanitized
         return super(PhoneBlackList, self).write(values)
 
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         """ Override _search in order to grep search on sanitized number field """
         if args:
             new_args = []
@@ -76,7 +76,7 @@ class PhoneBlackList(models.Model):
                     new_args.append(arg)
         else:
             new_args = args
-        return super(PhoneBlackList, self)._search(new_args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
+        return super(PhoneBlackList, self)._search(new_args, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
 
     def add(self, number):
         sanitized = phone_validation.phone_sanitize_numbers_w_record([number], self.env.user)[number]['sanitized']

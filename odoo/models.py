@@ -1884,8 +1884,19 @@ class BaseModel(metaclass=MetaModel):
         :returns: at most ``limit`` records matching the search criteria
         :raise AccessError: if user is not allowed to access requested information
         """
-        res = self._search(domain, offset=offset, limit=limit, order=order, count=count)
-        return res if count else self.browse(res)
+        if count:
+            # Ignore order, limit and offset when just counting, they don't make
+            # sense and could hurt performance
+            query = self._search(domain, order='id')
+            if not isinstance(query, Query):
+                return len(query)
+            query.order = None
+            query_str, params = query.select("COUNT(1)")
+            self.env.cr.execute(query_str, params)
+            return self.env.cr.fetchone()[0]
+
+        query = self._search(domain, offset=offset, limit=limit, order=order)
+        return self.browse(query)
 
     #
     # display_name, name_get, name_create, name_search
@@ -4826,7 +4837,7 @@ Fields:
             self.env[model_name].flush(field_names)
 
     @api.model
-    def _search(self, domain, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
         """
         Private implementation of search() method, allowing specifying the uid to use for the access right check.
         This is useful for example when filling in the selection list for a drop-down and avoiding access rights errors,
@@ -4842,21 +4853,13 @@ Fields:
 
         if expression.is_false(self, domain):
             # optimization: no need to query, as no record satisfies the domain
-            return 0 if count else []
+            return ()
 
         # the flush must be done before the _where_calc(), as the latter can do some selects
         self._flush_search(domain, order=order)
 
         query = self._where_calc(domain)
         self._apply_ir_rules(query, 'read')
-
-        if count:
-            # Ignore order, limit and offset when just counting, they don't make sense and could
-            # hurt performance
-            query_str, params = query.select("count(1)")
-            self._cr.execute(query_str, params)
-            res = self._cr.fetchone()
-            return res[0]
 
         query.order = self._generate_order_by(order, query).replace('ORDER BY ', '')
         query.limit = limit

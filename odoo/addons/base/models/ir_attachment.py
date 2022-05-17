@@ -508,7 +508,7 @@ class IrAttachment(models.Model):
         return super().read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         # add res_field=False in domain if not present; the arg[0] trick below
         # works for domain items and '&'/'|'/'!' operators too
         discard_binary_fields_attachments = False
@@ -517,14 +517,14 @@ class IrAttachment(models.Model):
             args.insert(0, ('res_field', '=', False))
 
         ids = super(IrAttachment, self)._search(args, offset=offset, limit=limit, order=order,
-                                                count=False, access_rights_uid=access_rights_uid)
+                                                access_rights_uid=access_rights_uid)
 
         if self.env.is_superuser():
             # rules do not apply for the superuser
-            return len(ids) if count else ids
+            return ids
 
         if not ids:
-            return 0 if count else []
+            return []
 
         # Work with a set, as list.remove() is prohibitive for large lists of documents
         # (takes 20+ seconds on a db with 100k docs during search_count()!)
@@ -578,10 +578,10 @@ class IrAttachment(models.Model):
         if len(orig_ids) == limit and len(result) < self._context.get('need', limit):
             need = self._context.get('need', limit) - len(result)
             result.extend(self.with_context(need=need)._search(args, offset=offset + len(orig_ids),
-                                       limit=limit, order=order, count=count,
+                                       limit=limit, order=order,
                                        access_rights_uid=access_rights_uid)[:limit - len(result)])
 
-        return len(result) if count else list(result)
+        return list(result)
 
     def _read(self, fields):
         self.check('read')

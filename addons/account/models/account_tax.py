@@ -259,7 +259,7 @@ class AccountTax(models.Model):
         return name_list
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None, count=False, access_rights_uid=None):
+    def _search(self, args, offset=0, limit=None, order=None, access_rights_uid=None):
         context = self._context or {}
 
         if context.get('move_type'):
@@ -273,7 +273,7 @@ class AccountTax(models.Model):
             if journal.type in ('sale', 'purchase'):
                 args += [('type_tax_use', '=', journal.type)]
 
-        return super(AccountTax, self)._search(args, offset, limit, order, count=count, access_rights_uid=access_rights_uid)
+        return super(AccountTax, self)._search(args, offset, limit, order, access_rights_uid=access_rights_uid)
 
     @api.onchange('amount')
     def onchange_amount(self):
