@@ -979,7 +979,7 @@ function _getMatchedCSSRules(node, cssRules) {
         }
     };
 
-    if (processedStyle.display === 'block' && !(node.classList && node.classList.contains('btn-block'))) {
+    if (processedStyle.display === 'block') {
         delete processedStyle.display;
     }
     if (!processedStyle['box-sizing']) {
