@@ -3908,7 +3908,7 @@ Fields:
                 # DLE P150: `test_cancel_propagation`, `test_manufacturing_3_steps`, `test_manufacturing_flow`
                 # TODO: check whether still necessary
                 records_to_inverse[field] = self.filtered('id')
-            if field.relational or self.pool.field_inverses[field]:
+            if field in self.pool.fields_with_relational_triggers:
                 relational_names.append(fname)
             if field.inverse or (field.compute and not field.readonly):
                 if field.store or field.type not in ('one2many', 'many2many'):
@@ -6280,7 +6280,8 @@ Fields:
     # Generic onchange method
     #
 
-    def _dependent_fields(self, field):
+    @classmethod
+    def _dependent_fields(cls, field):
         """ Return an iterator on the fields that depend on ``field``. """
         def traverse(node):
             for key, val in node.items():
@@ -6288,7 +6289,7 @@ Fields:
                     yield from val
                 else:
                     yield from traverse(val)
-        return traverse(self.pool.field_triggers.get(field, {}))
+        return traverse(cls.pool.field_triggers.get(field, {}))
 
     def _has_onchange(self, field, other_fields):
         """ Return whether ``field`` should trigger an onchange event in the

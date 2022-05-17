@@ -236,6 +236,9 @@ class Multi(models.Model):
     partners = fields.One2many(related='partner.child_ids')
     tags = fields.Many2many('test_new_api.multi.tag', domain=[('name', 'ilike', 'a')])
 
+    filter = fields.Char()
+    label = fields.Many2one('test_new_api.multi.tag', compute='_compute_label', store=True)
+
     @api.onchange('name')
     def _onchange_name(self):
         for line in self.lines:
@@ -245,6 +248,11 @@ class Multi(models.Model):
     def _onchange_partner(self):
         for line in self.lines:
             line.partner = self.partner
+
+    @api.depends('tags', 'filter')
+    def _compute_label(self):
+        for record in self.filtered('filter'):
+            record.label = record.tags.filtered(lambda l: record.filter in l.name)
 
 
 class MultiLine(models.Model):
@@ -268,6 +276,13 @@ class MultiTag(models.Model):
     _description = 'Test New API Multi Tag'
 
     name = fields.Char()
+    labeled_multis = fields.One2many('test_new_api.multi', 'label')
+    labeled_count = fields.Integer(compute='_compute_labeled_count')
+
+    @api.depends('labeled_multis')
+    def _compute_labeled_count(self):
+        for record in self:
+            record.labeled_count = len(record.labeled_multis)
 
 
 class Edition(models.Model):
@@ -1332,6 +1347,12 @@ class ComputeContainer(models.Model):
 
     name = fields.Char()
     member_ids = fields.One2many('test_new_api.compute.member', 'container_id')
+    member_count = fields.Integer(compute='_compute_member_count', store=True)
+
+    @api.depends('member_ids')
+    def _compute_member_count(self):
+        for record in self:
+            record.member_count = len(record.member_ids)
 
 
 class ComputeMember(models.Model):

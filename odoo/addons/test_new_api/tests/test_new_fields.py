@@ -2012,6 +2012,29 @@ class TestFields(TransactionCaseWithUserDemo):
             [('author_partner.name', '=', 'Marc Demo')])
         self.assertEqual(messages, self.env.ref('test_new_api.message_0_1'))
 
+    def test_60_one2many_compute(self):
+        """ test the cache consistency of a one2many field with a compute """
+        tag = self.env['test_new_api.multi.tag'].create({'name': 'bar'})
+        record = self.env['test_new_api.multi'].create({'tags': tag.ids})
+        record.flush()
+        record.invalidate_cache()
+
+        self.assertIn(type(record).filter, tag.pool.fields_with_relational_triggers)
+
+        # the multi is in the labeled one2many
+        self.assertNotIn(record, tag.labeled_multis)
+        self.assertEqual(tag.labeled_count, 0)
+
+        # modify the filter; the multi should not longer be in the one2many
+        record.filter = 'bar'
+        self.assertIn(record, tag.labeled_multis)
+        self.assertEqual(tag.labeled_count, 1)
+
+        # modify again the filter; the multi should be back in the one2many
+        record.filter = 'foo'
+        self.assertNotIn(record, tag.labeled_multis)
+        self.assertEqual(tag.labeled_count, 0)
+
     def test_60_one2many_domain(self):
         """ test the cache consistency of a one2many field with a domain """
         discussion = self.env.ref('test_new_api.discussion_0')
@@ -2035,6 +2058,7 @@ class TestFields(TransactionCaseWithUserDemo):
         record.invalidate_cache()
 
         self.assertEqual(type(record).tags.domain, [('name', 'ilike', 'a')])
+        self.assertIn(type(tag).name, tag.pool.fields_with_relational_triggers)
 
         # the tag is in the many2many
         self.assertIn(tag, record.tags)

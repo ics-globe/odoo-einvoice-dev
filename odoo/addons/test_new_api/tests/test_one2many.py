@@ -256,6 +256,12 @@ class One2manyCase(TransactionCase):
         # at this point, member.container_id must be computed for member to
         # appear in container.member_ids
         self.assertEqual(container.member_ids, member)
+        self.assertEqual(container.member_count, 1)
+
+        # indirectly detach member from container; this should recompute
+        # container.member_count
+        member.name = 'Bar'
+        self.assertEqual(container.member_count, 0)
 
     def test_reward_line_delete(self):
         order = self.env['test_new_api.order'].create({
