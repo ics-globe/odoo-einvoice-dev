@@ -23,7 +23,13 @@
                     </t>
                 </t>
                 <t t-set-slot="control-panel-bottom-right"> </t>
-                <t t-component="props.Renderer" record="model.root" Compiler="props.Compiler" archInfo="archInfo"/>
+                <t
+                    t-component="props.Renderer"
+                    record="model.root"
+                    Compiler="props.Compiler"
+                    archInfo="archInfo"
+                    t-on-keydown="onRendererKeydown"
+                />
             </Layout>
         </div>
     </t>

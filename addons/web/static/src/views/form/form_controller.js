@@ -13,6 +13,7 @@ import { standardViewProps } from "@web/views/helpers/standard_view_props";
 import { useSetupView } from "@web/views/helpers/view_hook";
 import { isX2Many } from "@web/views/helpers/view_utils";
 import { useViewButtons } from "@web/views/view_button/hook";
+import { getVisibleElements } from "@web/core/utils/ui";
 
 const { Component, onWillStart, useEffect, useRef, onRendered } = owl;
 
@@ -153,7 +154,8 @@ export class FormController extends Component {
                 return this.model.root.save({ stayInEdition: true });
             }
         };
-        useViewButtons(this.model, useRef("root"), { beforeExecuteAction });
+        this.rootRef = useRef("root");
+        useViewButtons(this.model, this.rootRef, { beforeExecuteAction });
         useSetupView({
             beforeLeave: () => {
                 if (this.model.root.isDirty) {
@@ -300,6 +302,51 @@ export class FormController extends Component {
         await this.model.root.discard();
         if (this.model.root.isVirtual) {
             this.env.config.historyBack();
+        }
+    }
+
+    /**
+     * When a focusout occurs inside the renderer,
+     * determine if the target is the last field and
+     * if it is focus the first primary button of the controller.
+     *
+     * @param {KeyboardEvent & {
+     *  target: HTMLElement
+     * }} event
+     */
+    onRendererKeydown(event) {
+        // Ignore any keydown that is not Tab or Shift+Tab
+        if (event.key !== "Tab" || event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        const closestField = event.target.closest(".o_field_widget");
+
+        // Behavior 1. Stay on required fields if empty value
+        const fieldName = closestField.getAttribute("name");
+        const isRequired = this.model.root.isRequired(fieldName);
+        const value = this.model.root.data[fieldName]; // FIXME? Not sure if this is right
+        if (isRequired && !value) {
+            // Do not permit to tab out the required field
+            event.preventDefault();
+            return;
+        }
+
+        // Behavior 2. Focus first primary button if tabbed out from the renderer fields.
+        const allFields = [...this.rootRef.el.querySelectorAll(".o_field_widget")];
+        const index = allFields.indexOf(closestField);
+        const tabbedOutBeyondFields =
+            (index === 0 && event.shiftKey) || (index === allFields.length - 1 && !event.shiftKey);
+        if (tabbedOutBeyondFields) {
+            const primaryButtons = getVisibleElements(this.rootRef.el, ".btn-primary");
+            const firstTabbablePrimaryButton = primaryButtons.find((el) => el.tabIndex === 0);
+            if (firstTabbablePrimaryButton) {
+                // Focus the first tabbable primary button of the controller instead
+                // of any next tabbable element the browser would natively focus.
+                firstTabbablePrimaryButton.focus();
+                event.preventDefault();
+                return;
+            }
         }
     }
 }
