@@ -89,6 +89,16 @@ class MailChannel(models.Model):
             data['livechat_username'] = self.env.user.partner_id.user_livechat_username
         return data
 
+    def _channel_seen(self, last_message_id=None):
+        res = super(MailChannel, self)._channel_seen(last_message_id)
+        if self.channel_type == 'livechat':
+            pinned_channel_partner = self.channel_last_seen_partner_ids.filtered(
+                lambda cp: cp.is_pinned and cp.partner_id == self.env.user.partner_id
+            )
+            if pinned_channel_partner:
+                pinned_channel_partner.write({'last_seen_dt': fields.Datetime.now()})
+        return res
+
     def _channel_get_livechat_visitor_info(self):
         self.ensure_one()
         # remove active test to ensure public partner is taken into account
