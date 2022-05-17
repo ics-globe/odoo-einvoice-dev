@@ -56,7 +56,7 @@ var CalendarView = AbstractView.extend({
     /**
      * @override
      */
-    init: function (viewInfo, params) {
+    init: function (viewInfo, params) {debugger
         this._super.apply(this, arguments);
         var arch = this.arch;
         var fields = this.fields;

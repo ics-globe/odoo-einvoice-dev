@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
 
-    <t t-name="project.calendar.popover.placeholder">
-        <div t-attf-class="o_cw_popover popover card shadow #{typeof color === 'number' ? _.str.sprintf('o_calendar_color_%s', color) : ''}" role="tooltip">
+    <!-- <t t-name="project.calendar.popover.placeholder">
+        <div t-attf-class="o_cw_popover popover card shadow">
             <div class="arrow"/>
             <div class="card-header d-flex justify-content-between py-2 pr-2">
                 <i t-if="PriorityIcon" t-attf-class="fa {{PriorityIcon}} fa-lg"></i>
@@ -12,8 +12,31 @@
                 </div>
             </div>
             <div class="o_cw_body">
+                <span>ttt</span>
             </div>
         </div>
+    </t> -->
+    <t t-name="Project.event.popover" t-extend="CalendarView.event.popover">
+
+        <t t-jquery='div[t-if="widget.displayFields.state_selection"]' t-operation="replace"> 
+        <!-- <t t-jquery='small[t-if="widget.displayFields.kanban_state"]' t-operation="replace"> -->
+        <!-- <t t-esc="widget"/> -->
+            <span>hello</span>
+            <t t-debug=""/>
+            <!-- <small t-if="widget.kanban_state">
+                <b t-esc="hello"/>
+            </small>  -->
+        </t>
     </t>
+
+    <t t-name="Project.CalendarView.extend" t-extend="CalendarView.event.popover"><t t-debug="pdb"/>
+        <t t-jquery='ul.o_cw_popover_fields_secondary' t-operation="replace">
+            <!-- <small t-if="widget.allocated_hours">
+                <b t-esc="_.str.sprintf('(%s)', widget.allocated_hours)"/>
+            </small> -->
+        </t>
+
+    </t>
+
 
 </templates>

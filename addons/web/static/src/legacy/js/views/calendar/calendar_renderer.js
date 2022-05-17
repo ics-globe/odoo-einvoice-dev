@@ -226,7 +226,7 @@ return AbstractRenderer.extend({
         this._super(...arguments);
         this._isInDOM = true;
         // BUG Test ????
-        // this.$el.height($(window).height() - this.$el.offset().top);
+        // this.$el.heightwhen($(window).height() - this.$el.offset().top);
         this.calendar.render();
         this._renderCalendar();
         window.addEventListener('click', this._onWindowClick.bind(this));
