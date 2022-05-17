@@ -1113,6 +1113,9 @@ registerModel({
             if (!this.isPinned) {
                 return clear();
             }
+            if (!this.messaging.discuss) {
+                return clear();
+            }
             const discussSidebarCategory = this._getDiscussSidebarCategory();
             if (!discussSidebarCategory) {
                 return clear();
