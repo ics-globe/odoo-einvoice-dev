@@ -533,6 +533,12 @@ class SaleOrder(models.Model):
                 seq_date = fields.Datetime.context_timestamp(self, fields.Datetime.to_datetime(vals['date_order']))
             vals['name'] = self.env['ir.sequence'].next_by_code('sale.order', sequence_date=seq_date) or _('New')
 
+        previous_sequence = 10
+        # Makes sure that order of order lines is kept.
+        for line in vals.get('order_line', []):
+            previous_sequence = max(previous_sequence, line[2]['sequence'])
+            line[2]['sequence'] = previous_sequence
+
         # Makes sure partner_invoice_id', 'partner_shipping_id' and 'pricelist_id' are defined
         if any(f not in vals for f in ['partner_invoice_id', 'partner_shipping_id', 'pricelist_id']):
             partner = self.env['res.partner'].browse(vals.get('partner_id'))
