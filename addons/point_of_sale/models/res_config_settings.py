@@ -34,7 +34,7 @@ class ResConfigSettings(models.TransientModel):
     module_pos_six = fields.Boolean(string="Six Payment Terminal", help="The transactions are processed by Six. Set the IP address of the terminal on the related payment method.")
     update_stock_quantities = fields.Selection(related="company_id.point_of_sale_update_stock_quantities", readonly=False)
     account_default_pos_receivable_account_id = fields.Many2one(string='Default Account Receivable (PoS)', related='company_id.account_default_pos_receivable_account_id', readonly=False)
-    is_default_pricelist_displayed = fields.Boolean(compute="_compute_is_default_pricelist_displayed")
+    is_default_pricelist_displayed = fields.Boolean(compute="_compute_pos_pricelist_id", compute_sudo=True)
 
     # pos.config fields
     pos_module_pos_discount = fields.Boolean(related='pos_config_id.module_pos_discount', readonly=False)
@@ -230,14 +230,11 @@ class ResConfigSettings(models.TransientModel):
             else:
                 res_config.pos_tip_product_id = False
 
-    @api.depends('pos_available_pricelist_ids')
-    def _compute_is_default_pricelist_displayed(self):
+    @api.depends('pos_use_pricelist', 'pos_available_pricelist_ids', 'pos_config_id')
+    def _compute_pos_pricelist_id(self):
         for res_config in self:
             res_config.is_default_pricelist_displayed = len(res_config.pos_available_pricelist_ids) != 1
 
-    @api.depends('pos_use_pricelist', 'is_default_pricelist_displayed', 'pos_available_pricelist_ids', 'pos_config_id')
-    def _compute_pos_pricelist_id(self):
-        for res_config in self:
             if not res_config.pos_use_pricelist:
                 res_config.pos_pricelist_id = self.pos_config_id._default_pricelist()
                 continue
