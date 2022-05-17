@@ -436,10 +436,11 @@ class HolidaysType(models.Model):
         employee_id = self._get_contextual_employee_id()
         post_sort = (not order and employee_id)
         leave_ids = super(HolidaysType, self)._search(args, offset=offset, limit=(None if post_sort else limit), order=order, access_rights_uid=access_rights_uid)
+        if not post_sort:
+            return leave_ids
         leaves = self.browse(leave_ids)
-        if post_sort:
-            return leaves.sorted(key=self._model_sorting_key, reverse=True).ids[:limit or None]
-        return leave_ids
+        leaves = leaves.sorted(key=self._model_sorting_key, reverse=True)[:limit or None]
+        return expression.Query.from_records(leaves)
 
     def action_see_days_allocated(self):
         self.ensure_one()

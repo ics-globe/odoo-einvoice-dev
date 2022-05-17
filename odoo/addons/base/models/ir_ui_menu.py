@@ -149,7 +149,7 @@ class IrUiMenu(models.Model):
                 menus = menus[offset:]
             if limit:
                 menus = menus[:limit]
-        return menus.ids
+        return expression.Query.from_records(menus)
 
     def name_get(self):
         return [(menu.id, menu._get_full_name()) for menu in self]

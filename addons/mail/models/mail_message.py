@@ -314,7 +314,7 @@ class Message(models.Model):
 
         # re-construct a list based on ids, because set did not keep the original order
         id_list = [id for id in ids if id in final_ids]
-        return id_list
+        return expression.Query.from_records(self.browse(id_list))
 
     @api.model
     def _find_allowed_model_wise(self, doc_model, doc_dict):

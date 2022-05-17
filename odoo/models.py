@@ -1888,12 +1888,7 @@ class BaseModel(metaclass=MetaModel):
             # Ignore order, limit and offset when just counting, they don't make
             # sense and could hurt performance
             query = self._search(domain, order='id')
-            if not isinstance(query, Query):
-                return len(query)
-            query.order = None
-            query_str, params = query.select("COUNT(1)")
-            self.env.cr.execute(query_str, params)
-            return self.env.cr.fetchone()[0]
+            return len(query)
 
         query = self._search(domain, offset=offset, limit=limit, order=order)
         return self.browse(query)
@@ -4853,7 +4848,7 @@ Fields:
 
         if expression.is_false(self, domain):
             # optimization: no need to query, as no record satisfies the domain
-            return ()
+            return Query.from_records(self.browse())
 
         # the flush must be done before the _where_calc(), as the latter can do some selects
         self._flush_search(domain, order=order)
