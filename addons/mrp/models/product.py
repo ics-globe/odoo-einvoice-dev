@@ -5,6 +5,7 @@ from datetime import timedelta
 import operator as py_operator
 from odoo import api, fields, models
 from odoo.tools.float_utils import float_round, float_is_zero
+from collections import defaultdict
 
 
 OPERATORS = {
@@ -139,8 +140,15 @@ class ProductProduct(models.Model):
         res = super(ProductProduct, self - kits)._compute_quantities_dict(lot_id, owner_id, package_id, from_date=from_date, to_date=to_date)
         qties = self.env.context.get("mrp_compute_quantities", {})
         qties.update(res)
-        for product in bom_kits:
-            boms, bom_sub_lines = bom_kits[product].explode(product, 1)
+
+        #We want to iterate through boms instead of products so we reverse the keys and values of bom_kits
+        bom_kits_to_products = defaultdict(list)
+        for product, bom_kit in bom_kits.items():
+            bom_kits_to_products[bom_kit].append(product)
+
+        for bom_kit in bom_kits_to_products:
+            boms, bom_sub_lines = bom_kit.explode(bom_kits_to_products[bom_kit][0], 1)
+
             ratios_virtual_available = []
             ratios_qty_available = []
             ratios_incoming_qty = []
@@ -175,21 +183,23 @@ class ProductProduct(models.Model):
                 ratios_outgoing_qty.append(component_res["outgoing_qty"] / qty_per_kit)
                 ratios_free_qty.append(component_res["free_qty"] / qty_per_kit)
             if bom_sub_lines and ratios_virtual_available:  # Guard against all cnsumable bom: at least one ratio should be present.
-                res[product.id] = {
-                    'virtual_available': min(ratios_virtual_available) // 1,
-                    'qty_available': min(ratios_qty_available) // 1,
-                    'incoming_qty': min(ratios_incoming_qty) // 1,
-                    'outgoing_qty': min(ratios_outgoing_qty) // 1,
-                    'free_qty': min(ratios_free_qty) // 1,
-                }
+                for product in bom_kits_to_products[bom_kit]:
+                    res[product.id] = {
+                        'virtual_available': min(ratios_virtual_available) // 1,
+                        'qty_available': min(ratios_qty_available) // 1,
+                        'incoming_qty': min(ratios_incoming_qty) // 1,
+                        'outgoing_qty': min(ratios_outgoing_qty) // 1,
+                        'free_qty': min(ratios_free_qty) // 1,
+                    }
             else:
-                res[product.id] = {
-                    'virtual_available': 0,
-                    'qty_available': 0,
-                    'incoming_qty': 0,
-                    'outgoing_qty': 0,
-                    'free_qty': 0,
-                }
+                for product in bom_kits_to_products[bom_kit]:
+                    res[product.id] = {
+                        'virtual_available': 0,
+                        'qty_available': 0,
+                        'incoming_qty': 0,
+                        'outgoing_qty': 0,
+                        'free_qty': 0,
+                    }
 
         return res
 
