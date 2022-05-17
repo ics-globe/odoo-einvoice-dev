@@ -34,6 +34,13 @@ registerModel({
                     break;
             }
         },
+        /**
+         * @private
+         * @returns {Boolean}
+         */
+        _computeIsDisabled() {
+            return Boolean(!this.chatterOwner || this.chatterOwner.isDisabled);
+        }
     },
     fields: {
         chatterOwner: one('Chatter', {
