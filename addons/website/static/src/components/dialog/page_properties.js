@@ -129,7 +129,7 @@ export class DuplicatePageDialog extends Component {
         this.props.onClose();
     }
 }
-DuplicatePageDialog.components = { WebsiteDialog };
+DuplicatePageDialog.components = {WebsiteDialog};
 DuplicatePageDialog.template = xml`
 <WebsiteDialog close="props.close" primaryClick="() => this.duplicate()">
     <div class="form-group row">
@@ -150,8 +150,14 @@ DuplicatePageDialog.props = {
 
 export class PagePropertiesDialogWrapper extends Component {
     setup() {
-        this.websiteService = useService('website');
-        this.dialogService = useService('dialog');
+        try {
+            this.websiteService = useService('website');
+            this.dialogService = useService('dialog');
+        } catch (e) {
+            // Use services in legacy environment.
+            this.orm = useWowlService('website');
+            this.dialogService = useWowlService('dialog');
+        }
 
         onWillRender(this.setDialogWidget);
     }
@@ -165,7 +171,7 @@ export class PagePropertiesDialogWrapper extends Component {
     }
 
     get pageId() {
-        return this.websiteService.currentWebsite && this.websiteService.currentWebsite.metadata.mainObject.id;
+        return this.props.currentPage || (this.websiteService.currentWebsite && this.websiteService.currentWebsite.metadata.mainObject.id);
     }
 
     get dialogOptions() {
@@ -209,6 +215,13 @@ export class PagePropertiesDialogWrapper extends Component {
     }
 }
 PagePropertiesDialogWrapper.template = xml`<t/>`;
+PagePropertiesDialogWrapper.props = {
+    setPagePropertiesDialog: Function,
+    currentPage: {
+        type: Number,
+        optional: true,
+    },
+};
 
 class FieldPageUrl extends AbstractFieldOwl {
     setup() {

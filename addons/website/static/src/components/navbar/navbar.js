@@ -109,7 +109,7 @@ patch(NavBar.prototype, 'website_navbar', {
 
     canShowPageProperties() {
         return this.websiteService.currentWebsite && !!this.websiteService.currentWebsite.metadata.mainObject
-        && this.websiteService.currentWebsite.metadata.mainObject.model === 'website.page';
+            && this.websiteService.currentWebsite.metadata.mainObject.model === 'website.page';
     },
 
     canShowAceEditor() {
