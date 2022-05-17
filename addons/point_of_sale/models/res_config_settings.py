@@ -138,11 +138,9 @@ class ResConfigSettings(models.TransientModel):
         result = super().create(vals_list)
 
         # STEP: Finally, we write the value of 'pos' fields to 'pos_config_id'.
-        # TODO-JCB: Why are there failing tests saying `pos.config` is not in .env?
-        if 'pos.config' in self.env:
-            for pos_config_id, pos_fields_vals in pos_config_id_to_fields_vals_map.items():
-                pos_config = self.env['pos.config'].browse(pos_config_id)
-                pos_config.write(pos_fields_vals)
+        for pos_config_id, pos_fields_vals in pos_config_id_to_fields_vals_map.items():
+            pos_config = self.env['pos.config'].browse(pos_config_id)
+            pos_config.write(pos_fields_vals)
 
         return result
 
