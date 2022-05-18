@@ -2,6 +2,10 @@
 
 from odoo import api, fields, models
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class ResConfigSettings(models.TransientModel):
     """
@@ -111,16 +115,20 @@ class ResConfigSettings(models.TransientModel):
             pos_config_id = vals.get('pos_config_id', False)
             if pos_config_id:
                 pos_fields_vals = {}
-                for _field in self._fields.values():
-                    val = vals.get(_field.name, None)
+                for field in self._fields.values():
+                    val = vals.get(field.name, None)
 
                     # Add only to pos_fields_vals if
                     #   1. _field is in vals -- meaning, the _field is in view.
                     #   2. _field has 'pos' attribute
-                    if hasattr(_field, 'pos') and val is not None:
-                        pos_fields_vals[getattr(_field, 'pos')] = val
-                        del vals[_field.name]
-                        continue
+                    if hasattr(field, 'pos') and val is not None:
+                        pos_config_field_name = getattr(field, 'pos')
+                        if not pos_config_field_name in self.env['pos.config']._fields:
+                            _logger.warning("The value of '%s' is not properly saved to the pos_config_id field because the destination"
+                                " field '%s' is not a valid field in the pos.config model.", field.name, pos_config_field_name)
+                        else:
+                            pos_fields_vals[pos_config_field_name] = val
+                            del vals[field.name]
 
                 if vals.get('pos_cash_rounding', False):
                     vals['group_cash_rounding'] = True
