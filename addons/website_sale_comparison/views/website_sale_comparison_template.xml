@@ -113,7 +113,7 @@
                                                 <span t-esc="combination_info['display_name']"></span><br/>
                                             </a>
 
-                                            <span class="o_comparison_price" t-if="combination_info['list_price'] or not website.prevent_zero_price_sale">
+                                            <span class="o_comparison_price" t-if="combination_info['price'] or not website.prevent_zero_price_sale">
                                                 <strong>Price:</strong>
                                                 <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
                                                      style="white-space: nowrap;" t-esc="combination_info['list_price']"
@@ -175,9 +175,12 @@
             <div class="col-8 pl-2">
                 <h6>
                     <a t-att-href="product.website_url"><t t-esc="combination_info['display_name']" /></a><br/>
-                    <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}" style="white-space: nowrap;" t-esc="combination_info['list_price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
-                    <span t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"></span>
-                </h6>
+                    <t t-if="combination_info['price'] or not website.prevent_zero_price_sale">
+                        <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}" style="white-space: nowrap;" t-esc="combination_info['list_price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
+                        <span t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                    </t>
+                    <t t-else="" t-esc="website.prevent_zero_price_sale_text"/>
+                    </h6>
             </div>
             <div class="col-1 text-right">
                 <a href='#' class="o_remove" title="Remove" t-att-data-product_product_id="product.id">
