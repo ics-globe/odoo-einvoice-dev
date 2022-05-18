@@ -31,5 +31,16 @@ odoo.define('point_of_sale.res_config_settings', function (require) {
         },
     });
 
+    ResConfigSettings.Controller.include({
+        _startRenderer() {
+            return this._super.apply(this, arguments).then(result => {
+                // Force tooltip to elements with `pos-data-toggle="tooltip"` attribute.
+                // We made it specific to ensure we don't interfere with other data-toggle="tooltip" in the form.
+                this.renderer.$('[pos-data-toggle="tooltip"]').tooltip();
+                return result;
+            })
+        }
+    })
+
     return ResConfigSettings;
 });

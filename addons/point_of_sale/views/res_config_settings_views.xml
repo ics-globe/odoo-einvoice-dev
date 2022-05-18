@@ -137,7 +137,7 @@
                             <div class="o_setting_right_pane">
                                 <div>
                                     <label string="Default Sales Tax" for="sale_tax_id"/>
-                                    <i class="fa fa-info-circle mr-1" title="This setting is common to all PoS."></i>
+                                    <i class="fa fa-info-circle mr-1" title="This setting is common to all PoS." pos-data-toggle="tooltip"/>
                                     <div class="text-muted">
                                         Default sales tax for products
                                     </div>
@@ -155,7 +155,7 @@
                             <div class="o_setting_right_pane">
                                 <div>
                                     <label string="Default Temporary Account" for="account_default_pos_receivable_account_id"/>
-                                    <i class="fa fa-info-circle mr-1" title="This setting is common to all PoS."></i>
+                                    <i class="fa fa-info-circle mr-1" title="This setting is common to all PoS." pos-data-toggle="tooltip"/>
                                     <div class="text-muted">
                                         Intermediary account used for unidentified customers.
                                     </div>
@@ -457,7 +457,10 @@
                         </div>
                     </div>
 
-                    <h2>Payment Terminals <i class="fa fa-info-circle mr-1" title="Those settings are common to all PoS."></i></h2>
+                    <h2>
+                        Payment Terminals
+                        <i class="fa fa-info-circle mr-1" title="Those settings are common to all PoS." pos-data-toggle="tooltip"/>
+                    </h2>
                     <div class="row mt16 o_settings_container" id="pos_payment_terminals_section">
                         <div class="col-12 col-lg-6 o_setting_box"
                             id="adyen_payment_terminal_setting"
