@@ -19,6 +19,9 @@ class MassMailController(http.Controller):
           recordset if mailing does not exist; record otherwise.
         """
         mailing_sudo = request.env['mailing.mailing'].sudo().browse(mailing_id)
+        if not token and not request.env.user.share:
+            # TDE FIXME: check access
+            return mailing_sudo
         if not email or not document_id or not token:
             return False
         if not mailing_sudo.exists():
@@ -36,6 +39,11 @@ class MassMailController(http.Controller):
             [('email', '=', tools.email_normalize(email))]
         )
 
+    def _fetch_user_information(self, mailing_id, email, document_id, token):
+        if token or request.env.user.share:
+            return email, document_id, token
+        return request.env.user.email_normalized, document_id, False
+
     def _log_blacklist_action(self, blacklist_entry, mailing_id, description):
         mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
         model_display = mailing.mailing_model_id.display_name
@@ -47,7 +55,8 @@ class MassMailController(http.Controller):
 
     @http.route(['/mail/mailing/<int:mailing_id>/unsubscribe'], type='http', website=True, auth='public')
     def mailing_unsubscribe(self, mailing_id, email=None, res_id=None, token="", **post):
-        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        _email, _res_id, _token = self._fetch_user_information(mailing_id, email, res_id, token)
+        mailing_sudo = self._check_mailing_email_token(mailing_id, _res_id, _email, _token)
         if not mailing_sudo:
             raise Unauthorized()
 
