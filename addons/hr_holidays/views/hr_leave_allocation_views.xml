@@ -130,7 +130,7 @@
                             </div>
                         </group>
                         <group name="alloc_right_col">
-                            <field name="employee_id" invisible="1" groups="hr_holidays.group_hr_holidays_user"/>
+                            <field name="employee_id" invisible="1"/>
                             <field name="department_id" invisible="1"/>
                         </group>
                     </group>

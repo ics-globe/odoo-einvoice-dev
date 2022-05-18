@@ -35,6 +35,9 @@ class TestACL(TransactionCaseWithUserDemo):
             "inherit_id": self.env.ref("base.view_currency_form").id,
             "arch": """
                 <data>
+                    <xpath expr="//field[@name='decimal_places']/../.." position="attributes">
+                        <attribute name="groups"></attribute>
+                    </xpath>
                     <field name="decimal_places" position="attributes">
                         <attribute name="nolabel">1</attribute>
                     </field>

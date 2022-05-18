@@ -195,11 +195,13 @@ class TestLeaveRequests(TestHrHolidaysCommon):
     def test_allocation_request(self):
         """ Create an allocation request """
         # employee should be set to current user
-        allocation_form = Form(self.env['hr.leave.allocation'].with_user(self.user_employee))
+        allocation_form = Form(self.env['hr.leave.allocation'].with_user(self.user_employee), view="hr_holidays.hr_leave_allocation_view_form")
         allocation_form.name = 'New Allocation Request'
         allocation_form.holiday_status_id = self.holidays_type_2
-        allocation_form.date_from = date(2019, 5, 6)
-        allocation_form.date_to = date(2019, 5, 6)
+        # TODO: check but I think it doesn't make sense, date_from/date_to are supposed to be read-only for employees
+        # The fact it worked before is because this test used the manager form instead of the employee form
+        # allocation_form.date_from = date(2019, 5, 6)
+        # allocation_form.date_to = date(2019, 5, 6)
         allocation = allocation_form.save()
 
     @mute_logger('odoo.models.unlink', 'odoo.addons.mail.models.mail_mail')

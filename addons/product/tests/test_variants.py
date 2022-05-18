@@ -1008,6 +1008,7 @@ class TestVariantsArchive(common.TestProductCommon):
     def test_uom_update_variant(self):
         """ Changing the uom on the template do not behave the same
         as changing on the product product."""
+        self.env.user.groups_id += self.env.ref("uom.group_uom")
         units = self.env.ref('uom.product_uom_unit')
         cm = self.env.ref('uom.product_uom_cm')
         template = self.env['product.template'].create({

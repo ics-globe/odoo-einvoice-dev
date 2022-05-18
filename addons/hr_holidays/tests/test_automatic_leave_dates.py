@@ -11,6 +11,7 @@ class TestAutomaticLeaveDates(TestHrHolidaysCommon):
     @classmethod
     def setUpClass(cls):
         super(TestAutomaticLeaveDates, cls).setUpClass()
+        cls.env.user.groups_id -= cls.env.ref("hr_holidays.group_hr_holidays_manager")
 
         cls.leave_type = cls.env['hr.leave.type'].create({
             'name': 'Automatic Test',

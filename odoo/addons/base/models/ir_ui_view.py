@@ -974,16 +974,11 @@ actual arch.
 
     def _apply_groups(self, node, name_manager, node_info):
         """ Apply group restrictions: elements with a 'groups' attribute should
-        be made invisible to people who are not members.
+        be removed from the view to people who are not members.
         """
         if node.get('groups'):
-            can_see = self.user_has_groups(groups=node.get('groups'))
-            if not can_see:
-                node.set('invisible', '1')
-                node_info['modifiers']['invisible'] = True
-                if 'attrs' in node.attrib:
-                    del node.attrib['attrs']    # avoid making field visible later
-            del node.attrib['groups']
+            if not self.user_has_groups(groups=node.get('groups')):
+                node.getparent().remove(node)
 
     def _get_view_refs(self, node):
         """ Extract the `[view_type]_view_ref` keys and values from the node context attribute,
