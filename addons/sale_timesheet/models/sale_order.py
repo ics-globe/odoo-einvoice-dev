@@ -215,7 +215,7 @@ class SaleOrderLine(models.Model):
         planned_hours = 0.0
         product_uom = self.product_uom
         if product_uom == self.env.ref('uom.product_uom_unit'):
-            product_uom = self.env.ref('uom.product_uom_hour')
+            product_uom = self.env.ref('uom.product_uom_day')
         if product_uom.category_id == company_time_uom_id.category_id:
             if product_uom != company_time_uom_id:
                 planned_hours = product_uom._compute_quantity(self.product_uom_qty, company_time_uom_id)
