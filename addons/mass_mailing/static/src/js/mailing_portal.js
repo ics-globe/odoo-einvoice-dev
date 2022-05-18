@@ -17,35 +17,6 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
         return;
     }
     session.load_translations().then(function () {
-        if (email != '' && email != undefined){
-            ajax.jsonRpc('/mailing/blacklist/check', 'call', {'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
-                .then(function (result) {
-                    if (result == 'unauthorized'){
-                        $('#button_add_blacklist').hide();
-                        $('#button_remove_blacklist').hide();
-                    }
-                    else if (result == true) {
-                        $('#button_remove_blacklist').show();
-                        toggle_opt_out_section(false);
-                    }
-                    else if (result == false) {
-                        $('#button_add_blacklist').show();
-                        toggle_opt_out_section(true);
-                    }
-                    else {
-                        $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                        $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                    }
-                })
-                .guardedCatch(function () {
-                    $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                });
-        }
-        else {
-            $('#div_blacklist').hide();
-        }
-
         var unsubscribed_list = $("input[name='unsubscribed_list']").val();
         if (unsubscribed_list){
             $('#subscription_info').html(_.str.sprintf(
@@ -85,59 +56,6 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
             .guardedCatch(function () {
                 $('#subscription_info').text(_t('An error occurred. Your changes have not been saved, try again later.'));
                 $('#info_state').removeClass('alert-info').addClass('alert-warning');
-            });
-    });
-
-    //  ==================
-    //      Blacklist
-    //  ==================
-    $('#button_add_blacklist').click(function (e) {
-        e.preventDefault();
-
-        ajax.jsonRpc('/mailing/blacklist/add', 'call', {'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
-            .then(function (result) {
-                if (result) {
-                    $('#subscription_info').html(_t('You have been successfully <strong>added to our blacklist</strong>. '
-                           + 'You will not be contacted anymore by our services.'));
-                    $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
-                    toggle_opt_out_section(false);
-                }
-                else {
-                    $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                }
-                $('#button_add_blacklist').hide();
-                $('#button_remove_blacklist').show();
-                $('#unsubscribed_info').hide();
-            })
-            .guardedCatch(function () {
-                $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-            });
-    });
-
-    $('#button_remove_blacklist').click(function (e) {
-        e.preventDefault();
-
-        ajax.jsonRpc('/mailing/blacklist/remove', 'call', {'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
-            .then(function (result) {
-                if (result) {
-                    $('#subscription_info').html(_t("You have been successfully <strong>removed from our blacklist</strong>. "
-                            + "You are now able to be contacted by our services."));
-                    $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
-                    toggle_opt_out_section(true);
-                }
-                else {
-                    $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                }
-                $('#button_add_blacklist').show();
-                $('#button_remove_blacklist').hide();
-                $('#unsubscribed_info').hide();
-            })
-            .guardedCatch(function () {
-                $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
             });
     });
 

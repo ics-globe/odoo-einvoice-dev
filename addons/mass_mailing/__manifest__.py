@@ -84,6 +84,8 @@
         'mass_mailing.mailing_assets': [
             'mass_mailing/static/src/scss/mailing_portal.scss',
             'mass_mailing/static/src/js/mailing_portal.js',
+            'mass_mailing/static/src/js/mailing_portal_blacklist.js',
+            'mass_mailing/static/src/js/mailing_portal_subscription.js',
         ],
         'web.assets_backend': [
             'mass_mailing/static/src/scss/mailing_filter_widget.scss',

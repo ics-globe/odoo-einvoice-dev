@@ -27,6 +27,15 @@ class MassMailController(http.Controller):
             return mailing_sudo
         return False
 
+    def _fetch_blacklist_record(self, email):
+        if not email or not tools.email_normalize(email):
+            return False
+        return request.env['mail.blacklist'].sudo().with_context(
+            active_test=False
+        ).search(
+            [('email', '=', tools.email_normalize(email))]
+        )
+
     def _log_blacklist_action(self, blacklist_entry, mailing_id, description):
         mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
         model_display = mailing.mailing_model_id.display_name
@@ -43,10 +52,10 @@ class MassMailController(http.Controller):
             raise Unauthorized()
 
         if mailing_sudo.mailing_model_real == 'mailing.contact':
-            return self._mailing_unsubscribe_from_list(mailing_sudo, email, res_id)
-        return self._mailing_unsubscribe_from_email(mailing_sudo, email, res_id)
+            return self._mailing_unsubscribe_from_list(mailing_sudo, email, res_id, token)
+        return self._mailing_unsubscribe_from_email(mailing_sudo, email, res_id, token)
 
-    def _mailing_unsubscribe_from_list(self, mailing, email, document_id):
+    def _mailing_unsubscribe_from_list(self, mailing, email, document_id, token):
         # Unsubscribe directly + Let the user choose their subscriptions
         mailing.update_opt_out(email, mailing.contact_list_ids.ids, True)
 
@@ -63,7 +72,7 @@ class MassMailController(http.Controller):
         list_ids = request.env['mailing.list'].sudo().browse(unique_list_ids)
         unsubscribed_list = ', '.join(str(list.name) for list in mailing.contact_list_ids if list.is_public)
 
-        render_values = self._prepare_mailing_subscription_values(mailing, email, document_id)
+        render_values = self._prepare_mailing_subscription_values(mailing, email, document_id, token)
         return request.render(
             'mass_mailing.page_mailing_unsubscribe',
             dict(
@@ -75,7 +84,7 @@ class MassMailController(http.Controller):
             )
         )
 
-    def _mailing_unsubscribe_from_email(self, mailing, email, document_id):
+    def _mailing_unsubscribe_from_email(self, mailing, email, document_id, token):
         opt_in_lists = request.env['mailing.contact.subscription'].sudo().search([
             ('contact_id.email_normalized', '=', email),
             ('opt_out', '=', False)
@@ -85,7 +94,7 @@ class MassMailController(http.Controller):
             blacklist_rec, mailing.id,
             _("""Requested blacklisting via unsubscribe link."""))
 
-        render_values = self._prepare_mailing_subscription_values(mailing, email, document_id)
+        render_values = self._prepare_mailing_subscription_values(mailing, email, document_id, token)
         return request.render(
             'mass_mailing.page_mailing_unsubscribe_done',
             dict(
@@ -121,15 +130,26 @@ class MassMailController(http.Controller):
         """Dummy route so placeholder is not prefixed by language, MUST have multilang=False"""
         raise BadRequest()
 
-    def _prepare_mailing_subscription_values(self, mailing, email, document_id):
+    def _prepare_mailing_subscription_values(self, mailing, email, document_id, token):
+        bl_record = self._fetch_blacklist_record(email)
         return {
             # customer
+            'document_id': document_id,
             'email': email,
+            'email_normalized': tools.email_normalize(email),
             'mailing_id': mailing.id,
             'res_id': document_id,
+            'token': token,
+            # blacklist
+            'blacklist_enabled': bool(
+                request.env['ir.config_parameter'].sudo().get_param(
+                    'mass_mailing.show_blacklist_buttons',
+                    default=True,
+                )
+            ),
+            'blacklist_possible': bl_record is not False,
+            'is_blacklisted': bl_record.active if bl_record else False,
             # options
-            'show_blacklist_button': request.env['ir.config_parameter'].sudo().get_param(
-                'mass_mailing.show_blacklist_buttons'),
         }
 
     # ------------------------------------------------------------
@@ -216,18 +236,9 @@ class MassMailController(http.Controller):
     # BLACKLIST
     # ------------------------------------------------------------
 
-    @http.route('/mailing/blacklist/check', type='json', auth='public')
-    def mail_blacklist_check(self, mailing_id, res_id, email, token):
-        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
-        if not mailing_sudo:
-            return 'unauthorized' if mailing_sudo is False else 'error'
-        record = request.env['mail.blacklist'].sudo().with_context(active_test=False).search([('email', '=', tools.email_normalize(email))])
-        if record['active']:
-            return True
-        return False
-
     @http.route('/mailing/blacklist/add', type='json', auth='public')
-    def mail_blacklist_add(self, mailing_id, res_id, email, token):
+    def mail_blacklist_add(self, mailing_id=None, res_id=None, email=None, token=None):
+        print('add bl', mailing_id, res_id, email, token)
         mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
         if not mailing_sudo:
             return 'unauthorized' if mailing_sudo is False else 'error'
@@ -238,7 +249,8 @@ class MassMailController(http.Controller):
         return True
 
     @http.route('/mailing/blacklist/remove', type='json', auth='public')
-    def mail_blacklist_remove(self, mailing_id, res_id, email, token):
+    def mail_blacklist_remove(self, mailing_id=None, res_id=None, email=None, token=None):
+        print('rem bl', mailing_id, res_id, email, token)
         mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
         if not mailing_sudo:
             return 'unauthorized' if mailing_sudo is False else 'error'
