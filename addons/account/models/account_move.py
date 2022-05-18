@@ -293,8 +293,15 @@ class AccountMove(models.Model):
              "This happens if the move contains no payable or receivable line.")
 
     # ==== Auto-post feature fields ====
-    auto_post = fields.Boolean(string='Post Automatically', default=False, copy=False,
-        help='If this checkbox is ticked, this entry will be automatically posted at its date.')
+    auto_post = fields.Selection(
+        string='Post Automatically',
+        selection=[('no', 'No'), ('at_date', 'At Date'), ('monthly', 'Monthly'), ('quarterly', 'Quarterly'), ('yearly', 'Yearly')],
+        default='no', required=True, copy=False,
+        help='Select to automatically post entry at given date (at_date) or until given date (periodic options).')
+    auto_post_until = fields.Date(
+        string='Auto-post Until',
+        copy=False,
+        help='Set to stop automatically posting entries after given date, leave empty to keep them coming.')
 
     # ==== Reverse feature fields ====
     reversed_entry_id = fields.Many2one(
@@ -500,6 +507,11 @@ class AccountMove(models.Model):
                 self._onchange_currency()
             else:
                 self._onchange_recompute_dynamic_lines()
+
+    @api.onchange('auto_post', 'auto_post_until')
+    def _onchange_auto_post_until(self):
+        if self.auto_post in ('no', 'at_date'):
+            self.auto_post_until = False
 
     @api.onchange('journal_id')
     def _onchange_journal(self):
@@ -2734,8 +2746,8 @@ class AccountMove(models.Model):
         """
         if soft:
             future_moves = self.filtered(lambda move: move.date > fields.Date.context_today(self))
-            future_moves.auto_post = True
             for move in future_moves:
+                move.auto_post = move.auto_post or 'at_date'
                 msg = _('This move will be posted at the accounting date: %(date)s', date=format_date(self.env, move.date))
                 move.message_post(body=msg)
             to_post = self - future_moves
@@ -2752,7 +2764,7 @@ class AccountMove(models.Model):
                 raise UserError(_('The entry %s (id %s) is already posted.') % (move.name, move.id))
             if not move.line_ids.filtered(lambda line: not line.display_type):
                 raise UserError(_('You need to add a line before posting.'))
-            if move.auto_post and move.date > fields.Date.context_today(self):
+            if move.auto_post != 'no' and move.date > fields.Date.context_today(self):
                 date_msg = move.date.strftime(get_lang(self.env).date_format)
                 raise UserError(_("This move is configured to be auto-posted on %s", date_msg))
             if not move.journal_id.active:
@@ -2919,7 +2931,7 @@ class AccountMove(models.Model):
         self.write({'state': 'draft', 'is_move_sent': False})
 
     def button_cancel(self):
-        self.write({'auto_post': False, 'state': 'cancel'})
+        self.write({'auto_post': 'no', 'state': 'cancel'})
 
     def _get_mail_template(self):
         """
@@ -3124,10 +3136,12 @@ class AccountMove(models.Model):
         It is used to post entries such as those created by the module
         account_asset.
         '''
+        today = fields.Date.context_today(self)
         records = self.search([
             ('state', '=', 'draft'),
-            ('date', '<=', fields.Date.context_today(self)),
-            ('auto_post', '=', True),
+            ('date', '<=', today),
+            ('auto_post', '!=', 'no'),
+            ('auto_post_until', '>=', today),
         ])
         for ids in self._cr.split_for_in_conditions(records.ids, size=1000):
             self.browse(ids)._post()
