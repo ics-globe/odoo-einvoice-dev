@@ -8,6 +8,7 @@
             <form string="Capture">
                 <field name="has_draft_children" invisible="1"/>
                 <field name="support_partial_capture" invisible="1"/>
+                <field name="has_remaining_amount" invisible="1"/>
                 <div class="alert alert-warning"
                      id="alert_draft_capture_tx"
                      role="alert"
@@ -23,7 +24,7 @@
                         <field name="transaction_ids" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
                         <field name="authorized_amount"/>
-                        <field name="amount_available_for_capture"/>
+                        <field name="amount_available"/>
                     </group>
                     <group>
                         <field name="captured_amount"
@@ -31,17 +32,22 @@
                         <field name="voided_amount"
                                attrs="{'invisible': [('voided_amount', '&lt;=', 0)]}"/>
                     </group>
+                    <hr/><br/>
                     <group>
-                        <field name="amount_to_capture"
-                               attrs="{'readonly': [('support_partial_capture', '=', 'full_only')]}"
-                               help="To change the amount you want to capture, all the transactions
-                                    must come from providers which supports the partial transaction.
-                                    If that's not the case but you intended to do a partial capture,
-                                    manage it directly from the transaction which allows it."/>
-                        <!-- TODO edm => ? after readonly help/widget to explain why the amount can't be changed, reformulate, need to find how to info bubble-->
+                        <span>
+                            <label for="amount_to_capture" class="oe_inline"/>
+                            <i class="fa fa-info-circle oe_inline"
+                               title="To change the amount you want to capture, all the transactions must come from providers which supports the partial transaction. If that's not the case but you intended to do a partial capture, manage it directly from the transaction which allows it."></i>
+                        </span>
+                        <span>
+                            <field name="amount_to_capture" class="oe_inline"
+                               attrs="{'readonly': [('support_partial_capture', '=', 'full_only')]}"/>
+                        </span>
+
+
                         <field name="void_remaining_amount"
-                               attrs="{'invisible': [('support_partial_capture', '=', 'full_only')]}"/>
-                        <!-- TODO edm: not working, see how to compare 2 different fields here, or need to create one 'has_remaining_amount' instead -->
+                               attrs="{'invisible': [('has_remaining_amount', '=', False)]}"/>
+
                     </group>
                 </group>
                 <footer>

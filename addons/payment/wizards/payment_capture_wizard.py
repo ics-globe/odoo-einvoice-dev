@@ -18,15 +18,15 @@ class PaymentCaptureWizard(models.TransientModel):
         default=default_transaction_ids,
     )
     authorized_amount = fields.Monetary(
-        string="Authorized Amount", compute='_compute_authorized_amount'
+        string="Authorized Amount", compute='_compute_authorized_amount',
     )
-    amount_available_for_capture = fields.Monetary(
-        string="Maximum Capture Allowed", compute='_compute_amount_available_for_capture'
+    amount_available = fields.Monetary(
+        string="Maximum Capture Allowed", compute='_compute_amount_available',
     )
     captured_amount = fields.Monetary(string="Already Captured", compute='_compute_captured_amount')
     voided_amount = fields.Monetary(string="Already Voided", compute='_compute_voided_amount')
     amount_to_capture = fields.Monetary(
-        string="Capture Amount", compute='_compute_amount_to_capture', store=True, readonly=False
+        string="Capture Amount", compute='_compute_amount_to_capture', store=True, readonly=False,
     )
     currency_id = fields.Many2one(string="Currency", related='transaction_ids.currency_id')
     # TODO edm ask anv: is this okay with ids instead of id? We know it's the same, but what happens
@@ -36,20 +36,23 @@ class PaymentCaptureWizard(models.TransientModel):
         compute='_compute_support_partial_capture',
     )
     has_draft_children = fields.Boolean(
-        string="Has a draft children", compute='_compute_has_draft_children'
+        string="Has a draft children", compute='_compute_has_draft_children',
+    )
+    has_remaining_amount = fields.Boolean(
+        string="Has Remaining Amount", compute='_compute_has_remaining_amount',
     )
     void_remaining_amount = fields.Boolean(string="Void remaining amount", default=True)
 
     @api.constrains('amount_to_capture')
     def _check_amount_to_capture_within_boundaries(self):
         for wizard in self:
-            if not 0 < wizard.amount_to_capture <= wizard.amount_available_for_capture:
+            if not 0 < wizard.amount_to_capture <= wizard.amount_available:
                 raise UserError(_(
                     "The amount to be captured must be positive and cannot be superior to %s.",
-                    wizard.amount_available_for_capture
+                    wizard.amount_available
                 ))
-            if wizard.support_partial_capture == False \
-               and wizard.amount_to_capture != wizard.amount_available_for_capture:
+            if not wizard.support_partial_capture \
+               and wizard.amount_to_capture != wizard.amount_available:
                 raise UserError(_(
                     "At least one of the transaction comes from a provider which doesn't support "
                     "the partial capture. Manage the transactions separately to make a partial "
@@ -83,17 +86,17 @@ class PaymentCaptureWizard(models.TransientModel):
             wizard.voided_amount = sum(tx.amount for tx in voided_child_tx)
 
     @api.depends('authorized_amount', 'captured_amount', 'voided_amount')
-    def _compute_amount_available_for_capture(self):
+    def _compute_amount_available(self):
         for wizard in self:
-            wizard.amount_available_for_capture = wizard.authorized_amount \
-                                                  - wizard.captured_amount \
-                                                  - wizard.voided_amount
+            wizard.amount_available = wizard.authorized_amount \
+                                      - wizard.captured_amount \
+                                      - wizard.voided_amount
 
-    @api.depends('amount_available_for_capture')
+    @api.depends('amount_available')
     def _compute_amount_to_capture(self):
         """ Set the default amount to capture to the amount available for capture. """
         for wizard in self:
-            wizard.amount_to_capture = wizard.amount_available_for_capture
+            wizard.amount_to_capture = wizard.amount_available
 
     def _compute_support_partial_capture(self):
         for wizard in self:
@@ -108,7 +111,12 @@ class PaymentCaptureWizard(models.TransientModel):
                 lambda tx: tx.state == 'draft'
             )
             wizard.has_draft_children = bool(draft_children)
-            # TODO edm: how can we know that a source tx hasn't got a full capture that's pending?
+            # TODO edm: but we can't know if a source tx hasn't got a full capture that's pending
+
+    @api.depends('amount_available', 'amount_to_capture')
+    def _compute_has_remaining_amount(self):
+        for wizard in self:
+            wizard.has_remaining_amount = wizard.amount_to_capture != wizard.amount_available
 
     def action_capture(self):
         for wizard in self:

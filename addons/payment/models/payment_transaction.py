@@ -10,7 +10,7 @@ import psycopg2
 from dateutil import relativedelta
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import ValidationError
 from odoo.tools import consteq, format_amount, ustr
 from odoo.tools.misc import hmac as hmac_tool
 
@@ -85,10 +85,10 @@ class PaymentTransaction(models.Model):
     )
     child_transaction_ids = fields.One2many(
         string="Child transaction",
-        comodel_name = 'payment.transaction',
-        inverse_name = 'source_transaction_id',
-        help = "The child or refund transactions of a source transactions",
-        readonly = True
+        comodel_name='payment.transaction',
+        inverse_name='source_transaction_id',
+        help="The child or refund transactions of a source transactions",
+        readonly=True
     )
     refunds_count = fields.Integer(string="Refunds Count", compute='_compute_refunds_count')
     invoice_ids = fields.Many2many(
@@ -302,24 +302,33 @@ class PaymentTransaction(models.Model):
         return action
 
     def action_capture(self):
-        """ Check the state of the transactions and TODO. """
+        """ Check the state of the transactions and request its capture, or open the capture wizard.
+        """
         if any(tx.state != 'authorized' for tx in self):
             raise ValidationError(_("Only authorized transactions can be captured."))
 
         if all(tx.acquirer_id.support_capture == 'full_only' for tx in self):
-            self._send_capture_request()
+            for tx in self:
+                tx._send_capture_request()
         else:  # Partial capture allowed
-            return {
-                'name': _("Capture"),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'res_model': 'payment.capture.wizard',
-                'target': 'new',
-                'context': {
-                    'active_ids': self.ids,
-                    'active_model': 'payment.transaction'
-                },
-            }
+            return self.action_open_capture_wizard()
+
+    def action_open_capture_wizard(self):
+        operations = ['online_redirect', 'online_direct', 'online_token', 'offline']
+        source_tx = self.filtered(
+            lambda tx: tx.state in ['authorized', 'done'] and tx.operation in operations
+        )
+        return {
+            'name': _("Capture"),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'payment.capture.wizard',
+            'target': 'new',
+            'context': {
+                'active_ids': source_tx.ids,
+                'active_model': 'payment.transaction'
+            },
+        }
 
     def action_void(self):
         """ Check the state of the transaction and request to have them voided. """
@@ -327,11 +336,9 @@ class PaymentTransaction(models.Model):
             raise ValidationError(_("Only authorized transactions can be voided."))
 
         for tx in self:
-            captured_amount = sum(
-                child.amount for child in tx.child_transaction_ids.filtered(
-                    lambda t: t.state == 'done' and t.operation == 'child'
-                )
-            )
+            captured_amount = sum(child.amount for child in tx.child_transaction_ids.filtered(
+                lambda t: t.state == 'done' and t.operation == 'child'
+            ))
             tx._send_void_request(amount_to_void=tx.amount - captured_amount)
 
     def action_refund(self, amount_to_refund=None):
@@ -608,7 +615,6 @@ class PaymentTransaction(models.Model):
             # TODO edm: choose meaningfull names for src tx, tx children etc and stick to it once and for all >.<
         return child_capture_tx
 
-
     def _send_void_request(self, amount_to_void=None):
         """ Request the provider of the acquirer handling the transaction to void it.
 
@@ -779,14 +785,13 @@ class PaymentTransaction(models.Model):
         txs_to_process._log_received_message()
 
     def _update_source_transaction_state(self):
-        # TODO edm
-        # A change of state for a child transaction may change the state of the source transaction
-        # if the whole amount is now processed.
-        print('Hello there')
+        """ Update the source transaction's state when its full amount is processed in child tx.
+        """
         if self.operation == 'child':
             children_tx = self.source_transaction_id.child_transaction_ids.filtered(
                 lambda tx: tx.state in ['done', 'cancel'] and tx.operation == 'child'
-            )  # TODO edm ask anv: the check on the operation here is useless, but I feel it's better to keep it because of the refund operation and whatever might come in the futur
+            )  # TODO edm ask anv: the check on the operation here is useless, but I feel it's
+            # better to keep it because of the refund operation and whatever might come in the futurz
             processed_amount = sum(child_tx.amount for child_tx in children_tx)
             if self.source_transaction_id.amount == processed_amount:
                 formatted_amount = format_amount(

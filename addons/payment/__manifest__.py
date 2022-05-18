@@ -28,6 +28,7 @@
         'security/payment_security.xml',
 
         'wizards/account_payment_register_views.xml',
+        'wizards/payment_capture_wizard_views.xml',
         'wizards/payment_link_wizard_views.xml',
         'wizards/payment_onboarding_views.xml',
         'wizards/payment_refund_wizard_views.xml',

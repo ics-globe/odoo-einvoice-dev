@@ -273,7 +273,7 @@ class AdyenController(http.Controller):
                     notification_data['resultCode'] = 'Authorised'
                 elif event_code == 'CANCELLATION':
                     notification_data['resultCode'] = 'Cancelled'
-                    # notification_data['resultCode'] = 'Cancelled' if success else 'Error'  # TODO edm
+                    # notification_data['resultCode'] = 'Cancelled' if success else 'Error'  # TODO edm wait for Adyen
                 elif event_code in ['REFUND', 'CAPTURE']:
                     notification_data['resultCode'] = 'Authorised' if success else 'Error'
                 elif event_code == 'CAPTURE_FAILED' and success:

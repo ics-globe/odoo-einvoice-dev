@@ -202,7 +202,7 @@ class PaymentTransaction(models.Model):
                 amount=formatted_amount, ref=self.reference, acq_name=self.acquirer_id.name
             ))
 
-        if child_capture_tx :
+        if child_capture_tx:
             # The PSP reference associated with this /capture request is different from the psp
             # reference associated with the original payment request.
             child_capture_tx.acquirer_reference = response_content.get('pspReference')
@@ -218,7 +218,7 @@ class PaymentTransaction(models.Model):
         :return: The void child transaction if any
         :rtype: recordset of `payment.transaction`
         """
-        # TODO edm: when single partial capture works, ask to pass our Adyen account to multiple
+        # TODO edm wait for Adyen: when single partial capture works, ask to pass our Adyen account to multiple
         #  partial to test this
         child_void_tx = super()._send_void_request(amount_to_void=amount_to_void)
         if self.provider != 'adyen':
@@ -245,7 +245,7 @@ class PaymentTransaction(models.Model):
                 self.reference, self.acquirer_id.name
             ))
 
-        if child_void_tx :
+        if child_void_tx:
             # The PSP reference associated with this /cancels request is different from the psp
             # reference associated with the original payment request.
             child_void_tx.acquirer_reference = response_content.get('pspReference')
@@ -434,14 +434,15 @@ class PaymentTransaction(models.Model):
                         ('state', 'in', ['done', 'cancel']),
                     ])
                     if self.source_transaction_id.amount != sum(tx.amount for tx in children_tx):
-                        self.source_transaction_id._manage_remaining_amount()
+                        # self.source_transaction_id._manage_remaining_amount()
+                        pass  # TODO edm wait for Adyen
 
             # Immediately post-process the transaction if it is a refund, as the post-processing
             # will not be triggered by a customer browsing the transaction from the portal.
             if self.operation == 'refund':
                 self.env.ref('payment.cron_post_process_payment_tx')._trigger()
         elif payment_state in RESULT_CODES_MAPPING['cancel']:
-            self.amount = 200  # TODO edm: get this off, testing purpose
+            self.amount = 200  # TODO edm wait for Adyen: get this off, testing purpose
             self._set_canceled()
         elif payment_state in RESULT_CODES_MAPPING['error']:
             if event_code in ['AUTHORISATION', 'REFUND']:
@@ -525,8 +526,3 @@ class PaymentTransaction(models.Model):
                 'ref': self.reference,
             },
         )
-
-    def _manage_remaining_amount(self):
-        print('Quack')
-        pass
-        # TODO edm: wait for Adyen's answer

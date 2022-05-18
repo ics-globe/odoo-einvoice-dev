@@ -10,7 +10,7 @@
                     <button type="object" name="action_capture" states="authorized" string="Capture Transaction" class="oe_highlight"/>
                     <button type="object" name="action_void" states="authorized" string="Void Transaction"
                             confirm="Are you sure you want to void the authorized transaction? This action can't be undone."/>
-<!--                    TODO edm message when partial-->
+<!--                    TODO edm message when partial?-->
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
