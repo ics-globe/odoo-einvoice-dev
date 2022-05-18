@@ -9,13 +9,13 @@
                     <t t-esc="messaging.chatWindowManager.allOrderedHidden.length"/>
                 </div>
             </div>
-            <ul class="o_ChatWindowHiddenMenu_list dropdown-menu dropdown-menu-right m-0 p-0 overflow-auto" t-att-class="{ show: messaging.chatWindowManager.isHiddenMenuOpen }" role="menu" t-ref="list">
+            <ul class="o_ChatWindowHiddenMenu_list dropdown-menu dropdown-menu-end m-0 p-0 overflow-auto" t-att-class="{ show: messaging.chatWindowManager.isHiddenMenuOpen }" role="menu" t-ref="list">
                 <t t-foreach="messaging.chatWindowManager.hiddenChatWindowHeaderViews" t-as="chatWindowHeaderView" t-key="chatWindowHeaderView.localId">
                     <ChatWindowHiddenMenuItem chatWindowHeaderView="chatWindowHeaderView" isLast="chatWindowHeaderView_last"/>
                 </t>
             </ul>
             <t t-if="messaging.chatWindowManager.unreadHiddenConversationAmount > 0">
-                <div class="o_ChatWindowHiddenMenu_unreadCounter position-absolute end-0 top-0 badge badge-pill badge-primary">
+                <div class="o_ChatWindowHiddenMenu_unreadCounter position-absolute end-0 top-0 badge rounded-pill bg-primary">
                     <t t-esc="messaging.chatWindowManager.unreadHiddenConversationAmount"/>
                 </div>
             </t>

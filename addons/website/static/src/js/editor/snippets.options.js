@@ -1561,7 +1561,7 @@ options.registry.Carousel = options.Class.extend({
         const id = 'myCarousel' + Date.now();
         this.$target.attr('id', id);
         this.$target.find('[data-bs-target]').attr('data-bs-target', '#' + id);
-        _.each(this.$target.find('[data-slide], [data-slide-to]'), function (el) {
+        _.each(this.$target.find('[data-bs-slide], [data-bs-slide-to]'), function (el) {
             var $el = $(el);
             if ($el.attr('data-bs-target')) {
                 $el.attr('data-bs-target', '#' + id);
@@ -1581,7 +1581,7 @@ options.registry.Carousel = options.Class.extend({
         const $active = $items.filter('.active');
         this.$indicators.append($('<li>', {
             'data-bs-target': '#' + this.$target.attr('id'),
-            'data-slide-to': $items.length,
+            'data-bs-slide-to': $items.length,
         }));
         this.$indicators.append(' ');
         // Need to remove editor data from the clone so it gets its own.
@@ -1899,7 +1899,7 @@ options.registry.collapse = options.Class.extend({
         };
 
         const tablistId = setUniqueId($tablist, 'myCollapse');
-        $panel.attr('data-parent', '#' + tablistId);
+        $panel.attr('data-bs-parent', '#' + tablistId);
         $panel.data('bs-parent', '#' + tablistId);
 
         const panelId = setUniqueId($panel, 'myCollapseTab');

@@ -37,8 +37,8 @@
                             <label for="delay_count"/>
                             <div>
                                 <div class="o_row">
-                                    <field class="col-1 pl-0 pr-0" name="delay_count"/>
-                                    <field class="col-3 pl-1 pr-1" name="delay_unit"/>
+                                    <field class="col-1 ps-0 pe-0" name="delay_count"/>
+                                    <field class="col-3 ps-1 pe-1" name="delay_unit"/>
                                     <field name="delay_from"/>
                                 </div>
                             </div>
@@ -72,7 +72,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="summary"/>
-                <field name="delay_label" string="Planned in" class="text-right"/>
+                <field name="delay_label" string="Planned in" class="text-end"/>
                 <field name="delay_from" string="Type"/>
                 <field name="res_model" groups="base.group_no_one"/>
                 <field name="icon" groups="base.group_no_one"/>

@@ -91,15 +91,15 @@
                     <div id="o_wslides_js_slide_upload_left_column" class="col-md-6">
                         <div class="form-group">
                             <label for="source_type" class="col-form-label">Document Source</label><br/>
-                            <div class="form-check ml-2">
+                            <div class="form-check ms-2">
                                 <input class="form-check-input" type="radio" name="source_type" id="source_type_local_file" data-value="local_file" checked="checked"/>
-                                <label class="form-check-label font-weight-normal" for="source_type_local_file">
+                                <label class="form-check-label fw-normal" for="source_type_local_file">
                                     Upload from Device
                                 </label>
                             </div>
-                            <div class="form-check ml-2">
+                            <div class="form-check ms-2">
                                 <input class="form-check-input" type="radio" name="source_type" id="source_type_external" data-value="external"/>
-                                <label class="form-check-label font-weight-normal" for="source_type_external">
+                                <label class="form-check-label fw-normal" for="source_type_external">
                                     Retrieve from Google Drive
                                 </label>
                             </div>
@@ -167,15 +167,15 @@
                     <div id="o_wslides_js_slide_upload_left_column" class="col-md-6">
                         <div class="form-group">
                             <label for="source_type" class="col-form-label">Image Source</label><br/>
-                            <div class="form-check ml-2">
+                            <div class="form-check ms-2">
                                 <input class="form-check-input" type="radio" name="source_type" id="source_type_local_file" data-value="local_file" checked="checked"/>
-                                <label class="form-check-label font-weight-normal" for="source_type_local_file">
+                                <label class="form-check-label fw-normal" for="source_type_local_file">
                                     Upload from Device
                                 </label>
                             </div>
-                            <div class="form-check ml-2">
+                            <div class="form-check ms-2">
                                 <input class="form-check-input" type="radio" name="source_type" id="source_type_external" data-value="external"/>
-                                <label class="form-check-label font-weight-normal" for="source_type_external">
+                                <label class="form-check-label fw-normal" for="source_type_external">
                                     Retrieve from Google Drive
                                 </label>
                             </div>

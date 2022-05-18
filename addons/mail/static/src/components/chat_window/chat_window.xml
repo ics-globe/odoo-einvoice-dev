@@ -33,7 +33,7 @@
                 </t>
                 <t t-if="chatWindow.newMessageAutocompleteInputView">
                     <div class="o_ChatWindow_newMessageForm d-flex align-items-center mt-1 p-1">
-                        <span class="o_ChatWindow_newMessageFormLabel flex-grow-0 flex-shrink-0 mr-2">
+                        <span class="o_ChatWindow_newMessageFormLabel flex-grow-0 flex-shrink-0 me-2">
                             To:
                         </span>
                         <AutocompleteInput

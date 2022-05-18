@@ -65,6 +65,7 @@ This module provides the core of the Odoo Web Client.
         'web.assets_common': [
             ('include', 'web._assets_helpers'),
 
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
             ('include', 'web._assets_common_styles'),
@@ -84,6 +85,7 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_helpers'),
             ('include', 'web._assets_backend_helpers'),
 
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
             ('include', 'web._assets_bootstrap'),
@@ -193,6 +195,7 @@ This module provides the core of the Odoo Web Client.
         "web.assets_backend_legacy_lazy": [
             ("include", "web._assets_helpers"),
             ('include', 'web._assets_backend_helpers'),
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             # graph
             'web/static/src/legacy/js/views/graph/**/*',
@@ -208,6 +211,7 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_helpers'),
             ('include', 'web._assets_frontend_helpers'),
 
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             'web/static/lib/luxon/luxon.js',
 
@@ -259,6 +263,7 @@ This module provides the core of the Odoo Web Client.
             ('include', 'web._assets_helpers'),
 
             'web/static/src/legacy/scss/bootstrap_overridden_report.scss',
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
             ('include', 'web._assets_bootstrap'),
@@ -503,6 +508,7 @@ This module provides the core of the Odoo Web Client.
             # It is expected to add other lines coming from the web.assets_frontend
             # if we need to add more and more legacy stuff that would require other scss or js.
             ('include', 'web._assets_helpers'),
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
             ('include', 'web.frontend_legacy'),

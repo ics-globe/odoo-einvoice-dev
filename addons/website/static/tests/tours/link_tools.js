@@ -54,7 +54,7 @@ tour.register('link_tools', {
     },
     {
         content: "The new link content should be odoo website and url odoo.be",
-        trigger: '#toolbar button[data-original-title="Link Style"]',
+        trigger: '#toolbar button[data-bs-original-title="Link Style"]',
     },
     {
         trigger: 'body',

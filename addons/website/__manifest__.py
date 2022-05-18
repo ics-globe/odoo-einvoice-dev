@@ -181,6 +181,7 @@
         'website.assets_wysiwyg': [
             ('include', 'web._assets_helpers'),
             'web_editor/static/src/scss/bootstrap_overridden.scss',
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             'website/static/src/scss/website.wysiwyg.scss',
             'website/static/src/scss/website.edit_mode.scss',
@@ -218,6 +219,7 @@
         ],
         'website.assets_editor': [
             ('include', 'web._assets_helpers'),
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             'web/static/src/legacy/scss/ace.scss',
             'website/static/src/scss/website.editor.ui.scss',

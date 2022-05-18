@@ -166,7 +166,8 @@ body.o_connected_user {
         content: '';
         margin-top: -1px;
         background: $color;
-        @include size(100%, $thickness);
+        width: 100%;
+        height: $thickness;
         @include o-position-absolute(50%, $left:0);
         transform: rotate(45deg);
     }
@@ -284,7 +285,7 @@ body .modal {
                 position: relative;
                 transition: border-color 200ms;
                 display: inline-block;
-                border: 2px solid gray('400');
+                border: 2px solid map-get($grays, '400');
 
                 > img {
                     width: 70px;
@@ -319,7 +320,7 @@ body .modal {
                 }
                 .o-custom-label {
                     @include o-position-absolute($bottom: 0px);
-                    background: rgba(gray('800'), 0.6);
+                    background: rgba(map-get($grays, '800'), 0.6);
                     font-size: 12px;
                 }
             }
@@ -327,10 +328,10 @@ body .modal {
                 transition: 200ms;
                 display: inline-block;
                 padding: 23px 27px;
-                border: 3px dashed lighten(gray('700'), 30%);
+                border: 3px dashed lighten(map-get($grays, '700'), 30%);
                 vertical-align: top;
                 cursor: pointer;
-                color: lighten(gray('600'), 30%);
+                color: lighten(map-get($grays, '600'), 30%);
 
                 &:hover {
                     border-color: $o-brand-primary;

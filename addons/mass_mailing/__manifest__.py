@@ -97,6 +97,7 @@
         ],
         'mass_mailing.assets_mail_themes_edition': [
             ('include', 'web._assets_helpers'),
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             'mass_mailing/static/src/scss/mass_mailing.ui.scss',
         ],

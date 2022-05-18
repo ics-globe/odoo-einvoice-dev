@@ -31,11 +31,11 @@
 
 .o_MobileMessagingNavbar {
     background-color: $white;
-    box-shadow: 0 0 8px gray('400');
+    box-shadow: 0 0 8px map-get($grays, '400');
 }
 
 .o_MobileMessagingNavbar_tab {
-    box-shadow: 1px 0 0 gray('400');
+    box-shadow: 1px 0 0 map-get($grays, '400');
 
     &.o-active {
         color: $o-brand-primary;

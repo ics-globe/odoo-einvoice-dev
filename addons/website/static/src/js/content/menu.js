@@ -482,7 +482,7 @@ publicWidget.registry.menuDirection = publicWidget.Widget.extend({
         var menuWidth = $menu.outerWidth();
         var pageWidth = $('#wrapwrap').outerWidth();
 
-        $menu.removeClass('dropdown-menu-left dropdown-menu-right');
+        $menu.removeClass('dropdown-menu-start dropdown-menu-end');
 
         var alignment = this.defaultAlignment;
         if ($li.nextAll(':visible').length === 0) {

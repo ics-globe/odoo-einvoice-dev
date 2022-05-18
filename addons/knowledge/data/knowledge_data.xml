@@ -30,7 +30,7 @@
                         <div class="o_knowledge_file_name">Car_Catalog.pdf</div>
                         <div class="o_knowledge_file_extension">pdf</div>
                     </div>
-                    <div class="o_knowledge_toolbar_anchor o_knowledge_toolbar_type_file mt-auto ml-auto" contenteditable="false"><div class="o_knowledge_toolbar" contenteditable="false">
+                    <div class="o_knowledge_toolbar_anchor o_knowledge_toolbar_type_file mt-auto ms-auto" contenteditable="false"><div class="o_knowledge_toolbar" contenteditable="false">
                 </div></div>
                 </div>
                 <br />
@@ -416,7 +416,7 @@
                         <div class="o_knowledge_file_name">logo.jpg</div>
                         <div class="o_knowledge_file_extension">jpg</div>
                     </div>
-                    <div class="o_knowledge_toolbar_anchor o_knowledge_toolbar_type_file mt-auto ml-auto" contenteditable="false"><div class="o_knowledge_toolbar" contenteditable="false">
+                    <div class="o_knowledge_toolbar_anchor o_knowledge_toolbar_type_file mt-auto ms-auto" contenteditable="false"><div class="o_knowledge_toolbar" contenteditable="false">
                 </div></div>
                 </div>
                 <br />

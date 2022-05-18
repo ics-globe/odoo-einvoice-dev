@@ -39,7 +39,7 @@
 
     <t t-name="website.seo_suggestion">
         <li class="list-inline-item">
-            <span class="o_seo_suggestion badge badge-info" t-att-data-keyword="widget.keyword" t-attf-title="Add {{ widget.keyword }}" t-esc="widget.keyword"/>
+            <span class="o_seo_suggestion badge bg-info text-dark" t-att-data-keyword="widget.keyword" t-attf-title="Add {{ widget.keyword }}" t-esc="widget.keyword"/>
         </li>
     </t>
 

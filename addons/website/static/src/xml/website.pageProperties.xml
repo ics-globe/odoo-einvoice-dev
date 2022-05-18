@@ -48,8 +48,8 @@
 <div t-name="website.pagesMenu.page_info" class="o_page_management_info">
     <form>
         <ul class="nav nav-tabs" role="tablist">
-            <li class="nav-item"><a aria-controls="basic_page_info" role="tab" data-toggle="tab" class="nav-link active" href="#basic_page_info">Name</a></li>
-            <li class="nav-item"><a aria-controls="advances_page_info" role="tab" data-toggle="tab" class="nav-link" href="#advances_page_info">Publish</a></li>
+            <li class="nav-item"><a aria-controls="basic_page_info" role="tab" data-bs-toggle="tab" class="nav-link active" href="#basic_page_info">Name</a></li>
+            <li class="nav-item"><a aria-controls="advances_page_info" role="tab" data-bs-toggle="tab" class="nav-link" href="#advances_page_info">Publish</a></li>
         </ul>
         <div class="tab-content mt16">
             <div role="tabpanel" id="basic_page_info" class="tab-pane fade show active">
@@ -156,7 +156,7 @@
                                 <option value="restricted_group" t-att-selected="widget.page.visibility == 'restricted_group' ? 'selected' : undefined">Some Users</option>
                                 <option value="password" t-att-selected="widget.page.visibility == 'password' ? 'selected' : undefined">Password</option>
                             </select>
-                            <div class="ml-1 input-group-prepend show_visibility_password" >
+                            <div class="ms-1 input-group-prepend show_visibility_password" >
                                 <div class="input-group-text"><i class="fa fa-key"></i></div>
                             </div>
                             <input type="password" id="visibility_password"
@@ -165,7 +165,7 @@
                                    class="form-control show_visibility_password"
                                    autocomplete="new-password"/>
                             <t t-if="widget.page.hasSingleGroup">
-                                <div class="ml-1 input-group-prepend show_group_id">
+                                <div class="ms-1 input-group-prepend show_group_id">
                                     <div class="input-group-text"><i class="fa fa-group"></i></div>
                                 </div>
                                 <t t-set="group" t-value="widget.page.group_id"/>

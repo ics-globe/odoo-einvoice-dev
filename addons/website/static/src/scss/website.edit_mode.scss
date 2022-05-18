@@ -269,7 +269,7 @@ body.editor_enable {
         }
     }
     .s_website_form {
-        [data-toggle="datetimepicker"], textarea {
+        [data-bs-toggle="datetimepicker"], textarea {
             pointer-events: none;
         }
     }

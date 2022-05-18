@@ -103,6 +103,7 @@ Featuring
         ],
         'website_slides.slide_embed_assets': [
             ('include', 'web._assets_helpers'),
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
             ('include', 'web._assets_bootstrap'),
             'website_slides/static/src/scss/website_slides.scss',

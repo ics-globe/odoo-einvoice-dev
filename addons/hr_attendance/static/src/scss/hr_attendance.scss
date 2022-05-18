@@ -6,10 +6,10 @@
 #oe_hr_attendance_status {
     color: $o-brand-secondary;
     &.oe_hr_attendance_status_green {
-        color: theme-color('success');
+        color: map-get($theme-colors, 'success');
     }
     &.oe_hr_attendance_status_orange {
-        color: theme-color('warning');
+        color: map-get($theme-colors, 'warning');
     }
 }
 
@@ -119,7 +119,7 @@
 
     .o_hr_attendance_back_button {
         .visible-xs{
-            background: gray('200');
+            background: map-get($grays, '200');
             margin: 0 -2em;
             .fa {
                 @include o-position-absolute(0.75em);

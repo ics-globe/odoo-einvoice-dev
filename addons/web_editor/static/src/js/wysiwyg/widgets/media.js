@@ -1378,7 +1378,7 @@ var VideoWidget = MediaWidget.extend({
     _updateVideo: async function () {
         // Reset the feedback
         this.$content.empty();
-        this.$('#o_video_form_group').removeClass('o_has_error o_has_success').find('.form-control, .custom-select').removeClass('is-invalid is-valid');
+        this.$('#o_video_form_group').removeClass('o_has_error o_has_success').find('.form-control, .form-select').removeClass('is-invalid is-valid');
         this.$('.o_video_dialog_options div').addClass('d-none');
 
         // Check video code
@@ -1411,9 +1411,9 @@ var VideoWidget = MediaWidget.extend({
         this.$el.find('.o_video_dialog_preview_text, .media_iframe_video_size').add($optBox).toggleClass('d-none', !query.$video);
         // Toggle validation classes
         this.$el.find('#o_video_form_group')
-            .toggleClass('o_has_error', !query.$video).find('.form-control, .custom-select').toggleClass('is-invalid', !query.$video)
+            .toggleClass('o_has_error', !query.$video).find('.form-control, .form-select').toggleClass('is-invalid', !query.$video)
             .end()
-            .toggleClass('o_has_success', !!query.$video).find('.form-control, .custom-select').toggleClass('is-valid', !!query.$video);
+            .toggleClass('o_has_success', !!query.$video).find('.form-control, .form-select').toggleClass('is-valid', !!query.$video);
 
         // Individually show / hide options base on the video provider
         $optBox.find('div.o_' + query.platform + '_option').removeClass('d-none');

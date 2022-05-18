@@ -147,7 +147,7 @@
                                     <field name="name"/>
                                 </h2>
                                 <div class="d-flex align-items-center">
-                                    <div class="mr-3">
+                                    <div class="me-3">
                                         <button class="btn btn-primary" name="action_view_contacts" type="object">
                                             <t t-esc="record.contact_count.value"/>
                                             <span>Contacts</span>
@@ -156,26 +156,26 @@
                                     <div class="flex-grow-1 d-flex flex-column align-items-end o_mass_mailing_kanban_contact_links">
                                         <a name="action_view_contacts_email" type="object">
                                             <span>Valid Email Recipients</span>
-                                            <span t-esc="record.contact_count_email.value" class="ml-3"/>
+                                            <span t-esc="record.contact_count_email.value" class="ms-3"/>
                                         </a>
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 d-flex align-items-end mt-4">
                                     <div class="col-12">
                                         <div class="row mt3">
-                                            <div class="col-3 border-right">
+                                            <div class="col-3 border-end">
                                                 <a name="action_view_mailings" type="object" class="d-flex flex-column align-items-center">
                                                     <span><field name="mailing_count"/></span>
                                                     <span class="text-muted">Mailings</span>
                                                 </a>
                                             </div>
-                                            <div class="col-3 border-right">
+                                            <div class="col-3 border-end">
                                                 <a name="action_view_contacts_bouncing" type="object" class="d-flex flex-column align-items-center">
                                                     <span><field name="contact_pct_bounce"/>%</span>
                                                     <span class="text-muted">Bounce</span>
                                                 </a>
                                             </div>
-                                            <div class="col-3 border-right">
+                                            <div class="col-3 border-end">
                                                 <a name="action_view_contacts_opt_out" type="object" class="d-flex flex-column align-items-center">
                                                     <span><field name="contact_pct_opt_out"/>%</span>
                                                     <span class="text-muted">Opt-out</span>

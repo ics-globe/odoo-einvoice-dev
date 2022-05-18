@@ -79,7 +79,7 @@ odoo.define("website_blog.tour", function (require) {
         content: Markup(_t("Use this icon to preview your blog post on <b>mobile devices</b>.")),
         position: "bottom",
     }, {
-        trigger: "button[data-dismiss=modal]",
+        trigger: "button[data-bs-dismiss=modal]",
         extra_trigger: '.modal:has(#mobile-viewport)',
         content: _t("Once you have reviewed the content on mobile, close the preview."),
         position: "right",

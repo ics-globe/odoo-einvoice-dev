@@ -62,6 +62,7 @@ Odoo Web Editor widget.
             ('include', 'web._assets_helpers'),
 
             'web_editor/static/src/scss/bootstrap_overridden.scss',
+            'web/static/src/bs_pre_variables.scss',
             'web/static/lib/bootstrap/scss/_variables.scss',
 
             # integration

@@ -62,13 +62,13 @@
     cursor: pointer;
 
     &:not(:hover) {
-        color: gray('600');
+        color: map-get($grays, '600');
     }
 }
 
 .o_DiscussSidebarCategory_counter {
     background-color: $o-brand-primary;
-    color: gray('300');
+    color: map-get($grays, '300');
 }
 
 .o_DiscussSidebarCategory_headerItem {
@@ -80,7 +80,7 @@
 
     &:not(:hover)
     {
-        color: gray('600');
+        color: map-get($grays, '600');
     }
 }
 

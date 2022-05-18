@@ -1013,8 +1013,8 @@ var ListRenderer = BasicRenderer.extend({
             'class': "dropdown-toggle text-dark o-no-caret",
             'href': "#",
             'role': "button",
-            'data-toggle': "dropdown",
-            'data-display': "static",
+            'data-bs-toggle': "dropdown",
+            'data-bs-display': "static",
             'aria-expanded': false,
             'aria-label': _t('Optional columns'),
         });
@@ -1025,7 +1025,7 @@ var ListRenderer = BasicRenderer.extend({
         // We want the dropdown to expand towards the list rather than away from it
         // https://getbootstrap.com/docs/4.0/components/dropdowns/#menu-alignment
         var direction = _t.database.parameters.direction;
-        var dropdownMenuClass = direction === 'rtl' ? 'dropdown-menu-left' : 'dropdown-menu-right';
+        var dropdownMenuClass = direction === 'rtl' ? 'dropdown-menu-start' : 'dropdown-menu-end';
         var $dropdown = $("<div>", {
             class: 'dropdown-menu o_optional_columns_dropdown ' + dropdownMenuClass,
             role: 'menu',

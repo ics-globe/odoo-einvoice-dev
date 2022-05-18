@@ -164,7 +164,7 @@ var PagePropertiesDialog = weWidgets.Dialog.extend({
             });
             dep_text = dep_text.join(', ');
             self.$('.warn_about_call').html(qweb.render('website.show_page_key_dependencies', {dependencies: dependencies, dep_text: dep_text}));
-            self.$('.warn_about_call [data-toggle="popover"]').popover({
+            self.$('.warn_about_call [data-bs-toggle="popover"]').popover({
                container: 'body',
             });
         }));
@@ -230,12 +230,12 @@ var PagePropertiesDialog = weWidgets.Dialog.extend({
         var url = this.$('#page_url').val();
 
         var $datePublish = this.$("#date_publish");
-        $datePublish.closest(".form-group").removeClass('o_has_error').find('.form-control, .custom-select').removeClass('is-invalid');
+        $datePublish.closest(".form-group").removeClass('o_has_error').find('.form-control, .form-select').removeClass('is-invalid');
         var datePublish = $datePublish.val();
         if (datePublish !== "") {
             datePublish = this._parse_date(datePublish);
             if (!datePublish) {
-                $datePublish.closest(".form-group").addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
+                $datePublish.closest(".form-group").addClass('o_has_error').find('.form-control, .form-select').addClass('is-invalid');
                 return;
             }
         }
@@ -483,7 +483,7 @@ var MenuEntryDialog = weWidgets.LinkDialog.extend({
         this.linkWidget.save = () => {
             var $e = this.$('#o_link_dialog_label_input');
             if (!$e.val() || !$e[0].checkValidity()) {
-                $e.closest('.form-group').addClass('o_has_error').find('.form-control, .custom-select').addClass('is-invalid');
+                $e.closest('.form-group').addClass('o_has_error').find('.form-control, .form-select').addClass('is-invalid');
                 $e.focus();
                 return Promise.reject();
             }

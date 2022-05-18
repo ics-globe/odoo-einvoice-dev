@@ -5778,7 +5778,7 @@ QUnit.module('Views', {
                         '<t t-name="kanban-box">' +
                             '<div color="color">' +
                                 '<div class="o_dropdown_kanban dropdown">' +
-                                    '<a class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#">' +
+                                    '<a class="dropdown-toggle o-no-caret btn" data-bs-toggle="dropdown" href="#">' +
                                             '<span class="fa fa-bars fa-lg"/>' +
                                     '</a>' +
                                     '<ul class="dropdown-menu" role="menu">' +
@@ -6225,7 +6225,7 @@ QUnit.module('Views', {
                             '<t t-name="kanban-box">' +
                                 '<div color="color">' +
                                     '<div class="o_dropdown_kanban dropdown">' +
-                                        '<a class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#">' +
+                                        '<a class="dropdown-toggle o-no-caret btn" data-bs-toggle="dropdown" href="#">' +
                                             '<span class="fa fa-bars fa-lg"/>' +
                                         '</a>' +
                                         '<ul class="dropdown-menu" role="menu">' +
@@ -6829,7 +6829,7 @@ QUnit.module('Views', {
         });
 
         assert.deepEqual(
-            [...view.el.querySelectorAll('.progress-bar')].map(el => el.getAttribute('data-original-title')),
+            [...view.el.querySelectorAll('.progress-bar')].map(el => el.getAttribute('data-bs-original-title')),
             ['0 yop', '0 gnap', '1 blip', '0 __false', '1 yop', '1 gnap', '1 blip', '0 __false']
         );
 
@@ -6845,7 +6845,7 @@ QUnit.module('Views', {
         );
 
         assert.deepEqual(
-            [...view.el.querySelectorAll('.progress-bar')].map(el => el.getAttribute('data-original-title')),
+            [...view.el.querySelectorAll('.progress-bar')].map(el => el.getAttribute('data-bs-original-title')),
             ['0 yop', '1 gnap', '1 blip', '0 __false', '1 yop', '0 gnap', '1 blip', '0 __false']
         );
 
@@ -7699,7 +7699,7 @@ QUnit.module('Views', {
                             '<div class="oe_kanban_global_click">' +
                                 '<field name="name"/>' +
                                 '<div class="o_dropdown_kanban dropdown">' +
-                                    '<a class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#">' +
+                                    '<a class="dropdown-toggle o-no-caret btn" data-bs-toggle="dropdown" href="#">' +
                                         '<span class="fa fa-bars fa-lg"/>' +
                                     '</a>' +
                                     '<div class="dropdown-menu" role="menu">' +
@@ -7910,7 +7910,7 @@ QUnit.module('Views', {
         });
 
         assert.containsOnce(kanban.el.querySelector('.o_kanban_record'),
-            'div.custom-checkbox.o_field_boolean');
+            'div.form-check.o_field_boolean');
         kanban.destroy();
     });
 

@@ -20,7 +20,7 @@
                                 New Applicants
                             </a>
                         </div>
-                        <div class="col-3 text-right">
+                        <div class="col-3 text-end">
                             <field name="new_applicant_count"/>
                         </div>
                     </div>

@@ -18,7 +18,7 @@
                                 Expense Reports
                             </a>
                         </div>
-                        <div class="col-3 text-right">
+                        <div class="col-3 text-end">
                             <t t-esc="record.expense_sheets_to_approve_count.raw_value"/>
                         </div>
                     </div>

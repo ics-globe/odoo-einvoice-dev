@@ -11,7 +11,7 @@
                                type="radio" name="enroll"
                                id="enroll_public" value="public"
                                checked="checked"/>
-                        <label class="form-check-label font-weight-normal"
+                        <label class="form-check-label fw-normal"
                             for="enroll_public">
                             Public
                         </label>
@@ -22,7 +22,7 @@
                         <input class="form-check-input"
                                type="radio" name="enroll"
                                id="enroll_invitation" value="invite"/>
-                        <label class="form-check-label font-weight-normal"
+                        <label class="form-check-label fw-normal"
                             for="enroll_invitation">
                             On Invitation
                         </label>
@@ -33,7 +33,7 @@
                         <input class="form-check-input"
                                type="radio" name="enroll"
                                id="enroll_payment" value="payment"/>
-                        <label class="form-check-label font-weight-normal"
+                        <label class="form-check-label fw-normal"
                             for="enroll_payment">
                             On Payment
                         </label>
