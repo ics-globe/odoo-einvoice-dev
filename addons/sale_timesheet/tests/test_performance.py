@@ -24,7 +24,7 @@ class TestSaleTimesheetPerformance(TestCommonSaleTimesheet):
         """
         georges_emp = self.env['hr.employee'].with_context(tracking_disable=True).create({
             'name': 'Georges',
-            +            'timesheet_cost': 30,
+            'timesheet_cost': 30,
         })
         tasks = self.env['project.task'].with_context(tracking_disable=True).create([
             {
