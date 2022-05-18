@@ -20,12 +20,20 @@ export class ChannelMember extends Component {
         return this.props.member;
     }
 
+    /**
+     * @returns {ChannelMemberView}
+     */
+     get record() {
+        return this.props.record;
+    }
+
 }
 
 Object.assign(ChannelMember, {
     props: {
         channel: Object,
         member: Object,
+        record: Object,
     },
     template: 'mail.ChannelMember',
 });
