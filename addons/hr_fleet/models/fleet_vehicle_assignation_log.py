@@ -29,6 +29,8 @@ class FleetVehicleAssignationLog(models.Model):
     def action_get_attachment_view(self):
         self.ensure_one()
         res = self.env['ir.actions.act_window']._for_xml_id('base.action_attachment')
+        fleet_attachment_view = self.env.ref('hr_fleet.view_attachment_tree_inherit_hr').id
+        res['views'] = [[fleet_attachment_view, 'tree']]
         res['domain'] = [('res_model', '=', 'fleet.vehicle.assignation.log'), ('res_id', 'in', self.ids)]
-        res['context'] = {'default_res_model': 'fleet.vehicle.assignation.log', 'default_res_id': self.id}
+        res['context'] = {'default_res_model': 'fleet.vehicle.assignation.log', 'default_res_id': self.id, 'fleet_attachment_view': fleet_attachment_view}
         return res
