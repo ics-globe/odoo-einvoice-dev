@@ -147,7 +147,7 @@ class ProductProduct(models.Model):
             bom_kits_to_products[bom_kit].append(product)
 
         for bom_kit in bom_kits_to_products:
-            boms, bom_sub_lines = bom_kit.explode(bom_kits_to_products[bom_kit][0], 1)
+            _, bom_sub_lines = bom_kit.explode(bom_kits_to_products[bom_kit][0], 1)
 
             ratios_virtual_available = []
             ratios_qty_available = []
