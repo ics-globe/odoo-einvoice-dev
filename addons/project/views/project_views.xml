@@ -1438,7 +1438,7 @@
                     <field name="stage_id"/>
                     <field name="color" invisible="1"/>
                     <field name="sequence" invisible="1"/>
-                    <field name="rating_last_value" type="measure" string="Rating (/5)"/>
+                    <field name="rating_last_value" string="Rating (/5)"/>
                 </graph>
             </field>
         </record>
