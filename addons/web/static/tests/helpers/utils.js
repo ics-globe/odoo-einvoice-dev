@@ -246,7 +246,7 @@ if (typeof TouchEvent === "function") {
     });
 }
 
-export async function triggerEvent(el, selector, eventType, eventAttrs = {}) {
+function _makeEvent(eventType, eventAttrs) {
     let event;
     if (eventType in EVENT_TYPES) {
         const { constructor, processParameters } = EVENT_TYPES[eventType];
@@ -254,6 +254,11 @@ export async function triggerEvent(el, selector, eventType, eventAttrs = {}) {
     } else {
         event = new Event(eventType, Object.assign({}, eventAttrs, { bubbles: true }));
     }
+    return event;
+}
+
+export async function triggerEvent(el, selector, eventType, eventAttrs = {}) {
+    const event = _makeEvent(eventType, eventAttrs);
     const target = findElement(el, selector);
     if (!target) {
         throw new Error(`Can't find a target to trigger ${eventType} event`);
@@ -330,6 +335,46 @@ export async function triggerScroll(
         ? triggerScroll(target.parentElement, coordinates)
         : window.dispatchEvent(new UIEvent("scroll"));
     await nextTick();
+}
+
+/**
+ * @returns {boolean}
+ */
+export function canDefaultBehaviorHappen(el, selector, eventType, eventAttrs = {}) {
+    const event = _makeEvent(eventType, eventAttrs);
+    if (!event.bubbles) {
+        throw new Error(
+            `Unable to check the result after bubbling as ${eventType} events do not bubble.`
+        );
+    }
+
+    const target = findElement(el, selector);
+    if (!target) {
+        throw new Error(`Can't find a target to trigger ${eventType} event`);
+    }
+
+    const isVisible =
+        target === document ||
+        target === window ||
+        target.offsetWidth > 0 ||
+        target.offsetHeight > 0;
+    if (!isVisible) {
+        throw new Error(`Called triggerEvent ${eventType} on invisible target`);
+    }
+
+    let isDefaultBehaviorPrevented = true;
+    const listener = (ev) => {
+        if (ev !== event) {
+            return;
+        }
+        isDefaultBehaviorPrevented = ev.defaultPrevented;
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+    };
+    window.addEventListener(eventType, listener);
+    target.dispatchEvent(event);
+    window.removeEventListener(eventType, listener);
+    return !isDefaultBehaviorPrevented;
 }
 
 export function click(el, selector) {
