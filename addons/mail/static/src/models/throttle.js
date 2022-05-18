@@ -2,7 +2,7 @@
 
 import { registerModel } from '@mail/model/model_core';
 import { attr, one } from '@mail/model/model_field';
-import { clear } from '@mail/model/model_field_command';
+import { clear, insertAndReplace } from '@mail/model/model_field_command';
 import { makeDeferred } from '@mail/utils/deferred';
 import { ThrottleCanceledError } from '@mail/utils/throttle_canceled_error';
 import { ThrottleFlushedError } from '@mail/utils/throttle_flushed_error';
@@ -178,17 +178,14 @@ registerModel({
             if (this.coolingDownDeferred) {
                 throw new Error("Cannot start cooling down if there's already a cooling down in progress.");
             }
-            // Keep local reference of cooling down deferred, because the one stored
-            // on `this` could be overwritten by another call to this throttle.
-            const coolingDownDeferred = makeDeferred();
             this.update({
-                coolingDownDeferred,
+                cooldownTimer: insertAndReplace(),
+                coolingDownDeferred: makeDeferred(),
                 isCoolingDown: true,
             });
-            const cooldownTimeoutId = this.messaging.browser.setTimeout(
-                () => coolingDownDeferred.resolve(),
-                this.duration
-            );
+            // Keep local reference of cooling down deferred, because the one stored
+            // on `this` could be overwritten by another call to this throttle.
+            const coolingDownDeferred = this.coolingDownDeferred;
             let unexpectedError;
             try {
                 await coolingDownDeferred;
@@ -203,8 +200,8 @@ registerModel({
                 }
             } finally {
                 if (this.exists()) {
-                    this.messaging.browser.clearTimeout(cooldownTimeoutId);
                     this.update({
+                        cooldownTimer: clear(),
                         coolingDownDeferred: clear(),
                         isCoolingDown: false,
                     });
@@ -216,6 +213,10 @@ registerModel({
         },
     },
     fields: {
+        cooldownTimer: one('Timer', {
+            inverse: 'throttleOwner',
+            isCausal: true,
+        }),
         /**
          * Deferred of current cooling down phase in progress. Defined only when
          * there is a cooling down phase in progress. Resolved when cooling down
