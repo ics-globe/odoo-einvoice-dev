@@ -115,8 +115,8 @@ class Repair(models.Model):
         copy=False, help="Sale Order from which the product to be repaired comes from.")
     picking_id = fields.Many2one(
         'stock.picking', 'Return', check_company=True,
-        domain="[('is_repairable', '!=', False), ('company_id', '=', company_id)]",
         copy=False, help="Return Order from which the product to be repaired comes from.")
+    valid_picking_ids = fields.Many2many('stock.picking', compute='_compute_valid_picking_ids')
     is_returned = fields.Boolean(
         "Returned", compute='_compute_is_returned',
         help="True if this repair is linked to a Return Order and the order is 'Done'. False otherwise.")
@@ -129,6 +129,17 @@ class Repair(models.Model):
     tracking = fields.Selection(string='Product Tracking', related="product_id.tracking", readonly=False)
     invoice_state = fields.Selection(string='Invoice State', related='invoice_id.state')
     priority = fields.Selection([('0', 'Normal'), ('1', 'Urgent')], default='0', string="Priority", help="Important repair order")
+
+
+    @api.depends('location_id')
+    def _compute_valid_picking_ids(self):
+        for rec in self:
+            domain = [('picking_type_id.code', '=', 'incoming')]
+            if rec.location_id:
+                warhouse_location_id = rec.location_id.warehouse_id.lot_stock_id
+                if warhouse_location_id:
+                    domain.append(('location_dest_id', 'child_of', warhouse_location_id.id))
+            rec.valid_picking_ids = self.env['stock.picking'].search(domain)
 
     @api.depends('partner_id')
     def _compute_default_address_id(self):
@@ -178,6 +189,15 @@ class Repair(models.Model):
     _sql_constraints = [
         ('name', 'unique (name)', 'The name of the Repair Order must be unique!'),
     ]
+
+    @api.onchange('location_id', 'picking_id')
+    def _onchange_location_picking(self):
+        location_warehouse = self.location_id.warehouse_id
+        picking_warehouse = self.picking_id.location_dest_id.warehouse_id
+        if picking_warehouse and location_warehouse != picking_warehouse:
+            return {
+                'warning': {'title': "Warning", 'message': "Note that the warehouse of the return and repair locations don't match!"},
+            }
 
     @api.onchange('product_id')
     def onchange_product_id(self):
