@@ -154,7 +154,7 @@ class TestUBLBE(TestUBLCommon):
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
             ''',
-            expected_file='test_be_out_invoice.xml',
+            expected_file='from_odoo/bis3_out_invoice.xml',
         )
         self.assertEqual(xml_filename[-12:], "ubl_bis3.xml")  # ensure we test the right format !
         self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
@@ -208,7 +208,7 @@ class TestUBLBE(TestUBLCommon):
                     <ID>___ignore___</ID>
                 </xpath>
             ''',
-            expected_file='test_be_out_refund.xml',
+            expected_file='from_odoo/bis3_out_refund.xml',
         )
         self.assertEqual(xml_filename[-12:], "ubl_bis3.xml")
         self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
@@ -248,25 +248,21 @@ class TestUBLBE(TestUBLCommon):
         self.assertTrue(created_bill)
 
     def test_import_invoice_xml(self):
-        self._assert_imported_invoice_from_file(subfolder='tests/test_files', filename='test_be_out_invoice.xml', amount_total=3164.22,
-                                       amount_tax=482.22, currency_id=self.currency_data['currency'].id)
+        self._assert_imported_invoice_from_file(subfolder='tests/test_files/from_odoo', filename='bis3_out_invoice.xml',
+            amount_total=3164.22, amount_tax=482.22, list_line_subtotals=[1782, 1000, -100], currency_id=self.currency_data['currency'].id)
 
     def test_import_invoice_xml_open_peppol_examples(self):
         # Source: https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/rules/examples
-        subfolder = 'tests/test_files/peppol-bis-invoice-3'
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Allowance-example.xml', amount_total=6125,
-                                       amount_tax=1225)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-creditnote-correction.xml',
-                                       amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-example.xml',
-                                       amount_total=1656.25, amount_tax=331.25)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='base-negative-inv-correction.xml',
-                                       amount_total=1656.25, amount_tax=331.25, move_type='in_refund')
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-E.xml',
-                                       amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-O.xml',
-                                       amount_total=3200, amount_tax=0, currency_id=self.env.ref('base.SEK').id)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-S.xml',
-                                       amount_total=8550, amount_tax=1550)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='vat-category-Z.xml',
-                                       amount_total=1200, amount_tax=0, currency_id=self.env.ref('base.GBP').id)
+        subfolder = 'tests/test_files/from_peppol-bis-invoice-3_doc'
+        # source: Allowance-example.xml
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='bis3_allowance.xml', amount_total=6125,
+            amount_tax=1225, list_line_subtotals=[200, -200, 0, -1000, 4000, 1000, 900])
+        # source: base-creditnote-correction.xml
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='bis3_credit_note.xml',
+            amount_total=1656.25, amount_tax=331.25, list_line_subtotals=[25, 2800, -1500], move_type='in_refund')
+        # source: base-negative-inv-correction.xml
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='bis3_invoice_negative_amounts.xml',
+            amount_total=1656.25, amount_tax=331.25, list_line_subtotals=[25, 2800, -1500], move_type='in_refund')
+        # source: vat-category-E.xml
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='bis3_tax_exempt_gbp.xml',
+            amount_total=1200, amount_tax=0, list_line_subtotals=[1200], currency_id=self.env.ref('base.GBP').id)

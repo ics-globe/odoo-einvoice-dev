@@ -121,7 +121,7 @@ class TestUBLNL(TestUBLCommon):
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
             ''',
-            expected_file='test_nl_out_invoice.xml',
+            expected_file='from_odoo/nlcius_out_invoice.xml',
         )
         self.assertEqual(xml_filename[-10:], "nlcius.xml")
         self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
@@ -175,7 +175,7 @@ class TestUBLNL(TestUBLCommon):
                     <PaymentID>___ignore___</PaymentID>
                 </xpath>
             ''',
-            expected_file='test_nl_out_refund.xml',
+            expected_file='from_odoo/nlcius_out_refund.xml',
         )
         self.assertEqual(xml_filename[-10:], "nlcius.xml")
         self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
@@ -186,5 +186,6 @@ class TestUBLNL(TestUBLCommon):
 
     def test_import_invoice_xml(self):
         # test files https://github.com/peppolautoriteit-nl/validation ?
-        self._assert_imported_invoice_from_file(subfolder='tests/test_files', filename='test_nl_out_invoice.xml', amount_total=3083.58,
-                                       amount_tax=401.58, currency_id=self.currency_data['currency'].id)
+        self._assert_imported_invoice_from_file(subfolder='tests/test_files/from_odoo',
+            filename='nlcius_out_invoice.xml', amount_total=3083.58, amount_tax=401.58,
+            list_line_subtotals=[1782, 1000, -100], currency_id=self.currency_data['currency'].id)

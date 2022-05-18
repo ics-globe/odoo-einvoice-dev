@@ -81,7 +81,8 @@ class TestUBLCommon(AccountEdiTestCommon):
         self.assertTrue(new_invoice)
         self.assert_same_invoice(invoice, new_invoice)
 
-    def _assert_imported_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, move_type='in_invoice', currency_id=None):
+    def _assert_imported_invoice_from_file(self, subfolder, filename, amount_total, amount_tax, list_line_subtotals,
+                                           move_type='in_invoice', currency_id=None):
         """
         Create an empty account.move, update the file to fill its fields, asserts the currency, total and tax amounts
         are as expected.
@@ -109,6 +110,7 @@ class TestUBLCommon(AccountEdiTestCommon):
             'amount_tax': amount_tax,
             'currency_id': currency_id,
         }])
+        self.assertEqual(invoice.invoice_line_ids.mapped('price_subtotal'), list_line_subtotals)
 
     # -------------------------------------------------------------------------
     # EXPORT HELPERS

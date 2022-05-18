@@ -144,7 +144,7 @@ class TestCIIFR(TestUBLCommon):
                         <PaymentReference>___ignore___</PaymentReference>
                 </xpath>
             ''',
-            expected_file='test_fr_out_invoice.xml',
+            expected_file='from_odoo/facturx_out_invoice.xml',
         )
         self.assertEqual(xml_filename, "factur-x.xml")
         self._assert_imported_invoice_from_etree(invoice, xml_etree, xml_filename)
@@ -189,7 +189,7 @@ class TestCIIFR(TestUBLCommon):
                         <IssuerAssignedID>___ignore___</IssuerAssignedID>
                 </xpath>
             ''',
-            expected_file='test_fr_out_refund.xml'
+            expected_file='from_odoo/facturx_out_refund.xml'
         )
         self.assertEqual(xml_filename, "factur-x.xml")
         self._assert_imported_invoice_from_etree(refund, xml_etree, xml_filename)
@@ -198,25 +198,19 @@ class TestCIIFR(TestUBLCommon):
     # Test import
     ####################################################
 
-    def test_import_invoice_pdf_fnfe_examples(self):
+    def test_import_fnfe_examples(self):
         # Source: official documentation of the FNFE (subdirectory: "5. FACTUR-X 1.0.06 - Examples")
-        subfolder = 'tests/test_files/factur-x'
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_DOM_EN16931.pdf', amount_total=383.75,
-                                       amount_tax=0)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_FR_EN16931.pdf', amount_total=470.15,
-                                       amount_tax=46.25)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_UE_EN16931.pdf', amount_total=1453.76,
-                                       amount_tax=0)
+        subfolder = 'tests/test_files/from_factur-x_doc'
         # the 2 following files have the same pdf but one is labelled as an invoice and the other as a refund
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Avoir_FR_type380_EN16931.pdf',
-                                       amount_total=233.47, amount_tax=14.99, move_type='in_refund')
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Avoir_FR_type381_EN16931.pdf',
-                                       amount_total=233.47, amount_tax=14.99, move_type='in_refund')
-        # basis quantity != 1 for one of the lines
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_F20220024_EN_16931_basis_quantity.pdf',
-                                       amount_total=108, amount_tax=8)
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_F20220028_EN_16931_credit_note.pdf',
-                                       amount_total=100, amount_tax=10, move_type='in_refund')
-        # credit note labelled as an invoice with negative amounts
-        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='Facture_F20220029_EN_16931_K.pdf',
-                                       amount_total=90, amount_tax=0, move_type='in_refund')
+        # source: Avoir_FR_type380_EN16931.pdf
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='facturx_credit_note_type380.xml',
+            amount_total=233.47, amount_tax=14.99, list_line_subtotals=[20.48, 198], move_type='in_refund')
+        # source: Avoir_FR_type381_EN16931.pdf
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='facturx_credit_note_type381.xml',
+            amount_total=233.47, amount_tax=14.99, list_line_subtotals=[20.48, 198], move_type='in_refund')
+        # source: Facture_F20220024_EN_16931_basis_quantity, basis quantity != 1 for one of the lines
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='facturx_invoice_basis_quantity.xml',
+            amount_total=108, amount_tax=8, list_line_subtotals=[-5, 10, 60, 28, 7])
+        # source: Facture_F20220029_EN_16931_K.pdf, credit note labelled as an invoice with negative amounts
+        self._assert_imported_invoice_from_file(subfolder=subfolder, filename='facturx_invoice_negative_amounts.xml',
+            amount_total=90, amount_tax=0, list_line_subtotals=[-5, 10, 0, -10, 60, 30, 5], move_type='in_refund')

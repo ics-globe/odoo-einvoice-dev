@@ -6,6 +6,16 @@
     'description': """
     This module tests the module 'account_edi_ubl_cii', it is a separate module since dependencies to some 
     localizations were required. Name begins by 'l10n' to not overload runbot.
+    
+    The test files are separated by sources, they were taken from:
+    * the factur-x doc (form the FNFE)
+    * the peppol-bis-invoice-3 doc (the github repo: 
+        https://github.com/OpenPEPPOL/peppol-bis-invoice-3/tree/master/rules/examples contains examples)
+    * odoo, these files pass all validation tests (using ecosio or the FNFE validator)
+    
+    We test that the external examples are correctly imported (currency, total amount and total tax match).
+    We also test that generating xml from odoo with given parameters gives exactly the same xml as the expected, 
+    valid ones.
     """,
     'depends': [
         'l10n_generic_coa',
