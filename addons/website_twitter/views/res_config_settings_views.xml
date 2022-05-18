@@ -30,21 +30,17 @@
                                 <blockquote class="small">
                                     <h2>How to configure the Twitter API access</h2>
                                     <ol>
-                                        <li>Create a new Twitter application on <a href="https://apps.twitter.com/app/new" target="new">https://apps.twitter.com/app/new</a>
-                                              with the following values:
+                                        <li>Log in or create an account on <a href="https://developer.twitter.com/" target="new"> https://developer.twitter.com/</a></li>
+                                        <li>Once connected, go to <a href="https://developer.twitter.com/portal/" target="new">https://developer.twitter.com/portal/</a></li>
+                                        <li>Complete the Twitter portal access process and <strong>create a project</strong> with the following information:
                                             <ul>
                                                 <li><strong>Name: </strong> Odoo Twitter Integration</li>
+                                                <li><strong>Use Case: </strong> Embedding Tweets in a website</li>
                                                 <li><strong>Description: </strong> Odoo Twitter Integration </li>
-                                                <li><strong>Website: </strong>
-                                                <b><field name="twitter_server_uri" /></b></li>
-                                                <li><strong>Callback URL: </strong>Leave blank</li>
-                                                <li>Accept terms of use and click on the Create your Twitter application button at the bottom</li>
+                                                <li><strong>App Name: </strong> choose a unique name </li>
                                             </ul>
                                         </li>
-                                        <li>Switch to the API Keys tab: <br/>
-                                            <img src='/website_twitter/static/src/img/api_key.png' alt="API Key"/>
-                                        </li><br/>
-                                        <li>Copy/Paste Consumer Key (API Key) and Consumer Secret (API Secret) keys below.</li>
+                                        <li>Copy/Paste the API Key and API secret values into the above fields </li>
                                     </ol>
                                 </blockquote>
                             </div>
