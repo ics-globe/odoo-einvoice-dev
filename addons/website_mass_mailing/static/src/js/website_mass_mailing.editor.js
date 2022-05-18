@@ -131,6 +131,16 @@ WysiwygMultizone.include({
      */
     _saveElement: function (outerHTML, recordInfo, editable) {
         var self = this;
+        // TODO Find a better way to hide the Thanks button and display the
+        // subscribe button.
+        const newsletterBtnEls =
+            this.$target[0].querySelectorAll('.js_subscribe_btn, .js_subscribed_btn');
+        if (newsletterBtnEls.length) {
+            for (const el of newsletterBtnEls) {
+                el.classList.toggle('d-none', el.classList.contains('js_subscribed_btn'));
+            }
+            arguments[0] = editable.outerHTML;
+        }
         var defs = [this._super.apply(this, arguments)];
         var $popups = $(editable).find('.o_newsletter_popup');
         _.each($popups, function (popup) {
