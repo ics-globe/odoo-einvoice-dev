@@ -260,7 +260,7 @@ class MailActivityMixin(models.AbstractModel):
 
         # explicitly check access rights, since we bypass the ORM
         self.check_access_rights('read')
-        self._flush_search(domain, fields=[group_by_fname], order='id')
+        self._flush_search(domain, fields=[group_by_fname])
         self.env['mail.activity'].flush(['res_model', 'res_id', 'user_id', 'date_deadline'])
 
         query = self._where_calc(domain)

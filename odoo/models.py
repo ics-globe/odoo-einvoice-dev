@@ -2666,7 +2666,7 @@ class BaseModel(metaclass=MetaModel):
         for gb in annotated_groupbys:
             select_terms.append('%s as "%s" ' % (gb['qualified_field'], gb['groupby']))
 
-        self._flush_search(domain, fields=fnames + groupby_fields)
+        self._flush_search(domain, fields=fnames + groupby_fields, order=order)
 
         groupby_terms, orderby_terms = self._read_group_prepare(order, aggregated_fields, annotated_groupbys, query)
         from_clause, where_clause, where_clause_params = query.get_sql()
@@ -4758,7 +4758,11 @@ Fields:
 
     @api.model
     def _flush_search(self, domain, fields=None, order=None, seen=None):
-        """ Flush all the fields appearing in `domain`, `fields` and `order`. """
+        """ Flush all the fields appearing in `domain`, `fields` and `order`.
+
+        Note that ``order=None`` actually means no order, so if you expect some
+        fallback order, you have to provide it yourself.
+        """
         if seen is None:
             seen = set()
         elif self._name in seen:
@@ -4807,14 +4811,15 @@ Fields:
                     to_flush[model_name].add(model._parent_name)
 
         # flush the order fields
-        order_spec = order or self._order
-        for order_part in order_spec.split(','):
-            order_field = order_part.split()[0]
-            field = self._fields.get(order_field)
-            if field is not None:
-                to_flush[self._name].add(order_field)
-                if field.relational:
-                    self.env[field.comodel_name]._flush_search([], seen=seen)
+        if order:
+            for order_part in order.split(','):
+                order_field = order_part.split()[0]
+                field = self._fields.get(order_field)
+                if field is not None:
+                    to_flush[self._name].add(order_field)
+                    if field.relational:
+                        comodel = self.env[field.comodel_name]
+                        comodel._flush_search([], order=comodel._order, seen=seen)
 
         if self._active_name:
             to_flush[self._name].add(self._active_name)
@@ -4851,7 +4856,7 @@ Fields:
             return Query.from_records(self.browse())
 
         # the flush must be done before the _where_calc(), as the latter can do some selects
-        self._flush_search(domain, order=order)
+        self._flush_search(domain, order=order or self._order)
 
         query = self._where_calc(domain)
         self._apply_ir_rules(query, 'read')
