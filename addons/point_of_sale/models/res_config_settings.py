@@ -160,7 +160,7 @@ class ResConfigSettings(models.TransientModel):
             'type': 'ir.actions.act_window',
             'target': 'new',
             'res_id': False,
-            'context': {'pos_config_open_modal': True, 'pos_config_basic': True},
+            'context': {'pos_config_open_modal': True, 'pos_config_create_mode': True},
         }
 
     def pos_open_ui(self):
