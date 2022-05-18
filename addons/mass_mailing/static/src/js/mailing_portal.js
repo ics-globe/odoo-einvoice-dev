@@ -73,11 +73,7 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
 
         ajax.jsonRpc('/mail/mailing/unsubscribe', 'call', {'opt_in_ids': checked_ids, 'opt_out_ids': unchecked_ids, 'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
             .then(function (result) {
-                if (result == 'unauthorized'){
-                    $('#subscription_info').text(_t('You are not authorized to do this!'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-error').addClass('alert-warning');
-                }
-                else if (result == true) {
+                if (result == true) {
                     $('#subscription_info').text(_t('Your changes have been saved.'));
                     $('#info_state').removeClass('alert-info').addClass('alert-success');
                 }
@@ -100,26 +96,19 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
 
         ajax.jsonRpc('/mailing/blacklist/add', 'call', {'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
             .then(function (result) {
-                if (result == 'unauthorized'){
-                    $('#subscription_info').text(_t('You are not authorized to do this!'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-error').addClass('alert-warning');
+                if (result) {
+                    $('#subscription_info').html(_t('You have been successfully <strong>added to our blacklist</strong>. '
+                           + 'You will not be contacted anymore by our services.'));
+                    $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
+                    toggle_opt_out_section(false);
                 }
-                else
-                {
-                    if (result) {
-                        $('#subscription_info').html(_t('You have been successfully <strong>added to our blacklist</strong>. '
-                               + 'You will not be contacted anymore by our services.'));
-                        $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
-                        toggle_opt_out_section(false);
-                    }
-                    else {
-                        $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                        $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                    }
-                    $('#button_add_blacklist').hide();
-                    $('#button_remove_blacklist').show();
-                    $('#unsubscribed_info').hide();
+                else {
+                    $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
+                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
                 }
+                $('#button_add_blacklist').hide();
+                $('#button_remove_blacklist').show();
+                $('#unsubscribed_info').hide();
             })
             .guardedCatch(function () {
                 $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
@@ -132,26 +121,19 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
 
         ajax.jsonRpc('/mailing/blacklist/remove', 'call', {'email': email, 'mailing_id': mailing_id, 'res_id': res_id, 'token': token})
             .then(function (result) {
-                if (result == 'unauthorized'){
-                    $('#subscription_info').text(_t('You are not authorized to do this!'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-error').addClass('alert-warning');
+                if (result) {
+                    $('#subscription_info').html(_t("You have been successfully <strong>removed from our blacklist</strong>. "
+                            + "You are now able to be contacted by our services."));
+                    $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
+                    toggle_opt_out_section(true);
                 }
-                else
-                {
-                    if (result) {
-                        $('#subscription_info').html(_t("You have been successfully <strong>removed from our blacklist</strong>. "
-                                + "You are now able to be contacted by our services."));
-                        $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
-                        toggle_opt_out_section(true);
-                    }
-                    else {
-                        $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
-                        $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
-                    }
-                    $('#button_add_blacklist').show();
-                    $('#button_remove_blacklist').hide();
-                    $('#unsubscribed_info').hide();
+                else {
+                    $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
+                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-warning').addClass('alert-error');
                 }
+                $('#button_add_blacklist').show();
+                $('#button_remove_blacklist').hide();
+                $('#unsubscribed_info').hide();
             })
             .guardedCatch(function () {
                 $('#subscription_info').text(_t('An error occurred. Please try again later or contact us.'));
@@ -167,11 +149,7 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
         e.preventDefault();
         ajax.jsonRpc('/mailing/feedback', 'call', {'mailing_id': mailing_id, 'res_id': res_id, 'email': email, 'feedback': feedback, 'token': token})
             .then(function (result) {
-                if (result == 'unauthorized'){
-                    $('#subscription_info').text(_t('You are not authorized to do this!'));
-                    $('#info_state').removeClass('alert-success').removeClass('alert-info').removeClass('alert-error').addClass('alert-warning');
-                }
-                else if (result == true){
+                if (result == true){
                     $('#subscription_info').text(_t('Thank you! Your feedback has been sent successfully!'));
                     $('#info_state').removeClass('alert-warning').removeClass('alert-info').removeClass('alert-error').addClass('alert-success');
                     $("#div_feedback").hide();

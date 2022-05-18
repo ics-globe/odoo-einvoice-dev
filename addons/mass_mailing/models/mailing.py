@@ -1198,16 +1198,17 @@ class MassMailing(models.Model):
             mailing_domain = [('id', 'in', [])]
         return mailing_domain
 
-    def _generate_mailing_recipient_hash(self, mailing_id, email):
+    def _generate_mailing_recipient_hash(self, document_id, email):
         """Generate a secure hash for a given mailing and recipient (based on
         their email). This allows notably to unsubscribe from the mailing or
         to blacklist their email entirely without need of a user account.
 
-        :param int mailing_id: ID of the source mailing;
+        :param int document_id: ID of the business document on which mailing
+          is performed;
         :param str email: recipient email, used to unsubscribe / blacklist;
         """
         secret = self.env["ir.config_parameter"].sudo().get_param("database.secret")
-        token = (self.env.cr.dbname, self.id, int(mailing_id), tools.ustr(email))
+        token = (self.env.cr.dbname, self.id, int(document_id), tools.ustr(email))
         return hmac.new(secret.encode('utf-8'), repr(token).encode('utf-8'), hashlib.sha512).hexdigest()
 
     def _convert_inline_images_to_urls(self, body_html):

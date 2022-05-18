@@ -3,20 +3,29 @@
 
 import base64
 import werkzeug
+from werkzeug.exceptions import BadRequest, Unauthorized
 
-from odoo import _, exceptions, http, tools
+from odoo import _, http, tools
 from odoo.http import request
 from odoo.tools import consteq
-from werkzeug.exceptions import BadRequest
 
 
 class MassMailController(http.Controller):
 
-    def _check_mailing_email_token(self, mailing_id, res_id, email, token):
-        if not (mailing_id and res_id and email and token):
+    def _check_mailing_email_token(self, mailing_id, document_id, email, token):
+        """ Return the mailing based on given credentials.
+
+        :return: False if issue with credentials (missing or invalid); void
+          recordset if mailing does not exist; record otherwise.
+        """
+        mailing_sudo = request.env['mailing.mailing'].sudo().browse(mailing_id)
+        if not email or not document_id or not token:
             return False
-        mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
-        return consteq(mailing._unsubscribe_token(res_id, email), token)
+        if not mailing_sudo.exists():
+            return mailing_sudo
+        if consteq(mailing_sudo._generate_mailing_recipient_hash(document_id, email), token):
+            return mailing_sudo
+        return False
 
     def _log_blacklist_action(self, blacklist_entry, mailing_id, description):
         mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
@@ -29,85 +38,80 @@ class MassMailController(http.Controller):
 
     @http.route(['/mail/mailing/<int:mailing_id>/unsubscribe'], type='http', website=True, auth='public')
     def mailing_unsubscribe(self, mailing_id, email=None, res_id=None, token="", **post):
-        mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
-        if mailing.exists():
-            res_id = res_id and int(res_id)
-            if not self._check_mailing_email_token(mailing_id, res_id, email, str(token)):
-                raise exceptions.AccessDenied()
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            raise Unauthorized()
 
-            if mailing.mailing_model_real == 'mailing.contact':
-                # Unsubscribe directly + Let the user choose their subscriptions
-                mailing.update_opt_out(email, mailing.contact_list_ids.ids, True)
+        if mailing_sudo.mailing_model_real == 'mailing.contact':
+            # Unsubscribe directly + Let the user choose their subscriptions
+            mailing_sudo.update_opt_out(email, mailing_sudo.contact_list_ids.ids, True)
 
-                contacts = request.env['mailing.contact'].sudo().search([('email_normalized', '=', tools.email_normalize(email))])
-                subscription_list_ids = contacts.mapped('subscription_list_ids')
-                # In many user are found : if user is opt_out on the list with contact_id 1 but not with contact_id 2,
-                # assume that the user is not opt_out on both
-                # TODO DBE Fixme : Optimise the following to get real opt_out and opt_in
-                opt_out_list_ids = subscription_list_ids.filtered(lambda rel: rel.opt_out).mapped('list_id')
-                opt_in_list_ids = subscription_list_ids.filtered(lambda rel: not rel.opt_out).mapped('list_id')
-                opt_out_list_ids = set([list.id for list in opt_out_list_ids if list not in opt_in_list_ids])
+            contacts = request.env['mailing.contact'].sudo().search([('email_normalized', '=', tools.email_normalize(email))])
+            subscription_list_ids = contacts.mapped('subscription_list_ids')
+            # In many user are found : if user is opt_out on the list with contact_id 1 but not with contact_id 2,
+            # assume that the user is not opt_out on both
+            # TODO DBE Fixme : Optimise the following to get real opt_out and opt_in
+            opt_out_list_ids = subscription_list_ids.filtered(lambda rel: rel.opt_out).mapped('list_id')
+            opt_in_list_ids = subscription_list_ids.filtered(lambda rel: not rel.opt_out).mapped('list_id')
+            opt_out_list_ids = set([list.id for list in opt_out_list_ids if list not in opt_in_list_ids])
 
-                unique_list_ids = set([list.list_id.id for list in subscription_list_ids])
-                list_ids = request.env['mailing.list'].sudo().browse(unique_list_ids)
-                unsubscribed_list = ', '.join(str(list.name) for list in mailing.contact_list_ids if list.is_public)
-                return request.render('mass_mailing.page_mailing_unsubscribe', {
-                    'contacts': contacts,
-                    'list_ids': list_ids,
-                    'opt_out_list_ids': opt_out_list_ids,
-                    'unsubscribed_list': unsubscribed_list,
-                    'email': email,
-                    'mailing_id': mailing_id,
-                    'res_id': res_id,
-                    'show_blacklist_button': request.env['ir.config_parameter'].sudo().get_param('mass_mailing.show_blacklist_buttons'),
-                })
-            else:
-                opt_in_lists = request.env['mailing.contact.subscription'].sudo().search([
-                    ('contact_id.email_normalized', '=', email),
-                    ('opt_out', '=', False)
-                ]).mapped('list_id')
-                blacklist_rec = request.env['mail.blacklist'].sudo()._add(email)
-                self._log_blacklist_action(
-                    blacklist_rec, mailing_id,
-                    _("""Requested blacklisting via unsubscribe link."""))
-                return request.render('mass_mailing.page_mailing_unsubscribe_done', {
-                    'email': email,
-                    'mailing_id': mailing_id,
-                    'res_id': res_id,
-                    'list_ids': opt_in_lists,
-                    'show_blacklist_button': request.env['ir.config_parameter'].sudo().get_param(
-                        'mass_mailing.show_blacklist_buttons'),
-                })
-        return request.redirect('/web')
+            unique_list_ids = set([list.list_id.id for list in subscription_list_ids])
+            list_ids = request.env['mailing.list'].sudo().browse(unique_list_ids)
+            unsubscribed_list = ', '.join(str(list.name) for list in mailing_sudo.contact_list_ids if list.is_public)
+            return request.render('mass_mailing.page_mailing_unsubscribe', {
+                'contacts': contacts,
+                'list_ids': list_ids,
+                'opt_out_list_ids': opt_out_list_ids,
+                'unsubscribed_list': unsubscribed_list,
+                'email': email,
+                'mailing_id': mailing_id,
+                'res_id': res_id,
+                'show_blacklist_button': request.env['ir.config_parameter'].sudo().get_param('mass_mailing.show_blacklist_buttons'),
+            })
+
+        opt_in_lists = request.env['mailing.contact.subscription'].sudo().search([
+            ('contact_id.email_normalized', '=', email),
+            ('opt_out', '=', False)
+        ]).mapped('list_id')
+        blacklist_rec = request.env['mail.blacklist'].sudo()._add(email)
+        self._log_blacklist_action(
+            blacklist_rec, mailing_id,
+            _("""Requested blacklisting via unsubscribe link."""))
+        return request.render('mass_mailing.page_mailing_unsubscribe_done', {
+            'email': email,
+            'mailing_id': mailing_id,
+            'res_id': res_id,
+            'list_ids': opt_in_lists,
+            'show_blacklist_button': request.env['ir.config_parameter'].sudo().get_param(
+                'mass_mailing.show_blacklist_buttons'),
+        })
 
     @http.route('/mail/mailing/unsubscribe', type='json', auth='public')
     def mailing_update_list_subscription(self, mailing_id, opt_in_ids, opt_out_ids, email, res_id, token):
-        mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
-        if mailing.exists():
-            if not self._check_mailing_email_token(mailing_id, res_id, email, token):
-                return 'unauthorized'
-            mailing.update_opt_out(email, opt_in_ids, False)
-            mailing.update_opt_out(email, opt_out_ids, True)
-            return True
-        return 'error'
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            return 'unauthorized' if mailing_sudo is False else 'error'
+
+        mailing_sudo.update_opt_out(email, opt_in_ids, False)
+        mailing_sudo.update_opt_out(email, opt_out_ids, True)
+        return True
 
     @http.route('/mailing/feedback', type='json', auth='public')
     def mailing_send_feedback(self, mailing_id, res_id, email, feedback, token):
-        mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
-        if mailing.exists() and email:
-            if not self._check_mailing_email_token(mailing_id, res_id, email, token):
-                return 'unauthorized'
-            model = request.env[mailing.mailing_model_real]
-            records = model.sudo().search([('email_normalized', '=', tools.email_normalize(email))])
-            for record in records:
-                record.sudo().message_post(body=_("Feedback from %(email)s: %(feedback)s", email=email, feedback=feedback))
-            return bool(records)
-        return 'error'
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            return 'unauthorized' if mailing_sudo is False else 'error'
+
+        model = request.env[mailing_sudo.mailing_model_real]
+        records = model.sudo().search([('email_normalized', '=', tools.email_normalize(email))])
+        for record in records:
+            record.sudo().message_post(body=_("Feedback from %(email)s: %(feedback)s", email=email, feedback=feedback))
+        return bool(records)
 
     @http.route(['/unsubscribe_from_list'], type='http', website=True, multilang=False, auth='public', sitemap=False)
     def mailing_unsubscribe_placeholder_link(self, **post):
         """Dummy route so placeholder is not prefixed by language, MUST have multilang=False"""
-        raise werkzeug.exceptions.NotFound()
+        raise BadRequest()
 
     # ------------------------------------------------------------
     # TRACKING
@@ -118,9 +122,9 @@ class MassMailController(http.Controller):
         """ Email tracking. """
         mail = self.env['mail.mail'].sudo().browse(mail_id).exists()
         if not mail:
-            return BadRequest
-        if not consteq(token, mail._generate_mail_recipient_hash()):
             raise BadRequest()
+        if not consteq(token, mail._generate_mail_recipient_hash()):
+            raise Unauthorized()
 
         request.env['mailing.trace'].sudo().set_opened(domain=[('mail_mail_id_int', 'in', [mail_id])])
         response = werkzeug.wrappers.Response()
@@ -150,46 +154,44 @@ class MassMailController(http.Controller):
     @http.route('/mailing/report/unsubscribe', type='http', website=True, auth='public')
     def mailing_report_deactivate(self, token, user_id):
         if not token or not user_id:
-            raise werkzeug.exceptions.NotFound()
-        user_id = int(user_id)
-        correct_token = consteq(token, request.env['mailing.mailing']._generate_mailing_report_hash(user_id))
-        user = request.env['res.users'].sudo().browse(user_id)
-        if correct_token and user.has_group('mass_mailing.group_mass_mailing_user'):
-            request.env['ir.config_parameter'].sudo().set_param('mass_mailing.mass_mailing_reports', False)
-            if user.has_group('base.group_system'):
-                menu_id = request.env.ref('mass_mailing.menu_mass_mailing_global_settings').id
-                return request.render('mass_mailing.mailing_report_deactivated', {'menu_id': menu_id})
-            return request.render('mass_mailing.mailing_report_deactivated')
-        raise werkzeug.exceptions.NotFound()
+            raise BadRequest()
+        user = request.env['res.users'].sudo().browse(int(user_id)).exists()
+        if not user.has_group('mass_mailing.group_mass_mailing_user') or \
+           not consteq(token, request.env['mailing.mailing']._generate_mailing_report_hash(user.id)):
+            raise Unauthorized()
+
+        request.env['ir.config_parameter'].sudo().set_param('mass_mailing.mass_mailing_reports', False)
+        render_vals = {}
+        if user.has_group('base.group_system'):
+            render_vals = {'menu_id': request.env.ref('mass_mailing.menu_mass_mailing_global_settings').id}
+        return request.render('mass_mailing.mailing_report_deactivated', render_vals)
 
     @http.route(['/mailing/<int:mailing_id>/view'], type='http', website=True, auth='public')
     def mailing_view(self, mailing_id, email=None, res_id=None, token=""):
-        mailing = request.env['mailing.mailing'].sudo().browse(mailing_id)
-        if mailing.exists():
-            res_id = int(res_id) if res_id else False
-            if not self._check_mailing_email_token(mailing_id, res_id, email, str(token)) and not request.env.user.has_group('mass_mailing.group_mass_mailing_user'):
-                raise exceptions.AccessDenied()
+        if not request.env.user.has_group('mass_mailing.group_mass_mailing_user'):
+            raise Unauthorized()
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            raise Unauthorized()
 
-            res = mailing.convert_links()
-            base_url = mailing.get_base_url().rstrip('/')
-            urls_to_replace = [
-                (base_url + '/unsubscribe_from_list', mailing._get_unsubscribe_url(email, res_id)),
-                (base_url + '/view', mailing._get_view_url(email, res_id))
-            ]
-            for url_to_replace, new_url in urls_to_replace:
-                if url_to_replace in res[mailing_id]:
-                    res[mailing_id] = res[mailing_id].replace(url_to_replace, new_url if new_url else '#')
+        res = mailing_sudo.convert_links()
+        base_url = mailing_sudo.get_base_url().rstrip('/')
+        urls_to_replace = [
+            (base_url + '/unsubscribe_from_list', mailing_sudo._get_unsubscribe_url(email, res_id)),
+            (base_url + '/view', mailing_sudo._get_view_url(email, res_id))
+        ]
+        for url_to_replace, new_url in urls_to_replace:
+            if url_to_replace in res[mailing_id]:
+                res[mailing_id] = res[mailing_id].replace(url_to_replace, new_url if new_url else '#')
 
-            res[mailing_id] = res[mailing_id].replace(
-                'class="o_snippet_view_in_browser"',
-                'class="o_snippet_view_in_browser" style="display: none;"'
-            )
+        res[mailing_id] = res[mailing_id].replace(
+            'class="o_snippet_view_in_browser"',
+            'class="o_snippet_view_in_browser" style="display: none;"'
+        )
 
-            return request.render('mass_mailing.mailing_view', {
-                    'body': res[mailing_id],
-                })
-
-        return request.redirect('/web')
+        return request.render('mass_mailing.mailing_view', {
+            'body': res[mailing_id],
+        })
 
     # ------------------------------------------------------------
     # BLACKLIST
@@ -197,35 +199,32 @@ class MassMailController(http.Controller):
 
     @http.route('/mailing/blacklist/check', type='json', auth='public')
     def mail_blacklist_check(self, mailing_id, res_id, email, token):
-        if not self._check_mailing_email_token(mailing_id, res_id, email, token):
-            return 'unauthorized'
-        if email:
-            record = request.env['mail.blacklist'].sudo().with_context(active_test=False).search([('email', '=', tools.email_normalize(email))])
-            if record['active']:
-                return True
-            return False
-        return 'error'
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            return 'unauthorized' if mailing_sudo is False else 'error'
+        record = request.env['mail.blacklist'].sudo().with_context(active_test=False).search([('email', '=', tools.email_normalize(email))])
+        if record['active']:
+            return True
+        return False
 
     @http.route('/mailing/blacklist/add', type='json', auth='public')
     def mail_blacklist_add(self, mailing_id, res_id, email, token):
-        if not self._check_mailing_email_token(mailing_id, res_id, email, token):
-            return 'unauthorized'
-        if email:
-            blacklist_rec = request.env['mail.blacklist'].sudo()._add(email)
-            self._log_blacklist_action(
-                blacklist_rec, mailing_id,
-                _("""Requested blacklisting via unsubscription page."""))
-            return True
-        return 'error'
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            return 'unauthorized' if mailing_sudo is False else 'error'
+        blacklist_rec = request.env['mail.blacklist'].sudo()._add(email)
+        self._log_blacklist_action(
+            blacklist_rec, mailing_id,
+            _("""Requested blacklisting via unsubscription page."""))
+        return True
 
     @http.route('/mailing/blacklist/remove', type='json', auth='public')
     def mail_blacklist_remove(self, mailing_id, res_id, email, token):
-        if not self._check_mailing_email_token(mailing_id, res_id, email, token):
-            return 'unauthorized'
-        if email:
-            blacklist_rec = request.env['mail.blacklist'].sudo()._remove(email)
-            self._log_blacklist_action(
-                blacklist_rec, mailing_id,
-                _("""Requested de-blacklisting via unsubscription page."""))
-            return True
-        return 'error'
+        mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
+        if not mailing_sudo:
+            return 'unauthorized' if mailing_sudo is False else 'error'
+        blacklist_rec = request.env['mail.blacklist'].sudo()._remove(email)
+        self._log_blacklist_action(
+            blacklist_rec, mailing_id,
+            _("""Requested de-blacklisting via unsubscription page."""))
+        return True
