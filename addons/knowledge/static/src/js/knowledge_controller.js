@@ -25,6 +25,8 @@ const KnowledgeArticleFormController = FormController.extend({
         move: '_onMove',
         open_move_to_modal: '_onOpenMoveToModal',
         reload_tree: '_onReloadTree',
+        reload_view: '_onReloadView',
+        save: '_onSave',
         emoji_click: '_onEmojiClick',
     }),
 
@@ -171,11 +173,32 @@ const KnowledgeArticleFormController = FormController.extend({
     },
 
     /**
-     * @param {Event} event
+     * Reloads the tree listing all articles.
+     * @param {OdooEvent} event
      */
     _onReloadTree: function (event) {
-        // TODO JBN: Create a widget for the tree and reload it without reloading the whole view.
+        this.renderer._reloadTree();
+    },
+
+    /**
+     * Reloads the whole view.
+     * @param {OdooEvent} event
+     */
+    _onReloadView: function (event) {
         this.reload();
+    },
+
+    /**
+     * Saves the user changes
+     * @param {OdooEvent} event
+     */
+    _onSave: async function (event) {
+        try {
+            await this.saveRecord();
+            event.data.onSuccess();
+        } catch (error) {
+            event.data.onReject(error);
+        }
     },
 
     /**
@@ -337,6 +360,7 @@ const KnowledgeArticleFormController = FormController.extend({
         }).then(result => {
             if (result) {
                 data.onSuccess();
+                this.renderer._reloadPanel();
             } else {
                 data.onReject();
             }

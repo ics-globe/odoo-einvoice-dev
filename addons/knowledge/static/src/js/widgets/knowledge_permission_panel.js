@@ -21,6 +21,8 @@ const PermissionPanelWidget = Widget.extend(WidgetAdapterMixin, {
     start: function () {
         this.component = new ComponentWrapper(this, PermissionPanel, this.options);
         this.component.env.bus.on('reload_tree', this, this._onReloadTree);
+        this.component.env.bus.on('reload_view', this, this._onReloadView);
+        this.component.env.bus.on('save', this, this._onSave);
         return this.component.mount(this.el);
     },
 
@@ -29,11 +31,37 @@ const PermissionPanelWidget = Widget.extend(WidgetAdapterMixin, {
      */
     destroy: function () {
         this.component.env.bus.off('reload_tree', this._onReloadTree);
+        this.component.env.bus.off('reload_view', this._onReloadView);
+        this.component.env.bus.off('save', this._onSave);
         return this._super(...arguments);
     },
 
-    _onReloadTree: function () {
-        this.trigger_up('reload_tree', {});
+    /**
+     * @param {Object} info
+     */
+    _onReloadTree: function (info) {
+        this.trigger_up('reload_tree', info);
+    },
+
+    /**
+     * @param {Object} info
+     */
+    _onReloadView: function (info) {
+        this.trigger_up('reload_view', info);
+    },
+
+    /**
+     * @param {Object} info
+     */
+    _onSave: function (info) {
+        this.trigger_up('save', info);
+    },
+
+    /**
+     * Reloads the permission panel.
+     */
+    _reloadPanel: function () {
+        this.component.env.bus.trigger('reload_panel');
     },
 });
 
