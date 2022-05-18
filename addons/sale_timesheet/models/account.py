@@ -63,8 +63,27 @@ class AccountAnalyticLine(models.Model):
 
     @api.depends('task_id.sale_line_id', 'project_id.sale_line_id', 'employee_id', 'project_id.allow_billable')
     def _compute_so_line(self):
-        for timesheet in self.filtered(lambda t: not t.is_so_line_edited and t._is_not_billed()):  # Get only the timesheets are not yet invoiced
-            timesheet.so_line = timesheet.project_id.allow_billable and timesheet._timesheet_determine_sale_line()
+        sol_per_project = {
+            project.id: {
+                False: project.sale_line_id,
+                **{
+                    emp_map.employee_id.id: emp_map.sale_line_id
+                    for emp_map in project.sale_line_employee_ids
+                    if project.pricing_type == 'employee_rate'
+                }
+            }
+            for project in self.project_id
+            if project.allow_billable and project.pricing_type != 'task_rate'
+        }
+        SaleOrderLine = self.env['sale.order.line']
+        for timesheet in self:  # Get only the timesheets are not yet invoiced
+            if timesheet.is_so_line_edited or not timesheet.project_id.allow_billable or not timesheet._is_not_billed():
+                continue
+            sol_per_employee = sol_per_project.get(timesheet.project_id.id, {})
+            timesheet.so_line = sol_per_employee.get(
+                timesheet.employee_id.id,
+                timesheet.task_id.sale_line_id or sol_per_employee.get(False, SaleOrderLine)
+            )
 
     @api.depends('timesheet_invoice_id.state')
     def _compute_partner_id(self):
@@ -87,35 +106,6 @@ class AccountAnalyticLine(models.Model):
         if self.sudo().filtered(lambda aal: aal.so_line.product_id.invoice_policy == "delivery") and self.filtered(lambda t: t.timesheet_invoice_id and t.timesheet_invoice_id.state != 'cancel'):
             if any(field_name in values for field_name in ['unit_amount', 'employee_id', 'project_id', 'task_id', 'so_line', 'amount', 'date']):
                 raise UserError(_('You cannot modify timesheets that are already invoiced.'))
-
-    def _timesheet_determine_sale_line(self):
-        """ Deduce the SO line associated to the timesheet line:
-            1/ timesheet on task rate: the so line will be the one from the task
-            2/ timesheet on employee rate task: find the SO line in the map of the project (even for subtask), or fallback on the SO line of the task, or fallback
-                on the one on the project
-        """
-        self.ensure_one()
-
-        if not self.task_id:
-            if self.project_id.pricing_type == 'employee_rate':
-                map_entry = self._get_employee_mapping_entry()
-                if map_entry:
-                    return map_entry.sale_line_id
-            if self.project_id.sale_line_id:
-                return self.project_id.sale_line_id
-        if self.task_id.allow_billable and self.task_id.sale_line_id:
-            if self.task_id.pricing_type in ('task_rate', 'fixed_rate'):
-                return self.task_id.sale_line_id
-            else:  # then pricing_type = 'employee_rate'
-                map_entry = self.project_id.sale_line_employee_ids.filtered(
-                    lambda map_entry:
-                        map_entry.employee_id == self.employee_id
-                        and map_entry.sale_line_id.order_partner_id.commercial_partner_id == self.task_id.commercial_partner_id
-                )
-                if map_entry:
-                    return map_entry.sale_line_id
-                return self.task_id.sale_line_id
-        return False
 
     def _timesheet_get_portal_domain(self):
         """ Only the timesheets with a product invoiced on delivered quantity are concerned.

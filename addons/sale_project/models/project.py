@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
+from ast import literal_eval
 
 from odoo import api, fields, models, _, _lt
 from odoo.exceptions import ValidationError, AccessError
@@ -474,6 +475,9 @@ class ProjectTask(models.Model):
         help="Sales Order Item to which the time spent on this task will be added, in order to be invoiced to your customer.")
     project_sale_order_id = fields.Many2one('sale.order', string="Project's sale order", related='project_id.sale_order_id')
     task_to_invoice = fields.Boolean("To invoice", compute='_compute_task_to_invoice', search='_search_task_to_invoice', groups='sales_team.group_sale_salesman_all_leads')
+    display_create_invoice_primary = fields.Boolean(compute='_compute_display_create_invoice_buttons', groups='project.group_project_manager')
+    display_create_invoice_secondary = fields.Boolean(compute='_compute_display_create_invoice_buttons', groups='project.group_project_manager')
+    invoice_status = fields.Selection(related='sale_order_id.invoice_status')
 
     # Project sharing  fields
     display_sale_order_button = fields.Boolean(string='Display Sales Order', compute='_compute_display_sale_order_button')
@@ -571,10 +575,7 @@ class ProjectTask(models.Model):
     @api.depends('sale_order_id.invoice_status', 'sale_order_id.order_line')
     def _compute_task_to_invoice(self):
         for task in self:
-            if task.sale_order_id:
-                task.task_to_invoice = bool(task.sale_order_id.invoice_status not in ('no', 'invoiced'))
-            else:
-                task.task_to_invoice = False
+            task.task_to_invoice = task.sale_order_id and bool(task.sale_order_id.invoice_status not in ('no', 'invoiced'))
 
     @api.model
     def _search_task_to_invoice(self, operator, value):
@@ -588,6 +589,34 @@ class ProjectTask(models.Model):
         if(bool(operator == '=') ^ bool(value)):
             operator_new = 'not inselect'
         return [('sale_order_id', operator_new, (query, ()))]
+
+    @api.depends('task_to_invoice', 'invoice_status')
+    def _compute_display_create_invoice_buttons(self):
+        for task in self:
+            primary, secondary = True, True
+            if not task.sale_order_id or task.invoice_status == 'invoiced' or task.sale_order_id.state in ['cancel']:
+                primary, secondary = False, False
+            else:
+                if task.invoice_status in ['upselling', 'to invoice']:
+                    secondary = False
+                else:  # Means invoice status is 'Nothing to Invoice'
+                    primary = False
+            task.update({
+                'display_create_invoice_primary': primary,
+                'display_create_invoice_secondary': secondary,
+            })
+
+    def action_create_invoice(self):
+        # redirect create invoice wizard (of the Sales Order)
+        action = self.env["ir.actions.actions"]._for_xml_id("sale.action_view_sale_advance_payment_inv")
+        context = literal_eval(action.get('context', "{}"))
+        context.update({
+            'active_id': self.sale_order_id.id if len(self) == 1 else False,
+            'active_ids': self.sale_order_id.ids,
+            'default_company_id': self.company_id.id,
+        })
+        action['context'] = context
+        return action
 
     @api.onchange('sale_line_id')
     def _onchange_partner_id(self):

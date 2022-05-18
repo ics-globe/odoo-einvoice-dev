@@ -88,12 +88,36 @@
             </xpath>
         </field>
     </record>
+
+    <record id="project_task_sale_project_inherit_view_tree" model="ir.ui.view">
+        <field name="name">project.task.sale.project.inherit.view.tree</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <header>
+                    <button name="action_create_invoice" string="Create Invoice" type="object"
+                            groups="project.group_project_manager"
+                            invisible="not context.get('search_default_to_invoice', 0)"/>
+                </header>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_sale_project_inherit_form" model="ir.ui.view">
         <field name="name">project.task.view.inherit</field>
         <field name="model">project.task</field>
         <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_assign_to_me']" position="after">
+                <field name="display_create_invoice_primary" invisible="1" />
+                <field name="display_create_invoice_secondary" invisible="1" />
+                <button class="btn-primary" name="action_create_invoice" type="object" string="Create Invoice" data-hotkey="l"
+                        attrs="{'invisible': [('display_create_invoice_primary', '=', False)]}" groups="project.group_project_manager"/>
+                <button class="btn-secondary" name="action_create_invoice" type="object" string="Create Invoice" data-hotkey="l"
+                        attrs="{'invisible': [('display_create_invoice_secondary', '=', False)]}" groups="project.group_project_manager"/>
+            </xpath>
             <xpath expr="//span[@id='start_rating_buttons']" position="before">
                 <button class="oe_stat_button"
                         type="object" name="action_view_so" icon="fa-dollar"
@@ -133,6 +157,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="sale_order_id" string="Sale Order" filter_domain="['|', ('sale_order_id', 'ilike', self), ('sale_line_id', 'ilike', self)]"/>
+            </xpath>
+            <xpath expr="//filter[@name='open_tasks']" position="after">
+                <separator/>
+                <filter string="To Invoice" domain="[('invoice_status', '=', 'to invoice')]" name="to_invoice"/>
             </xpath>
             <xpath expr="//search/group/filter[@name='customer']" position="after">
                 <filter string="Sales Order Item" name="sale_line_id" context="{'group_by': 'sale_line_id'}"/>

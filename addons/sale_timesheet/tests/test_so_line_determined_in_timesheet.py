@@ -148,7 +148,8 @@ class TestSoLineDeterminedInTimesheet(TestCommonSaleTimesheet):
 
         # 5) Change the SOL in the task and check if only the SOL in the timesheet which does not concerne about the mapping changes,
         task.update({'sale_line_id': self.so.order_line[2].id})
-        self.assertTrue(timesheet.so_line == task.sale_line_id == self.so.order_line[2], "The SOL in the timesheet should also change and be the same than the one in the task.")
+        self.assertEqual(task.sale_line_id, self.so.order_line[2], 'The SOL linked to the task should be the one that we have given.')
+        self.assertEqual(timesheet.so_line == task.sale_line_id, "The SOL in the timesheet should also change and be the same than the one in the task.")
         self.assertNotEqual(timesheet.so_line, employee_user_timesheet.so_line, "The SOL in the timesheet done by the employee user should not be the same than the one in the other timesheet in the task.")
 
         # 6) Change the SOL in the mapping and check if the timesheet conserne by the mapping has its SOL has been changed too.

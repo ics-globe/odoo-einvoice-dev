@@ -557,6 +557,15 @@ class ProjectTask(models.Model):
             'remaining_hours_so',
         }
 
+    @api.depends('allow_billable')
+    def _compute_display_create_invoice_buttons(self):
+        billable_tasks = self.filtered('allow_billable')
+        (self - billable_tasks).update({
+            'display_create_invoice_primary': False,
+            'display_create_invoice_secondary': False,
+        })
+        super(ProjectTask, billable_tasks)._compute_display_create_invoice_buttons()
+
     @api.depends('sale_line_id', 'timesheet_ids', 'timesheet_ids.unit_amount')
     def _compute_remaining_hours_so(self):
         # TODO This is not yet perfectly working as timesheet.so_line stick to its old value although changed
