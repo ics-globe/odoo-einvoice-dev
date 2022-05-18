@@ -925,7 +925,7 @@ class MassMailing(models.Model):
                 'params': werkzeug.urls.url_encode({
                     'res_id': res_id,
                     'email': email_to,
-                    'token': self._unsubscribe_token(res_id, email_to),
+                    'token': self._generate_mailing_recipient_hash(res_id, email_to),
                 }),
             }
         )
@@ -938,7 +938,7 @@ class MassMailing(models.Model):
                 'params': werkzeug.urls.url_encode({
                     'res_id': res_id,
                     'email': email_to,
-                    'token': self._unsubscribe_token(res_id, email_to),
+                    'token': self._generate_mailing_recipient_hash(res_id, email_to),
                 }),
             }
         )
@@ -1070,7 +1070,7 @@ class MassMailing(models.Model):
                 ** mailing._prepare_statistics_email_values(),
             }
             if mail_user.has_group('mass_mailing.group_mass_mailing_user'):
-                rendering_data['mailing_report_token'] = self._get_unsubscribe_token(mail_user.id)
+                rendering_data['mailing_report_token'] = self._generate_mailing_report_hash(mail_user.id)
                 rendering_data['user_id'] = mail_user.id
 
             rendered_body = self.env['ir.qweb']._render(
@@ -1171,7 +1171,7 @@ class MassMailing(models.Model):
         if self.mailing_type == 'mail':
             return _('Emails')
 
-    def _get_unsubscribe_token(self, user_id):
+    def _generate_mailing_report_hash(self, user_id):
         """Generate a secure hash for this user. It allows to opt out from
         mailing reports while keeping some security in that process. """
         return tools.hmac(self.env(su=True), 'mailing-report-deactivated', user_id)
@@ -1198,21 +1198,16 @@ class MassMailing(models.Model):
             mailing_domain = [('id', 'in', [])]
         return mailing_domain
 
-    def _unsubscribe_token(self, res_id, email):
-        """Generate a secure hash for this mailing list and parameters.
+    def _generate_mailing_recipient_hash(self, mailing_id, email):
+        """Generate a secure hash for a given mailing and recipient (based on
+        their email). This allows notably to unsubscribe from the mailing or
+        to blacklist their email entirely without need of a user account.
 
-        This is appended to the unsubscription URL and then checked at
-        unsubscription time to ensure no malicious unsubscriptions are
-        performed.
-
-        :param int res_id:
-            ID of the resource that will be unsubscribed.
-
-        :param str email:
-            Email of the resource that will be unsubscribed.
+        :param int mailing_id: ID of the source mailing;
+        :param str email: recipient email, used to unsubscribe / blacklist;
         """
         secret = self.env["ir.config_parameter"].sudo().get_param("database.secret")
-        token = (self.env.cr.dbname, self.id, int(res_id), tools.ustr(email))
+        token = (self.env.cr.dbname, self.id, int(mailing_id), tools.ustr(email))
         return hmac.new(secret.encode('utf-8'), repr(token).encode('utf-8'), hashlib.sha512).hexdigest()
 
     def _convert_inline_images_to_urls(self, body_html):
