@@ -74,6 +74,8 @@ class Meta(type):
             if not key.startswith('__') and callable(value):
                 # make the method inherit from decorators
                 value = propagate(getattr(parent, key, None), value)
+                if key == '_search':
+                    value = decorate(value, _checked_query)
                 attrs[key] = value
 
         return type.__new__(meta, name, bases, attrs)
@@ -92,6 +94,13 @@ def propagate(method1, method2):
             if hasattr(method1, attr) and not hasattr(method2, attr):
                 setattr(method2, attr, getattr(method1, attr))
     return method2
+
+
+def _checked_query(func, *args, **kwargs):
+    result = func(*args, **kwargs)
+    if not isinstance(result, Query):
+        warnings.warn(f"{func.__module__}.{func.__qualname__} does not return a Query", stacklevel=2)
+    return result
 
 
 def constrains(*args):
@@ -1026,3 +1035,4 @@ class Cache(object):
 from odoo import SUPERUSER_ID
 from odoo.exceptions import UserError, AccessError, MissingError
 from odoo.modules.registry import Registry
+from odoo.osv.query import Query
