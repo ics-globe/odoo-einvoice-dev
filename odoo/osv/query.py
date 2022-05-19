@@ -77,15 +77,46 @@ class Query(object):
         self.limit = None
         self.offset = None
 
+        # memoized result
+        self._result = None
+
+    @classmethod
+    def from_records(cls, records):
+        """ Return a Query object that corresponds to the given records.
+        Making a subselect() from that object simply returns the given records' ids.
+        """
+        query = cls(records.env.cr, records._table, records._table_query)
+        if records:
+            # This guarantees that query.select() returns the results in the
+            # expected order of records.ids:
+            #   SELECT "stuff".id
+            #   FROM "stuff"
+            #   JOIN (SELECT * FROM unnest(%s) WITH ORDINALITY) AS "stuff__ids"
+            #       ON ("stuff"."id" = "stuff__ids"."unnest")
+            #   WHERE TRUE
+            #   ORDER BY "stuff__ids"."ordinality"
+            alias = query.join(
+                records._table, 'id',
+                'SELECT * FROM unnest(%s) WITH ORDINALITY', 'unnest',
+                'ids', extra_params=[records.ids],
+            )
+            query.order = f'"{alias}"."ordinality"'
+        else:
+            query.add_where("FALSE")
+        query._result = records._ids
+        return query
+
     def add_table(self, alias, table=None):
         """ Add a table with a given alias to the from clause. """
         assert alias not in self._tables and alias not in self._joins, "Alias %r already in %s" % (alias, str(self))
         self._tables[alias] = table or alias
+        self._result = None
 
     def add_where(self, where_clause, where_params=()):
         """ Add a condition to the where clause. """
         self._where_clauses.append(where_clause)
         self._where_params.extend(where_params)
+        self._result = None
 
     def join(self, lhs_alias, lhs_column, rhs_table, rhs_column, link, extra=None, extra_params=()):
         """
@@ -150,15 +181,15 @@ class Query(object):
 
         if rhs_alias not in self._joins:
             condition = f'"{lhs_alias}"."{lhs_column}" = "{rhs_alias}"."{rhs_column}"'
-            condition_params = []
             if extra:
                 condition = condition + " AND " + extra.format(lhs=lhs_alias, rhs=rhs_alias)
-                condition_params = list(extra_params)
+            condition_params = list(extra_params)
             if kind:
                 self._joins[rhs_alias] = (kind, rhs_table, condition, condition_params)
             else:
                 self._tables[rhs_alias] = rhs_table
                 self.add_where(condition, condition_params)
+            self._result = None
 
         return rhs_alias
 
@@ -180,6 +211,9 @@ class Query(object):
             This one avoids the ORDER BY clause when possible,
             and includes parentheses around the subquery.
         """
+        if self._result is not None:
+            return "%s", [self._result or (None,)]
+
         if self.limit or self.offset:
             # in this case, the ORDER BY clause is necessary
             query_str, params = self.select(*args)
@@ -206,23 +240,29 @@ class Query(object):
         where_clause = " AND ".join(self._where_clauses)
         return from_clause, where_clause, params + self._where_params
 
-    @lazy_property
-    def _result(self):
-        query_str, params = self.select()
-        self._cr.execute(query_str, params)
-        return [row[0] for row in self._cr.fetchall()]
+    def get_result(self):
+        if self._result is None:
+            query_str, params = self.select()
+            self._cr.execute(query_str, params)
+            self._result = tuple(row[0] for row in self._cr.fetchall())
+        return self._result
 
     def __str__(self):
         return '<osv.Query: %r with params: %r>' % self.select()
 
     def __bool__(self):
-        return bool(self._result)
+        return bool(self.get_result())
 
     def __len__(self):
-        return len(self._result)
+        if self._result is None and not (self.limit or self.offset):
+            from_clause, where_clause, params = self.get_sql()
+            query_str = f'SELECT COUNT(1) FROM {from_clause} WHERE {where_clause or "TRUE"}'
+            self._cr.execute(query_str, params)
+            return self._cr.fetchone()[0]
+        return len(self.get_result())
 
     def __iter__(self):
-        return iter(self._result)
+        return iter(self.get_result())
 
     #
     # deprecated attributes and methods
