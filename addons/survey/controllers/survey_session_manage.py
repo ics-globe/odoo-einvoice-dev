@@ -35,6 +35,16 @@ class UserInputSession(http.Controller):
 
         return False
 
+    def _fetch_next_page_tooltip(self, survey, isLeaderboard=False):
+        """ Fetch the status / type of next page, which is used as tooltip on the
+        right arrow (next slide) icon to the presenter """
+        next_question = survey._get_session_next_question(False)
+        if not isLeaderboard and survey.session_question_id.is_scored_question and survey.session_question_id.scoring_type != 'no_scoring':
+            return _('Leaderboard')
+        if next_question:
+            return _("Next Section") if next_question.is_page else _("Next Question")
+        return False
+
     # ------------------------------------------------------------
     # SURVEY SESSION MANAGEMENT
     # ------------------------------------------------------------
@@ -65,9 +75,8 @@ class UserInputSession(http.Controller):
             return request.render('survey.user_input_session_open', {
                 'survey': survey
             })
-        else:
-            template_values = self._prepare_manage_session_values(survey)
-            return request.render('survey.user_input_session_manage', template_values)
+        # Note that at this stage survey.session_state can be False meaning that the survey has ended (session closed)
+        return request.render('survey.user_input_session_manage', self._prepare_manage_session_values(survey))
 
     @http.route('/survey/session/next_question/<string:survey_token>', type='json', auth='user', website=True)
     def survey_session_next_question(self, survey_token, go_back=False, **kwargs):
@@ -144,8 +153,7 @@ class UserInputSession(http.Controller):
         ])
 
         values = self._prepare_question_results_values(survey, user_input_lines)
-        next_question = survey._get_session_next_question(False)
-        values['next_page_status'] = 'Leaderboard' if survey.session_question_id.scoring_type != 'no_scoring' and survey.session_question_id.is_scored_question else 'Next Section' if next_question.is_page else 'Next Question'
+        values['next_page_tooltip'] = self._fetch_next_page_tooltip(survey)
         return values
 
     @http.route('/survey/session/leaderboard/<string:survey_token>', type='json', auth='user', website=True)
@@ -160,7 +168,7 @@ class UserInputSession(http.Controller):
         if not survey or survey.session_state != 'in_progress':
             # no open session
             return ''
-        next_question = survey._get_session_next_question(False)
+
         leaderboard_results = request.env['ir.qweb']._render('survey.user_input_session_leaderboard', {
             'animate': True,
             'leaderboard': survey._prepare_leaderboard_values()
@@ -169,7 +177,7 @@ class UserInputSession(http.Controller):
         # Add Next page status for Leaderboard
         return {
             'leaderboardResults': leaderboard_results,
-            'nextPageStatus': _('Next Section') if next_question.is_page else _('Next Question')
+            'nextPageTooltip': self._fetch_next_page_tooltip(survey, True)
         }
 
     # ------------------------------------------------------------
@@ -216,24 +224,21 @@ class UserInputSession(http.Controller):
             is_first_question = survey._is_first_page_or_question(survey.session_question_id)
             is_last_question = survey._is_last_page_or_question(most_voted_answers, survey.session_question_id)
 
-        # Add the status for next page
-        next_page_status = ''
-        next_to_next_question = survey._get_session_next_question(False)
+        # Tooltip for next page
+        next_page_tooltip = ''
         if is_last_question:
-            next_page_status = _("Closing Words")
+            next_page_tooltip = _("Closing Words")
         elif any(answer.answer_score for answer in survey.session_question_id.suggested_answer_ids):
-            next_page_status = _("Show Results")
-        elif next_to_next_question and next_to_next_question.is_page:
-            next_page_status = _("Next Section")
+            next_page_tooltip = _("Show Results")
         else:
-            next_page_status = _("Next Question")
+            next_page_tooltip = self._fetch_next_page_tooltip(survey)
 
         values = {
             'survey': survey,
             'is_last_question': is_last_question,
             'is_first_question': is_first_question,
             'is_session_closed': not survey.session_state,
-            'next_page_status': next_page_status
+            'next_page_tooltip': next_page_tooltip
         }
 
         values.update(self._prepare_question_results_values(survey, request.env['survey.user_input.line']))

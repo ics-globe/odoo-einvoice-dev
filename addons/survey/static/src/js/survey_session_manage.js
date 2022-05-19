@@ -18,7 +18,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
         'click .o_survey_session_close': '_onEndSessionClick',
     },
     custom_events: {
-        update_next_page_status: '_updateNextPageStatus',
+        update_next_page_tooltip: '_updateNextPageTooltip',
     },
 
     /**
@@ -168,7 +168,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
             this._setShowAnswers(true);
             // when showing results, stop refreshing answers
             clearInterval(this.resultsRefreshInterval);
-            this._updateNextPageStatus({data: {nextPageStatus: this.nextPageStatus}});
+            this._updateNextPageTooltip({data: {nextPageTooltip: this.nextPageTooltip}});
             delete this.resultsRefreshInterval;
         } else if (['leaderboard', 'leaderboardFinal'].includes(screenToDisplay)
                    && !['leaderboard', 'leaderboardFinal'].includes(this.currentScreen)) {
@@ -460,7 +460,7 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
         }).then(function (questionResults) {
             if (questionResults) {
                 self.attendeesCount = questionResults.attendees_count;
-                self.nextPageStatus = questionResults.next_page_status;
+                self.nextPageTooltip = questionResults.next_page_tooltip;
 
                 if (self.resultsChart && questionResults.question_statistics_graph) {
                     self.resultsChart.updateChart(JSON.parse(questionResults.question_statistics_graph));
@@ -668,10 +668,10 @@ publicWidget.registry.SurveySessionManage = publicWidget.Widget.extend(SurveyPre
      *
      * @param {Object} ev
      */
-    _updateNextPageStatus(ev) {
+    _updateNextPageTooltip(ev) {
         const sessionNavigationNextEl = this.el.querySelector('.o_survey_session_navigation_next');
-        if (sessionNavigationNextEl && ev.data.nextPageStatus) {
-            sessionNavigationNextEl.dataset.originalTitle = ev.data.nextPageStatus;
+        if (sessionNavigationNextEl && ev.data.nextPageTooltip) {
+            sessionNavigationNextEl.dataset.originalTitle = ev.data.nextPageTooltip;
         }
     }
 });
