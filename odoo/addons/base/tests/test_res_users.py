@@ -122,22 +122,23 @@ class TestUsers2(TransactionCase):
     def setUp(self):
         """
             These are the Groups and their Hierarchy we have Used to test Group warnings.
-            Groups:
+
+            Category groups hierarchy:
                 Sales
                 ├── User: All Documents
                 └── Administrator
                 Timesheets
-                ├── Administrator
+                ├── User: own timesheets only
                 ├── User: all timesheets
-                └── User: own timesheets only
+                └── Administrator
                 Project
-                ├── Administrator
-                └── User
+                ├── User
+                └── Administrator
                 Field Service
-                ├── Administrator
-                └── User
+                ├── User
+                └── Administrator
 
-            Hierarchy:
+            Implied groups hierarchy:
                 Sales / Administrator
                 └── Sales / User: All Documents
 
@@ -156,45 +157,46 @@ class TestUsers2(TransactionCase):
         """
         super().setUp()
         ResGroups = self.env['res.groups']
-        cat_sales = self.env['ir.module.category'].create({'name': 'Sales'})
-        cat_project = self.env['ir.module.category'].create({'name': 'Project'})
-        cat_field_service = self.env['ir.module.category'].create({'name': 'Field Service'})
-        cat_timesheets = self.env['ir.module.category'].create({'name': 'Timesheets'})
+        IrModuleCategory = self.env['ir.module.category']
+        categ_sales = IrModuleCategory.create({'name': 'Sales'})
+        categ_project = IrModuleCategory.create({'name': 'Project'})
+        categ_field_service = IrModuleCategory.create({'name': 'Field Service'})
+        categ_timesheets = IrModuleCategory.create({'name': 'Timesheets'})
 
         # Sales
         self.group_sales_user, self.group_sales_administrator = ResGroups.create([
-            {'name': name, 'category_id': cat_sales.id}
+            {'name': name, 'category_id': categ_sales.id}
             for name in ('User: All Documents', 'Administrator')
         ])
-        self.sales_cat_field = name_selection_groups((self.group_sales_user | self.group_sales_administrator).ids)
+        self.sales_categ_field = name_selection_groups((self.group_sales_user | self.group_sales_administrator).ids)
         self.group_sales_administrator.implied_ids = self.group_sales_user
 
         # Timesheets
         self.group_timesheets_user_own_timesheet, self.group_timesheets_user_all_timesheet, self.group_timesheets_administrator = ResGroups.create([
-            {'name': name, 'category_id': cat_timesheets.id}
+            {'name': name, 'category_id': categ_timesheets.id}
             for name in ('User: own timesheets only', 'User: all timesheets', 'Administrator')
         ])
-        self.timesheet_cat_field = name_selection_groups((self.group_timesheets_user_own_timesheet |
-                                                          self.group_timesheets_user_all_timesheet |
-                                                          self.group_timesheets_administrator).ids
-                                                         )
+        self.timesheets_categ_field = name_selection_groups((self.group_timesheets_user_own_timesheet |
+                                                            self.group_timesheets_user_all_timesheet |
+                                                            self.group_timesheets_administrator).ids
+                                                            )
         self.group_timesheets_administrator.implied_ids += self.group_timesheets_user_all_timesheet
         self.group_timesheets_user_all_timesheet.implied_ids += self.group_timesheets_user_own_timesheet
 
         # Project
         self.group_project_user, self.group_project_admnistrator = ResGroups.create([
-            {'name': name, 'category_id': cat_project.id}
+            {'name': name, 'category_id': categ_project.id}
             for name in ('User', 'Administrator')
         ])
-        self.project_cat_field = name_selection_groups((self.group_project_user | self.group_project_admnistrator).ids)
+        self.project_categ_field = name_selection_groups((self.group_project_user | self.group_project_admnistrator).ids)
         self.group_project_admnistrator.implied_ids = (self.group_project_user | self.group_timesheets_user_all_timesheet)
 
         # Field Service
         self.group_field_service_user, self.group_field_service_administrator = ResGroups.create([
-            {'name': name, 'category_id': cat_field_service.id}
+            {'name': name, 'category_id': categ_field_service.id}
             for name in ('User', 'Administrator')
         ])
-        self.field_service_cat_field = name_selection_groups((self.group_field_service_user | self.group_field_service_administrator).ids)
+        self.field_service_categ_field = name_selection_groups((self.group_field_service_user | self.group_field_service_administrator).ids)
         self.group_field_service_administrator.implied_ids = (self.group_sales_administrator |
                                                               self.group_project_admnistrator |
                                                               self.group_field_service_user).ids
@@ -309,84 +311,94 @@ class TestUsers2(TransactionCase):
         setattr(user_form, group_field_name, group_public.id)
         self.assertTrue(user_form.share, 'The groups_id onchange should have been triggered')
 
-    def test_user_group_inheritance_no_warning(self):
-        """
-            The warning should not be there when the User tries to Change to Higher rights.
-        """
-        with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.sales_cat_field] = self.group_sales_administrator.id
-            UserForm._perform_onchange([self.sales_cat_field])
-
-            self.assertFalse(UserForm.user_group_warning)
-
     def test_user_group_parent_inheritance_no_warning(self):
-        """
-            The warning should not be there when the User Changes Parent rights to Lower one
-        """
+        """ User changes 'Field Service: User' from 'Field Service: Administrator'.
+        The warning should not be there since 'Field Service: User' is not affected
+        by any other groups."""
         with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.field_service_cat_field] = self.group_field_service_user.id
-            UserForm._perform_onchange([self.field_service_cat_field])
+            UserForm._values[self.field_service_categ_field] = self.group_field_service_user.id
+            UserForm._perform_onchange([self.field_service_categ_field])
 
             self.assertFalse(UserForm.user_group_warning)
 
     def test_user_group_inheritance_warning(self):
-        """
-            User makes changes to Sales User from Sales Administrator.
-            The warning should be there since Sales Administrator is Required
-            when User has Field Service Administrator
-        """
+        """ User changes 'Sales: User' from 'Sales: Administrator'. The warning
+        should be there since 'Sales: Administrator' is required when user is
+        havning 'Field Service: Administrator'. When user reverts the changes,
+        warning should disappear. """
         with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.sales_cat_field] = self.group_sales_user.id
-            UserForm._perform_onchange([self.sales_cat_field])
+            UserForm._values[self.sales_categ_field] = self.group_sales_user.id
+            UserForm._perform_onchange([self.sales_categ_field])
 
             self.assertEqual(
                 UserForm.user_group_warning,
                 'Since Test Group User is a/an Field Service Administrator, you can set Sales right only to Administrator'
             )
 
+            UserForm._values[self.sales_categ_field] = self.group_sales_administrator.id
+            UserForm._perform_onchange([self.sales_categ_field])
+            self.assertFalse(UserForm.user_group_warning)
+
     def test_user_multi_group_inheritance_warning(self):
-        """
-           User makes changes To Sales User and Project User from Administrator
-           The warming should be there since Administrator for both are required
-           when User has Field Service Administrator
-        """
+        """ User changes 'Sales: User' from 'Sales: Administrator' and
+        'Project: User' from 'Project: Administrator'. The warning should
+        be there since 'Sales: Administrator' and 'Project: Administrator'
+        are required when user is havning 'Field Service: Administrator'.
+        When user reverts the changes For 'Sales: Administrator', warning
+        should disappear for Sales Access."""
         with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.sales_cat_field] = self.group_sales_user.id
-            UserForm._values[self.project_cat_field] = self.group_project_user.id
-            UserForm._perform_onchange([self.sales_cat_field])
+            UserForm._values[self.sales_categ_field] = self.group_sales_user.id
+            UserForm._values[self.project_categ_field] = self.group_project_user.id
+            UserForm._perform_onchange([self.sales_categ_field])
 
             warnings = [
-                "Since Test Group User is a/an Field Service Administrator, you can set Sales right only to Administrator",
-                "Since Test Group User is a/an Field Service Administrator, you can set Project right only to Administrator"
+                'Since Test Group User is a/an Field Service Administrator, you can set Sales right only to Administrator',
+                'Since Test Group User is a/an Field Service Administrator, you can set Project right only to Administrator'
             ]
             self.assertTrue(all(warning in UserForm.user_group_warning for warning in warnings))
 
+            UserForm._values[self.sales_categ_field] = self.group_sales_administrator.id
+            UserForm._perform_onchange([self.sales_categ_field])
+
+            self.assertEqual(
+                UserForm.user_group_warning,
+                'Since Test Group User is a/an Field Service Administrator, you can set Project right only to Administrator'
+            )
+
     def test_user_multi_possible_group_inheritance_warning(self):
-        """
-            User makes changes to Timesheets / User: Own Timesheet from Timesheets / Administrator
-            The warning should be there since Timessets / Administrator and Timesheets / User: All Documents
-            required when the User has Project Administrator
-        """
+        """ User changes 'Timesheets: User: own timesheets only ' from
+        'Timesheets: Administrator'. The warning should be there since
+        'Timesheets: Administrator' or 'Timesheets: User: all timesheets'
+        is required when user is havning 'Project: Administrator'.
+        When user reverts the changes For 'Timesheets: User: all timesheets',
+        warning should disappear."""
         with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.timesheet_cat_field] = self.group_timesheets_user_own_timesheet.id
-            UserForm._perform_onchange([self.timesheet_cat_field])
+            UserForm._values[self.timesheets_categ_field] = self.group_timesheets_user_own_timesheet.id
+            UserForm._perform_onchange([self.timesheets_categ_field])
 
             self.assertEqual(
                 UserForm.user_group_warning,
                 'Since Test Group User is a/an Project Administrator, you can set Timesheets right only to Administrator or User: all timesheets'
             )
 
+            UserForm._values[self.timesheets_categ_field] = self.group_timesheets_user_all_timesheet.id
+            UserForm._perform_onchange([self.timesheets_categ_field])
+            self.assertFalse(UserForm.user_group_warning)
+
     def test_user_group_empty_group_warning(self):
-        """
-            User Makes Sales Rights to Empty.
-            The warning should be there since Sales Administrator is Required
-            when User has Field Service Administrator
-        """
+        """ User changes Empty Sales access from 'Sales: Administrator'. The
+        warning should be there since 'Sales: Administrator' is required when
+        user is havning 'Field Service: Administrator'. When user reverts the
+        changes, warning should disappear. """
         with Form(self.test_group_user, view='base.view_users_form') as UserForm:
-            UserForm._values[self.sales_cat_field] = False
-            UserForm._perform_onchange([self.sales_cat_field])
+            UserForm._values[self.sales_categ_field] = False
+            UserForm._perform_onchange([self.sales_categ_field])
 
             self.assertEqual(
                 UserForm.user_group_warning,
                 'Since Test Group User is a/an Field Service Administrator, they will at the minimum have the Sales: Administrator access too'
             )
+
+            UserForm._values[self.sales_categ_field] = self.group_sales_administrator.id
+            UserForm._perform_onchange([self.sales_categ_field])
+            self.assertFalse(UserForm.user_group_warning)

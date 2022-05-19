@@ -200,6 +200,9 @@ class Groups(models.Model):
         return super(Groups, self)._search(args, offset=offset, limit=limit, order=order, count=count, access_rights_uid=access_rights_uid)
 
     def _get_recursive_implied_groups(self, recursive_groups):
+        """ Returns the implied groups of the group being passed (including the
+            passed group itself)
+        """
         for group in self.implied_ids.filtered(
             lambda grp:
             grp.category_id == self.category_id
