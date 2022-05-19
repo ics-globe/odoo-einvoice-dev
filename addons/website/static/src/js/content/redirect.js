@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const {href, host, target, pathname} = linkEl;
             const isNewWindow = target === '_blank';
-            const isInIframe = host === window.location.host && !pathname.startsWith('/web');
+            const isInIframe = host === window.location.host && pathname !== '/web';
             if (href && !isEditorEnabled && !isNewWindow && !isInIframe) {
                 window.top.location.replace(href);
             }

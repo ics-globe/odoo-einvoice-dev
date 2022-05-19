@@ -87,36 +87,8 @@ export class WebsiteEditorClientAction extends Component {
         }, () => [this.props.action.context.params]);
 
         useEffect(() => {
-            const onPageLoaded = () => {
-                this.currentUrl = this.iframe.el.contentDocument.location.href;
-                this.currentTitle = this.iframe.el.contentDocument.title;
-                history.replaceState({}, this.currentTitle, this.currentUrl);
-                this.title.setParts({ action: this.currentTitle });
-
-                this.websiteService.pageDocument = this.iframe.el.contentDocument;
-                this.websiteService.contentWindow = this.iframe.el.contentWindow;
-
-                // This is needed for the registerThemeHomepageTour tours
-                this.iframeContainer.el.dataset.viewXmlid = this.iframe.el.contentDocument.documentElement.dataset.viewXmlid;
-
-                this.iframe.el.contentWindow.addEventListener('beforeunload', () => {
-                    this.iframe.el.setAttribute('is-ready', 'false');
-                    if (!this.websiteContext.edition) {
-                        this.iframefallback.el.contentDocument.body.replaceWith(this.iframe.el.contentDocument.body.cloneNode(true));
-                        $().getScrollingElement(this.iframefallback.el.contentDocument)[0].scrollTop = $().getScrollingElement(this.iframe.el.contentDocument)[0].scrollTop;
-                    }
-                });
-                this.iframe.el.contentWindow.addEventListener('PUBLIC-ROOT-READY', (event) => {
-                    this.iframe.el.setAttribute('is-ready', 'true');
-                    if (!this.websiteContext.edition) {
-                        this.addWelcomeMessage();
-                    }
-                    this.websiteService.websiteRootInstance = event.detail.rootInstance;
-                });
-            };
-
-            this.iframe.el.addEventListener('load', () => onPageLoaded());
-            return this.iframe.el.removeEventListener('load', () => onPageLoaded());
+            this.iframe.el.addEventListener('load', this._onPageLoaded.bind(this));
+            return this.iframe.el.removeEventListener('load', this._onPageLoaded.bind(this));
         }, () => []);
 
         useEffect(() => {
@@ -161,7 +133,6 @@ export class WebsiteEditorClientAction extends Component {
     reloadIframe(url) {
         return new Promise((resolve, reject) => {
             this.iframe.el.addEventListener('OdooFrameContentLoaded', resolve, { once: true });
-            this.websiteService.websiteRootInstance = undefined;
             if (url) {
                 this.iframe.el.contentWindow.location = url;
             } else {
@@ -179,6 +150,37 @@ export class WebsiteEditorClientAction extends Component {
                 this.$welcomeMessage.css('min-height', $wrap.parent('main').height() - ($wrap.outerHeight(true) - $wrap.height()));
                 $wrap.empty().append(this.$welcomeMessage);
             }
+        }
+    }
+
+    _onPageLoaded() {
+        this.currentUrl = this.iframe.el.contentDocument.location.href;
+        this.currentTitle = this.iframe.el.contentDocument.title;
+        history.replaceState({}, this.currentTitle, this.currentUrl);
+        this.title.setParts({ action: this.currentTitle });
+
+        this.websiteService.pageDocument = this.iframe.el.contentDocument;
+        this.websiteService.contentWindow = this.iframe.el.contentWindow;
+
+        // This is needed for the registerThemeHomepageTour tours
+        this.iframeContainer.el.dataset.viewXmlid = this.iframe.el.contentDocument.documentElement.dataset.viewXmlid;
+
+        this.iframe.el.contentWindow.addEventListener('beforeunload', this._onPageUnload.bind(this));
+        this.iframe.el.contentWindow.addEventListener('PUBLIC-ROOT-READY', (event) => {
+            this.iframe.el.setAttribute('is-ready', 'true');
+            if (!this.websiteContext.edition) {
+                this.addWelcomeMessage();
+            }
+            this.websiteService.websiteRootInstance = event.detail.rootInstance;
+        });
+    }
+
+    _onPageUnload() {
+        this.websiteService.websiteRootInstance = undefined;
+        this.iframe.el.setAttribute('is-ready', 'false');
+        if (!this.websiteContext.edition) {
+            this.iframefallback.el.contentDocument.body.replaceWith(this.iframe.el.contentDocument.body.cloneNode(true));
+            $().getScrollingElement(this.iframefallback.el.contentDocument)[0].scrollTop = $().getScrollingElement(this.iframe.el.contentDocument)[0].scrollTop;
         }
     }
 }
