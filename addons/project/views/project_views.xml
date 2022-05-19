@@ -391,7 +391,7 @@
                             name="%(act_project_project_2_project_task_all)d" icon="fa-tasks">
                             <field string="Tasks In Progress" name="task_count" widget="statinfo" options="{'label_field': 'label_tasks'}"/>
                         </button>
-                        <button class="oe_stat_button" name="action_get_list_view" type="object" icon="fa-check-square-o" attrs="{'invisible': [('allow_milestones', '=', False)]}" groups="project.group_project_milestone">
+                        <button class="oe_stat_button" name="action_get_list_view" type="object" icon="fa-check-square-o" attrs="{'invisible': [('allow_milestones', '=', False)]}">
                             <div class="o_field_widget o_stat_info">
                                 <span class="o_stat_value">
                                     <field name="milestone_count" nolabel="1"/>
@@ -1076,7 +1076,6 @@
                                 placeholder="e.g. Product Launch"
                                 context="{'default_project_id': project_id if not parent_id or not display_project_id else display_project_id}"
                                 attrs="{'invisible': ['|', ('project_id', '=', False), ('allow_milestones', '=', False)]}"
-                                groups="project.group_project_milestone"
                             />
                             <field name="user_ids"
                                 class="o_task_user_field"
@@ -1143,7 +1142,6 @@
                                         optional="hide"
                                         context="{'default_project_id': project_id if not parent_id or not display_project_id else display_project_id}"
                                         attrs="{'invisible': [('allow_milestones', '=', False)], 'column_invisible': [('parent.allow_milestones', '=', False)]}"
-                                        groups="project.group_project_milestone"
                                     />
                                     <field name="user_ids" widget="many2many_avatar_user" optional="show" domain="[('share', '=', False), ('active', '=', True)]"/>
                                     <field name="company_id" optional="hide" groups="base.group_multi_company" />
@@ -1310,7 +1308,7 @@
                                         </strong>
                                         <t t-if="!record.is_private.raw_value">
                                             <span invisible="context.get('default_project_id', False)"><br/><field name="project_id" required="1"/></span>
-                                            <span t-if="record.allow_milestones.raw_value and record.milestone_id.raw_value" t-attf-class="{{record.has_late_and_not_reached_milestone.raw_value ? 'text-danger' : ''}}" groups="project.group_project_milestone">
+                                            <span t-if="record.allow_milestones.raw_value and record.milestone_id.raw_value" t-attf-class="{{record.has_late_and_not_reached_milestone.raw_value ? 'text-danger' : ''}}">
                                                 <br/>
                                                 <field name="milestone_id" />
                                             </span>
@@ -1442,7 +1440,7 @@
                           scales="month,year">
                     <field name="allow_milestones" invisible="1" />
                     <field name="project_id" widget="project_private_task"/>
-                    <field name="milestone_id" attrs="{'invisible': [('allow_milestones', '=', False)]}" groups="project.group_project_milestone"/>
+                    <field name="milestone_id" attrs="{'invisible': [('allow_milestones', '=', False)]}"/>
                     <field name="user_ids" widget="many2many_avatar_user"/>
                     <field name="partner_id" attrs="{'invisible': [('partner_id', '=', False)]}"/>
                     <field name="priority" widget="priority"/>
