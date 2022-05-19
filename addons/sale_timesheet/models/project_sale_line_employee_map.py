@@ -54,12 +54,18 @@ class ProjectProductEmployeeMap(models.Model):
         for line in self:
             line.currency_id = line.sale_line_id.currency_id if line.sale_line_id else False
 
-    @api.depends('employee_id.timesheet_cost')
+    @api.depends('employee_id.timesheet_cost', 'company_id.timesheet_encode_uom_id')
     def _compute_cost(self):
         self.env.remove_to_compute(self._fields['is_cost_changed'], self)
+        # is_encode_day = self.env.company.timesheet_encode_uom_id == self.env.ref('uom.product_uom_day')
+        hours_per_day = self.env.company.resource_calendar_id.hours_per_day
+
         for map_entry in self:
             if not map_entry.is_cost_changed:
-                map_entry.cost = map_entry.employee_id.timesheet_cost or 0.0
+                if map_entry.company_id.timesheet_encode_uom_id == self.env.ref('uom.product_uom_day'):
+                    map_entry.cost = map_entry.employee_id.timesheet_cost*hours_per_day or 0.0 
+                else:
+                    map_entry.cost = map_entry.employee_id.timesheet_cost or 0.0
 
     @api.depends('cost')
     def _compute_is_cost_changed(self):
