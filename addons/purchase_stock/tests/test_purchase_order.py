@@ -373,11 +373,11 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         _product = self.env['product.product'].create({
             'name': 'TempProduct',
             'type': 'consu',
-            'company_id': self.env.user.company_id.id,
+            # 'company_id': self.env.company.id,
         })
 
         _purchase_order = self.env['purchase.order'].create({
-            'company_id': self.env.user.company_id.id,
+            # 'company_id': self.env.company.id,
             'partner_id': self.partner_a.id,
             'order_line': [
                 (0, 0, {
