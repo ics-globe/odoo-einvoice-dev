@@ -51,7 +51,7 @@ patch(NavBar.prototype, 'website_navbar', {
         };
 
         onWillStart(async () => {
-            this.isWebsitePublisher = await this.user.hasGroup('website.group_website_publisher');
+            this.isWebsitePublisher = await this.websiteService.isPublisher();
         });
     },
 

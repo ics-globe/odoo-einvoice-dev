@@ -21,8 +21,8 @@ const unslugHtmlDataObject = (repr) => {
 };
 
 export const websiteService = {
-    dependencies: ['orm', 'action'],
-    async start(env, { orm, action }) {
+    dependencies: ['orm', 'action', 'user'],
+    async start(env, { orm, action, user }) {
         let websites = [];
         let currentWebsiteId;
         let currentMetadata = {};
@@ -100,6 +100,9 @@ export const websiteService = {
             },
             get editedObjectPath() {
                 return editedObjectPath;
+            },
+            isPublisher() {
+                return user.hasGroup('website.group_website_publisher');
             },
             goToWebsite({ websiteId, path, edition, translation } = {}) {
                 action.doAction('website.website_editor', {

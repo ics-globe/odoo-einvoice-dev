@@ -8,7 +8,6 @@ var testUtils = require('web.test_utils');
 var weTestUtils = require('web_editor.test_utils');
 var core = require('web.core');
 var Wysiwyg = require('web_editor.wysiwyg');
-var MediaDialog = require('wysiwyg.widgets.MediaDialog');
 var LinkDialog = require('wysiwyg.widgets.LinkDialog');
 
 const { legacyExtraNextTick, patchWithCleanup } = require("@web/../tests/helpers/utils");
@@ -347,15 +346,6 @@ QUnit.module('web_editor', {}, function () {
             await testUtils.form.clickEdit(form);
             var $field = form.$('.oe_form_field[name="body"]');
 
-            // the dialog load some xml assets
-            var defMediaDialog = testUtils.makeTestPromise();
-            testUtils.mock.patch(MediaDialog, {
-                init: function () {
-                    this._super.apply(this, arguments);
-                    this.opened(defMediaDialog.resolve.bind(defMediaDialog));
-                }
-            });
-
             var pText = $field.find('.note-editable p').first().contents()[0];
             Wysiwyg.setRange(pText, 1, pText, 2);
 
@@ -365,15 +355,12 @@ QUnit.module('web_editor', {}, function () {
             wysiwyg.openMediaDialog();
 
             // load static xml file (dialog, media dialog, unsplash image widget)
-            await defMediaDialog;
 
             await testUtils.dom.click($('.modal #editor-media-image .o_existing_attachment_cell:first').removeClass('d-none'));
 
             var $editable = form.$('.oe_form_field[name="body"] .note-editable');
             assert.ok($editable.find('img')[0].dataset.src.includes('/web/image/123/transparent.png'),
                 "should have the image in the dom");
-
-            testUtils.mock.unpatch(MediaDialog);
 
             form.destroy();
         });
@@ -402,14 +389,6 @@ QUnit.module('web_editor', {}, function () {
             await testUtils.form.clickEdit(form);
             var $field = form.$('.oe_form_field[name="body"]');
 
-            // the dialog load some xml assets
-            var defMediaDialog = testUtils.makeTestPromise();
-            testUtils.mock.patch(MediaDialog, {
-                init: function () {
-                    this._super.apply(this, arguments);
-                    this.opened(defMediaDialog.resolve.bind(defMediaDialog));
-                }
-            });
 
             var pText = $field.find('.note-editable p').first().contents()[0];
             Wysiwyg.setRange(pText, 1, pText, 2);
@@ -417,8 +396,6 @@ QUnit.module('web_editor', {}, function () {
             const wysiwyg = $field.find('.note-editable').data('wysiwyg');
             wysiwyg.openMediaDialog();
 
-            // load static xml file (dialog, media dialog, unsplash image widget)
-            await defMediaDialog;
             $('.modal .tab-content .tab-pane').removeClass('fade'); // to be sync in test
             await testUtils.dom.click($('.modal a[aria-controls="editor-media-icon"]'));
             await testUtils.dom.click($('.modal #editor-media-icon .font-icons-icon.fa-glass'));
@@ -428,8 +405,6 @@ QUnit.module('web_editor', {}, function () {
             assert.strictEqual($editable.data('wysiwyg').getValue(),
                 '<p>t<span class="fa fa-glass"></span>to toto toto</p><p>tata</p>',
                 "should have the image in the dom");
-
-            testUtils.mock.unpatch(MediaDialog);
 
             form.destroy();
         });

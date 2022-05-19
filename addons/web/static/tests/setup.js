@@ -206,8 +206,8 @@ function patchSessionInfo() {
     });
 }
 
-export async function setupTests() {
-    QUnit.testStart(() => {
+export const hooks = {
+    testStart: () => {
         checkGlobalObjectsIntegrity();
         prepareRegistriesWithCleanup();
         prepareLegacyRegistriesWithCleanup();
@@ -216,6 +216,12 @@ export async function setupTests() {
         patchLegacyCoreBus();
         patchOdoo();
         patchSessionInfo();
+    }
+};
+
+export async function setupTests() {
+    QUnit.testStart(() => {
+        hooks.testStart();
     });
 
     const templatesUrl = `/web/webclient/qweb/${new Date().getTime()}?bundle=web.assets_qweb`;

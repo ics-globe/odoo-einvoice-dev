@@ -3,8 +3,43 @@ odoo.define('website.tests', function (require) {
 
 var FormView = require('web.FormView');
 var testUtils = require("web.test_utils");
+const { patch } = require('@web/core/utils/patch');
+const { registry } = require('@web/core/registry');
+const { dialogService } = require('@web/core/dialog/dialog_service');
+const { hooks } = require('@web/../tests/setup');
+const { hooks: NavBarHooks } = require('@web/../tests/webclient/navbar_tests');
 
 var createView = testUtils.createView;
+
+function makeFakeWebsiteService() {
+    return {
+        start() {
+            return {
+                get context() {
+                    return {};
+                },
+                isPublisher() {
+                    return true;
+                },
+            };
+        }
+    };
+}
+
+const serviceRegistry = registry.category("services");
+patch(hooks, 'website_test_hooks', {
+    testStart() {
+        this._super(...arguments);
+        serviceRegistry.add('website', makeFakeWebsiteService());
+    }
+});
+
+patch(NavBarHooks, 'website_tests_navbar_hooks', {
+    async beforeEach() {
+        await this._super(...arguments);
+        serviceRegistry.add('dialog', dialogService);
+    }
+});
 
 QUnit.module('website', {
     before: function () {

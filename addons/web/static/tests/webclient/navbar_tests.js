@@ -29,8 +29,8 @@ MySystrayItem.template = xml`<li class="my-item">my item</li>`;
 let baseConfig;
 let target;
 
-QUnit.module("Navbar", {
-    async beforeEach() {
+export const hooks = {
+    beforeEach: async () => {
         target = getFixture();
         serviceRegistry.add("menu", menuService);
         serviceRegistry.add("action", actionService);
@@ -48,6 +48,12 @@ QUnit.module("Navbar", {
         };
         const serverData = { menus };
         baseConfig = { serverData };
+    }
+};
+
+QUnit.module("Navbar", {
+    async beforeEach() {
+        await hooks.beforeEach();
     },
 });
 
