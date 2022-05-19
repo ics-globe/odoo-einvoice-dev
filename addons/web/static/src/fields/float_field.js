@@ -5,7 +5,6 @@ import { useInputField } from "./input_field_hook";
 import { useNumpadDecimal } from "./numpad_decimal_hook";
 import { formatFloat } from "./formatters";
 import { parseFloat } from "./parsers";
-import { standardFieldProps } from "./standard_field_props";
 
 const { Component, onWillUpdateProps } = owl;
 export class FloatField extends Component {
@@ -40,7 +39,7 @@ export class FloatField extends Component {
         } catch (_e) {
             // WOWL TODO: rethrow error when not the expected type
             isValid = false;
-            this.props.setAsInvalid();
+            this.props.invalidate();
         }
         if (isValid) {
             this.props.update(value);
@@ -58,31 +57,39 @@ export class FloatField extends Component {
 
 FloatField.template = "web.FloatField";
 FloatField.props = {
-    ...standardFieldProps,
-    inputType: { type: String, optional: true },
-    step: { type: Number, optional: true },
     digits: { type: Array, optional: true },
-    setAsInvalid: { type: Function, optional: true },
-    field: { type: Object, optional: true },
+    inputType: { type: String, optional: true },
+    invalidate: { type: Function, optional: true },
+    readonly: { type: Boolean, optional: true },
+    step: { type: Number, optional: true },
+    update: { type: Function, optional: true },
+    value: Number,
 };
 FloatField.defaultProps = {
     inputType: "text",
-    setAsInvalid: () => {},
+    invalidate: () => {},
+    readonly: false,
+    step: 1,
+    update: () => {},
 };
+
+FloatField.supportedTypes = ["float"];
+
 FloatField.isEmpty = () => false;
-FloatField.extractProps = (fieldName, record, attrs) => {
+FloatField.computeProps = (params) => {
     return {
-        setAsInvalid: () => record.setInvalidField(fieldName),
-        field: record.fields[fieldName], // To remove
-        inputType: attrs.options.type,
-        step: attrs.options.step,
         // Sadly, digits param was available as an option and an attr.
         // The option version could be removed with some xml refactoring.
         digits:
-            (attrs.digits ? JSON.parse(attrs.digits) : attrs.options.digits) ||
-            record.fields[fieldName].digits,
+            (params.attrs.digits ? JSON.parse(params.attrs.digits) : params.attrs.options.digits) ||
+            params.field.digits,
+        inputType: params.attrs.options.type,
+        invalidate: () => params.record.setInvalidField(params.name),
+        readonly: params.readonly,
+        step: params.attrs.options.step,
+        update: params.update,
+        value: params.value,
     };
 };
-FloatField.supportedTypes = ["float"];
 
 registry.category("fields").add("float", FloatField);
