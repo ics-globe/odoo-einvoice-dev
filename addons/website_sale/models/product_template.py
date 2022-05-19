@@ -198,6 +198,17 @@ class ProductTemplate(models.Model):
                     base_price = taxes.compute_all(base_price, pricelist.currency_id, 1, template, partner_sudo)[tax_display]
                     template_price_vals['base_price'] = base_price
 
+            if template.compare_list_price:
+                template_price_vals['base_price'] = template.compare_list_price
+                if template.currency_id != pricelist.currency_id:
+                    template_price_vals['base_price'] = template.currency_id._convert(
+                        template.compare_list_price,
+                        pricelist.currency_id,
+                        self.env.company,
+                        fields.Datetime.now(),
+                        round=False
+                    )
+
             res[template.id] = template_price_vals
 
         return res
@@ -477,6 +488,7 @@ class ProductTemplate(models.Model):
                 )
                 if list_price:
                     data['list_price'] = list_price
+
             if with_image:
                 data['image_url'] = '/web/image/product.template/%s/image_128' % data['id']
             if with_category and product.public_categ_ids:
@@ -494,6 +506,10 @@ class ProductTemplate(models.Model):
         if combination_info['has_discounted_price']:
             list_price = self.env['ir.qweb.field.monetary'].value_to_html(
                 combination_info['list_price'], monetary_options
+            )
+        if combination_info['compare_list_price']:
+            list_price = self.env['ir.qweb.field.monetary'].value_to_html(
+                combination_info['compare_list_price'], monetary_options
             )
 
         return price, list_price if combination_info['has_discounted_price'] else None
