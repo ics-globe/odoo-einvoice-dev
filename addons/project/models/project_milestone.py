@@ -55,11 +55,11 @@ class ProjectMilestone(models.Model):
             for milestone in self:
                 milestone.can_be_marked_as_done = not milestone.is_reached and all(milestone.task_ids.is_closed)
             return
-        not_reached_milestones = self.filtered(lambda milestone: not milestone.is_reached)
-        (self - not_reached_milestones).can_be_marked_as_done = False
-        if not_reached_milestones:
+        unreached_milestones = self.filtered(lambda milestone: not milestone.is_reached)
+        (self - unreached_milestones).can_be_marked_as_done = False
+        if unreached_milestones:
             task_read_group = self.env['project.task']._read_group(
-                [('milestone_id', 'in', not_reached_milestones.ids)],
+                [('milestone_id', 'in', unreached_milestones.ids)],
                 ['milestone_id', 'is_closed', 'task_count:count(id)'],
                 ['milestone_id', 'is_closed'],
                 lazy=False,
@@ -72,7 +72,7 @@ class ProjectMilestone(models.Model):
                 else:
                     opened_task_count += res['task_count']
                 task_count_per_milestones[res['milestone_id'][0]] = opened_task_count, closed_task_count
-            for milestone in not_reached_milestones:
+            for milestone in unreached_milestones:
                 opened_task_count, closed_task_count = task_count_per_milestones[milestone.id]
                 milestone.can_be_marked_as_done = closed_task_count > 0 and not opened_task_count
 
