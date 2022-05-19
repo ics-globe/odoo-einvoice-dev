@@ -104,7 +104,8 @@ class TestUiHtmlEditor(odoo.tests.HttpCase):
                 self.env.ref('website.group_website_designer').id
             ])]
         })
-        self.start_tour("/", 'test_html_editor_scss', login='admin')
+        self.start_tour("/web", 'test_html_editor_scss', login='admin')
+        self.start_tour("/web", 'test_html_editor_scss_2', login='demo')
 
 
 @odoo.tests.tagged('-at_install', 'post_install')

@@ -23,9 +23,9 @@ const wTourUtils = require('website.tour_utils');
  * -> ensure it was deleted
  */
 
-tour.register('test_custom_snippet', {
-    url: wTourUtils.getClientActionUrl('/', true),
-    test: true
+wTourUtils.registerEditionTour('test_custom_snippet', {
+    url: '/',
+    edition: true,
 }, [
     {
         content: "drop a snippet",
