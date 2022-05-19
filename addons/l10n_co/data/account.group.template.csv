@@ -1,0 +1,3 @@
+id,code_prefix_start,code_prefix_end,name,chart_template_id/id
+co_group_1,1,,"Activo",l10n_co.l10n_co_chart_template_generic
+co_group_11,11,,"Disponible",l10n_co.l10n_co_chart_template_generic
