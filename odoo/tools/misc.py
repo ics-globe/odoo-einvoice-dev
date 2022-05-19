@@ -1292,7 +1292,7 @@ def babel_locale_parse(lang_code):
         except:
             return babel.Locale.parse("en_US")
 
-def formatLang(env, value, digits=None, grouping=True, monetary=False, dp=False, currency_obj=False):
+def formatLang(env, value, digits=None, grouping=True, monetary=False, dp=False, currency_obj=False, with_currency_sign=True):
     """
         Assuming 'Account' decimal.precision=3:
             formatLang(value) -> digits=2 (default)
@@ -1316,7 +1316,7 @@ def formatLang(env, value, digits=None, grouping=True, monetary=False, dp=False,
 
     res = lang_obj.format('%.' + str(digits) + 'f', value, grouping=grouping, monetary=monetary)
 
-    if currency_obj and currency_obj.symbol:
+    if currency_obj and currency_obj.symbol and with_currency_sign:
         if currency_obj.position == 'after':
             res = '%s%s%s' % (res, NON_BREAKING_SPACE, currency_obj.symbol)
         elif currency_obj and currency_obj.position == 'before':
