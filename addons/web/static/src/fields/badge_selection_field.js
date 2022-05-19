@@ -16,7 +16,7 @@ BadgeSelectionField.template = "web.BadgeSelectionField";
 BadgeSelectionField.props = {
     options: {
         type: Array,
-        element: { type: Array },
+        element: Array,
     },
     readonly: { type: Boolean, optional: true },
     update: { type: Function, optional: true },

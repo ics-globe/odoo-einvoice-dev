@@ -9,7 +9,7 @@ export class AttachmentImageField extends Component {}
 
 AttachmentImageField.template = "web.AttachmentImageField";
 AttachmentImageField.props = {
-    src: { type: String, optional: true },
+    resId: { type: Number, optional: true },
     title: { type: String, optional: true },
 };
 
@@ -18,7 +18,7 @@ AttachmentImageField.supportedTypes = ["many2one"];
 
 AttachmentImageField.computeProps = (params) => {
     return {
-        src: params.value ? params.value[0] : undefined,
+        resId: params.value ? params.value[0] : undefined,
         title: params.value ? params.value[1] : undefined,
     };
 };

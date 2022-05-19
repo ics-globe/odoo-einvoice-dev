@@ -3,7 +3,7 @@
 
     <t t-name="web.AttachmentImageField" owl="1">
         <div class="o_attachment_image">
-            <img t-if="props.src" t-attf-src="/web/image/{{ props.src }}?unique=1" t-att-title="props.title" alt="Image" />
+            <img t-if="props.resId" t-attf-src="/web/image/{{ props.resId }}?unique=1" t-att-title="props.title" alt="Image" />
         </div>
     </t>
 
