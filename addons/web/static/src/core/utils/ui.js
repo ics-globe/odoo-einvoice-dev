@@ -39,7 +39,7 @@ import { debounce } from "@web/core/utils/timing";
  * @property {(group: HTMLElement | null, element: HTMLElement) => any} [onStop]
  *  called when the dragging sequence ends, regardless of the reason.
  * @property {(params: DropParams) => any} [onDrop] called when the dragging sequence
- *  ends on a mouseup action AND the dragged element has been moved elsewhere. The
+ *  ends on a pointerup action AND the dragged element has been moved elsewhere. The
  *  callback will be given an object with any useful element regarding the new position
  *  of the dragged element (@see DropParams ).
  */
@@ -55,10 +55,9 @@ import { debounce } from "@web/core/utils/timing";
 
 const { useEffect, useEnv, useExternalListener, onWillUnmount } = owl;
 
-const DRAG_START_THRESHOLD = 5 ** 2;
 const LEFT_CLICK = 0;
-const MOUSEMOVE_DEBOUNCE = 6;
 const MANDATORY_SORTABLE_PARAMS = ["ref", "elements"];
+const MOVE_DEBOUNCE = 6;
 const SORTABLE_PARAMS = {
     isActive: ["boolean", "function"],
     ref: ["object"],
@@ -69,14 +68,8 @@ const SORTABLE_PARAMS = {
     cursor: ["string"],
 };
 
-/**
- * Cancels the default behavior and propagation of a given event.
- * @param {Event} ev
- */
-const cancelEvent = (ev) => {
-    ev.stopPropagation();
-    ev.stopImmediatePropagation();
-    ev.preventDefault();
+export const sortableSettings = {
+    dragStartThreshold: 5 ** 2,
 };
 
 /**
@@ -239,7 +232,7 @@ export const useSortable = (params) => {
     let started = false;
 
     /**
-     * These 2 variables store the initial offset between the initial mousedown
+     * These 2 variables store the initial offset between the initial pointerdown
      * position and the top-left corner of the dragged element.
      */
     /** @type {number} */
@@ -248,19 +241,15 @@ export const useSortable = (params) => {
     let offsetY = 0;
 
     /**
-     * Adds an event listener to be cleaned up after the next drag sequence
-     * has stopped. An additionnal `timeout` param allows the handler to be
-     * delayed after a timeout.
+     * Adds an event listener to be cleaned up after the drag sequence has stopped.
      * @param {EventTarget} el
      * @param {string} event
      * @param {(...args: any[]) => any} callback
      * @param {boolean | Record<string, boolean>} [options]
-     * @param {boolean} [timeout]
      */
-    const addListener = (el, event, callback, options, timeout) => {
+    const addListener = (el, event, callback, options) => {
         el.addEventListener(event, callback, options);
-        const cleanup = () => el.removeEventListener(event, callback, options);
-        cleanups.push(timeout ? () => setTimeout(cleanup) : cleanup);
+        cleanups.push(() => el.removeEventListener(event, callback, options));
     };
 
     /**
@@ -285,10 +274,10 @@ export const useSortable = (params) => {
      * @param {string} callbackName
      * @param  {...any} args
      */
-    const execHandler = (callbackName, ...args) => {
+    const execHandler = async (callbackName, ...args) => {
         if (typeof params[callbackName] === "function") {
             try {
-                params[callbackName](...args);
+                await params[callbackName](...args);
             } catch (err) {
                 dragStop(true, true);
                 throw err;
@@ -297,10 +286,10 @@ export const useSortable = (params) => {
     };
 
     /**
-     * Element "mouseenter" event handler.
-     * @param {MouseEvent} ev
+     * Element "pointerenter" event handler.
+     * @param {PointerEvent} ev
      */
-    const onElementMouseenter = (ev) => {
+    const onElementPointerenter = (ev) => {
         const element = ev.currentTarget;
         if (connectGroups || !groupSelector || currentGroup === element.closest(groupSelector)) {
             const pos = ghost.compareDocumentPosition(element);
@@ -314,29 +303,29 @@ export const useSortable = (params) => {
     };
 
     /**
-     * Element "mouseleave" event handler.
-     * @param {MouseEvent} ev
+     * Element "pointerleave" event handler.
+     * @param {PointerEvent} ev
      */
-    const onElementMouseleave = (ev) => {
+    const onElementPointerleave = (ev) => {
         const element = ev.currentTarget;
         execHandler("onElementLeave", element);
     };
 
     /**
-     * Group "mouseenter" event handler.
-     * @param {MouseEvent} ev
+     * Group "pointerenter" event handler.
+     * @param {PointerEvent} ev
      */
-    const onGroupMouseenter = (ev) => {
+    const onGroupPointerenter = (ev) => {
         const group = ev.currentTarget;
         group.appendChild(ghost);
         execHandler("onGroupEnter", group);
     };
 
     /**
-     * Group "mouseleave" event handler.
-     * @param {MouseEvent} ev
+     * Group "pointerleave" event handler.
+     * @param {PointerEvent} ev
      */
-    const onGroupMouseleave = (ev) => {
+    const onGroupPointerleave = (ev) => {
         const group = ev.currentTarget;
         execHandler("onGroupLeave", group);
     };
@@ -352,36 +341,37 @@ export const useSortable = (params) => {
         switch (ev.key) {
             case "Escape":
             case "Tab": {
-                cancelEvent(ev);
                 dragStop(true);
             }
         }
     };
 
     /**
-     * Global (= ref) "mousedown" event handler.
-     * @param {MouseEvent} ev
+     * Global (= ref) "pointerdown" event handler.
+     * @param {PointerEvent} ev
      */
-    const onMousedown = (ev) => {
-        // A drag sequence can still be in progress if the mouseup occurred
+    const onPointerdown = (ev) => {
+        // A drag sequence can still be in progress if the pointerup occurred
         // outside of the window.
         dragStop(true);
 
         if (ev.button !== LEFT_CLICK || !enabled || !ev.target.closest(fullSelector)) {
-            return;
+            return true;
         }
 
         currentElement = ev.target.closest(elementSelector);
         currentGroup = groupSelector && ev.target.closest(groupSelector);
         offsetX = ev.clientX;
         offsetY = ev.clientY;
+
+        return false;
     };
 
     /**
-     * Window "mousemove" event handler.
-     * @param {MouseEvent} ev
+     * Window "pointermove" event handler.
+     * @param {PointerEvent} ev
      */
-    const onMousemove = (ev) => {
+    const onPointermove = (ev) => {
         if (!enabled || !currentElement) {
             return;
         }
@@ -398,19 +388,25 @@ export const useSortable = (params) => {
                 currentContainerRect.y + currentContainerRect.height - currentElementRect.height
             )}px`;
         } else if (
-            // The drag sequence starts as soon as the mouse has travelled a
-            // certain amount of pixels from the initial mousedown position
-            // (`DRAG_START_THRESHOLD` = squared distance required to travel).
-            squareDistance(offsetX, offsetY, ev.clientX, ev.clientY) >= DRAG_START_THRESHOLD
+            // The drag sequence starts as soon as the pointer has travelled a
+            // certain amount of pixels from the initial pointerdown position
+            // (`dragStartThreshold` = squared distance required to travel).
+            squareDistance(offsetX, offsetY, ev.clientX, ev.clientY) >=
+            sortableSettings.dragStartThreshold
         ) {
             dragStart();
         }
     };
 
     /**
-     * Window "mouseup" event handler.
+     * Window "pointerup" event handler.
      */
-    const onMouseup = () => dragStop(false);
+    const onPointerup = () => dragStop(false);
+
+    /**
+     * Window "pointercancel" event handler.
+     */
+    const onPointercancel = () => dragStop(true);
 
     /**
      * Main entry function to start a drag sequence.
@@ -444,17 +440,12 @@ export const useSortable = (params) => {
         ghost.style.visibility = "hidden";
         cleanups.push(() => ghost.remove());
 
-        // Cancels all click events targetting the current element
-        // A timeout is added so that all handlers can be executed without
-        // original click events getting in the way.
-        addListener(currentElement, "click", cancelEvent, true, true);
-
         // Binds handlers on eligible groups, if the elements are not confined to
         // their parents and a 'groupSelector' has been provided.
         if (connectGroups && groupSelector) {
             for (const siblingGroup of ref.el.querySelectorAll(groupSelector)) {
-                addListener(siblingGroup, "mouseenter", onGroupMouseenter);
-                addListener(siblingGroup, "mouseleave", onGroupMouseleave);
+                addListener(siblingGroup, "pointerenter", onGroupPointerenter);
+                addListener(siblingGroup, "pointerleave", onGroupPointerleave);
                 addStyle(siblingGroup, { "pointer-events": "auto" });
             }
         }
@@ -462,8 +453,8 @@ export const useSortable = (params) => {
         // Binds handlers on eligible elements
         for (const siblingElement of ref.el.querySelectorAll(elementSelector)) {
             if (siblingElement !== currentElement && siblingElement !== ghost) {
-                addListener(siblingElement, "mouseenter", onElementMouseenter);
-                addListener(siblingElement, "mouseleave", onElementMouseleave);
+                addListener(siblingElement, "pointerenter", onElementPointerenter);
+                addListener(siblingElement, "pointerleave", onElementPointerleave);
                 addStyle(siblingElement, { "pointer-events": "auto" });
             }
         }
@@ -507,20 +498,18 @@ export const useSortable = (params) => {
      *  originated from one of the handlers.
      */
     const dragStop = (cancelled, inErrorState) => {
-        if (started) {
-            if (!inErrorState) {
-                execHandler("onStop", currentGroup, currentElement);
-                const previous = ghost.previousElementSibling;
-                const next = ghost.nextElementSibling;
-                if (!cancelled && previous !== currentElement && next !== currentElement) {
-                    execHandler("onDrop", {
-                        group: currentGroup,
-                        element: currentElement,
-                        previous,
-                        next,
-                        parent: groupSelector && ghost.closest(groupSelector),
-                    });
-                }
+        if (started && !inErrorState) {
+            execHandler("onStop", currentGroup, currentElement);
+            const previous = ghost.previousElementSibling;
+            const next = ghost.nextElementSibling;
+            if (!cancelled && previous !== currentElement && next !== currentElement) {
+                execHandler("onDrop", {
+                    group: currentGroup,
+                    element: currentElement,
+                    previous,
+                    next,
+                    parent: groupSelector && ghost.closest(groupSelector),
+                });
             }
         }
 
@@ -571,19 +560,20 @@ export const useSortable = (params) => {
         },
         () => computeParams(params)
     );
-    // Effect depending on the `ref.el` to add triggering mouse events listener.
+    // Effect depending on the `ref.el` to add triggering pointer events listener.
     useEffect(
         (el) => {
             if (el) {
-                el.addEventListener("mousedown", onMousedown);
-                return () => el.removeEventListener("mousedown", onMousedown);
+                el.addEventListener("pointerdown", onPointerdown);
+                return () => el.removeEventListener("pointerdown", onPointerdown);
             }
         },
         () => [ref.el]
     );
-    // Other global mouse event listeners.
-    useExternalListener(window, "mousemove", debounce(onMousemove, MOUSEMOVE_DEBOUNCE, true));
-    useExternalListener(window, "mouseup", onMouseup, true);
-    useExternalListener(window, "keydown", onKeydown, true);
+    // Other global pointer event listeners.
+    useExternalListener(window, "pointermove", debounce(onPointermove, MOVE_DEBOUNCE, true));
+    useExternalListener(window, "pointerup", onPointerup);
+    useExternalListener(window, "pointercancel", onPointercancel);
+    useExternalListener(window, "keydown", onKeydown);
     onWillUnmount(() => dragStop(true));
 };

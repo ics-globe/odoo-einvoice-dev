@@ -40,14 +40,6 @@ let target;
 // WOWL remove after adapting tests
 let testUtils, relationalFields, makeLegacyDialogMappingTestEnv, AbstractStorageService, RamStorage;
 
-function patchSetTimeout() {
-    patchWithCleanup(browser, {
-        setTimeout(fn) {
-            window.setTimeout(fn, 0);
-        },
-    });
-}
-
 function getNextTabableElement() {
     // get TABS
 
@@ -405,13 +397,6 @@ QUnit.module("Fields", (hooks) => {
          * in that case, a domain evaluation on that field followed by name_search
          * shouldn't send virtual_ids to the server
          */
-
-        patchWithCleanup(AutoComplete, {
-            delay: 0,
-        });
-        patchWithCleanup(browser, {
-            setTimeout: (fn) => fn(),
-        });
 
         serverData.models.turtle.fields.parent_id = {
             string: "Parent",
@@ -6605,9 +6590,6 @@ QUnit.module("Fields", (hooks) => {
     QUnit.skipWOWL("one2many field with virtual ids with kanban button", async function (assert) {
         assert.expect(25);
 
-        // this is a way to avoid the debounce of triggerAction
-        patchSetTimeout();
-
         serverData.models.partner.records[0].p = [4];
 
         const form = await makeView({
@@ -10295,11 +10277,6 @@ QUnit.module("Fields", (hooks) => {
             // such that the onchange is delayed. During the name_create, we click to add a new row
             // to the one2many. After a while, we unlock the name_create, which triggers the onchange
             // and resets the one2many. At the end, we want the row to be in edition.
-
-            // patch setTimeout s.t. the autocomplete drodown opens directly
-            patchWithCleanup(browser, {
-                setTimeout: (fn) => fn(),
-            });
 
             const def = makeDeferred();
             serverData.models.partner.onchanges = {

@@ -4,9 +4,9 @@ import { browser } from "@web/core/browser/browser";
 import { debounce, throttleForAnimation } from "@web/core/utils/timing";
 import {
     makeDeferred,
-    patchWithCleanup,
-    mockTimeout,
     mockAnimationFrame,
+    mockTimeout,
+    patchWithCleanup,
 } from "../../helpers/utils";
 
 QUnit.module("utils", () => {

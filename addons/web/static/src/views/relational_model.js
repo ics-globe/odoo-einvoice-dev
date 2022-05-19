@@ -1496,7 +1496,7 @@ class DynamicList extends DataPoint {
                 sequences.push(el[handleField]);
             }
         }
-        // FIMME: can't go though orm, so no context given
+
         const wasResequenced = await this.model.rpc("/web/dataset/resequence", {
             model,
             ids,

@@ -2,9 +2,10 @@
 
 import { browser } from "@web/core/browser/browser";
 import { isMacOS } from "@web/core/browser/feature_detection";
-import { patch, unpatch } from "@web/core/utils/patch";
-import { registerCleanup } from "./cleanup";
 import { download } from "@web/core/network/download";
+import { patch, unpatch } from "@web/core/utils/patch";
+import { sortableSettings } from "@web/core/utils/ui";
+import { registerCleanup } from "./cleanup";
 
 const { App, onMounted, onPatched, useComponent } = owl;
 
@@ -114,13 +115,17 @@ let nextId = 1;
  * @param {Object} obj object to patch
  * @param {Object} patchValue the actual patch description
  * @param {{pure?: boolean}} [options]
+ * @returns {Function} early unpatch
  */
 export function patchWithCleanup(obj, patchValue, options) {
     const patchName = `__test_patch_${nextId++}__`;
+    let unpatched = false;
     patch(obj, patchName, patchValue, options);
-    registerCleanup(() => {
+    registerCleanup(() => !unpatched && unpatch(obj, patchName));
+    return function earlyUnpatch() {
+        unpatched = true;
         unpatch(obj, patchName);
-    });
+    };
 }
 
 /**
@@ -216,6 +221,11 @@ const EVENT_TYPES = {
     mouseleave: { constructor: MouseEvent, processParameters: mouseEventNoBubble },
     mouseover: { constructor: MouseEvent, processParameters: mouseEventMapping },
     mouseout: { constructor: MouseEvent, processParameters: mouseEventMapping },
+    pointerdown: { constructor: PointerEvent, processParameters: mouseEventMapping },
+    pointerup: { constructor: PointerEvent, processParameters: mouseEventMapping },
+    pointermove: { constructor: PointerEvent, processParameters: mouseEventMapping },
+    pointerenter: { constructor: PointerEvent, processParameters: mouseEventNoBubble },
+    pointerleave: { constructor: PointerEvent, processParameters: mouseEventNoBubble },
     focus: { constructor: FocusEvent, processParameters: noBubble },
     focusin: { constructor: FocusEvent, processParameters: onlyBubble },
     blur: { constructor: FocusEvent, processParameters: noBubble },
@@ -625,17 +635,19 @@ const getDifferentParents = (n1, n2) => {
  * @returns {Promise<void>}
  */
 export const dragAndDrop = async (fromSelector, toSelector, position) => {
+    patch(sortableSettings, "utils.dragAndDrop", { moveDebounce: 0 });
+
     const fixture = getFixture();
     const from = fixture.querySelector(fromSelector);
     const to = fixture.querySelector(toSelector);
 
     // Mouse down on main target then move to a far away position to initiate the drag
     const fromRect = from.getBoundingClientRect();
-    triggerEvent(from, null, "mousedown", {
+    triggerEvent(from, null, "pointerdown", {
         clientX: fromRect.x + fromRect.width / 2,
         clientY: fromRect.y + fromRect.height / 2,
     });
-    triggerEvent(window, null, "mousemove", { clientX: -999, clientY: -999 });
+    triggerEvent(window, null, "pointermove", { clientX: -999, clientY: -999 });
 
     // Find target position
     const toRect = to.getBoundingClientRect();
@@ -663,14 +675,16 @@ export const dragAndDrop = async (fromSelector, toSelector, position) => {
     }
 
     // Move, enter and drop the element on the target
-    triggerEvent(window, null, "mousemove", toPos);
+    triggerEvent(window, null, "pointermove", toPos);
     // "mouseenter" is fired on every parent of `to` that do not contain
     // `from` (typically: different parent lists).
     for (const target of getDifferentParents(from, to)) {
-        triggerEvent(target, null, "mouseenter", toPos);
+        triggerEvent(target, null, "pointerenter", toPos);
     }
-    triggerEvent(from, null, "mouseup", toPos);
+    triggerEvent(from, null, "pointerup", toPos);
     await triggerEvent(from, null, "click", toPos);
+
+    unpatch(sortableSettings, "utils.dragAndDrop");
 };
 
 export async function clickDropdown(target, fieldName) {

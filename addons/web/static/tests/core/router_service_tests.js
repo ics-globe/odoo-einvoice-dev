@@ -4,7 +4,7 @@ import { browser } from "@web/core/browser/browser";
 import { parseHash, parseSearchQuery, routeToUrl } from "@web/core/browser/router_service";
 import { makeTestEnv } from "../helpers/mock_env";
 import { makeFakeRouterService } from "../helpers/mock_services";
-import { nextTick, patchWithCleanup } from "../helpers/utils";
+import { mockTimeout, nextTick, patchWithCleanup } from "../helpers/utils";
 
 const { EventBus } = owl;
 
@@ -135,6 +135,8 @@ QUnit.test("can redirect an URL", async (assert) => {
 QUnit.module("Router: Push state");
 
 QUnit.test("can push in same timeout", async (assert) => {
+    const { execRegisteredTimeouts } = mockTimeout();
+
     const router = await createRouter();
 
     assert.deepEqual(router.current.hash, {});
@@ -144,7 +146,9 @@ QUnit.test("can push in same timeout", async (assert) => {
 
     router.pushState({ k1: 3 });
     assert.deepEqual(router.current.hash, {});
-    await nextTick();
+
+    execRegisteredTimeouts();
+
     assert.deepEqual(router.current.hash, { k1: 3 });
 });
 

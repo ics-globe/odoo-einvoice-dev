@@ -1,20 +1,20 @@
 /** @odoo-module **/
 
+import { patchWithCleanup } from "@web/../tests/helpers/utils";
+import { processTemplates } from "@web/core/assets";
+import { browser, makeRAMLocalStorage } from "@web/core/browser/browser";
+import { config as transitionConfig } from "@web/core/transition";
+import { patch } from "@web/core/utils/patch";
+import { session as sessionInfo } from "@web/session";
 import core, { _t } from "web.core";
 import session from "web.session";
-import { browser, makeRAMLocalStorage } from "@web/core/browser/browser";
-import { patchWithCleanup } from "@web/../tests/helpers/utils";
 import { legacyProm } from "web.test_legacy";
 import { registerCleanup } from "./helpers/cleanup";
-import { prepareRegistriesWithCleanup } from "./helpers/mock_env";
-import { session as sessionInfo } from "@web/session";
 import { prepareLegacyRegistriesWithCleanup } from "./helpers/legacy_env_utils";
-import { config as transitionConfig } from "@web/core/transition";
+import { prepareRegistriesWithCleanup } from "./helpers/mock_env";
 
 transitionConfig.disabled = true;
 
-import { patch } from "@web/core/utils/patch";
-import { processTemplates } from "@web/core/assets";
 const { App, whenReady, loadFile } = owl;
 
 patch(App.prototype, "TestOwlApp", {
@@ -206,6 +206,27 @@ function patchSessionInfo() {
     });
 }
 
+let restoreTimings = null;
+
+function patchTimings() {
+    const makeImmediateFunction = (fnName) => (callback) => {
+        console.log(`Calling "${fnName}" immediatly`);
+        return callback();
+    };
+
+    restoreTimings = patchWithCleanup(browser, {
+        setTimeout: makeImmediateFunction("setTimeout"),
+        requestAnimationFrame: makeImmediateFunction("requestAnimationFrame"),
+    });
+}
+
+export function useOriginalTimings() {
+    if (restoreTimings) {
+        restoreTimings();
+        restoreTimings = null;
+    }
+}
+
 export async function setupTests() {
     QUnit.testStart(() => {
         checkGlobalObjectsIntegrity();
@@ -216,6 +237,7 @@ export async function setupTests() {
         patchLegacyCoreBus();
         patchOdoo();
         patchSessionInfo();
+        patchTimings();
     });
 
     const templatesUrl = `/web/webclient/qweb/${new Date().getTime()}?bundle=web.assets_qweb`;
