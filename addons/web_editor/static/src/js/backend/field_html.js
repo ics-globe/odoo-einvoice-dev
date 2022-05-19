@@ -9,7 +9,7 @@ import wysiwygLoader from 'web_editor.loader';
 import field_registry from 'web.field_registry';
 import {QWebPlugin} from '@web_editor/js/backend/QWebPlugin';
 import {getRangePosition} from '@web_editor/../lib/odoo-editor/src/utils/utils';
-import {getAdjacentPreviousSiblings, getAdjacentNextSiblings} from '../../../lib/odoo-editor/src/utils/utils';
+import {getAdjacentPreviousSiblings, getAdjacentNextSiblings, setSelection, rightPos,} from '../../../lib/odoo-editor/src/utils/utils';
 // must wait for web/ to add the default html widget, otherwise it would override the web_editor one
 import 'web._field_registry';
 
@@ -82,6 +82,8 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
                 const t = document.createElement('T');
                 t.setAttribute('t-out', dynamicPlaceholder);
                 this.wysiwyg.odooEditor.execCommand('insertHTML', t.outerHTML);
+                setSelection(...rightPos(t));
+                this.wysiwyg.odooEditor.editable.focus();
             }
             modelSelector.destroy();
         });

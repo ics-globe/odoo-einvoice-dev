@@ -2650,7 +2650,11 @@ export class OdooEditor extends EventTarget {
         };
 
         for (const hint of this.editable.querySelectorAll('.oe-hint')) {
-            if (hint.classList.contains('oe-command-temporary-hint') || !isEmptyBlock(hint)) {
+            if (
+                hint.classList.contains('oe-command-temporary-hint') ||
+                !isEmptyBlock(hint) ||
+                hint.querySelector('T[t-out]')
+            ) {
                 this.observerUnactive();
                 hint.classList.remove('oe-hint', 'oe-command-temporary-hint');
                 if (hint.classList.length === 0) {
@@ -2684,6 +2688,7 @@ export class OdooEditor extends EventTarget {
         if (
             block &&
             (content === '' || content === '<br>') &&
+            !block.querySelector('T[t-out]') &&
             ancestors(block, this.editable).includes(this.editable)
         ) {
             this.observerUnactive();
