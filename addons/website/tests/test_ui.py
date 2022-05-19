@@ -287,7 +287,7 @@ class TestUi(odoo.tests.HttpCase):
         self.start_tour("/", "carousel_content_removal", login='admin')
 
     def test_15_website_link_tools(self):
-        self.start_tour("/", "link_tools", login="admin")
+        self.start_tour("/web", "link_tools", login="admin")
 
     def test_16_website_edit_megamenu(self):
         self.start_tour("/", "edit_megamenu", login="admin")
