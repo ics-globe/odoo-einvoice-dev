@@ -2039,7 +2039,7 @@ export function rgbToHex(rgb = '') {
 
 export function getRangePosition(el, document, options = {}) {
     const selection = document.getSelection();
-    if (!selection.isCollapsed || !selection.rangeCount) return;
+    if (!selection.rangeCount) return;
     const range = selection.getRangeAt(0);
 
     const marginRight = options.marginRight || 20;

@@ -8,8 +8,13 @@ import core from 'web.core';
 import wysiwygLoader from 'web_editor.loader';
 import field_registry from 'web.field_registry';
 import {QWebPlugin} from '@web_editor/js/backend/QWebPlugin';
-import {getRangePosition} from '@web_editor/../lib/odoo-editor/src/utils/utils';
-import {getAdjacentPreviousSiblings, getAdjacentNextSiblings, setSelection, rightPos,} from '../../../lib/odoo-editor/src/utils/utils';
+import {
+    getAdjacentPreviousSiblings,
+    getAdjacentNextSiblings,
+    setSelection,
+    rightPos,
+    getRangePosition
+} from '../../../lib/odoo-editor/src/utils/utils';
 // must wait for web/ to add the default html widget, otherwise it would override the web_editor one
 import 'web._field_registry';
 
