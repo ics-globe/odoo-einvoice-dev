@@ -20,76 +20,61 @@ class SurveyTemplate(models.Model):
     def action_load_sample_feedback_form(self):
         return self.env['survey.survey'].create({
             'title': _('Feedback Form'),
-            'description': _('What do you think of our new eShop? Let us hear your voice!'),
+            'description': _('Please complete this very short survey to let us know how satisfied your are with our products. Your responses will help us improve our product range to serve you even better.'),
             'description_done': _('Thank you very much for your feedback. We at MyCompany value your opinion!'),
             'progression_mode': 'number',
-            'questions_layout': 'one_page',
+            'questions_layout': 'page_per_question',
             'question_and_page_ids': [
                 (0, 0, { # survey.question
-                    'title': _('About you'),
-                    'is_page': True,
-                    'question_type': False
-                }),
-                (0, 0, { # survey.question
-                    'title': _('How frequently do you buy products online?'),
+                    'title': _('How frequently do you use our products?'),
                     'question_type': 'simple_choice',
+                    'constr_mandatory': True,
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('Once a day')
+                            'value': _('Often (1-3 times per week)')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Once a week')
+                            'value': _('Rarely (1-3 times per month)')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Once a month')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('Once a year')
-                        }),
-                        (0, 0, {  # survey.question.answer
-                            'value': _('Never')
+                            'value': _('Never (less than once a month')
                         })
                     ]
                 }),
                 (0, 0, { # survey.question
-                    'title': _('How many times did you order products on our website?'),
-                    'question_type': 'numerical_box'
+                    'title': _('How many times did you order during the last 6 months?'),
+                    'question_type': 'numerical_box',
                 }),
                 (0, 0, { # survey.question
-                    'title': _('About our ecommerce'),
-                    'is_page': True,
-                    'question_type': False
-                }),
-                (0, 0, { # survey.question
-                    'title': _('What do you think about our new eCommerce?'),
+                    'title': _('How likely are you to recommend the following products to your friends and relatives?'),
                     'question_type': 'matrix',
                     'matrix_subtype': 'simple',
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('Strongly disagree')
+                            'value': _('Very Unlikely')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Disagree')
+                            'value': _('Unlikely')
                         }),
                         (0, 0, { # survey.question.answer
                             'value': _('Neutral')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Agree')
+                            'value': _('Likely')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Strongly agree')
+                            'value': _('Very Likely')
                         })
                     ],
                     'matrix_row_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('The new layout and design is fresh and up-to-date')
+                            'value': _('Red Pen')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('It is easy to find the product that I want')
+                            'value': _('Blue Pen')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('The tool to compare the products is useful to make a choice')
+                            'value': _('Yellow Pen')
                         })
                     ]
                 })
@@ -110,7 +95,7 @@ class SurveyTemplate(models.Model):
             'scoring_type': 'scoring_without_answers',
             'users_can_go_back': True,
             'description': '<br>'.join([
-                _('Welcome to the History certification. You will receive 2 random questions.'),
+                _('Welcome to this Odoo certification. You will receive 2 random questions out of a pool of 3. Cheating on your neighbours will not help.'),
                 _('Good luck!')
             ]),
             'description_done': _('Thank you. We will contact you soon.'),
@@ -118,65 +103,62 @@ class SurveyTemplate(models.Model):
             'questions_selection': 'random',
             'question_and_page_ids': [
                 (0, 0, { # survey.question
-                    'title': _('History'),
+                    'title': _('Odoo Certifications'),
                     'is_page': True,
                     'question_type': False,
                     'random_questions_count': 2
                 }),
                 (0, 0, { # survey.question
-                    'title': _('When did Genghis Khan die?'),
+                    'title': _('What is the meaning of the name "Odoo"?'),
                     'question_type': 'simple_choice',
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('1227'),
+                            'value': _('It\'s a Belgian word for "Management".')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('Object-Directed Open Organization.')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('Organizational Development for Operation Officer.')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('It does not mean anything specific.'),
+                            'is_correct': True,
+                            'answer_score': 10
+                        }),
+                    ]
+                }),
+                (0, 0, { # survey.question
+                    'title': _('On Survey questions, one can define "placeholders". But what are they for?'),
+                    'question_type': 'simple_choice',
+                    'suggested_answer_ids': [
+                        (0, 0, { # survey.question.answer
+                            'value': _('They are a default answer, used if the participant skips the question.')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('It is a small bit of text, displayed to help participants answer.'),
                             'is_correct': True,
                             'answer_score': 10
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('1324')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('1055')
+                            'value': _('They are technical parameters that guarantees the responsiveness of the page.')
                         })
                     ]
                 }),
                 (0, 0, { # survey.question
-                    'title': _('Who is the architect of the Great Pyramid of Giza ?'),
+                    'title': _('What is the required score to pass an Odoo Survey?'),
                     'question_type': 'simple_choice',
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('Imhotep')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('Amenhotep')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('Hemiunu'),
+                            'value': _('It is an option that can be different for each Survey.'),
                             'is_correct': True,
                             'answer_score': 10
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Papyrus')
-                        })
-                    ]
-                }),
-                (0, 0, { # survey.question
-                    'title': _('How many years did the 100 years war last?'),
-                    'question_type': 'simple_choice',
-                    'suggested_answer_ids': [
-                        (0, 0, { # survey.question.answer
-                            'value': _('99 years')
+                            'value': _('One needs to get 50% of the total score.')
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('100 years')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('116 years'),
-                            'is_correct': True,
-                            'answer_score': 10
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('127 years')
+                            'value': _('One needs to answer at least half the questions correctly.')
                         })
                     ]
                 })
@@ -194,7 +176,7 @@ class SurveyTemplate(models.Model):
         return self.env['survey.survey'].create({
             'title': _('Live Presentation'),
             'description': '<br>'.join([
-                _('How well do you know trees? Let\'s find out!'),
+                _('How well do you know good presentation practices? Let\'s find out!'),
                 _('But first, keep listening to the host.')
             ]),
             'description_done': _('Thank you for your participation, hope you had a blast!'),
@@ -204,66 +186,61 @@ class SurveyTemplate(models.Model):
             'session_speed_rating': True,
             'question_and_page_ids': [
                 (0, 0, { # survey.question
-                    'title': _('About you'),
-                    'is_page': True,
-                    'question_type': False
-                }),
-                (0, 0, { # survey.question
-                    'title': _('Pick a nickname'),
-                    'question_type': 'char_box',
-                    'save_as_nickname': True
-                }),
-                (0, 0, { # survey.question
-                    'title': _('Quiz'),
-                    'is_page': True,
-                    'question_type': False
-                }),
-                (0, 0, { # survey.question
-                    'title': _('In which country did the bonsai technique develop?'),
+                    'title': _('What\'s the best way to catch the attention of an audience?'),
                     'question_type': 'simple_choice',
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('Japan'),
+                            'value': _('Speak softly so that they need to focus to hear you.')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('Use a fun visual support, like a live presentation'),
                             'is_correct': True,
                             'answer_score': 20
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('China')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('Vietnam')
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('South Korea')
+                            'value': _('Show them slides with a ton of text they need to read fast')
                         })
                     ]
                 }),
                 (0, 0, { # survey.question
-                    'title': _('In the list below, select all the coniferous.'),
+                    'title': _('What is a frequent mistake public speakers do?'),
+                    'question_type': 'simple_choice',
+                    'suggested_answer_ids': [
+                        (0, 0, { # survey.question.answer
+                            'value': _('Practice in front of a mirror.')
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('Speak too fast.'),
+                            'is_correct': True,
+                            'answer_score': 20
+                        }),
+                        (0, 0, { # survey.question.answer
+                            'value': _('Use humor and make jokes.')
+                        })
+                    ]
+                }),
+                (0, 0, { # survey.question
+                    'title': _('Why should you think about gamifying your presentation?'),
                     'question_type': 'multiple_choice',
                     'suggested_answer_ids': [
                         (0, 0, { # survey.question.answer
-                            'value': _('Douglas Fir'),
+                            'value': _('It helps attendees focus on what you are saying.'),
                             'is_correct': True,
-                            'answer_score': 5
+                            'answer_score': 20
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('Norway Spruce'),
+                            'value': _('It is more engaging for your audience'),
                             'is_correct': True,
-                            'answer_score': 5
+                            'answer_score': 20
                         }),
                         (0, 0, { # survey.question.answer
-                            'value': _('European Yew'),
+                            'value': _('It helps attendees remember the content of your presentation.'),
                             'is_correct': True,
-                            'answer_score': 5
-                        }),
-                        (0, 0, { # survey.question.answer
-                            'value': _('Mountain Pine'),
-                            'is_correct': True,
-                            'answer_score': 5
+                            'answer_score': 20
                         })
                     ]
-                })
+                }),
+
             ]
         }).action_show_sample()
 
