@@ -482,7 +482,6 @@ class Controller:
             module = path[2] if path[:2] == ['odoo', 'addons'] else ''
             Controller.children_classes[module].append(cls)
 
-
 def route(route=None, **routing):
     """
     Decorate a controller method in order to route incoming requests
@@ -838,6 +837,7 @@ class Session(collections.abc.MutableMapping):
 _request_stack = werkzeug.local.LocalStack()
 request = _request_stack()
 
+data_stream = {}
 
 class Response(werkzeug.wrappers.Response):
     """
@@ -911,7 +911,21 @@ class Response(werkzeug.wrappers.Response):
     def render(self):
         """ Renders the Response's template, returns the result. """
         self.qcontext['request'] = request
-        return request.env["ir.ui.view"]._render_template(self.template, self.qcontext)
+        rendering = request.env["ir.ui.view"]._render_template(self.template, self.qcontext)
+
+        def stream():
+            i, l = 0, len(rendering)
+            sleep = True
+            while i < l:
+                yield rendering[i:i+10]
+                i += 10
+                if sleep and i > l/2:
+                    sleep = False
+                    time.sleep(0.03)
+
+        data_stream['stream'] = stream
+
+        return rendering
 
     def flatten(self):
         """
@@ -1807,3 +1821,20 @@ class Application:
 
 
 root = Application()
+
+
+class ControllerStream(Controller):
+
+    @route('/no_stream_page', type='http', auth="public")
+    def no_stream_page(self):
+        if not data_stream.get('stream'):
+            raise ValueError('Please load page before')
+        parts = list(data_stream['stream']())
+        return Response(''.join(parts), status=200)
+
+
+    @route('/stream_page', type='http', auth="public")
+    def stream_page(self):
+        if not data_stream.get('stream'):
+            raise ValueError('Please load page before')
+        return Response(data_stream['stream'](), status=200)
