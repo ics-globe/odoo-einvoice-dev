@@ -617,6 +617,30 @@ async function applyConfigurator(self, themeName) {
         self.env.router.navigate({to: 'CONFIGURATOR_PALETTE_SELECTION_SCREEN'});
         return;
     }
+
+    async function attempt(data, retryCount) {
+        await self.rpc({
+            model: 'website',
+            method: 'configurator_apply',
+            kwargs: {...data},
+        }).then(resp => {
+            window.sessionStorage.removeItem(SESSION_STORAGE_ITEM_NAME);
+            window.location = resp.url;
+        }).catch(error => {
+            if (retryCount < 3) {
+                window.setTimeout(async () => {
+                    await attempt(data, retryCount + 1);
+                }, 5000);
+                return;
+            }
+            // Wait a bit before allowing manual retry.
+            window.setTimeout(() => {
+                $('body')[0].removeChild(document.querySelector('.o_theme_install_loader_container'));
+            }, 5000);
+            throw error;
+        });
+    }
+
     if (themeName !== undefined) {
         $('body').append(self.env.loader);
         const selectedFeatures = Object.values(self.state.features).filter((feature) => feature.selected).map((feature) => feature.id);
@@ -639,13 +663,7 @@ async function applyConfigurator(self, themeName) {
             website_type: WEBSITE_TYPES[self.state.selectedType].name,
             logo_attachment_id: self.state.logoAttachmentId,
         };
-        const resp = await self.rpc({
-            model: 'website',
-            method: 'configurator_apply',
-            kwargs: {...data},
-        });
-        window.sessionStorage.removeItem(SESSION_STORAGE_ITEM_NAME);
-        window.location = resp.url;
+        await attempt(data, 0);
     }
 }
 
