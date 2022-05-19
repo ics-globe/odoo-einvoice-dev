@@ -51,10 +51,15 @@ export class AutoComplete extends Component {
     open(useInput = false) {
         this.state.open = true;
         this.loadSources(useInput);
+        this.openedHotkeys = this.registerHotkeys({
+            escape: this.onEscapePress.bind(this),
+            enter: this.onEnterPress.bind(this),
+        });
     }
     close() {
         this.state.open = false;
         this.state.activeSourceOption = null;
+        this.unregisterHotkeys(this.openedHotkeys);
     }
 
     loadSources(useInput) {
@@ -173,33 +178,31 @@ export class AutoComplete extends Component {
         }
     }
 
-    registerHotkeys() {
-        const hotkeys = {
-            escape: this.onEscapePress.bind(this),
-            enter: this.onEnterPress.bind(this),
-            arrowdown: this.onArrowDownPress.bind(this),
-            arrowup: this.onArrowUpPress.bind(this),
-        };
+    registerHotkeys(hotkeys) {
+        const hotkeysToRemove = [];
         for (const [hotkey, callback] of Object.entries(hotkeys)) {
             const remove = this.hotkey.add(hotkey, callback, {
                 allowRepeat: true,
                 bypassEditableProtection: true,
             });
-            this.hotkeysToRemove.push(remove);
+            hotkeysToRemove.push(remove);
         }
+        return hotkeysToRemove;
     }
-    unregisterHotkeys() {
-        for (const removeHotkey of this.hotkeysToRemove) {
+    unregisterHotkeys(hotkeysToRemove = []) {
+        for (const removeHotkey of hotkeysToRemove) {
             removeHotkey();
         }
-        this.hotkeysToRemove = [];
     }
 
     onInputFocus() {
-        this.registerHotkeys();
+        this.arrowsHotkeysToRemove = this.registerHotkeys({
+            arrowdown: this.onArrowDownPress.bind(this),
+            arrowup: this.onArrowUpPress.bind(this),
+        });
     }
     onInputBlur() {
-        this.unregisterHotkeys();
+        this.unregisterHotkeys(this.arrowsHotkeysToRemove);
         const value = this.inputRef.el.value;
 
         if (this.props.autoSelect && this.state.activeSourceOption && value.length > 0) {

@@ -72,6 +72,18 @@ export class ListRenderer extends Component {
 
         this.cellToFocus = null;
         this.activeRowId = null;
+
+        this.hotkeyService = useService("hotkey");
+        this.hotkeysToRemove = [];
+        useEffect(
+            (hasRecordInEdition) => {
+                if (hasRecordInEdition) {
+                    this.registerHotkeys();
+                    return () => this.unregisterHotkeys();
+                }
+            },
+            () => [!!this.props.list.editedRecord]
+        );
         onMounted(() => {
             this.activeElement = this.uiService.activeElement;
         });
@@ -624,13 +636,24 @@ export class ListRenderer extends Component {
         this.props.activeActions.onDelete(record);
     }
 
-    /**
-     * @param {KeyboardEvent} event
-     */
-    onKeydown(event) {
-        if (event.key === "Escape") {
-            this.props.list.unselectRecord();
+    registerHotkeys() {
+        const hotkeys = {
+            enter: () => this.props.list.unselectRecord(),
+            escape: () => this.props.list.unselectRecord(),
+        };
+        for (const [hotkey, callback] of Object.entries(hotkeys)) {
+            const remove = this.hotkeyService.add(hotkey, callback, {
+                bypassEditableProtection: true,
+            });
+            this.hotkeysToRemove.push(remove);
         }
+    }
+
+    unregisterHotkeys() {
+        for (const removeHotkey of this.hotkeysToRemove) {
+            removeHotkey();
+        }
+        this.hotkeysToRemove = [];
     }
 
     saveOptionalActiveFields() {

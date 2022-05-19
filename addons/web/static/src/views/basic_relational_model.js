@@ -740,10 +740,14 @@ export class StaticList extends DataPoint {
             }
 
             const editedRecord = this.editedRecord;
-            this.editedRecord = null;
             if (editedRecord && editedRecord.id === record.id && mode === "readonly") {
-                return record.checkValidity();
+                const isValid = record.checkValidity();
+                if (isValid) {
+                    this.editedRecord = null;
+                }
+                return isValid;
             }
+            this.editedRecord = null;
             if (editedRecord) {
                 await editedRecord.switchMode("readonly");
             }
