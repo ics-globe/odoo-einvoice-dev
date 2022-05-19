@@ -28,7 +28,14 @@
                     <div>
                         <t t-if="contacts">
                             <div id="o_mailing_subscription_info" class="alert alert-success" role="status">
-                                <div id="o_mailing_subscription_info_message"></div>
+                                <div id="o_mailing_subscription_info_message">
+                                    <t t-if="unsubscribed_list">
+                                        You have been <strong>successfully unsubscribed from <t t-out="unsubscribed_list"/></strong>.
+                                    </t>
+                                    <t t-else="">
+                                        You have been <strong>successfully unsubscribed</strong>.
+                                    </t>
+                                </div>
                                 <div id="div_feedback">
                                     <p>We would appreciate if you provide feedback about why you updated<br/>your subscriptions</p>
                                     <textarea class="form-control"  name="opt_out_feedback" cols="60" rows="3"></textarea>

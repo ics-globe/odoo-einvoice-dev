@@ -16,18 +16,6 @@ odoo.define('mass_mailing.unsubscribe', function (require) {
     if (!$('.o_unsubscribe_form').length) {
         return;
     }
-    session.load_translations().then(function () {
-        var unsubscribed_list = $("input[name='unsubscribed_list']").val();
-        if (unsubscribed_list){
-            $('#subscription_info').html(_.str.sprintf(
-                _t("You have been <strong>successfully unsubscribed from %s</strong>."),
-                _.escape(unsubscribed_list)
-            ));
-        }
-        else{
-            $('#subscription_info').html(_t('You have been <strong>successfully unsubscribed</strong>.'));
-        }
-    });
 
     $('#unsubscribe_form').on('submit', function (e) {
         e.preventDefault();
