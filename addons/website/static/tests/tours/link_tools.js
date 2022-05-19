@@ -1,16 +1,16 @@
 /** @odoo-module */
 
-import tour from 'web_tour.tour';
 import wTourUtils from 'website.tour_utils';
 
 const clickOnImgStep = {
     content: "Click somewhere else to save.",
-    trigger: '#wrap .s_text_image img',
+    trigger: 'iframe #wrap .s_text_image img',
 };
 
-tour.register('link_tools', {
+wTourUtils.registerEditionTour('link_tools', {
     test: true,
-    url: '/?enable_editor=1',
+    url: '/',
+    edition: true,
 }, [
     // 1. Create a new link from scratch.
     wTourUtils.dragNDrop({
@@ -55,18 +55,6 @@ tour.register('link_tools', {
     {
         content: "The new link content should be odoo website and url odoo.be",
         trigger: '#toolbar button[data-original-title="Link Style"]',
-    },
-    {
-        trigger: 'body',
-        run: () => {
-            // When doing automated testing, the link popover takes time to
-            // hide. While hidding, the editor observer is unactive in order to
-            // prevent the popover mutation to be recorded. In a manual
-            // scenario, the popover has plenty of time to be hidden and the
-            // obsever would be re-activated in time. As this problem arise only
-            // in test, we activate the observer here for the popover.
-            $('#wrapwrap').data('wysiwyg').odooEditor.observerActive('hide.bs.popover');
-        },
     },
     {
         content: "Click on the secondary style button.",
