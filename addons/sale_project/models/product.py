@@ -13,11 +13,10 @@ class ProductTemplate(models.Model):
         service_policies = [
             # (service_policy, string)
             ('ordered_prepaid', 'Prepaid/Fixed Price'),
-            ('delivered_milestones', 'Based on Milestones'),
             ('delivered_manual', 'Based on Delivered Quantity (Manual)'),
         ]
-        if not self.user_has_groups('project.group_project_milestone'):
-            service_policies = [policy for policy in service_policies if policy[0] != 'delivered_milestones']
+        if self.user_has_groups('project.group_project_milestone'):
+            service_policies.insert(1, ('delivered_milestones', 'Based on Milestones'))
         return service_policies
 
     service_tracking = fields.Selection(

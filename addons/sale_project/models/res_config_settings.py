@@ -9,7 +9,6 @@ class ResConfigSettings(models.TransientModel):
 
     def set_values(self):
         super().set_values()
-        service_policy = 'delivered_milestones' if self.group_project_milestone else 'delivered_manual'
         if self.group_project_milestone:
             # Search the milestones containing a SOL and change the qty_delivered_method field of the SOL and the
             # service_policy field set on the product to convert from manual to milestones.
@@ -20,9 +19,9 @@ class ResConfigSettings(models.TransientModel):
             )
             sale_line_ids = milestone_read_group[0]['sale_line_ids'] if milestone_read_group else []
             sale_lines = self.env['sale.order.line'].browse(sale_line_ids)
-            sale_lines.product_id.service_policy = service_policy
+            sale_lines.product_id.service_policy = 'delivered_milestones'
         else:
             product_domain = [('type', '=', 'service'), ('service_type', '=', 'milestones')]
             products = self.env['product.product'].search(product_domain)
-            products.service_policy = service_policy
+            products.service_policy = 'delivered_manual'
             self.env['sale.order.line'].search([('product_id', 'in', products.ids)]).qty_delivered_method = 'manual'
