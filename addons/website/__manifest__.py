@@ -184,6 +184,7 @@
         'web.qunit_suite_tests': [
             'website/static/tests/dashboard_tests.js',
             'website/static/tests/website_tests.js',
+            'website/static/src/services/website_service.js',
         ],
         'web._assets_frontend_helpers': [
             ('prepend', 'website/static/src/scss/bootstrap_overridden.scss'),
