@@ -137,6 +137,13 @@ odoo.define('payment.express_mixin', require => {
                 'csrf_token': core.csrf_token,
             };
         },
+
+        /**
+         * TODO VCR DOCSTRING
+         */
+        _isShippingInformationRequired: function () {
+            return false;
+        },
     };
 
 });

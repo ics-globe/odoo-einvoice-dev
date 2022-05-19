@@ -3,6 +3,7 @@
 
 from odoo import http, _
 from odoo.http import request
+from odoo.addons.payment import utils as payment_utils
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 from odoo.exceptions import UserError
 
@@ -41,9 +42,51 @@ class WebsiteSaleDelivery(WebsiteSale):
 
         res = {'carrier_id': carrier_id}
         carrier = request.env['delivery.carrier'].sudo().browse(int(carrier_id))
+        rate = self._get_rate(carrier, order)
+        if rate.get('success'):
+            res['status'] = True
+            res['new_amount_delivery'] = Monetary.value_to_html(rate['price'], {'display_currency': order.currency_id})
+            res['is_free_delivery'] = not bool(rate['price'])
+            res['error_message'] = rate['warning_message']
+        else:
+            res['status'] = False
+            res['new_amount_delivery'] = Monetary.value_to_html(0.0, {'display_currency': order.currency_id})
+            res['error_message'] = rate['error_message']
+        return res
+
+    @http.route(['/shop/express/delivery'], type='json', auth='public', methods=['POST'], website=True)
+    def express_delivery(self, shipping_address):
+        order = request.website.sale_get_order()
+
+        billing_country_id = request.env["res.country"].search([
+            ('code', '=', shipping_address['country']),
+        ], limit=1).id
+        billing_state_id = request.env["res.country.state"].search([
+            ('country_id', '=', billing_country_id),
+            ('code', '=', shipping_address['state']),
+        ], limit=1).id
+        shipping_address['country_id'] = billing_country_id
+        shipping_address['state_id'] = billing_state_id
+        available_carriers = request.env['delivery.carrier'].sudo().search(
+            [('website_published', '=', True)]
+        ).available_carriers_address(shipping_address)
+        return [{
+            'id': str(carrier.id),  # Stripe only accept string
+            'label': carrier.name,
+            'detail': carrier.website_description or '',  # Stripe doesn't accept false as a value
+            'amount': payment_utils.to_minor_currency_units(
+                self._get_rate(carrier, order)['price'],
+                order.currency_id,
+            ),
+        } for carrier in available_carriers]
+
+    def _get_rate(self, carrier, order ):
+        # TODO VCR DOCSTRING
         rate = carrier.rate_shipment(order)
         if rate.get('success'):
-            tax_ids = carrier.product_id.taxes_id.filtered(lambda t: t.company_id == order.company_id)
+            tax_ids = carrier.product_id.taxes_id.filtered(
+                lambda t: t.company_id == order.company_id
+            )
             if tax_ids:
                 fpos = order.fiscal_position_id
                 tax_ids = fpos.map_tax(tax_ids)
@@ -59,15 +102,7 @@ class WebsiteSaleDelivery(WebsiteSale):
                 else:
                     rate['price'] = taxes['total_included']
 
-            res['status'] = True
-            res['new_amount_delivery'] = Monetary.value_to_html(rate['price'], {'display_currency': order.currency_id})
-            res['is_free_delivery'] = not bool(rate['price'])
-            res['error_message'] = rate['warning_message']
-        else:
-            res['status'] = False
-            res['new_amount_delivery'] = Monetary.value_to_html(0.0, {'display_currency': order.currency_id})
-            res['error_message'] = rate['error_message']
-        return res
+        return rate
 
     def order_lines_2_google_api(self, order_lines):
         """ Transforms a list of order lines into a dict for google analytics """

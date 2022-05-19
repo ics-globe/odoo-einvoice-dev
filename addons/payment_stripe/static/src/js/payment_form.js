@@ -72,6 +72,7 @@ odoo.define('payment_stripe.payment_form', require => {
                 params: {acquirer_id:paymentOptionId},
             }).then(stripe_publishable_key => {
                 const stripeJS = Stripe(stripe_publishable_key);
+                var isShippingInformationRequired = self._isShippingInformationRequired()
                 var paymentRequest = stripeJS.paymentRequest({
                     country:'BE',
                     currency: this.txContext.currencyName,
@@ -83,18 +84,7 @@ odoo.define('payment_stripe.payment_form', require => {
                     requestPayerEmail: true,
                     requestPayerPhone: true,
 
-                    requestShipping: true,
-                    // `shippingOptions` is optional at this point:
-                    shippingOptions: [
-                        // The first shipping option in this list appears as the default
-                        // option in the browser payment interface.
-                        {
-                        id: 'free-shipping',
-                        label: 'Free shipping',
-                        detail: 'Arrives in 5 to 7 days',
-                        amount: 0,
-                        },
-                    ],
+                    requestShipping: isShippingInformationRequired,
                 });
                 self.StripeExpress = paymentRequest;
                 self.StripeExpress.acquirerId = paymentOptionId;
@@ -116,7 +106,7 @@ odoo.define('payment_stripe.payment_form', require => {
                     self._rpc({
                         route: '/shop/express/address',
                         params: {
-                            billing: {
+                            billing_address: {
                                 name: ev.payerName,
                                 email: ev.payerEmail,
                                 phone: ev.payerPhone,
@@ -128,7 +118,7 @@ odoo.define('payment_stripe.payment_form', require => {
                                 state: ev.paymentMethod.billing_details.address.state,
                                 partner_id: parseInt(self.txContext.partnerId),
                             },
-                            shipping: {
+                            shipping_address: {
                                 name: ev.shippingAddress.recipient,
                                 phone: ev.shippingAddress.phone,
                                 street: ev.shippingAddress.addressLine[0],
@@ -185,20 +175,38 @@ odoo.define('payment_stripe.payment_form', require => {
                         // TODO VCR: Handle errors
                     });
                 });
+
+                if(isShippingInformationRequired) {
+                    paymentRequest.on('shippingaddresschange', function(ev) {
+                        // Perform server-side request to fetch shipping options
+                        self._rpc({
+                            route: '/shop/express/address',
+                            params: {
+                                shipping_address: {
+                                    zip: ev.shippingAddress.postalCode,
+                                    city: ev.shippingAddress.city,
+                                    country: ev.shippingAddress.country,
+                                    state: ev.shippingAddress.region,
+                                },
+                            },
+                        }).then(result => {
+                            if (result.length === 0) {
+                                ev.updateWith({status: 'invalid_shipping_address'});
+                            } else {
+                                ev.updateWith({
+                                    status: 'success',
+                                    shippingOptions: result,
+                                });
+                            }
+                        });
+                    });
+                }
+
             });
         },
 
         /**
          * TODO VCR: Docstring
-         *
-         * Prepare the express form of Stripe for direct payment.
-         *
-         * @override method from payment.express_form
-         * @private
-         * @param {string} provider - The provider of the selected payment option's acquirer
-         * @param {number} paymentOptionId - The id of the selected payment option
-         * @param {number} newAmount - The new amount
-         * @return {undefined}
          */
         _updateAmount: function (provider, paymentOptionId, newAmount, newMinorAmount) {
             if (provider !== 'stripe') {

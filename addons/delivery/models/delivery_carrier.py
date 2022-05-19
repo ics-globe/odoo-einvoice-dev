@@ -109,6 +109,9 @@ class DeliveryCarrier(models.Model):
     def available_carriers(self, partner):
         return self.filtered(lambda c: c._match_address(partner))
 
+    def available_carriers_address(self, shipping_address):
+        return self.filtered(lambda c: c._match_address_dict(shipping_address))
+
     def _match_address(self, partner):
         self.ensure_one()
         if self.country_ids and partner.country_id not in self.country_ids:
@@ -118,6 +121,18 @@ class DeliveryCarrier(models.Model):
         if self.zip_from and (partner.zip or '').upper() < self.zip_from.upper():
             return False
         if self.zip_to and (partner.zip or '').upper() > self.zip_to.upper():
+            return False
+        return True
+
+    def _match_address_dict(self, shipping_address):
+        self.ensure_one()
+        if self.country_ids and shipping_address['country_id'] not in self.country_ids.ids:
+            return False
+        if self.state_ids and shipping_address['state_id'] not in self.state_ids.ids:
+            return False
+        if self.zip_from and shipping_address['zip'].upper() < self.zip_from.upper():
+            return False
+        if self.zip_to and shipping_address['zip'].upper() > self.zip_to.upper():
             return False
         return True
 
