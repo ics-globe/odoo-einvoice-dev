@@ -1,12 +1,12 @@
 /** @odoo-module **/
 
 import { useModels } from '@mail/component_hooks/use_models';
-import { useUpdate } from '@mail/component_hooks/use_update';
 // ensure component is registered before-hand
 import '@mail/components/discuss/discuss';
+import { insertAndReplace } from '@mail/model/model_field_command';
 import { getMessagingComponent } from "@mail/utils/messaging_component";
 
-const { Component, onWillUnmount } = owl;
+const { Component, onWillDestroy } = owl;
 
 export class DiscussContainer extends Component {
 
@@ -19,19 +19,33 @@ export class DiscussContainer extends Component {
         this.env = Component.env;
         useModels();
         super.setup();
-        useUpdate({ func: () => this._update() });
-        onWillUnmount(() => this._willUnmount());
+        onWillDestroy(() => this._willDestroy());
+        this.env.services.messaging.modelManager.messagingCreatedPromise.then(async () => {
+            const { action } = this.props;
+            const initActiveId =
+                (action.context && action.context.active_id) ||
+                (action.params && action.params.default_active_id) ||
+                'mail.box_inbox';
+            this.discuss = this.messaging.discuss;
+            this.discuss.update({
+                discussView: insertAndReplace({ actionId: this.props.actionId }),
+                initActiveId,
+            });
+            // Wait for messaging to be initialized to make sure the system
+            // knows of the "init thread" if it exists.
+            await this.messaging.initializedPromise;
+            if (!this.discuss.isInitThreadHandled) {
+                this.discuss.update({ isInitThreadHandled: true });
+                if (!this.discuss.thread) {
+                    this.discuss.openInitThread();
+                }
+            }
+        });
+        DiscussContainer.currentInstance = this;
     }
 
-    _update() {
-        if (!this.messaging || !this.messaging.discuss) {
-            return;
-        }
-        this.messaging.discuss.open();
-    }
-
-    _willUnmount() {
-        if (this.messaging && this.messaging.discuss) {
+    _willDestroy() {
+        if (this.messaging && this.messaging.discuss && DiscussContainer.currentInstance === this) {
             this.messaging.discuss.close();
         }
     }
