@@ -2278,13 +2278,6 @@ class Task(models.Model):
             return children
         return children + children._get_all_subtasks(depth - 1)
 
-    def get_milestone_to_mark_as_done_message(self):
-        """ Return an action if the milestone can be marked as done since all tasks is done """
-        self.ensure_one()
-        if self.milestone_id and self.milestone_id.can_be_marked_as_done:
-            return _('All tasks linked to the %s milestone are now closed, the milestone can be marked as reached.', self.milestone_id.display_name)
-        return False
-
     def get_milestone_to_mark_as_reached_action(self):
         """ Return an action if the milestone can be marked as reached otherwise return False """
         milestones = self.milestone_id.filtered('can_be_marked_as_done')

@@ -6,7 +6,7 @@ from odoo import _, api, fields, models
 
 class ProjectMilestoneReachWizard(models.TransientModel):
     _name = 'project.milestone.reach.wizard'
-    _description = 'Mark a or more milestones as reached'
+    _description = 'Mark one or more milestones as reached'
 
     milestone_id = fields.Many2one(related='line_ids.milestone_id')
     line_ids = fields.One2many('project.milestone.reach.line.wizard', 'wizard_id')
@@ -25,7 +25,7 @@ class ProjectMilestoneReachWizard(models.TransientModel):
         if len(milestones) == 1:
             message = _('The %s milestone has successfully been marked as reached.', milestones.display_name)
         else:
-            message = _('The milestones selected has successfully been marked as reached.')
+            message = _('The selected milestones have successfully been marked as reached.')
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
