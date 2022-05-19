@@ -91,6 +91,17 @@ export function patchDate(year, month, day, hours, minutes, seconds) {
     });
 }
 
+/**
+ * @param {number} offset
+ */
+export function patchTimeZone(offset) {
+    const originalZone = luxon.Settings.defaultZone;
+    luxon.Settings.defaultZone = new luxon.FixedOffsetZone.instance(offset);
+    registerCleanup(() => {
+        luxon.Settings.defaultZone = originalZone;
+    });
+}
+
 let nextId = 1;
 
 /**
