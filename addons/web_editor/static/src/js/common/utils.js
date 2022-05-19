@@ -30,8 +30,8 @@ const CSS_SHORTHANDS = {
 const CSS_UNITS_CONVERSION = {
     's-ms': () => 1000,
     'ms-s': () => 0.001,
-    'rem-px': () => _computePxByRem(),
-    'px-rem': () => _computePxByRem(true),
+    'rem-px': (prop, $target) => _computePxByRem($target, false),
+    'px-rem': (prop, $target) => _computePxByRem($target, true),
     '%-px': () => -1, // Not implemented but should simply be ignored for now
     'px-%': () => -1, // Not implemented but should simply be ignored for now
 };
@@ -53,12 +53,19 @@ const DEFAULT_PALETTE = {
  * returns the cached computed value.
  *
  * @param {boolean} [toRem=false]
+ * @param {JQuery} $target The jquery element to base the style on.
  * @returns {float} - number of px by rem if 'toRem' is false
  *                  - the inverse otherwise
  */
-function _computePxByRem(toRem) {
+function _computePxByRem($target, toRem=false) {
     if (_computePxByRem.PX_BY_REM === undefined) {
-        const htmlStyle = window.getComputedStyle(document.documentElement);
+        let htmlStyle;
+        if ($target && $target.length) {
+            const $targetDocument = $target[0].ownerDocument;
+            htmlStyle = $targetDocument.defaultView.getComputedStyle($targetDocument.documentElement);
+        } else {
+            htmlStyle = window.getComputedStyle(document.documentElement);
+        }
         _computePxByRem.PX_BY_REM = parseFloat(htmlStyle['font-size']);
     }
     return toRem ? (1 / _computePxByRem.PX_BY_REM) : _computePxByRem.PX_BY_REM;
