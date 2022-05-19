@@ -26,7 +26,7 @@ tour.register("website_style_edition", {
     content: "Check the font size was properly adapted",
     trigger: 'iframe body:not(.editor_enable) #wrapwrap',
     run: function (actions) {
-        const style = window.getComputedStyle(this.$anchor[0]);
+        const style = actions.tip_widget.el.ownerDocument.defaultView.getComputedStyle(this.$anchor[0]);
         if (style.fontSize !== `${TARGET_FONT_SIZE}px`) {
             console.error(`Expected the font-size to be equal to ${TARGET_FONT_SIZE}px but found ${style.fontSize} instead`);
         }
