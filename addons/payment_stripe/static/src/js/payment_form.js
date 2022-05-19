@@ -102,33 +102,34 @@ odoo.define('payment_stripe.payment_form', require => {
                 });
 
                 paymentRequest.on('paymentmethod', function(ev) {
+                    var addresses = {}
+                    addresses['billing_partner_id'] = parseInt(self.txContext.partnerId)
+                    addresses['billing_address'] = {
+                        name: ev.payerName,
+                        email: ev.payerEmail,
+                        phone: ev.payerPhone,
+                        street: ev.paymentMethod.billing_details.address.line1,
+                        street2: ev.paymentMethod.billing_details.address.line2,
+                        zip: ev.paymentMethod.billing_details.address.postal_code,
+                        city: ev.paymentMethod.billing_details.address.city,
+                        country: ev.paymentMethod.billing_details.address.country,
+                        state: ev.paymentMethod.billing_details.address.state,
+                    }
+                    if (self._isShippingInformationRequired()) {
+                        addresses['shipping_address'] = {
+                            name: ev.shippingAddress.recipient,
+                            phone: ev.shippingAddress.phone,
+                            street: ev.shippingAddress.addressLine[0],
+                            street2: ev.shippingAddress.addressLine[1],
+                            zip: ev.shippingAddress.postalCode,
+                            city: ev.shippingAddress.city,
+                            country: ev.shippingAddress.country,
+                            state: ev.shippingAddress.region,
+                        }
+                    }
                     // Send addresses
                     self._rpc({
-                        route: '/shop/express/address',
-                        params: {
-                            billing_address: {
-                                name: ev.payerName,
-                                email: ev.payerEmail,
-                                phone: ev.payerPhone,
-                                street: ev.paymentMethod.billing_details.address.line1,
-                                street2: ev.paymentMethod.billing_details.address.line2,
-                                zip: ev.paymentMethod.billing_details.address.postal_code,
-                                city: ev.paymentMethod.billing_details.address.city,
-                                country: ev.paymentMethod.billing_details.address.country,
-                                state: ev.paymentMethod.billing_details.address.state,
-                                partner_id: parseInt(self.txContext.partnerId),
-                            },
-                            shipping_address: {
-                                name: ev.shippingAddress.recipient,
-                                phone: ev.shippingAddress.phone,
-                                street: ev.shippingAddress.addressLine[0],
-                                street2: ev.shippingAddress.addressLine[1],
-                                zip: ev.shippingAddress.postalCode,
-                                city: ev.shippingAddress.city,
-                                country: ev.shippingAddress.country,
-                                state: ev.shippingAddress.region,
-                            },
-                        }
+                        route: '/shop/express/address', params: addresses,
                     }).then((partner_id) => {
                         self.txContext.partnerId = parseInt(partner_id)
                         self._rpc({
