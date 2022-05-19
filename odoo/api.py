@@ -901,6 +901,18 @@ class Cache(object):
     def update(self, records, field, values):
         """ Set the values of ``field`` for several ``records``. """
         field_cache = self._set_field_cache(records, field)
+        # TODO CWG: find a better place for the following logic
+        if callable(field.translate) and records.env.context.get('edit_translations'):
+            new_values = []
+            lang = records.env.lang or 'en_US'
+            for record, value in zip(records.with_context(edit_translations=False), values):
+                translations = record.env['ir.translation'].create(
+                    record.env['ir.translation'].get_translation_vals_list_for_record(
+                        record, field_names=[field.name], langs=[lang], without_en=True))
+                term_to_id_state = {translation.value or translation.src: (translation.id, translation.state) for
+                                translation in translations}
+                new_values.append(field.translate(lambda term: f'<span data-oe-model="{record._name}" data-oe-translation-id="{term_to_id_state[term][0]}" data-oe-translation-state="{term_to_id_state[term][1]}">{term}</span>', value))
+            values = new_values
         field_cache.update(zip(records._ids, values))
 
     def remove(self, record, field):
