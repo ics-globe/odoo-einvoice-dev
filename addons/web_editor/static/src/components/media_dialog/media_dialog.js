@@ -57,33 +57,9 @@ export class MediaDialog extends Component {
         this.tabs = [];
         this.selectedMedia = useState({});
 
-        const onlyImages = this.props.onlyImages || this.props.multiImages || (this.props.media && this.props.media.parentElement && (this.props.media.parentElement.dataset.oeField === 'image' || this.props.media.parentElement.dataset.oeType === 'image'));
-        const noDocuments = onlyImages || this.props.noDocuments;
-        const noIcons = onlyImages || this.props.noIcons;
-        const noVideos = onlyImages || this.props.noVideos;
-
         this.initialIconClasses = [];
 
-        if (!this.props.noImages) {
-            this.addTab(TABS.IMAGES, {
-                useMediaLibrary: this.props.useMediaLibrary,
-                multiSelect: this.props.multiImages,
-            });
-        }
-        if (!noDocuments) {
-            this.addTab(TABS.DOCUMENTS);
-        }
-        if (!noIcons) {
-            this.addTab(TABS.ICONS, {
-                setInitialIconClasses: (classes) => this.initialIconClasses.push(...classes),
-            });
-        }
-        if (!noVideos) {
-            this.addTab(TABS.VIDEOS, {
-                vimeoPreviewIds: this.props.vimeoPreviewIds,
-                isForBgVideo: this.props.isForBgVideo,
-            });
-        }
+        this.addTabs();
 
         this.state = useState({
             activeTab: this.initialActiveTab,
@@ -121,6 +97,34 @@ export class MediaDialog extends Component {
         });
     }
 
+    addTabs() {
+        const onlyImages = this.props.onlyImages || this.props.multiImages || (this.props.media && this.props.media.parentElement && (this.props.media.parentElement.dataset.oeField === 'image' || this.props.media.parentElement.dataset.oeType === 'image'));
+        const noDocuments = onlyImages || this.props.noDocuments;
+        const noIcons = onlyImages || this.props.noIcons;
+        const noVideos = onlyImages || this.props.noVideos;
+
+        if (!this.props.noImages) {
+            this.addTab(TABS.IMAGES, {
+                useMediaLibrary: this.props.useMediaLibrary,
+                multiSelect: this.props.multiImages,
+            });
+        }
+        if (!noDocuments) {
+            this.addTab(TABS.DOCUMENTS);
+        }
+        if (!noIcons) {
+            this.addTab(TABS.ICONS, {
+                setInitialIconClasses: (classes) => this.initialIconClasses.push(...classes),
+            });
+        }
+        if (!noVideos) {
+            this.addTab(TABS.VIDEOS, {
+                vimeoPreviewIds: this.props.vimeoPreviewIds,
+                isForBgVideo: this.props.isForBgVideo,
+            });
+        }
+    }
+
     async selectMedia(media, { multiSelect = false, save = true } = {}) {
         if (multiSelect) {
             const isMediaSelected = this.selectedMedia[this.state.activeTab].map(({ id }) => id).includes(media.id);
@@ -155,13 +159,13 @@ export class MediaDialog extends Component {
                         element.dataset.shapeColors = this.props.media.dataset.shapeColors;
                     }
                 }
-                element.classList.add(...TABS[this.state.activeTab].mediaSpecificClasses);
                 for (const otherTab of Object.keys(TABS).filter(key => key !== this.state.activeTab)) {
                     element.classList.remove(...TABS[otherTab].mediaSpecificClasses);
                 }
                 element.classList.remove(...this.initialIconClasses);
                 element.classList.remove('o_modified_image_to_save');
                 element.classList.remove('oe_edited_link');
+                element.classList.add(...TABS[this.state.activeTab].mediaSpecificClasses);
             });
             if (this.props.multiImages) {
                 this.props.save(elements);
