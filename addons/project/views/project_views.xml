@@ -1115,7 +1115,6 @@
                                         optional="hide"
                                         context="{'default_project_id': display_project_id or project_id}"
                                         attrs="{'invisible': [('allow_milestones', '=', False)], 'column_invisible': [('parent.allow_milestones', '=', False)]}"
-                                        groups="project.group_project_milestone"
                                     />
                                     <field name="partner_id" optional="hide"/>
                                     <field name="user_ids" widget="many2many_avatar_user" optional="show" domain="[('share', '=', False), ('active', '=', True)]"/>
