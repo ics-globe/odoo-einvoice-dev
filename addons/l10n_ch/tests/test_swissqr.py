@@ -52,7 +52,7 @@ class TestSwissQR(AccountTestInvoicingCommon):
     def create_invoice(self, currency_to_use='base.CHF'):
         """ Generates a test invoice """
 
-        acc_type = self.env.ref('account.data_account_type_current_assets')
+        acc_type = 'data_account_type_current_assets'
         account = self.env['account.account'].search(
             [('user_type_id', '=', acc_type.id)], limit=1
         )

@@ -18,9 +18,9 @@ class TestAngloSaxonCommon(common.TransactionCase):
         self.partner = self.env['res.partner'].create({'name': 'Partner 1'})
         self.category = self.env.ref('product.product_category_all')
         self.category = self.category.copy({'name': 'New category','property_valuation': 'real_time'})
-        account_type_rcv = self.env.ref('account.data_account_type_receivable')
-        account_type_inc = self.env.ref('account.data_account_type_revenue')
-        account_type_exp = self.env.ref('account.data_account_type_expenses')
+        account_type_rcv = 'data_account_type_receivable'
+        account_type_inc = 'data_account_type_revenue'
+        account_type_exp = 'data_account_type_expenses'
         self.account = self.env['account.account'].create({'name': 'Receivable', 'code': 'RCV00' , 'user_type_id': account_type_rcv.id, 'reconcile': True})
         account_expense = self.env['account.account'].create({'name': 'Expense', 'code': 'EXP00' , 'user_type_id': account_type_exp.id, 'reconcile': True})
         account_income = self.env['account.account'].create({'name': 'Income', 'code': 'INC00' , 'user_type_id': account_type_inc.id, 'reconcile': True})

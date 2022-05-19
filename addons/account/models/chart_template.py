@@ -157,11 +157,11 @@ class AccountChartTemplate(models.Model):
                 break
         else:
             raise UserError(_('Cannot generate an unused account code.'))
-        current_assets_type = self.env.ref('account.data_account_type_current_assets', raise_if_not_found=False)
+        current_assets_type = 'data_account_type_current_assets'
         return {
             'name': _('Liquidity Transfer'),
             'code': new_code,
-            'user_type_id': current_assets_type and current_assets_type.id or False,
+            'account_type': current_assets_type,
             'reconcile': True,
             'chart_template_id': self.id,
         }
@@ -171,7 +171,7 @@ class AccountChartTemplate(models.Model):
         return self.env['account.account'].create({
             'name': _("Bank Suspense Account"),
             'code': self.env['account.account']._search_new_account_code(company, code_digits, company.bank_account_code_prefix or ''),
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
             'company_id': company.id,
         })
 
@@ -282,13 +282,13 @@ class AccountChartTemplate(models.Model):
         if not company.account_journal_suspense_account_id:
             company.account_journal_suspense_account_id = self._create_liquidity_journal_suspense_account(company, self.code_digits)
 
-        account_type_current_assets = self.env.ref('account.data_account_type_current_assets')
+        account_type_current_assets = 'data_account_type_current_assets'
         if not company.account_journal_payment_debit_account_id:
             company.account_journal_payment_debit_account_id = self.env['account.account'].create({
                 'name': _("Outstanding Receipts"),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, company.bank_account_code_prefix or ''),
                 'reconcile': True,
-                'user_type_id': account_type_current_assets.id,
+                'account_type': account_type_current_assets,
                 'company_id': company.id,
             })
 
@@ -297,7 +297,7 @@ class AccountChartTemplate(models.Model):
                 'name': _("Outstanding Payments"),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, company.bank_account_code_prefix or ''),
                 'reconcile': True,
-                'user_type_id': account_type_current_assets.id,
+                'account_type': account_type_current_assets,
                 'company_id': company.id,
             })
 
@@ -305,7 +305,7 @@ class AccountChartTemplate(models.Model):
             company.default_cash_difference_expense_account_id = self.env['account.account'].create({
                 'name': _('Cash Difference Loss'),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, '999'),
-                'account_type': 'data_account_type_expenses'),
+                'account_type': 'data_account_type_expenses',
                 'tag_ids': [(6, 0, self.env.ref('account.account_tag_investing').ids)],
                 'company_id': company.id,
             })
@@ -314,7 +314,7 @@ class AccountChartTemplate(models.Model):
             company.default_cash_difference_income_account_id = self.env['account.account'].create({
                 'name': _('Cash Difference Gain'),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, '999'),
-                'account_type': 'data_account_type_revenue'),
+                'account_type': 'data_account_type_revenue',
                 'tag_ids': [(6, 0, self.env.ref('account.account_tag_investing').ids)],
                 'company_id': company.id,
             })

@@ -34,12 +34,12 @@ class TestUi(TestUICommon):
             'code': 'X1012',
             'name': 'Debtors - (test)',
             'reconcile': True,
-            'account_type': 'data_account_type_receivable'),
+            'account_type': 'data_account_type_receivable',
         })
         a_pay = self.env['account.account'].create({
             'code': 'X1111',
             'name': 'Creditors - (test)',
-            'account_type': 'data_account_type_payable'),
+            'account_type': 'data_account_type_payable',
             'reconcile': True,
         })
 

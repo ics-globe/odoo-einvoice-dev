@@ -102,8 +102,7 @@ class AccountPaymentMethodLine(models.Model):
         domain=lambda self: "[('deprecated', '=', False), "
                             "('company_id', '=', company_id), "
                             "('account_type', 'not in', ('receivable', 'payable')), "
-                            "'|', ('user_type_id', '=', %s), ('id', '=', parent.default_account_id)]"
-                            % self.env.ref('account.data_account_type_current_assets').id
+                            "'|', ('account_type', '=', 'data_account_type_current_assets'), ('id', '=', parent.default_account_id)]"
     )
     journal_id = fields.Many2one(comodel_name='account.journal', ondelete="cascade")
 

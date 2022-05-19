@@ -3,14 +3,14 @@
         <record id="ch_br_3_01_03_01_01_03_00" model="account.account.template">
             <field name="code">3.01.03.01.01.03.00</field>
             <field name="name">ganho cambial</field>
-            <field name="user_type_id" ref="account.data_account_type_other_income"/>
+            <field name="account_type" ref="data_account_type_other_income"/>
             <field name="chart_template_id" ref="l10n_br_account_chart_template"/>
          </record>
 
          <record id="ch_br_3_01_03_01_03_03_00" model="account.account.template">
             <field name="code">3.01.03.01.03.03.00</field>
             <field name="name">Perda cambial</field>
-            <field name="user_type_id" ref="account.data_account_type_expenses"/>
+            <field name="account_type" ref="data_account_type_expenses"/>
             <field name="chart_template_id" ref="l10n_br_account_chart_template"/>
          </record>
 

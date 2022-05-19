@@ -32,19 +32,19 @@ class TestStockValuation(TransactionCase):
         cls.stock_input_account = Account.create({
             'name': 'Stock Input',
             'code': 'StockIn',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
             'reconcile': True,
         })
         cls.stock_output_account = Account.create({
             'name': 'Stock Output',
             'code': 'StockOut',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
             'reconcile': True,
         })
         cls.stock_valuation_account = Account.create({
             'name': 'Stock Valuation',
             'code': 'Stock Valuation',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
         })
         cls.stock_journal = cls.env['account.journal'].create({
             'name': 'Stock Journal',
@@ -255,24 +255,24 @@ class TestStockValuationWithCOA(AccountTestInvoicingCommon):
         cls.stock_input_account = Account.create({
             'name': 'Stock Input',
             'code': 'StockIn',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
             'reconcile': True,
         })
         cls.stock_output_account = Account.create({
             'name': 'Stock Output',
             'code': 'StockOut',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
             'reconcile': True,
         })
         cls.stock_valuation_account = Account.create({
             'name': 'Stock Valuation',
             'code': 'Stock Valuation',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
         })
         cls.price_diff_account = Account.create({
             'name': 'price diff account',
             'code': 'price diff account',
-            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets',
         })
         cls.stock_journal = cls.env['account.journal'].create({
             'name': 'Stock Journal',

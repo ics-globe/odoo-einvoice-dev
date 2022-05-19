@@ -83,7 +83,7 @@ class TestFrontend(odoo.tests.HttpCase):
 
         account_receivable = account_obj.create({'code': 'X1012',
                                                  'name': 'Account Receivable - Test',
-                                                 'account_type': 'data_account_type_receivable'),
+                                                 'account_type': 'data_account_type_receivable',
                                                  'reconcile': True})
 
         self.env['ir.property']._set_default(

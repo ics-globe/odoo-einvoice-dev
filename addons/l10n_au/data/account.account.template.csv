@@ -1,9 +1,9 @@
 id,chart_template_id:id,code,name,account_type,reconcile
-au_11110,l10n_au.l10n_au_chart_template,11110,Bank Account,data_account_type_liquidity,FALSE
+au_11110,l10n_au.l10n_au_chart_template,11110,Bank data_account_type_liquidity,FALSE
 au_11130,l10n_au.l10n_au_chart_template,11130,Petty Cash,data_account_type_liquidity,FALSE
 au_11140,l10n_au.l10n_au_chart_template,11140,Cash Drawer,data_account_type_liquidity,FALSE
 au_11180,l10n_au.l10n_au_chart_template,11180,Undeposited Funds,data_account_type_current_assets,TRUE
-au_11190,l10n_au.l10n_au_chart_template,11190,Electronic Clearing Account,data_account_type_current_assets,TRUE
+au_11190,l10n_au.l10n_au_chart_template,11190,Electronic Clearing data_account_type_current_assets,TRUE
 au_11200,l10n_au.l10n_au_chart_template,11200,Trade Debtors,data_account_type_receivable,TRUE
 au_11201,l10n_au.l10n_au_chart_template,11201,Trade Debtors (PoS),data_account_type_receivable,TRUE
 au_11210,l10n_au.l10n_au_chart_template,11210,Less Prov'n for Doubtful Debts,data_account_type_current_assets,FALSE

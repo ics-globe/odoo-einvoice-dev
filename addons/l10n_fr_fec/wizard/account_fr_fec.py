@@ -147,7 +147,7 @@ class AccountFrFec(models.TransientModel):
 
         rows_to_write = [header]
         # INITIAL BALANCE
-        unaffected_earnings_xml_ref = self.env.ref('account.data_unaffected_earnings')
+        unaffected_earnings_xml_ref = 'data_unaffected_earnings'
         unaffected_earnings_line = True  # used to make sure that we add the unaffected earning initial balance only once
         if unaffected_earnings_xml_ref:
             #compute the benefit/loss of last year to add in the initial balance of the current year earnings account

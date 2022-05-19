@@ -1062,20 +1062,20 @@ class TestAccountMoveOutRefundOnchanges(AccountTestInvoicingCommon):
         tax_waiting_account = self.env['account.account'].create({
             'name': 'TAX_WAIT',
             'code': 'TWAIT',
-            'account_type': 'data_account_type_current_liabilities'),
+            'account_type': 'data_account_type_current_liabilities',
             'reconcile': True,
             'company_id': self.company_data['company'].id,
         })
         tax_final_account = self.env['account.account'].create({
             'name': 'TAX_TO_DEDUCT',
             'code': 'TDEDUCT',
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
             'company_id': self.company_data['company'].id,
         })
         tax_base_amount_account = self.env['account.account'].create({
             'name': 'TAX_BASE',
             'code': 'TBASE',
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
             'company_id': self.company_data['company'].id,
         })
         self.env.company.account_cash_basis_base_account_id = tax_base_amount_account

@@ -2,7 +2,7 @@ id,code,name,account_type,reconcile,chart_template_id:id
 l10n_id_11110001,11110001,Cash,data_account_type_liquidity,TRUE,l10n_id.l10n_id_chart
 l10n_id_11110010,11110010,Petty Cash,data_account_type_liquidity,TRUE,l10n_id.l10n_id_chart
 l10n_id_11110020,11110020,Cash in Hand,data_account_type_liquidity,TRUE,l10n_id.l10n_id_chart
-l10n_id_11120001,11120001,Bank Suspense Account,data_account_type_current_liabilities,TRUE,l10n_id.l10n_id_chart
+l10n_id_11120001,11120001,Bank Suspense data_account_type_current_liabilities,TRUE,l10n_id.l10n_id_chart
 l10n_id_11120002,11120002,Outstanding Receipts,data_account_type_current_assets,TRUE,l10n_id.l10n_id_chart
 l10n_id_11120003,11120003,Outstanding Payments,data_account_type_current_assets,TRUE,l10n_id.l10n_id_chart
 l10n_id_11120004,11120004,Bank,data_account_type_liquidity,TRUE,l10n_id.l10n_id_chart

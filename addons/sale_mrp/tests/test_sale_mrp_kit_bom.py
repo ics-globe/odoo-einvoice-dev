@@ -39,28 +39,28 @@ class TestSaleMrpKitBom(TransactionCase):
         self.stock_input_account = self.env['account.account'].create({
             'name': 'Stock Input',
             'code': 'StockIn',
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
         })
         self.stock_output_account = self.env['account.account'].create({
             'name': 'Stock Output',
             'code': 'StockOut',
             'reconcile': True,
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
         })
         self.stock_valuation_account = self.env['account.account'].create({
             'name': 'Stock Valuation',
             'code': 'StockVal',
-            'account_type': 'data_account_type_current_assets'),
+            'account_type': 'data_account_type_current_assets',
         })
         self.expense_account = self.env['account.account'].create({
             'name': 'Expense Account',
             'code': 'Exp',
-            'account_type': 'data_account_type_expenses'),
+            'account_type': 'data_account_type_expenses',
         })
         self.income_account = self.env['account.account'].create({
             'name': 'Income Account',
             'code': 'Inc',
-            'account_type': 'data_account_type_expenses'),
+            'account_type': 'data_account_type_expenses',
         })
         self.stock_journal = self.env['account.journal'].create({
             'name': 'Stock Journal',
@@ -70,13 +70,13 @@ class TestSaleMrpKitBom(TransactionCase):
         self.recv_account = self.env['account.account'].create({
             'name': 'account receivable',
             'code': 'RECV',
-            'account_type': 'data_account_type_receivable'),
+            'account_type': 'data_account_type_receivable',
             'reconcile': True,
         })
         self.pay_account = self.env['account.account'].create({
             'name': 'account payable',
             'code': 'PAY',
-            'account_type': 'data_account_type_payable'),
+            'account_type': 'data_account_type_payable',
             'reconcile': True,
         })
         self.customer = self.env['res.partner'].create({

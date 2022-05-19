@@ -1,14 +1,14 @@
 id,code,name,account_type,reconcile,chart_template_id/id
-100020,100020,Stock Valuation Account,data_account_type_current_assets,True,default_chart_template
+100020,100020,Stock Valuation data_account_type_current_assets,True,default_chart_template
 100030,100030,Stock Work In Progress,data_account_type_current_assets,False,default_chart_template
 100040,100040,Stock Finished Goods,data_account_type_current_assets,False,default_chart_template
-100050,100050,Stock Delivered Control Account,data_account_type_current_assets,True,default_chart_template
-100060,100060,Purchase Tax Control Account,data_account_type_current_assets,False,default_chart_template
+100050,100050,Stock Delivered Control data_account_type_current_assets,True,default_chart_template
+100060,100060,Purchase Tax Control data_account_type_current_assets,False,default_chart_template
 100070,100070,Other Current Assets,data_account_type_current_assets,False,default_chart_template
-110010,110010,Debtors Control Account,data_account_type_receivable,True,default_chart_template
+110010,110010,Debtors Control data_account_type_receivable,True,default_chart_template
 110020,110020,Sundry Debtors,data_account_type_receivable,True,default_chart_template
 110030,110030,Debtors Control Account (PoS),data_account_type_receivable,True,default_chart_template
-124010,124010,Credit Card Merchant Account,data_account_type_liquidity,False,default_chart_template
+124010,124010,Credit Card Merchant data_account_type_liquidity,False,default_chart_template
 126010,126010,Cash In Hand,data_account_type_liquidity,False,default_chart_template
 130010,130010,Prepayments,data_account_type_prepayments,False,default_chart_template
 140010,140010,Software,data_account_type_fixed_assets,False,default_chart_template
@@ -19,25 +19,25 @@ id,code,name,account_type,reconcile,chart_template_id/id
 140060,140060,Office Equipment (incl computer equipment),data_account_type_fixed_assets,False,default_chart_template
 140070,140070,Plant & Machinery,data_account_type_fixed_assets,False,default_chart_template
 150010,150010,Non-current assets,data_account_type_non_current_assets,False,default_chart_template
-200010,200010,Stock Received Control Account,data_account_type_current_liabilities,True,default_chart_template
+200010,200010,Stock Received Control data_account_type_current_liabilities,True,default_chart_template
 200020,200020,Sundry Creditors,data_account_type_current_liabilities,False,default_chart_template
 200030,200030,Other Creditors,data_account_type_current_liabilities,False,default_chart_template
 200040,200040,Accruals,data_account_type_current_liabilities,False,default_chart_template
 200050,200050,Bad debt provision,data_account_type_current_liabilities,False,default_chart_template
-200060,200060,Sales Tax Control Account,data_account_type_current_liabilities,False,default_chart_template
+200060,200060,Sales Tax Control data_account_type_current_liabilities,False,default_chart_template
 200070,200070,Manual Adjustments & VAT,data_account_type_current_liabilities,False,default_chart_template
 200080,200080,Loans,data_account_type_current_liabilities,False,default_chart_template
 200090,200090,Hire Purchase,data_account_type_current_liabilities,False,default_chart_template
 200100,200100,Mortgages,data_account_type_current_liabilities,False,default_chart_template
 210010,210010,Company Credit Card,data_account_type_credit_card,False,default_chart_template
-220010,220010,Creditors Control Account,data_account_type_payable,True,default_chart_template
-220020,220020,SARS - VAT Account,data_account_type_payable,True,default_chart_template
+220010,220010,Creditors Control data_account_type_payable,True,default_chart_template
+220020,220020,SARS - VAT data_account_type_payable,True,default_chart_template
 220030,220030,P.A.Y.E. & UIF,data_account_type_payable,True,default_chart_template
 220040,220040,Net Wages,data_account_type_payable,True,default_chart_template
 220050,220050,Pension Fund,data_account_type_payable,True,default_chart_template
 220060,220060,Corporation Tax,data_account_type_payable,True,default_chart_template
 300010,300010,Called up share capital,data_account_type_equity,False,default_chart_template
-300020,300020,Share premium account,data_account_type_equity,False,default_chart_template
+300020,300020,Share premium data_account_type_equity,False,default_chart_template
 300030,300030,Revaluation reserve,data_account_type_equity,False,default_chart_template
 300040,300040,Other reserves,data_account_type_equity,False,default_chart_template
 300050,300050,Capital,data_account_type_equity,False,default_chart_template
@@ -101,7 +101,7 @@ id,code,name,account_type,reconcile,chart_template_id/id
 610420,610420,Travel and subsistence,data_account_type_expenses,False,default_chart_template
 610430,610430,Corporation tax expense,data_account_type_expenses,False,default_chart_template
 610440,610440,Foreign Exchange Gains/Losses,data_account_type_expenses,False,default_chart_template
-610450,610450,Price Differences Control Account,data_account_type_expenses,False,default_chart_template
+610450,610450,Price Differences Control data_account_type_expenses,False,default_chart_template
 610460,610460,Cash Register Gains/Losses,data_account_type_expenses,False,default_chart_template
 620010,620010,Software Depreciation,data_account_type_depreciation,False,default_chart_template
 620020,620020,Patents & Trademarks Depreciation,data_account_type_depreciation,False,default_chart_template

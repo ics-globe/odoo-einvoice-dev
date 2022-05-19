@@ -14,29 +14,29 @@ class BaseTestUi(odoo.tests.HttpCase):
         a_expense = self.env['account.account'].create({
             'code': 'X2120',
             'name': 'Expenses - (test)',
-            'account_type': 'data_account_type_expenses'),
+            'account_type': 'data_account_type_expenses',
         })
         a_recv = self.env['account.account'].create({
             'code': 'X1012',
             'name': 'Debtors - (test)',
             'reconcile': True,
-            'account_type': 'data_account_type_receivable'),
+            'account_type': 'data_account_type_receivable',
         })
         a_pay = self.env['account.account'].create({
             'code': 'X1111',
             'name': 'Creditors - (test)',
-            'account_type': 'data_account_type_payable'),
+            'account_type': 'data_account_type_payable',
             'reconcile': True,
         })
         a_sale = self.env['account.account'].create({
             'code': 'X2020',
             'name': 'Product Sales - (test)',
-            'account_type': 'data_account_type_revenue'),
+            'account_type': 'data_account_type_revenue',
         })
         bnk = self.env['account.account'].create({
             'code': 'X1014',
             'name': 'Bank Current Account - (test)',
-            'account_type': 'data_account_type_liquidity'),
+            'account_type': 'data_account_type_liquidity',
         })
 
         Property = self.env['ir.property']

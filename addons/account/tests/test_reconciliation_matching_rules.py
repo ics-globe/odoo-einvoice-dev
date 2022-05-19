@@ -28,7 +28,7 @@ class TestReconciliationMatchingRules(AccountTestInvoicingCommon):
 
         cls.account_pay = cls.company_data['default_account_payable']
         cls.current_assets_account = cls.env['account.account'].search([
-            ('account_type', '=', cls.env.ref('account.data_account_type_current_assets').id),
+            ('account_type', '=', 'data_account_type_current_assets'),
             ('company_id', '=', cls.company.id)], limit=1)
 
         cls.bank_journal = cls.env['account.journal'].search([('type', '=', 'bank'), ('company_id', '=', cls.company.id)], limit=1)

@@ -365,7 +365,7 @@ class TestSequenceMixin(TestSequenceMixinCommon):
             account = env0['account.account'].create({
                 'code': 'CT',
                 'name': 'CT',
-                'account_type': env0.ref('account.data_account_type_fixed_assets').id,
+                'account_type': 'data_account_type_fixed_assets',
             })
             moves = env0['account.move'].create([{
                 'journal_id': journal.id,

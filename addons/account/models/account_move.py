@@ -3405,7 +3405,7 @@ class AccountMoveLine(models.Model):
         check_company=True,
         tracking=True)
     account_internal_type = fields.Selection(related='account_id.account_type', string="Internal Type", readonly=True)
-    account_internal_group = fields.Selection(related='account_id.user_type_id.internal_group', string="Internal Group", readonly=True)
+    account_internal_group = fields.Selection(related='account_type.internal_group', string="Internal Group", readonly=True)
     account_root_id = fields.Many2one(related='account_id.root_id', string="Account Root", store=True, readonly=True)
     sequence = fields.Integer(default=10)
     name = fields.Char(string='Label', tracking=True)
@@ -4275,10 +4275,10 @@ class AccountMoveLine(models.Model):
                 raise UserError(_('You cannot use this account (%s) in this journal, check the field \'Allowed Journals\' on the related account.', account.display_name))
 
             failed_check = False
-            if (journal.type_control_ids - journal.default_account_id.user_type_id) or journal.account_control_ids:
+            if (journal.type_control_ids - journal.default_account_type) or journal.account_control_ids:
                 failed_check = True
                 if journal.type_control_ids:
-                    failed_check = account.user_type_id not in (journal.type_control_ids - journal.default_account_id.user_type_id)
+                    failed_check = account.user_type_id not in (journal.type_control_ids - journal.default_account_type)
                 if failed_check and journal.account_control_ids:
                     failed_check = account not in journal.account_control_ids
 

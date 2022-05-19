@@ -31,7 +31,7 @@ class TestPurchaseInvoice(AccountTestInvoicingCommon):
             'email': 'supplier.serv@supercompany.com',
         })
 
-        user_type_expense = cls.env.ref('account.data_account_type_expenses')
+        user_type_expense = 'data_account_type_expenses'
         cls.account_expense_product = cls.env['account.account'].create({
             'code': 'EXPENSE_PROD111',
             'name': 'Expense - Test Account',

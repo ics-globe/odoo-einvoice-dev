@@ -173,7 +173,7 @@ class AccountChartTemplate(models.Model):
                         'label': 'Due amount',
                         'account_id': self._get_demo_account(
                             'income',
-                            'account.data_account_type_revenue',
+                            'data_account_type_revenue',
                             self.env.company,
                         ).id,
                         'amount_type': 'regex',
@@ -183,7 +183,7 @@ class AccountChartTemplate(models.Model):
                         'label': 'Bank Fees',
                         'account_id': self._get_demo_account(
                             'cost_of_goods_sold',
-                            'account.data_account_type_direct_costs',
+                            'data_account_type_direct_costs',
                             self.env.company,
                         ).id,
                         'amount_type': 'percentage',

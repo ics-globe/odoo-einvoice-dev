@@ -18,13 +18,13 @@ class TestFormCreate(TransactionCase):
         if hasattr(self.env['res.partner'], 'property_account_payable_id'):
             property_account_payable_id = self.env['account.account'].create({
                 'name': 'Test Account',
-                'account_type': 'data_account_type_payable'),
+                'account_type': 'data_account_type_payable',
                 'code': 'TestAccountPayable',
                 'reconcile': True
             })
             property_account_receivable_id = self.env['account.account'].create({
                 'name': 'Test Account',
-                'account_type': 'data_account_type_receivable'),
+                'account_type': 'data_account_type_receivable',
                 'code': 'TestAccountReceivable',
                 'reconcile': True
             })

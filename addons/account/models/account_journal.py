@@ -95,7 +95,7 @@ class AccountJournal(models.Model):
              "allowing finding the right account.", string='Suspense Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
                              ('account_type', 'not in', ('receivable', 'payable')), \
-                             ('account_type', '=', %s)]" % 'data_account_type_current_assets')
+                             ('account_type', '=', 'data_account_type_current_assets')]")
     restrict_mode_hash_table = fields.Boolean(string="Lock Posted Entries with Hash",
         help="If ticked, the accounting entry or invoice receives a hash as soon as it is posted and cannot be modified anymore.")
     sequence = fields.Integer(help='Used to order Journals in the dashboard view', default=10)
@@ -151,15 +151,14 @@ class AccountJournal(models.Model):
         string='Profit Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
                              ('account_type', 'not in', ('receivable', 'payable')), \
-                             ('account_type', 'in', %s)]" % ['data_account_type_revenue',
-                                                             'data_account_type_other_income'])
+                             ('account_type', 'in', '('data_account_type_revenue', 'data_account_type_other_income'))]")
     loss_account_id = fields.Many2one(
         comodel_name='account.account', check_company=True,
         help="Used to register a loss when the ending balance of a cash register differs from what the system computes",
         string='Loss Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
                              ('account_type', 'not in', ('receivable', 'payable')), \
-                             ('account_type', '=', %s)]" % 'data_account_type_expenses')
+                             ('account_type', '=', 'data_account_type_expenses')]")
 
     # Bank journals fields
     company_partner_id = fields.Many2one('res.partner', related='company_id.partner_id', string='Account Holder', readonly=True, store=False)
@@ -277,10 +276,10 @@ class AccountJournal(models.Model):
     @api.depends('type')
     def _compute_default_account_type(self):
         default_account_id_types = {
-            'bank': 'account.data_account_type_liquidity',
-            'cash': 'account.data_account_type_liquidity',
-            'sale': 'account.data_account_type_revenue',
-            'purchase': 'account.data_account_type_expenses'
+            'bank': 'data_account_type_liquidity',
+            'cash': 'data_account_type_liquidity',
+            'sale': 'data_account_type_revenue',
+            'purchase': 'data_account_type_expenses'
         }
 
         for journal in self:
@@ -620,8 +619,8 @@ class AccountJournal(models.Model):
         random_account = self.env['account.account'].search([('company_id', '=', company.id)], limit=1)
         digits = len(random_account.code) if random_account else 6
 
-        liquidity_type = self.env.ref('account.data_account_type_liquidity')
-        current_assets_type = self.env.ref('account.data_account_type_current_assets')
+        liquidity_type = 'data_account_type_liquidity'
+        current_assets_type = 'data_account_type_current_assets'
 
         if journal_type in ('bank', 'cash'):
             has_liquidity_accounts = vals.get('default_account_id')

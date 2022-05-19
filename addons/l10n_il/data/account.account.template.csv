@@ -3,7 +3,7 @@ il_account_100100,100100,Land and buildings,data_account_type_fixed_assets,FALSE
 il_account_100200,100200,Machinery and equipment,data_account_type_fixed_assets,FALSE,,il_chart_template
 il_account_100300,100300,Vehicles,data_account_type_fixed_assets,FALSE,,il_chart_template
 il_account_100400,100400,Other property,data_account_type_fixed_assets,FALSE,,il_chart_template
-il_account_101110,101110,Stock Valuation account,data_account_type_current_assets,FALSE,,il_chart_template
+il_account_101110,101110,Stock Valuation data_account_type_current_assets,FALSE,,il_chart_template
 il_account_101120,101120,Stock Interim Account (Received),data_account_type_current_assets,FALSE,,il_chart_template
 il_account_101130,101130,Stock Interim Account (Delivered),data_account_type_current_assets,FALSE,,il_chart_template
 il_account_101140,101140,Inventory - Raw materials,data_account_type_current_assets,FALSE,,il_chart_template
@@ -36,7 +36,7 @@ il_account_111200,111200,Income tax withheld - vendors,data_account_type_current
 il_account_111210,111210,Income tax withheld - employees,data_account_type_current_liabilities,FALSE,account_tag_retention_tax_employees_account,il_chart_template
 il_account_111220,111220,Income tax withheld - dividends,data_account_type_current_liabilities,FALSE,account_tag_retention_tax_dividend_account,il_chart_template
 il_account_111230,111230,Income tax withheld - customers,data_account_type_current_liabilities,FALSE,account_tag_retention_tax_customers_account,il_chart_template
-il_account_300300,300300,Reserve and Profit/Loss Account,data_account_type_equity,FALSE,,il_chart_template
+il_account_300300,300300,Reserve and Profit/Loss data_account_type_equity,FALSE,,il_chart_template
 il_account_111400,111400,Credit cards,data_account_type_current_liabilities,FALSE,,il_chart_template
 il_account_111450,111450,Short term loans,data_account_type_current_liabilities,FALSE,,il_chart_template
 il_account_111460,111460,Interest Payable,data_account_type_current_liabilities,TRUE,,il_chart_template
