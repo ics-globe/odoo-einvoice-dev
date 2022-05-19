@@ -1,7 +1,6 @@
 odoo.define("website.tour.edit_megamenu", function (require) {
 "use strict";
 
-const tour = require('web_tour.tour');
 const wTourUtils = require('website.tour_utils');
 
 const toggleMegaMenu = (stepOptions) => Object.assign({}, {
@@ -16,9 +15,10 @@ const toggleMegaMenu = (stepOptions) => Object.assign({}, {
     },
 }, stepOptions);
 
-tour.register('edit_megamenu', {
+wTourUtils.registerEditionTour('edit_megamenu', {
     test: true,
-    url: '/?enable_editor=1',
+    url: '/',
+    edition: true,
 }, [
     // Add a megamenu item to the top menu.
     {

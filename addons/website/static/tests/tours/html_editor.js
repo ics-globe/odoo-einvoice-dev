@@ -77,9 +77,9 @@ tour.register('html_editor_multiple_templates', {
     ]
 );
 
-tour.register('test_html_editor_scss', {
+wTourUtils.registerEditionTour('test_html_editor_scss', {
     test: true,
-    url: wTourUtils.getClientActionUrl('/contactus'),
+    url: '/contactus',
 },
     [
         // 1. Open Html Editor and select a scss file
@@ -156,24 +156,19 @@ tour.register('test_html_editor_scss', {
         {
             content: "check that the scss modification got applied",
             trigger: 'iframe body:has(#wrap:hidden)',
-            run: function () {
-                window.location.href = '/web/session/logout?redirect=/web/login';
-            },
+            run: function () {}, // it's a check
         },
+    ]
+);
 
+wTourUtils.registerEditionTour('test_html_editor_scss_2', {
+    test: true,
+    url: '/',
+},
+    [
         // This part of the test ensures that a restricted user can still use
         // the HTML Editor if someone else made a customization previously.
 
-        {
-            content: "Submit login",
-            trigger: '.oe_login_form',
-            run: function () {
-                $('.oe_login_form input[name="login"]').val("demo");
-                $('.oe_login_form input[name="password"]').val("demo");
-                $('.oe_login_form input[name="redirect"]').val("/");
-                $('.oe_login_form').submit();
-            },
-        },
         // 4. Open Html Editor and select a scss file
         {
             content: "open site menu",

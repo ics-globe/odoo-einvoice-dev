@@ -3,23 +3,23 @@ odoo.define('website.tour.rte', function (require) {
 
 var ajax = require('web.ajax');
 var session = require('web.session');
-var tour = require('web_tour.tour');
+const wTourUtils = require('website.tour_utils');
 
 var domReady = new Promise(function (resolve) {
     $(resolve);
 });
 var ready = Promise.all([domReady, session.is_bound, ajax.loadXML()]);
 
-tour.register('rte_translator', {
+wTourUtils.registerEditionTour('rte_translator', {
     test: true,
     url: '/',
     wait_for: ready,
 }, [{
     content: "click language dropdown",
-    trigger: '.js_language_selector .dropdown-toggle',
+    trigger: 'iframe .js_language_selector .dropdown-toggle',
 }, {
     content: "click on Add a language",
-    trigger: 'a.o_add_language',
+    trigger: 'iframe a.o_add_language',
 }, {
     content: "type Parseltongue",
     trigger: 'div[name="lang_ids"] .o_input_dropdown input',
@@ -44,15 +44,12 @@ tour.register('rte_translator', {
     extra_trigger: '.modal-dialog div[name="lang_ids"] .badge-pill .o_tag_badge_text:contains(Parseltongue)',
 }, {
     content: "click language dropdown (2)",
-    trigger: '.js_language_selector .dropdown-toggle',
+    trigger: 'iframe .js_language_selector .dropdown-toggle',
     timeout: 60000,
 }, {
     content: "go to english version",
-    trigger: '.js_language_selector a[data-url_code="en"]',
-    extra_trigger: 'html[lang*="pa-GB"]',
-}, {
-    content: "go to backend",
-    trigger: '.o_frontend_to_backend_edit_btn',
+    trigger: 'iframe .js_language_selector a[data-url_code="en"]',
+    extra_trigger: 'iframe html[lang*="pa-GB"]',
 }, {
     content: "Open new page menu",
     trigger: ".o_menu_systray .o_new_content_container > a",
@@ -94,10 +91,11 @@ tour.register('rte_translator', {
 }, {
     content: "click on Parseltongue version",
     trigger: 'iframe .js_language_selector a[data-url_code="pa_GB"]',
-    extra_trigger: 'html[lang*="en"]:not(:has(button[data-action=save]))',
+    extra_trigger: 'iframe html[lang*="en"]',
 }, {
     content: "translate",
-    trigger: 'html:not(:has(#wrap p span)) .o_menu_systray a[data-action="translate"]',
+    trigger: '.o_menu_systray .o_translate_website_container > a',
+    extra_trigger: 'iframe html:not(:has(#wrap p span))',
 }, {
     content: "close modal",
     trigger: '.modal-footer .btn-secondary',
@@ -133,7 +131,7 @@ tour.register('rte_translator', {
     run: 'click',
 }, {
     content: "translate placeholder",
-    trigger: 'iframe input:first',
+    trigger: '.modal-dialog input:first',
     run: 'text test Parseltongue placeholder',
 }, {
     content: "close modal",
@@ -145,7 +143,7 @@ tour.register('rte_translator', {
 }, {
     content: "check: content is translated",
     trigger: 'iframe #wrap p font:first:contains(translated Parseltongue text)',
-    extra_trigger: 'iframe body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit_master"]',
+    extra_trigger: 'iframe body:not(.editor_enable)',
     run: function () {}, // it's a check
 }, {
     content: "check: content with special char is translated",
@@ -200,23 +198,23 @@ tour.register('rte_translator', {
 }, {
     content: "click language dropdown (4)",
     trigger: 'iframe .js_language_selector .dropdown-toggle',
-    extra_trigger: 'iframe body:not(.o_wait_reload):not(:has(.note-editor)) a[data-action="edit"]',
+    extra_trigger: 'iframe body:not(.editor_enable)',
 }, {
     content: "return in Parseltongue",
     trigger: 'iframe html[lang="en-US"] .js_language_selector .js_change_lang[data-url_code="pa_GB"]',
 }, {
     content: "check bis: content is translated",
     trigger: 'iframe #wrap p font:first:contains(translated Parseltongue text)',
-    extra_trigger: 'iframe html[lang*="pa-GB"] body:not(:has(button[data-action=save]))',
+    extra_trigger: 'iframe html[lang*="pa-GB"]',
 }, {
     content: "check bis: placeholder translation",
     trigger: 'iframe input[placeholder="test Parseltongue placeholder"]',
 }, {
-    content: "Open customize menu",
-    trigger: "#customize-menu > .dropdown-toggle",
+    content: "open site menu",
+    trigger: 'button[data-menu-xmlid="website.menu_site"]',
 }, {
     content: "Open HTML editor",
-    trigger: "[data-action='ace']",
+    trigger: 'a[data-menu-xmlid="website.menu_ace_editor"]',
 }, {
     content: "Check that the editor is not showing translated content (1)",
     trigger: '.ace_text-layer .ace_line:contains("an HTML")',
@@ -224,12 +222,12 @@ tour.register('rte_translator', {
         var lineEscapedText = $(this.$anchor.text()).text();
         if (lineEscapedText !== "&lt;b&gt;&lt;/b&gt; is an HTML&nbsp;tag &amp; is empty") {
             console.error('The HTML editor should display the correct untranslated content');
-            $('body').addClass('rte_translator_error');
+            $('iframe:not(.o_technical_iframe)').contents().find('body').addClass('rte_translator_error');
         }
     },
 }, {
     content: "Check that the editor is not showing translated content (2)",
-    trigger: 'body:not(.rte_translator_error)',
+    trigger: 'iframe body:not(.rte_translator_error)',
     run: function () {},
 }]);
 });

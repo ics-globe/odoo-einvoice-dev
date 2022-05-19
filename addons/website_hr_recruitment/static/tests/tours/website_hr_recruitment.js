@@ -2,6 +2,8 @@ odoo.define('website_hr_recruitment.tour', function(require) {
     'use strict';
 
     var tour = require("web_tour.tour");
+    const wTourUtils = require("website.tour_utils");
+
     function applyForAJob(jobName, application) {
         return [{
             content: "Select Job",
@@ -59,28 +61,28 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         }),
     ]);
 
-    tour.register('website_hr_recruitment_tour_edit_form', {
+    wTourUtils.registerEditionTour('website_hr_recruitment_tour_edit_form', {
         test: true,
         url: '/jobs',
     }, [{
         content: 'Go to the Guru job page',
-        trigger: 'a[href*="guru"]',
+        trigger: 'iframe a[href*="guru"]',
     }, {
         content: 'Go to the Guru job form',
-        trigger: 'a[href*="apply"]',
+        trigger: 'iframe a[href*="apply"]',
     }, {
         content: 'Check if the Guru form is present',
-        trigger: 'form'
+        trigger: 'iframe form'
     }, {
         content: 'Enter in edit mode',
-        trigger: 'a.o_frontend_to_backend_edit_btn',
+        trigger: '.o_edit_website_container > a',
     }, {
         content: 'Add a fake default value for the job_id field',
         trigger: '#oe_snippets.o_loaded',
         run: () => {
             // It must be done in this way because the editor does not allow to
             // put a default value on a field with type="hidden".
-            document.querySelector('iframe').contentDocument.querySelector('input[name="job_id"]').value = 'FAKE_JOB_ID_DEFAULT_VAL';
+            document.querySelector('.o_iframe:not(.o_technical_iframe)').contentDocument.querySelector('input[name="job_id"]').value = 'FAKE_JOB_ID_DEFAULT_VAL';
         },
     }, {
         content: 'Edit the form',
@@ -96,32 +98,32 @@ odoo.define('website_hr_recruitment.tour', function(require) {
         content: 'Go back to /jobs page after save',
         trigger: 'iframe body:not(.editor_enable)',
         run: () => {
-            window.location.href = '/jobs';
+            window.location.href = wTourUtils.getClientActionUrl('/jobs');
         }
     }, {
         content: 'Go to the Internship job page',
-        trigger: 'a[href*="internship"]',
+        trigger: 'iframe a[href*="internship"]',
     }, {
         content: 'Go to the Internship job form',
-        trigger: 'a[href*="apply"]',
+        trigger: 'iframe a[href*="apply"]',
     }, {
         content: 'Check that a job_id has been loaded',
-        trigger: 'form',
+        trigger: 'iframe form',
         run: () => {
             const selector =
                 'input[name="job_id"]:not([value=""]):not([value = "FAKE_JOB_ID_DEFAULT_VAL"])';
-            if (!document.querySelector(selector)) {
+            if (!document.querySelector('.o_iframe:not(.o_technical_iframe)').contentDocument.querySelector(selector)) {
                 console.error('The job_id field has a wrong value');
             }
         }
     }, {
         content: 'Enter in edit mode',
-        trigger: 'a.o_frontend_to_backend_edit_btn',
+        trigger: '.o_edit_website_container > a',
     }, {
         content: 'Verify that the job_id field has kept its default value',
         trigger: '#oe_snippets.o_loaded',
         run: () => {
-            if (!document.querySelector('iframe').contentDocument.querySelector('input[name="job_id"][value="FAKE_JOB_ID_DEFAULT_VAL"]')) {
+            if (!document.querySelector('.o_iframe:not(.o_technical_iframe)').contentDocument.querySelector('input[name="job_id"][value="FAKE_JOB_ID_DEFAULT_VAL"]')) {
                 console.error('The job_id field has lost its default value');
             }
         }
