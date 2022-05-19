@@ -1099,9 +1099,9 @@ class Task(models.Model):
         readonly=False,
         store=True,
     )
-    has_late_and_not_reached_milestone = fields.Boolean(
-        compute='_compute_has_late_and_not_reached_milestone',
-        search='_search_has_late_and_not_reached_milestone',
+    has_late_and_unreached_milestone = fields.Boolean(
+        compute='_compute_has_late_and_unreached_milestone',
+        search='_search_has_late_and_unreached_milestone',
         groups='project.group_project_milestone',
     )
 
@@ -1984,9 +1984,9 @@ class Task(models.Model):
             if task.project_id != task.milestone_id.project_id:
                 task.milestone_id = False
 
-    def _compute_has_late_and_not_reached_milestone(self):
+    def _compute_has_late_and_unreached_milestone(self):
         if all(not task.project_id or not task.allow_milestones for task in self):
-            self.has_late_and_not_reached_milestone = False
+            self.has_late_and_unreached_milestone = False
             return
         late_milestones = self.env['project.milestone']._search([
             ('id', 'in', self.milestone_id.ids),
@@ -1994,9 +1994,9 @@ class Task(models.Model):
             ('deadline', '<', fields.Date.today()),
         ])
         for task in self:
-            task.has_late_and_not_reached_milestone = task.project_id and task.allow_milestones and task.milestone_id.id in late_milestones
+            task.has_late_and_unreached_milestone = task.project_id and task.allow_milestones and task.milestone_id.id in late_milestones
 
-    def _search_has_late_and_not_reached_milestone(self, operator, value):
+    def _search_has_late_and_unreached_milestone(self, operator, value):
         if operator not in ('=', '!=') or not isinstance(value, bool):
             raise NotImplementedError(f'The search does not support the {operator} operator or {value} value.')
         domain = [
