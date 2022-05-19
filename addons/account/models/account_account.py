@@ -59,6 +59,14 @@ class AccountAccount(models.Model):
                                              help="Used in reports to know if we should consider journal items from the beginning of time instead of from the fiscal year only. Account types that should be reset to zero at each new fiscal year (like expenses, revenue..) should not have this option set.",
                                              compute="_compute_include_initial_balance",
                                              store=True)
+    internal_group = fields.Selection([
+        ('equity', 'Equity'),
+        ('asset', 'Asset'),
+        ('liability', 'Liability'),
+        ('income', 'Income'),
+        ('expense', 'Expense'),
+        ('off_balance', 'Off Balance'),
+    ], string="Internal Group", readonly=True, compute="_compute_internal_group")
     #has_unreconciled_entries = fields.Boolean(compute='_compute_has_unreconciled_entries',
     #    help="The account has at least one unreconciled debit and credit since last time the invoices & payments matching was performed.")
     reconcile = fields.Boolean(string='Allow Reconciliation', default=False, tracking=True,
@@ -355,6 +363,31 @@ class AccountAccount(models.Model):
         for account in self:
             account.include_initial_balance = account.account_type not in (
                 'data_account_type_revenue', 'data_account_type_other_income', 'data_account_type_expenses', 'data_account_type_depreciation', 'data_account_type_direct_costs', 'data_account_off_sheet')
+
+    @api.depends('account_type')
+    def _compute_internal_group(self):
+        internal_group_dict = {
+            "data_account_type_receivable": "asset",
+            "data_account_type_liquidity": "asset",
+            "data_account_type_current_assets": "asset",
+            "data_account_type_non_current_assets": "asset",
+            "data_account_type_prepayments": "asset",
+            "data_account_type_fixed_assets": "asset",
+            "data_account_type_payable": "liability",
+            "data_account_type_credit_card": "liability",
+            "data_account_type_current_liabilities": "liability",
+            "data_account_type_non_current_liabilities": "liability",
+            "data_account_type_equity": "equity",
+            "data_account_type_unaffected_earnings": "equity",
+            "data_account_type_revenue": "income",
+            "data_account_type_other_income": "income",
+            "data_account_type_expenses": "expense",
+            "data_account_type_depreciation": "expense",
+            "data_account_type_direct_costs": "expense",
+            "data_account_type_off_sheet": "off_balance",
+        }
+        for account in self:
+            account.internal_group = internal_group_dict.get(account.account_type)
 
     def _set_opening_debit(self):
         for record in self:
