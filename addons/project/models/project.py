@@ -2341,6 +2341,17 @@ class Task(models.Model):
         self.recurrence_id = False
         self.recurring_task = False
 
+    def action_view_task_from_tree(self):
+        self.ensure_one()
+        return {
+            'name': 'Tasks',
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'view_mode': 'form',
+            'context': {'default_project_id': self.project_id.id},
+            'res_id': self.id,
+        }
+
     # ---------------------------------------------------
     # Rating business
     # ---------------------------------------------------
