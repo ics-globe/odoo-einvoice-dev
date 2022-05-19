@@ -550,7 +550,7 @@ class AccountMove(models.Model):
         for line in self.line_ids:
             line.partner_id = self.partner_id.commercial_partner_id
 
-            if new_term_account and line.account_id.user_type_id.type in ('receivable', 'payable'):
+            if new_term_account and line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'):
                 line.account_id = new_term_account
 
         self._compute_bank_partner_id()
@@ -581,7 +581,7 @@ class AccountMove(models.Model):
 
     @api.onchange('payment_reference')
     def _onchange_payment_reference(self):
-        for line in self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable')):
+        for line in self.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable')):
             line.name = self.payment_reference or ''
 
     @api.onchange('invoice_vendor_bill_id')
@@ -898,7 +898,7 @@ class AccountMove(models.Model):
                 self.line_ids -= existing_cash_rounding_line
                 existing_cash_rounding_line = self.env['account.move.line']
 
-        others_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+        others_lines = self.line_ids.filtered(lambda line: line.account_id.account_type not in ('data_account_type_receivable', 'data_account_type_payable'))
         others_lines -= existing_cash_rounding_line
         total_amount_currency = sum(others_lines.mapped('amount_currency'))
 
@@ -1021,8 +1021,8 @@ class AccountMove(models.Model):
                     candidate.update(candidate._get_fields_onchange_balance(force_computation=True))
             return new_terms_lines
 
-        existing_terms_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
-        others_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type not in ('receivable', 'payable'))
+        existing_terms_lines = self.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'))
+        others_lines = self.line_ids.filtered(lambda line: line.account_id.account_type not in ('data_account_type_receivable', 'data_account_type_payable'))
         company_currency_id = (self.company_id or self.env.company).currency_id
         total_balance = sum(others_lines.mapped(lambda l: company_currency_id.round(l.balance)))
         total_amount_currency = sum(others_lines.mapped('amount_currency'))
@@ -1445,7 +1445,7 @@ class AccountMove(models.Model):
                         total_tax_currency += line.amount_currency
                         total += line.balance
                         total_currency += line.amount_currency
-                    elif line.account_id.user_type_id.type in ('receivable', 'payable') and move.state == 'posted':
+                    elif line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable') and move.state == 'posted':
                         # Residual amount.
                         total_to_pay += line.balance
                         total_residual += line.amount_residual
@@ -1584,7 +1584,7 @@ class AccountMove(models.Model):
                 continue
 
             pay_term_lines = move.line_ids\
-                .filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+                .filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'))
 
             domain = [
                 ('account_id', 'in', pay_term_lines.account_id.ids),
@@ -2428,21 +2428,21 @@ class AccountMove(models.Model):
 
     def _get_reconciled_payments(self):
         """Helper used to retrieve the reconciled payments on this journal entry"""
-        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'))
         reconciled_amls = reconciled_lines.mapped('matched_debit_ids.debit_move_id') + \
                           reconciled_lines.mapped('matched_credit_ids.credit_move_id')
         return reconciled_amls.move_id.payment_id
 
     def _get_reconciled_statement_lines(self):
         """Helper used to retrieve the reconciled payments on this journal entry"""
-        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'))
         reconciled_amls = reconciled_lines.mapped('matched_debit_ids.debit_move_id') + \
                           reconciled_lines.mapped('matched_credit_ids.credit_move_id')
         return reconciled_amls.move_id.statement_line_id
 
     def _get_reconciled_invoices(self):
         """Helper used to retrieve the reconciled payments on this journal entry"""
-        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable'))
+        reconciled_lines = self.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'))
         reconciled_amls = reconciled_lines.mapped('matched_debit_ids.debit_move_id') + \
                           reconciled_lines.mapped('matched_credit_ids.credit_move_id')
         return reconciled_amls.move_id.filtered(lambda move: move.is_invoice(include_receipts=True))
@@ -2808,7 +2808,7 @@ class AccountMove(models.Model):
                     'payment_reference': move._get_invoice_computed_reference(),
                     'line_ids': []
                 }
-                for line in move.line_ids.filtered(lambda line: line.account_id.user_type_id.type in ('receivable', 'payable')):
+                for line in move.line_ids.filtered(lambda line: line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable')):
                     to_write['line_ids'].append((1, line.id, {'name': to_write['payment_reference']}))
                 move.write(to_write)
 
@@ -3404,7 +3404,7 @@ class AccountMoveLine(models.Model):
         domain="[('deprecated', '=', False), ('company_id', '=', 'company_id'),('is_off_balance', '=', False)]",
         check_company=True,
         tracking=True)
-    account_internal_type = fields.Selection(related='account_id.user_type_id.type', string="Internal Type", readonly=True)
+    account_internal_type = fields.Selection(related='account_id.account_type', string="Internal Type", readonly=True)
     account_internal_group = fields.Selection(related='account_id.user_type_id.internal_group', string="Internal Group", readonly=True)
     account_root_id = fields.Many2one(related='account_id.root_id', string="Account Root", store=True, readonly=True)
     sequence = fields.Integer(default=10)
@@ -4499,14 +4499,14 @@ class AccountMoveLine(models.Model):
 
             # Check switching receivable / payable accounts.
             if account_to_write:
-                account_type = line.account_id.user_type_id.type
+                account_type = line.account_id.account_type
                 if line.move_id.is_sale_document(include_receipts=True):
-                    if (account_type == 'receivable' and account_to_write.user_type_id.type != account_type) \
-                            or (account_type != 'receivable' and account_to_write.user_type_id.type == 'receivable'):
+                    if (account_type == 'receivable' and account_to_write.account_type != account_type) \
+                            or (account_type != 'receivable' and account_to_write.account_type == 'receivable'):
                         raise UserError(_("You can only set an account having the receivable type on payment terms lines for customer invoice."))
                 if line.move_id.is_purchase_document(include_receipts=True):
-                    if (account_type == 'payable' and account_to_write.user_type_id.type != account_type) \
-                            or (account_type != 'payable' and account_to_write.user_type_id.type == 'payable'):
+                    if (account_type == 'payable' and account_to_write.account_type != account_type) \
+                            or (account_type != 'payable' and account_to_write.account_type == 'payable'):
                         raise UserError(_("You can only set an account having the payable type on payment terms lines for vendor bill."))
 
         # Tracking stuff can be skipped for perfs using tracking_disable context key
@@ -5351,7 +5351,7 @@ class AccountMoveLine(models.Model):
 
         # ==== Create entries for cash basis taxes ====
 
-        is_cash_basis_needed = account.user_type_id.type in ('receivable', 'payable')
+        is_cash_basis_needed = account.account_type in ('receivable', 'payable')
         if is_cash_basis_needed and not self._context.get('move_reverse_cancel'):
             tax_cash_basis_moves = partials._create_tax_cash_basis_moves()
             results['tax_cash_basis_moves'] = tax_cash_basis_moves
@@ -5444,7 +5444,7 @@ class AccountMoveLine(models.Model):
 
         for line, values in zip(self, res):
             # Don't copy the name of a payment term line.
-            if line.move_id.is_invoice() and line.account_id.user_type_id.type in ('receivable', 'payable'):
+            if line.move_id.is_invoice() and line.account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'):
                 values['name'] = ''
             # Don't copy restricted fields of notes
             if line.display_type in ('line_section', 'line_note'):
@@ -5613,7 +5613,7 @@ class AccountMoveLine(models.Model):
             domain += [(date_field, '<=', context['date_to'])]
         if context.get('date_from'):
             if not context.get('strict_range'):
-                domain += ['|', (date_field, '>=', context['date_from']), ('account_id.user_type_id.include_initial_balance', '=', True)]
+                domain += ['|', (date_field, '>=', context['date_from']), ('account_id.include_initial_balance', '=', True)]
             elif context.get('initial_bal'):
                 domain += [(date_field, '<', context['date_from'])]
             else:

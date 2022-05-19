@@ -87,15 +87,15 @@ class AccountJournal(models.Model):
         string='Default Account',
         domain="[('deprecated', '=', False), ('company_id', '=', company_id),"
                "'|', ('user_type_id', '=', default_account_type), ('user_type_id', 'in', type_control_ids),"
-               "('user_type_id.type', 'not in', ('receivable', 'payable'))]")
+               "('account_type', 'not in', ('receivable', 'payable'))]")
     suspense_account_id = fields.Many2one(
         comodel_name='account.account', check_company=True, ondelete='restrict', readonly=False, store=True,
         compute='_compute_suspense_account_id',
         help="Bank statements transactions will be posted on the suspense account until the final reconciliation "
              "allowing finding the right account.", string='Suspense Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
-                             ('user_type_id.type', 'not in', ('receivable', 'payable')), \
-                             ('user_type_id', '=', %s)]" % self.env.ref('account.data_account_type_current_assets').id)
+                             ('account_type', 'not in', ('receivable', 'payable')), \
+                             ('account_type', '=', %s)]" % 'data_account_type_current_assets')
     restrict_mode_hash_table = fields.Boolean(string="Lock Posted Entries with Hash",
         help="If ticked, the accounting entry or invoice receives a hash as soon as it is posted and cannot be modified anymore.")
     sequence = fields.Integer(help='Used to order Journals in the dashboard view', default=10)
@@ -150,16 +150,16 @@ class AccountJournal(models.Model):
         help="Used to register a profit when the ending balance of a cash register differs from what the system computes",
         string='Profit Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
-                             ('user_type_id.type', 'not in', ('receivable', 'payable')), \
-                             ('user_type_id', 'in', %s)]" % [self.env.ref('account.data_account_type_revenue').id,
-                                                             self.env.ref('account.data_account_type_other_income').id])
+                             ('account_type', 'not in', ('receivable', 'payable')), \
+                             ('account_type', 'in', %s)]" % ['data_account_type_revenue',
+                                                             'data_account_type_other_income'])
     loss_account_id = fields.Many2one(
         comodel_name='account.account', check_company=True,
         help="Used to register a loss when the ending balance of a cash register differs from what the system computes",
         string='Loss Account',
         domain=lambda self: "[('deprecated', '=', False), ('company_id', '=', company_id), \
-                             ('user_type_id.type', 'not in', ('receivable', 'payable')), \
-                             ('user_type_id', '=', %s)]" % self.env.ref('account.data_account_type_expenses').id)
+                             ('account_type', 'not in', ('receivable', 'payable')), \
+                             ('account_type', '=', %s)]" % 'data_account_type_expenses')
 
     # Bank journals fields
     company_partner_id = fields.Many2one('res.partner', related='company_id.partner_id', string='Account Holder', readonly=True, store=False)
@@ -443,7 +443,7 @@ class AccountJournal(models.Model):
     @api.constrains('type', 'default_account_id')
     def _check_type_default_account_id_type(self):
         for journal in self:
-            if journal.type in ('sale', 'purchase') and journal.default_account_id.user_type_id.type in ('receivable', 'payable'):
+            if journal.type in ('sale', 'purchase') and journal.default_account_id.account_type in ('data_account_type_receivable', 'data_account_type_payable'):
                 raise ValidationError(_("The type of the journal's default credit/debit account shouldn't be 'receivable' or 'payable'."))
 
     @api.constrains('inbound_payment_method_line_ids', 'outbound_payment_method_line_ids')
@@ -599,7 +599,7 @@ class AccountJournal(models.Model):
         return {
             'name': vals.get('name'),
             'code': code,
-            'user_type_id': self.env.ref('account.data_account_type_liquidity').id,
+            'account_type': 'data_account_type_liquidity',
             'currency_id': vals.get('currency_id'),
             'company_id': company.id,
         }

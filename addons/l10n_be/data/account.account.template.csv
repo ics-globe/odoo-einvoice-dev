@@ -1,4 +1,4 @@
-"id","name","code","user_type_id/id","chart_template_id/id","tag_ids/id","reconcile"
+"id","name","code","account_type","chart_template_id/id","tag_ids/id","reconcile"
 "a000","Company creditors, beneficiaries of third party guarantees","000","account.data_account_off_sheet","l10n_be.l10nbe_chart_template","","False"
 "a001","Third party guarantees on behalf of the company","001","account.data_account_off_sheet","l10n_be.l10nbe_chart_template","","False"
 "a010","Accounts receivable for commitments on bills in circulation","010","account.data_account_off_sheet","l10n_be.l10nbe_chart_template","","False"

@@ -65,7 +65,7 @@ class AccountFrFec(models.TransientModel):
         WHERE
             am.date < %s
             AND am.company_id = %s
-            AND aat.include_initial_balance IS NOT TRUE
+            AND aa.include_initial_balance IS NOT TRUE
         '''
         # For official report: only use posted entries
         if self.export_type == "official":
@@ -183,7 +183,7 @@ class AccountFrFec(models.TransientModel):
         WHERE
             am.date < %s
             AND am.company_id = %s
-            AND aat.include_initial_balance = 't'
+            AND aa.include_initial_balance = 't'
         '''
 
         # For official report: only use posted entries
@@ -209,7 +209,7 @@ class AccountFrFec(models.TransientModel):
             account_id = listrow.pop()
             if not unaffected_earnings_line:
                 account = self.env['account.account'].browse(account_id)
-                if account.user_type_id.id == self.env.ref('account.data_unaffected_earnings').id:
+                if account.account_type == 'data_unaffected_earnings':
                     #add the benefit/loss of previous fiscal year to the first unaffected earnings account found.
                     unaffected_earnings_line = True
                     current_amount = float(listrow[11].replace(',', '.')) - float(listrow[12].replace(',', '.'))
@@ -231,7 +231,7 @@ class AccountFrFec(models.TransientModel):
             and (unaffected_earnings_results[11] != '0,00'
                  or unaffected_earnings_results[12] != '0,00')):
             #search an unaffected earnings account
-            unaffected_earnings_account = self.env['account.account'].search([('user_type_id', '=', self.env.ref('account.data_unaffected_earnings').id)], limit=1)
+            unaffected_earnings_account = self.env['account.account'].search([('account_type', '=', 'data_unaffected_earnings')], limit=1)
             if unaffected_earnings_account:
                 unaffected_earnings_results[4] = unaffected_earnings_account.code
                 unaffected_earnings_results[5] = unaffected_earnings_account.name
@@ -279,7 +279,7 @@ class AccountFrFec(models.TransientModel):
         WHERE
             am.date < %s
             AND am.company_id = %s
-            AND aat.include_initial_balance = 't'
+            AND aa.include_initial_balance = 't'
         '''
 
         # For official report: only use posted entries

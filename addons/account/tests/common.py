@@ -220,22 +220,22 @@ class AccountTestInvoicingCommon(TransactionCase):
             'currency': company.currency_id,
             'default_account_revenue': cls.env['account.account'].search([
                     ('company_id', '=', company.id),
-                    ('user_type_id', '=', cls.env.ref('account.data_account_type_revenue').id)
+                    ('account_type', '=', cls.env.ref('account.data_account_type_revenue').id)
                 ], limit=1),
             'default_account_expense': cls.env['account.account'].search([
                     ('company_id', '=', company.id),
-                    ('user_type_id', '=', cls.env.ref('account.data_account_type_expenses').id)
+                    ('account_type', '=', cls.env.ref('account.data_account_type_expenses').id)
                 ], limit=1),
             'default_account_receivable': search_account(company, chart_template, 'property_account_receivable_id', [
-                ('user_type_id.type', '=', 'receivable')
+                ('account_type', '=', 'receivable')
             ]),
             'default_account_payable': cls.env['account.account'].search([
                     ('company_id', '=', company.id),
-                    ('user_type_id.type', '=', 'payable')
+                    ('account_type', '=', 'payable')
                 ], limit=1),
             'default_account_assets': cls.env['account.account'].search([
                     ('company_id', '=', company.id),
-                    ('user_type_id', '=', cls.env.ref('account.data_account_type_current_assets').id)
+                    ('account_type', '=', cls.env.ref('account.data_account_type_current_assets').id)
                 ], limit=1),
             'default_account_tax_sale': company.account_sale_tax_id.mapped('invoice_repartition_line_ids.account_id'),
             'default_account_tax_purchase': company.account_purchase_tax_id.mapped('invoice_repartition_line_ids.account_id'),
@@ -591,7 +591,7 @@ class TestAccountReconciliationCommon(AccountTestInvoicingCommon):
         cls.tax_waiting_account = cls.env['account.account'].create({
             'name': 'TAX_WAIT',
             'code': 'TWAIT',
-            'user_type_id': cls.env.ref('account.data_account_type_current_liabilities').id,
+            'account_type': cls.env.ref('account.data_account_type_current_liabilities').id,
             'reconcile': True,
             'company_id': cls.company.id,
         })
@@ -599,13 +599,13 @@ class TestAccountReconciliationCommon(AccountTestInvoicingCommon):
         cls.tax_final_account = cls.env['account.account'].create({
             'name': 'TAX_TO_DEDUCT',
             'code': 'TDEDUCT',
-            'user_type_id': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
             'company_id': cls.company.id,
         })
         cls.tax_base_amount_account = cls.env['account.account'].create({
             'name': 'TAX_BASE',
             'code': 'TBASE',
-            'user_type_id': cls.env.ref('account.data_account_type_current_assets').id,
+            'account_type': cls.env.ref('account.data_account_type_current_assets').id,
             'company_id': cls.company.id,
         })
         cls.company.account_cash_basis_base_account_id = cls.tax_base_amount_account.id

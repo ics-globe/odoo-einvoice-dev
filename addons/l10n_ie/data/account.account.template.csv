@@ -1,4 +1,4 @@
-id,code,name,user_type_id:id,reconcile,chart_template_id:id
+id,code,name,account_type,reconcile,chart_template_id:id
 l10n_ie_a10,10,Software,account.data_account_type_fixed_assets,FALSE,l10n_ie
 l10n_ie_a11,11,Software Depreciation,account.data_account_type_fixed_assets,FALSE,l10n_ie
 l10n_ie_a20,20,Patents & Trademarks,account.data_account_type_fixed_assets,FALSE,l10n_ie

@@ -1,4 +1,4 @@
-"id","name","code","user_type_id/id","chart_template_id/id","tag_ids/id","reconcile"
+"id","name","code","account_type","chart_template_id/id","tag_ids/id","reconcile"
 "0010","Aanschafwaarde Goodwill","0010","account.data_account_type_fixed_assets","l10n_nl.l10nnl_chart_template","l10n_nl.account_tag_17","False"
 "0019","Afschrijving Goodwill","0019","account.data_account_type_fixed_assets","l10n_nl.l10nnl_chart_template","l10n_nl.account_tag_17","False"
 "0020","Aanschafwaarde overige immateriele vaste activa","0020","account.data_account_type_fixed_assets","l10n_nl.l10nnl_chart_template","l10n_nl.account_tag_17","False"

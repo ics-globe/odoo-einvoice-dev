@@ -1,4 +1,4 @@
-"id","code","name","user_type_id:id","reconcile","chart_template_id:id"
+"id","code","name","account_type","reconcile","chart_template_id:id"
 "ua_psbp_100",100,"Інвестиційна нерухомість","account.data_account_type_fixed_assets",FALSE,"l10n_ua_psbo_chart_template"
 "ua_psbp_101",101,"Земельні ділянки","account.data_account_type_fixed_assets",FALSE,"l10n_ua_psbo_chart_template"
 "ua_psbp_102",102,"Капітальні витрати на поліпшення  земель","account.data_account_type_fixed_assets",FALSE,"l10n_ua_psbo_chart_template"

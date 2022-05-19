@@ -110,7 +110,7 @@ class AccountPayment(models.Model):
         string='Destination Account',
         store=True, readonly=False,
         compute='_compute_destination_account_id',
-        domain="[('user_type_id.type', 'in', ('receivable', 'payable')), ('company_id', '=', company_id)]",
+        domain="[('account_type', 'in', ('receivable', 'payable')), ('company_id', '=', company_id)]",
         check_company=True)
     destination_journal_id = fields.Many2one(
         comodel_name='account.journal',
@@ -789,7 +789,7 @@ class AccountPayment(models.Model):
                         move.display_name,
                     ))
 
-                if counterpart_lines.account_id.user_type_id.type == 'receivable':
+                if counterpart_lines.account_id.account_type == 'data_account_type_receivable':
                     partner_type = 'customer'
                 else:
                     partner_type = 'supplier'

@@ -73,7 +73,7 @@ class TestDeliveryCost(common.TransactionCase):
         self.a_sale = self.AccountAccount.create({
             'code': 'X2020',
             'name': 'Product Sales - (test)',
-            'user_type_id': self.account_data.id,
+            'account_type': self.account_data.id,
             'tag_ids': [(6, 0, {
                 self.account_tag_operating.id
             })]

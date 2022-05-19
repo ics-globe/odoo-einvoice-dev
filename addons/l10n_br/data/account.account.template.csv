@@ -1,4 +1,4 @@
-id,code,name,note,user_type_id:id,reconcile,chart_template_id:id
+id,code,name,note,account_type,reconcile,chart_template_id:id
 account_template_101010300,1.01.01.03.00,Recursos no Exterior Decorrentes de Exportação,"Contas que registram movimentação de recursos em instituições financeiras no exterior, nos termos do art. 1o. da Lei no 11.371/2006.",account.data_account_type_current_assets,,l10n_br_account_chart_template
 account_template_101010400,1.01.01.04.00,Contas Bancárias – Subvenções,"Contas que registram disponibilidades, nas instituições imunes ou isentas, de recursos de aplicações vinculadas ao objeto das subvenções, mantidas em instituições financeiras.",account.data_account_type_current_assets,,l10n_br_account_chart_template
 account_template_101010500,1.01.01.05.00,Contas Bancárias – Doações,"Contas que registram disponibilidades, nas instituições imunes ou isentas, de recursos de aplicações vinculadas ao objeto das doações, mantidas em instituições financeiras.",account.data_account_type_current_assets,,l10n_br_account_chart_template

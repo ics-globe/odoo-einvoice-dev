@@ -101,7 +101,7 @@ class AccountPaymentMethodLine(models.Model):
         ondelete='restrict',
         domain=lambda self: "[('deprecated', '=', False), "
                             "('company_id', '=', company_id), "
-                            "('user_type_id.type', 'not in', ('receivable', 'payable')), "
+                            "('account_type', 'not in', ('receivable', 'payable')), "
                             "'|', ('user_type_id', '=', %s), ('id', '=', parent.default_account_id)]"
                             % self.env.ref('account.data_account_type_current_assets').id
     )

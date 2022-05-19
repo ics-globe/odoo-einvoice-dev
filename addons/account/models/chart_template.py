@@ -171,7 +171,7 @@ class AccountChartTemplate(models.Model):
         return self.env['account.account'].create({
             'name': _("Bank Suspense Account"),
             'code': self.env['account.account']._search_new_account_code(company, code_digits, company.bank_account_code_prefix or ''),
-            'user_type_id': self.env.ref('account.data_account_type_current_assets').id,
+            'account_type': 'data_account_type_current_assets'),
             'company_id': company.id,
         })
 
@@ -305,7 +305,7 @@ class AccountChartTemplate(models.Model):
             company.default_cash_difference_expense_account_id = self.env['account.account'].create({
                 'name': _('Cash Difference Loss'),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, '999'),
-                'user_type_id': self.env.ref('account.data_account_type_expenses').id,
+                'account_type': 'data_account_type_expenses'),
                 'tag_ids': [(6, 0, self.env.ref('account.account_tag_investing').ids)],
                 'company_id': company.id,
             })
@@ -314,7 +314,7 @@ class AccountChartTemplate(models.Model):
             company.default_cash_difference_income_account_id = self.env['account.account'].create({
                 'name': _('Cash Difference Gain'),
                 'code': self.env['account.account']._search_new_account_code(company, self.code_digits, '999'),
-                'user_type_id': self.env.ref('account.data_account_type_revenue').id,
+                'account_type': 'data_account_type_revenue'),
                 'tag_ids': [(6, 0, self.env.ref('account.account_tag_investing').ids)],
                 'company_id': company.id,
             })

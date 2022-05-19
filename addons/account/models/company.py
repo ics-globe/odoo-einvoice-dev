@@ -57,7 +57,7 @@ class ResCompany(models.Model):
         tracking=True,
         help="No users can edit journal entries related to a tax prior and inclusive of this date.")
     transfer_account_id = fields.Many2one('account.account',
-        domain=lambda self: [('reconcile', '=', True), ('user_type_id', '=', self.env.ref('account.data_account_type_current_assets').id), ('deprecated', '=', False)], string="Inter-Banks Transfer Account", help="Intermediary account used when moving money from a liquidity account to another")
+        domain=lambda self: [('reconcile', '=', True), ('account_type', '=', 'data_account_type_current_assets').id), ('deprecated', '=', False)], string="Inter-Banks Transfer Account", help="Intermediary account used when moving money from a liqity account to another")
     expects_chart_of_accounts = fields.Boolean(string='Expects a Chart of Accounts', default=True)
     chart_template_id = fields.Many2one('account.chart.template', help='The chart template for the company (if any)')
     bank_account_code_prefix = fields.Char(string='Prefix of the bank accounts')
@@ -79,13 +79,13 @@ class ResCompany(models.Model):
         comodel_name='account.account',
         string="Gain Exchange Rate Account",
         domain=lambda self: "[('internal_type', '=', 'other'), ('deprecated', '=', False), ('company_id', '=', id), \
-                             ('user_type_id', 'in', %s)]" % [self.env.ref('account.data_account_type_revenue').id,
+                             ('account_type', 'in', %s)]" % ['data_account_type_revenue'),
                                                              self.env.ref('account.data_account_type_other_income').id])
     expense_currency_exchange_account_id = fields.Many2one(
         comodel_name='account.account',
         string="Loss Exchange Rate Account",
         domain=lambda self: "[('internal_type', '=', 'other'), ('deprecated', '=', False), ('company_id', '=', id), \
-                             ('user_type_id', '=', %s)]" % self.env.ref('account.data_account_type_expenses').id)
+                             ('account_type', '=', %s)]" % 'data_account_type_expenses'))
     anglo_saxon_accounting = fields.Boolean(string="Use anglo-saxon accounting")
     property_stock_account_input_categ_id = fields.Many2one('account.account', string="Input Account for Stock Valuation")
     property_stock_account_output_categ_id = fields.Many2one('account.account', string="Output Account for Stock Valuation")
@@ -365,7 +365,7 @@ class ResCompany(models.Model):
         # Then, we open will open a custom tree view allowing to edit opening balances of the account
         view_id = self.env.ref('account.init_accounts_tree').id
         # Hide the current year earnings account as it is automatically computed
-        domain = [('user_type_id', '!=', self.env.ref('account.data_unaffected_earnings').id), ('company_id','=', company.id)]
+        domain = [('account_type', '!=', 'data_unaffected_earnings').id), ('company_id','=', company)]
         return {
             'type': 'ir.actions.act_window',
             'name': _('Chart of Accounts'),
