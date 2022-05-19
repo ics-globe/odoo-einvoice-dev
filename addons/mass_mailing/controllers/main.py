@@ -123,7 +123,7 @@ class MassMailController(http.Controller):
         return True
 
     @http.route('/mailing/feedback', type='json', auth='public')
-    def mailing_send_feedback(self, mailing_id, res_id, email, feedback, token):
+    def mailing_send_feedback(self, mailing_id=None, res_id=None, email=None, feedback=None, token=None):
         mailing_sudo = self._check_mailing_email_token(mailing_id, res_id, email, token)
         if not mailing_sudo:
             return 'unauthorized' if mailing_sudo is False else 'error'

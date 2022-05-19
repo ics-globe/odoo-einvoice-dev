@@ -36,7 +36,7 @@
                                         You have been <strong>successfully unsubscribed</strong>.
                                     </t>
                                 </div>
-                                <div id="div_feedback">
+                                <div id="o_mailing_subscription_feedback">
                                     <p>We would appreciate if you provide feedback about why you updated<br/>your subscriptions</p>
                                     <textarea class="form-control"  name="opt_out_feedback" cols="60" rows="3"></textarea>
                                     <br/>

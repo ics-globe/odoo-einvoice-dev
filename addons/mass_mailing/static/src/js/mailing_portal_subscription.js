@@ -38,6 +38,18 @@ publicWidget.registry.MailingPortalSubscription = publicWidget.Widget.extend({
         }
     },
 
+    _attachFeedback: function () {
+        const $feedback_elem = this.$('.o_mailing_subscription_feedback');
+        console.log($feedback_elem);
+        if ($feedback_elem.length) {
+            this.mailingPortalFeedback = new publicWidget.registry.MailingPortalFeedback(
+                this,
+                {customer_data: this.customer_data}
+            );
+            this.mailingPortalFeedback.attachTo($bl_elem);
+        }
+    },
+
     _onBlacklistAdd: function (event) {
         const call_key = event.data.call_key;
         this.customer_data.isBlacklisted = event.data.isBlacklisted;
