@@ -8,27 +8,18 @@ const wTourUtils = require('website.tour_utils');
 const adminCssModif = '#wrap {display: none;}';
 const demoCssModif = '// demo_edition';
 
-tour.register('html_editor_multiple_templates', {
-    test: true,
+wTourUtils.registerEditionTour('html_editor_multiple_templates', {
     url: '/generic',
+    edition: true,
 },
     [
-        // 1. Edit the page through Edit Mode, it will COW the view
-        {
-            content: "enter edit mode",
-            trigger: "a.o_frontend_to_backend_edit_btn"
-        },
         {
             content: "drop a snippet",
             trigger: '#oe_snippets.o_loaded .oe_snippet:has(.s_cover) .oe_snippet_thumbnail',
             // id starting by 'oe_structure..' will actually create an inherited view
             run: "drag_and_drop iframe #oe_structure_test_ui",
         },
-        {
-            content: "save the page",
-            extra_trigger: '#oe_structure_test_ui.o_dirty',
-            trigger: "button[data-action=save]",
-        },
+        ...wTourUtils.clickOnSave(),
         // 2. Edit generic view
         {
             content: "open site menu",
