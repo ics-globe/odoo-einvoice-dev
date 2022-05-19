@@ -345,20 +345,16 @@ odoo.define('website.tour.form_editor', function (require) {
             extra_trigger: 'iframe body:not(.editor_enable)',
             trigger: 'iframe .s_website_form_field:eq(0) input[value="John Smith"]',
         },
-        {
-            content: 'Enter in edit mode again',
-            trigger: '.o_edit_website_container a',
-            run: 'click',
-        },
+        wTourUtils.clickOnEdit(),
         {
             content: 'Click on the submit button',
             trigger: 'iframe .s_website_form_send',
-            extra_trigger: 'iframe body.editor_enable',
+            extra_trigger: '.o_website_editor.editor_enable',
             run: 'click',
         },
         {
             content: 'Change the Recipient Email',
-            trigger: 'iframe [data-field-name="email_to"] input',
+            trigger: '[data-field-name="email_to"] input',
             run: 'text test@test.test',
         },
         {
