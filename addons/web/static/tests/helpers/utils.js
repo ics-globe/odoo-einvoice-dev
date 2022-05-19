@@ -23,7 +23,15 @@ const { App, onMounted, onPatched, useComponent } = owl;
 export function patchDate(year, month, day, hours, minutes, seconds) {
     var RealDate = window.Date;
     var actualDate = new RealDate();
+
+    // By default, RealDate uses the machine offset, so we must replace it with the offset fixed in luxon.
     var fakeDate = new RealDate(year, month, day, hours, minutes, seconds);
+    const machineOffset = -fakeDate.getTimezoneOffset();
+    const patchedOffset = luxon.Settings.defaultZone.offset();
+    const offsetDiff = patchedOffset - machineOffset;
+    const correctedMinutes = fakeDate.getMinutes() - offsetDiff;
+    fakeDate.setMinutes(correctedMinutes);
+
     var timeInterval = actualDate.getTime() - fakeDate.getTime();
 
     window.Date = (function (NativeDate) {
