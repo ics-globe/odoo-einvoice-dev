@@ -429,8 +429,11 @@ function enforceTablesResponsivity(editable) {
     }
     for (const td of editable.querySelectorAll('td[colspan]')) {
         const colspan = +td.getAttribute('colspan');
-        // Don't allow little duos of columns to wrap (eg., col-2 col-10).
-        if (colspan > 2 && colspan < 10 || [...td.parentElement.children].filter(child => child.nodeName === 'TD').length > 2) {
+        const tdSiblings = [...td.parentElement.children].filter(child => child.nodeName === 'TD');
+        if ( // Don't allow little duos of columns to wrap (eg., col-2 col-10).
+            colspan > 2 && colspan < 10 || tdSiblings.length > 2
+            || tdSiblings.some(td => [...td.children].some(child => child.style.width === '100%')) // Unless they have a full width child.
+           ) {
             td.setAttribute('width', '100%');
             td.style.setProperty('width', '100%');
             td.style.setProperty('display', 'inline-block'); // Allow cells to wrap.
