@@ -14,6 +14,7 @@
     </t>
 
     <t t-extend="ListView.buttons" t-name="ExpensesListView.buttons">
+
         <t t-jquery="button.o_list_button_add" t-operation="after">
             <button type="button" t-att-class="'d-none d-md-block btn' + (!widget.isMobile ? ' btn-secondary' : '') + ' o_button_upload_expense'">
                 Scan
@@ -26,11 +27,20 @@
             </button>
         </t>
 
+        <!--sgv todo.. now it is showing all the time.. add  -->
+        <t t-jquery="button.o_list_button_add" t-operation="after">
+            <button type="button" class="btn btn-secondary o_button_create_report">
+                Create Report
+            </button>
+        </t>
+
         <t t-jquery="button.o_list_button_add" t-operation="replace">
             <button type="button" t-att-class="'btn' + (widget.isMobile ? ' btn-secondary' : ' btn-primary') + ' o_list_button_add'" title="Create record" accesskey="c">
                 Create
             </button>
         </t>
+
+        
     </t>
 
     <t t-extend="KanbanView.buttons" t-name="ExpensesKanbanView.buttons">

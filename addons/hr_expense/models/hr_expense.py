@@ -425,7 +425,7 @@ Or send your receipts at <a href="mailto:%(email)s?subject=Lunch%%20with%%20cust
     def _get_default_expense_sheet_values(self):
         # If there is an expense with total_amount_company == 0, it means that expense has not been processed by OCR yet
         expenses_with_amount = self.filtered(lambda expense: not float_compare(expense.total_amount_company, 0.0, precision_rounding=expense.company_currency_id.rounding) == 0)
-
+        # sgv todo check out why...
         if any(expense.state != 'draft' or expense.sheet_id for expense in expenses_with_amount):
             raise UserError(_("You cannot report twice the same line!"))
         if not expenses_with_amount:
@@ -460,6 +460,16 @@ Or send your receipts at <a href="mailto:%(email)s?subject=Lunch%%20with%%20cust
             }
             values.append(vals)
         return values
+
+    def get_expenses_to_submit(self):
+        # sgv todo
+        # check sheet_id
+        expenses = self or self.env['hr.expense'].search([('state', '=', 'draft'), ('sheet_id', '=', 'False')])
+        print('expenses ', expenses)
+        if not expenses:
+            raise UserError(_('You have no expense to report'))
+        else:
+            expenses.action_submit_expenses()
 
     def action_submit_expenses(self):
         context_vals = self._get_default_expense_sheet_values()

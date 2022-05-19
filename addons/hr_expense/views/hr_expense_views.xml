@@ -280,7 +280,7 @@
             </field>
         </record>
 
-        <!-- Kanban view with header. Used in "All My Expenses -->
+        <!-- Kanban view with header. Used in "My Expenses -->
         <record id="hr_expense_kanban_view_header" model="ir.ui.view">
             <field name="name">hr.expense.kanban</field>
             <field name="model">hr.expense</field>
@@ -413,45 +413,8 @@
             <field name="act_window_id" ref="hr_expense_actions_all"/>
         </record>
 
-        <record id="hr_expense_actions_my_unsubmitted" model="ir.actions.act_window">
-            <field name="name">My Expenses to Report</field>
-            <field name="res_model">hr.expense</field>
-            <field name="view_mode">tree,kanban,form,graph,pivot,activity</field>
-            <field name="search_view_id" ref="hr_expense_view_search"/>
-            <field name="context">{'search_default_my_expenses': 1, 'search_default_no_report': 1}</field>
-            <field name="help" type="html">
-                <p class="o_view_nocontent_expense_receipt">
-                    <h2 class="d-none d-md-block">
-                        Did you try the mobile app?
-                    </h2>
-                </p>
-                <p>Snap pictures of your receipts and let Odoo<br/> automatically create expenses for you.</p>
-                <p class="d-none d-md-block">
-                    <a href="https://apps.apple.com/be/app/odoo/id1272543640" target="_blank">
-                        <img alt="Apple App Store" class="img img-fluid h-100 o_expense_apple_store" src="/hr_expense/static/img/app_store.png"/>
-                    </a>
-                    <a href="https://play.google.com/store/apps/details?id=com.odoo.mobile" target="_blank" class="o_expense_google_store">
-                        <img alt="Google Play Store" class="img img-fluid h-100 o_expense_google_store" src="/hr_expense/static/img/play_store.png"/>
-                    </a>
-                </p>
-            </field>
-        </record>
-
-        <!-- Tree & Kanban view for "My Expenses to Report" with the header -->
-        <record id="hr_expense_actions_my_unsubmitted_tree" model="ir.actions.act_window.view">
-            <field name="view_mode">tree</field>
-            <field name="view_id" ref="view_my_expenses_tree"/>
-            <field name="act_window_id" ref="hr_expense_actions_my_unsubmitted"/>
-        </record>
-
-        <record id="hr_expense_actions_my_unsubmitted_kanban" model="ir.actions.act_window.view">
-            <field name="view_mode">kanban</field>
-            <field name="view_id" ref="hr_expense_kanban_view_header"/>
-            <field name="act_window_id" ref="hr_expense_actions_my_unsubmitted"/>
-        </record>
-
         <record id="hr_expense_actions_my_all" model="ir.actions.act_window">
-            <field name="name">All My Expenses</field>
+            <field name="name">My Expenses</field>
             <field name="res_model">hr.expense</field>
             <field name="view_mode">tree,kanban,form,graph,pivot,activity</field>
             <field name="search_view_id" ref="hr_expense_view_search"/>
@@ -608,16 +571,16 @@
                     <header>
                         <button name="approve_expense_sheets" string="Approve Report" type="object"
                                 groups="hr_expense.group_hr_expense_team_approver"
-                                invisible="not context.get('search_default_submitted',0)"/>
+                                class="d-none o_button_approve_sheet"/>
                         <button name="action_sheet_move_create" string="Post Entries" type="object"
                                 groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"
-                                invisible="not context.get('search_default_to_post',0)"/>
+                                class="d-none o_button_post_sheet"/>
                         <button name="action_register_payment" string="Register Payment" type="object"
                                 groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"
-                                invisible="not context.get('search_default_approved',0)"/>
+                                class="d-none o_button_register_payment"/>
                         <button name="action_submit_sheet" string="Submit" type="object"
                                 groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"
-                                invisible="not context.get('search_default_draft',0)"/>
+                                class="d-none o_button_submit_sheet"/>
                     </header>
                     <field name="employee_id" widget="many2one_avatar_employee"/>
                     <field name="accounting_date" optional="hide" groups="account.group_account_manager"/>
@@ -985,72 +948,7 @@
             <field name="act_window_id" ref="action_hr_expense_sheet_my_all"/>
         </record>
 
-        <record id="action_hr_expense_sheet_all_to_submit" model="ir.actions.act_window">
-            <field name="name">Expense Reports to Submit</field>
-            <field name="res_model">hr.expense.sheet</field>
-            <field name="view_mode">tree,kanban,form,pivot,graph,activity</field>
-            <field name="search_view_id" ref="hr_expense_sheet_view_search"/>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_draft': 1}</field>
-            <field name="view_id" ref="view_hr_expense_sheet_tree"/>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                No expense reports found
-              </p><p>
-                Create the new expense reports from the expenses submitted by the employees you manage.
-              </p>
-            </field>
-        </record>
-
-        <record id="action_hr_expense_sheet_all_to_approve" model="ir.actions.act_window">
-            <field name="name">Expense Reports to Approve</field>
-            <field name="res_model">hr.expense.sheet</field>
-            <field name="view_mode">tree,kanban,form,pivot,graph,activity</field>
-            <field name="search_view_id" ref="hr_expense_sheet_view_search"/>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_submitted': 1}</field>
-            <field name="view_id" ref="view_hr_expense_sheet_tree"/>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                No expense reports found
-              </p><p>
-                Approve the new expense reports submitted by the employees you manage.
-              </p>
-            </field>
-        </record>
-
-        <record id="action_hr_expense_sheet_all_to_post" model="ir.actions.act_window">
-            <field name="name">Expense Reports To Post</field>
-            <field name="res_model">hr.expense.sheet</field>
-            <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="search_view_id" ref="hr_expense_sheet_view_search"/>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_to_post': 1}</field>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                No expense reports found
-              </p><p>
-                Post the journal entries of the new expense reports approved by the employees' manager.
-              </p>
-            </field>
-        </record>
-
-        <record id="action_hr_expense_sheet_all_to_pay" model="ir.actions.act_window">
-            <field name="name">Expense Reports To Pay</field>
-            <field name="res_model">hr.expense.sheet</field>
-            <field name="view_mode">tree,kanban,form,pivot,graph</field>
-            <field name="search_view_id" ref="hr_expense_sheet_view_search"/>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_approved': 1}</field>
-            <field name="help" type="html">
-              <p class="o_view_nocontent_smiling_face">
-                No expense reports found
-              </p><p>
-                Reimburse the employees who incurred these costs or simply register the corresponding payments.
-              </p>
-            </field>
-        </record>
-
+       <!--sgv todo this stays-->
         <record id="action_hr_expense_sheet_all" model="ir.actions.act_window">
             <field name="name">All Reports</field>
             <field name="res_model">hr.expense.sheet</field>
@@ -1135,29 +1033,12 @@
         <menuitem id="menu_hr_expense_root" name="Expenses" sequence="230" web_icon="hr_expense,static/description/icon.svg"/>
 
         <menuitem id="menu_hr_expense_my_expenses" name="My Expenses" sequence="1" parent="menu_hr_expense_root" groups="base.group_user"/>
-        <menuitem id="menu_hr_expense_my_expenses_to_submit" sequence="1" parent="menu_hr_expense_my_expenses" action="hr_expense_actions_my_unsubmitted" name="My Expenses to Report"/>
-        <menuitem id="menu_hr_expense_my_expenses_all" sequence="2" parent="menu_hr_expense_my_expenses" action="hr_expense_actions_my_all" name="All My Expenses"/>
+        <menuitem id="menu_hr_expense_my_expenses_all" sequence="2" parent="menu_hr_expense_my_expenses" action="hr_expense_actions_my_all" name="My Expenses"/>
         <menuitem id="menu_hr_expense_sheet_my_reports" sequence="3" parent="menu_hr_expense_my_expenses" action="action_hr_expense_sheet_my_all" name="My Reports"/>
 
         <menuitem id="menu_hr_expense_report" name="Expense Reports" sequence="2" parent="menu_hr_expense_root"/>
-        <menuitem id="menu_hr_expense_sheet_all_to_submit"
-                  name="Reports to Submit" sequence="1" parent="menu_hr_expense_report"
-                  action="action_hr_expense_sheet_all_to_submit"
-                  groups="hr_expense.group_hr_expense_team_approver"/>
-        <menuitem id="menu_hr_expense_sheet_all_to_approve"
-                  name="Reports to Approve" sequence="2" parent="menu_hr_expense_report"
-                  action="action_hr_expense_sheet_all_to_approve"
-                  groups="hr_expense.group_hr_expense_team_approver"/>
-        <menuitem id="menu_hr_expense_sheet_all_to_post"
-                  name="Reports to Post" sequence="3" parent="menu_hr_expense_report"
-                  action="action_hr_expense_sheet_all_to_post"
-                  groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"/>
-        <menuitem id="menu_hr_expense_sheet_all_to_pay"
-                  name="Reports to Pay" sequence="4" parent="menu_hr_expense_report"
-                  action="action_hr_expense_sheet_all_to_pay"
-                  groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"/>
         <menuitem id="menu_hr_expense_sheet_all"
-                  name="All Reports" sequence="5" parent="menu_hr_expense_report"
+                  name="All Reports" sequence="1" parent="menu_hr_expense_report"
                   action="action_hr_expense_sheet_all"
                   groups="account.group_account_invoice,hr_expense.group_hr_expense_manager"/>
 

@@ -27,6 +27,63 @@ odoo.define('hr_expense.expenses.tree', function (require) {
             this._super.apply(this, arguments);
             this.isMobile = config.device.isMobileDevice;
         },
+
+        _onSelectionChanged: function (ev) {
+            this._super.apply(this, arguments);
+            const records = this.getSelectedRecords();
+            const displaySubmit = records.length?records.every(record => record.data.state === 'draft') : false;
+            const displayApprove = records.length?records.every(record => record.data.state === 'submit') : false;
+            const displayPost = records.length?records.every(record => record.data.state === 'approve') : false;
+            const displayRegister = records.length?records.every(record => record.data.state === 'post') : false;
+
+            if (displaySubmit) {
+                this.$buttons.find('.o_button_submit_sheet').removeClass('d-none');
+            } else {
+            this.$buttons.find('.o_button_submit_sheet').addClass('d-none');
+            }
+
+            if (displayApprove) {
+                this.$buttons.find('.o_button_approve_sheet').removeClass('d-none');
+            } else {
+            this.$buttons.find('.o_button_approve_sheet').addClass('d-none');
+            }
+
+            if (displayPost) {
+                this.$buttons.find('.o_button_post_sheet').removeClass('d-none');
+            } else {
+            this.$buttons.find('.o_button_post_sheet').addClass('d-none');
+            }
+
+            if (displayRegister) {
+                this.$buttons.find('.o_button_register_payment').removeClass('d-none');
+            } else {
+            this.$buttons.find('.o_button_register_payment').addClass('d-none');
+            }
+        },
+
+        renderButtons: function () {
+            this._super.apply(this, arguments);
+            this.$buttons.on('click', '.o_button_create_report', this._onCreateReportClick.bind(this));
+        },
+
+        /**
+         * Create Report from the selected expense records
+         * @param {*} ev
+         */
+         _onCreateReportClick: function(ev) {
+            let records = this.getSelectedRecords();
+            // to get all the records that are showing
+
+            const state = this.model.get(this.handle, {raw: true});
+            let record_ids = records.map(record => record.res_id);
+            this._rpc({
+                model: 'hr.expense',
+                method: 'get_expenses_to_submit',
+                args: [record_ids],
+                context: this.context,
+            });
+
+        },
     });
 
     const ExpenseQRCodeMixin = {
