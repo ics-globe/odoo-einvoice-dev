@@ -50,8 +50,8 @@ export const WebsiteAceEditor = AceEditor.extend({
                     domain: [['key', '=', selectedView.key], ['website_id', '=', context.website_id]],
                 }));
             }
-            return Promise.all(defs).then((() => {
-                this._updateEditor();
+            return Promise.all(defs).then((async () => {
+                await this._updateEditor();
                 this.options.reload();
             }));
         });
@@ -93,6 +93,18 @@ export const WebsiteAceEditor = AceEditor.extend({
             return this._displayResource(this._getSelectedResource());
         }
     },
+    /**
+     * @override
+     */
+    _rpc(options) {
+        let context;
+        this.trigger_up('context_get', {
+            callback: (ctx) => {
+                context = ctx;
+            },
+        });
+        return this._super({...options, context: context});
+    },
 });
 
 export class AceEditorAdapterComponent extends ComponentAdapter {
@@ -106,7 +118,7 @@ export class AceEditorAdapterComponent extends ComponentAdapter {
 
     _trigger_up(event) {
         if (event.name === 'context_get') {
-            return event.data.callback(this.user.context);
+            return event.data.callback({...this.user.context, website_id: this.website.currentWebsite.id});
         }
         super._trigger_up(event);
     }
