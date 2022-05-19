@@ -11,7 +11,7 @@ import {
 
 import fieldRegistry from 'web.field_registry';
 import FormView from 'web.FormView';
-import { dom, nextTick } from 'web.test_utils';
+import { dom, fields, nextTick, mock } from 'web.test_utils';
 import { registerCleanup } from "@web/../tests/helpers/cleanup";
 
 const { triggerEvent } = dom;
@@ -1062,6 +1062,39 @@ QUnit.test('chatter does not flicker when the form view is re-rendered', async f
         1,
         "there should be a chatter"
     );
+});
+
+QUnit.only('Debouce delay in char field', async function (assert) {
+    assert.expect(3);
+
+    const FieldChar = fieldRegistry.get("char");
+    mock.patch(FieldChar, {
+        _triggerOnchange: function () {
+            assert.step('trigger_onchange');
+            return this._super.apply(this, arguments);
+        },
+    });
+    const form = await this.createView({
+        hasView: true,
+        // View params
+        View: FormView,
+        model: 'res.partner',
+        arch: `
+            <form>
+                <sheet>
+                    <field name="name" options="{'onchange_on_keydown': True, 'keydown_debounce_delay': 5}"/>
+                </sheet>
+            </form>
+        `,
+    });
+
+    form.widget.$('.o_field_widget[name=name]').focus();
+    await fields.editAndTrigger(form.widget.$('input[name="name"]'), "h", 'keydown');
+    await nextTick();
+    await fields.editAndTrigger(form.widget.$('input[name="name"]'), "i", 'keydown');
+    await nextTick();
+
+    assert.verifySteps(['trigger_onchange', 'trigger_onchange'], 'should have called onchange twice');
 });
 
 });
