@@ -3,30 +3,31 @@
 import { registry } from "@web/core/registry";
 import { _lt } from "@web/core/l10n/translation";
 import { isFalsy } from "@web/core/utils/xml";
-import { standardFieldProps } from "./standard_field_props";
 
 const { Component } = owl;
 
-export class BooleanFavoriteField extends Component {
-    onClick() {
-        this.props.update(!this.props.value);
-    }
-}
+export class BooleanFavoriteField extends Component {}
 
 BooleanFavoriteField.template = "web.BooleanFavoriteField";
 BooleanFavoriteField.props = {
-    ...standardFieldProps,
     noLabel: { type: Boolean, optional: true },
+    update: { type: Function, optional: true },
+    value: Boolean,
 };
 BooleanFavoriteField.defaultProps = {
     noLabel: false,
+    update: () => {},
 };
+
 BooleanFavoriteField.displayName = _lt("Favorite");
 BooleanFavoriteField.supportedTypes = ["boolean"];
+
 BooleanFavoriteField.isEmpty = () => false;
-BooleanFavoriteField.extractProps = (fieldName, record, attrs) => {
+BooleanFavoriteField.computeProps = (params) => {
     return {
-        noLabel: isFalsy(attrs.nolabel),
+        noLabel: isFalsy(params.attrs.noLabel),
+        update: params.update,
+        value: params.value,
     };
 };
 

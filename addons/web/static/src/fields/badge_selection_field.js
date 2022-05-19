@@ -2,79 +2,66 @@
 
 import { registry } from "@web/core/registry";
 import { _lt } from "@web/core/l10n/translation";
-import { standardFieldProps } from "./standard_field_props";
+import { formatSelection } from "./formatters";
 
 const { Component } = owl;
 
 export class BadgeSelectionField extends Component {
     get string() {
-        switch (this.props.type) {
-            case "many2one":
-                return this.props.value ? this.props.value[1] : "";
-            case "selection":
-                return this.props.value !== false
-                    ? this.props.options.find((o) => o[0] === this.props.value)[1]
-                    : "";
-            default:
-                return "";
-        }
-    }
-    get value() {
-        const rawValue = this.props.value;
-        return this.props.type === "many2one" && rawValue ? rawValue[0] : rawValue;
-    }
-
-    stringify(value) {
-        return JSON.stringify(value);
-    }
-
-    /**
-     * @param {Event} ev
-     */
-    onChange(value) {
-        switch (this.props.type) {
-            case "many2one":
-                if (value === false) {
-                    this.props.update(false);
-                } else {
-                    this.props.update(this.props.options.find((option) => option[0] === value));
-                }
-                break;
-            case "selection":
-                this.props.update(value);
-                break;
-        }
+        return formatSelection(this.props.value, { selection: this.props.options });
     }
 }
 
 BadgeSelectionField.template = "web.BadgeSelectionField";
 BadgeSelectionField.props = {
-    ...standardFieldProps,
-    horizontal: { type: Boolean, optional: true },
-    options: Object,
-    placeholder: { type: String, optional: true },
+    options: {
+        type: Array,
+        element: { type: Array },
+    },
+    readonly: { type: Boolean, optional: true },
+    update: { type: Function, optional: true },
+    value: [String, Number, false],
 };
-BadgeSelectionField.extractProps = (fieldName, record, attrs) => {
-    const getOptions = () => {
-        switch (record.fields[fieldName].type) {
-            case "many2one":
-                // WOWL: conversion needed while we keep using the legacy model
-                return Object.values(record.preloadedData[fieldName]).map((v) => {
-                    return [v.id, v.display_name];
-                });
-            case "selection":
-                return record.fields[fieldName].selection;
-            default:
-                return [];
-        }
-    };
-    return {
-        options: getOptions(),
-    };
+BadgeSelectionField.defaultProps = {
+    update: () => {},
+    readonly: false,
 };
+
 BadgeSelectionField.displayName = _lt("Badges");
 BadgeSelectionField.supportedTypes = ["many2one", "selection"];
+
 BadgeSelectionField.isEmpty = (record, fieldName) => record.data[fieldName] === false;
+BadgeSelectionField.computeProps = (params) => {
+    let options = null;
+    let update = null;
+    let value = null;
+
+    switch (params.field.type) {
+        case "many2one": {
+            options = Array.from(params.record.preloadedData[params.name]);
+            value = params.value && params.value[0];
+            update = (newValue) =>
+                params.update(newValue && options.find((o) => o[0] === newValue));
+            break;
+        }
+        case "selection": {
+            options = Array.from(params.field.selection);
+            value = params.value;
+            update = params.update;
+            break;
+        }
+        default: {
+            throw new Error(`Unsupported type "${params.field.type}" for BadgeSelectionField`);
+        }
+    }
+
+    return {
+        options,
+        readonly: params.readonly,
+        update,
+        value,
+    };
+};
 
 registry.category("fields").add("selection_badge", BadgeSelectionField);
 

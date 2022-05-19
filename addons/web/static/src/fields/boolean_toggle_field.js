@@ -2,20 +2,13 @@
 
 import { registry } from "@web/core/registry";
 import { _lt } from "@web/core/l10n/translation";
-import { standardFieldProps } from "./standard_field_props";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 
 const { Component } = owl;
 
 export class BooleanToggleField extends Component {
     /**
-     * @param {Event} ev
-     */
-    onChange(newValue) {
-        this.props.update(newValue);
-    }
-    /**
-     * @param {MouseEvent} ev
+     * @param {{ key: string }} params
      */
     onKeydown({ key }) {
         switch (key) {
@@ -27,12 +20,26 @@ export class BooleanToggleField extends Component {
 }
 
 BooleanToggleField.template = "web.BooleanToggleField";
+BooleanToggleField.components = { CheckBox };
 BooleanToggleField.props = {
-    ...standardFieldProps,
+    readonly: { type: Boolean, optional: true },
+    update: { type: Function, optional: true },
+    value: Boolean,
+};
+BooleanToggleField.defaultProps = {
+    readonly: false,
+    update: () => {},
 };
 BooleanToggleField.displayName = _lt("Toggle");
 BooleanToggleField.supportedTypes = ["boolean"];
+
 BooleanToggleField.isEmpty = () => false;
-BooleanToggleField.components = { CheckBox };
+BooleanToggleField.computeProps = (params) => {
+    return {
+        readonly: params.record.isReadonly(params.name),
+        update: params.update,
+        value: params.value,
+    };
+};
 
 registry.category("fields").add("boolean_toggle", BooleanToggleField);

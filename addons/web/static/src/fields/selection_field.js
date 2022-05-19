@@ -2,77 +2,85 @@
 
 import { registry } from "@web/core/registry";
 import { _lt } from "@web/core/l10n/translation";
-import { standardFieldProps } from "./standard_field_props";
+import { formatSelection } from "./formatters";
 
 const { Component } = owl;
 
 export class SelectionField extends Component {
     get string() {
-        switch (this.props.type) {
-            case "many2one":
-                return this.props.value ? this.props.value[1] : "";
-            case "selection":
-                return this.props.value !== false
-                    ? this.props.options.find((o) => o[0] === this.props.value)[1]
-                    : "";
-            default:
-                return "";
-        }
-    }
-    get value() {
-        const rawValue = this.props.value;
-        return this.props.type === "many2one" && rawValue ? rawValue[0] : rawValue;
+        return formatSelection(this.props.value, { selection: this.props.options });
     }
 
-    stringify(value) {
+    serializeOption(value) {
         return JSON.stringify(value);
+    }
+    deserializeOption(value) {
+        return JSON.parse(value);
     }
 
     /**
      * @param {Event} ev
      */
     onChange(ev) {
-        const value = JSON.parse(ev.target.value);
-        switch (this.props.type) {
-            case "many2one":
-                if (value === false) {
-                    this.props.update(false);
-                } else {
-                    this.props.update(this.props.options.find((option) => option[0] === value));
-                }
-                break;
-            case "selection":
-                this.props.update(value);
-                break;
-        }
+        const newValue = this.deserializeOption(ev.target.value);
+        return this.props.update(newValue);
     }
 }
 
 SelectionField.template = "web.SelectionField";
 SelectionField.props = {
-    ...standardFieldProps,
-    options: Object,
-    placeholder: { type: String, optional: true },
+    options: {
+        type: Array,
+        element: Array,
+    },
+    readonly: { type: Boolean, optional: true },
+    update: { type: Function, optional: true },
+    value: [String, Number, false],
 };
-SelectionField.extractProps = (fieldName, record, attrs) => {
-    const getOptions = () => {
-        switch (record.fields[fieldName].type) {
-            case "many2one":
-                return record.preloadedData[fieldName];
-            case "selection":
-                return record.fields[fieldName].selection;
-            default:
-                return [];
-        }
-    };
-    return {
-        options: getOptions(),
-        placeholder: attrs.placeholder,
-    };
+SelectionField.defaultProps = {
+    readonly: false,
+    update: () => {},
 };
+
 SelectionField.displayName = _lt("Selection");
 SelectionField.supportedTypes = ["many2one", "selection"];
+
 SelectionField.isEmpty = (record, fieldName) => record.data[fieldName] === false;
+SelectionField.computeProps = (params) => {
+    let options = null;
+    let value = null;
+    let update = null;
+
+    switch (params.field.type) {
+        case "many2one": {
+            options = Array.from(params.record.preloadedData[params.name]);
+            value = params.value && params.value[0];
+            update = (newValue) =>
+                params.update(newValue && options.find((o) => o[0] === newValue));
+            break;
+        }
+        case "selection": {
+            options = Array.from(params.field.selection);
+            value = params.value;
+            update = params.update;
+            break;
+        }
+        default: {
+            throw new Error(`Unsupported type "${params.field.type}" for SelectionField`);
+        }
+    }
+
+    if (!params.required) {
+        options.unshift([false, params.attrs.placeholder || ""]);
+    }
+
+    return {
+        options,
+        readonly: params.readonly,
+        update,
+        value,
+    };
+};
 
 registry.category("fields").add("selection", SelectionField);
 

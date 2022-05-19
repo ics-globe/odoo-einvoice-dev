@@ -129,37 +129,63 @@ export class Field extends Component {
             decorationMap[decoName] = value;
         }
 
-        const props = { ...this.props };
-        delete props.style;
-        delete props.class;
-
-        let extractedPropsForStandaloneComponent = {};
-        if (this.FieldComponent.extractProps) {
-            extractedPropsForStandaloneComponent = this.FieldComponent.extractProps(
-                this.props.name,
-                record,
-                activeField.attrs
-            );
-        }
-
-        return {
-            ...activeField.props,
-            required: this.props.record.isRequired(this.props.name), // AAB: does the field really need this?
-            update: async (value) => {
-                await record.update({ [this.props.name]: value });
+        if (this.FieldComponent.computeProps) {
+            const updateMany = async (data) => {
+                await record.update(data);
                 // We save only if we're on view mode readonly and no readonly field modifier
                 if (readonlyFromViewMode && !readonlyFromModifiers && !emptyRequiredValue) {
                     // TODO: maybe move this in the model
                     return record.save();
                 }
-            },
-            value: this.props.record.data[this.props.name],
-            decorations: decorationMap,
-            readonly: readonlyFromViewMode || readonlyFromModifiers || false,
-            ...props,
-            type: field.type,
-            ...extractedPropsForStandaloneComponent,
-        };
+            };
+
+            return this.FieldComponent.computeProps({
+                name: this.props.name,
+                record,
+                field,
+                activeField,
+                attrs: activeField.attrs,
+                decorations: decorationMap,
+                value: this.props.record.data[this.props.name],
+                preloadedData: this.props.record.preloadedData[this.props.name],
+                readonly: readonlyFromViewMode || readonlyFromModifiers || false,
+                required: this.props.record.isRequired(this.props.name),
+                update: (value) => updateMany({ [this.props.name]: value }),
+                updateMany,
+            });
+        } else {
+            const props = { ...this.props };
+            delete props.style;
+            delete props.class;
+
+            let extractedPropsForStandaloneComponent = {};
+            if (this.FieldComponent.extractProps) {
+                extractedPropsForStandaloneComponent = this.FieldComponent.extractProps(
+                    this.props.name,
+                    record,
+                    activeField.attrs
+                );
+            }
+
+            return {
+                ...activeField.props,
+                required: this.props.record.isRequired(this.props.name), // AAB: does the field really need this?
+                update: async (value) => {
+                    await record.update({ [this.props.name]: value });
+                    // We save only if we're on view mode readonly and no readonly field modifier
+                    if (readonlyFromViewMode && !readonlyFromModifiers && !emptyRequiredValue) {
+                        // TODO: maybe move this in the model
+                        return record.save();
+                    }
+                },
+                value: this.props.record.data[this.props.name],
+                decorations: decorationMap,
+                readonly: readonlyFromViewMode || readonlyFromModifiers || false,
+                ...props,
+                type: field.type,
+                ...extractedPropsForStandaloneComponent,
+            };
+        }
     }
 }
 Field.template = xml/* xml */ `

@@ -2,9 +2,9 @@
 /* global ace */
 
 import { loadJS } from "@web/core/assets";
+import { _lt } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { formatText } from "./formatters";
-import { standardFieldProps } from "./standard_field_props";
 
 const { Component, onWillStart, useEffect, useRef } = owl;
 
@@ -95,16 +95,26 @@ export class AceField extends Component {
 
 AceField.template = "web.AceField";
 AceField.props = {
-    ...standardFieldProps,
     mode: { type: String, optional: true },
+    readonly: { type: Boolean, optional: true },
+    update: { type: Function, optional: true },
+    value: String,
 };
 AceField.defaultProps = {
     mode: "qweb",
+    readonly: false,
+    update: () => {},
 };
+
+AceField.displayName = _lt("Ace Editor");
 AceField.supportedTypes = ["text"];
-AceField.extractProps = (fieldName, record, attrs) => {
+
+AceField.computeProps = (params) => {
     return {
-        mode: attrs.options.mode,
+        mode: params.attrs.options.mode,
+        readonly: params.readonly,
+        update: params.update,
+        value: params.value,
     };
 };
 
