@@ -13,7 +13,7 @@ from lxml import etree
 from base64 import b64decode, b64encode
 
 from odoo.http import request
-from odoo import http, tools, _, SUPERUSER_ID
+from odoo import http, tools, _
 from odoo.addons.http_routing.models.ir_http import slug, unslug
 from odoo.addons.web_editor.tools import get_video_url_data
 from odoo.exceptions import UserError
@@ -678,8 +678,7 @@ class Web_Editor(http.Controller):
             name = '_'.join([media[id]['query'], url.split('/')[-1]])
             # Need to bypass security check to write image with mimetype image/svg+xml
             # ok because svgs come from whitelisted origin
-            context = {'binary_field_real_user': request.env['res.users'].sudo().browse([SUPERUSER_ID])}
-            attachment = request.env['ir.attachment'].sudo().with_context(context).create({
+            attachment = request.env['ir.attachment'].sudo().create({
                 'name': name,
                 'mimetype': req.headers['content-type'],
                 'datas': b64encode(req.content),

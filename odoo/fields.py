@@ -2264,9 +2264,7 @@ class Binary(Field):
         # create the attachments that store the values
         env = record_values[0][0].env
         with env.norecompute():
-            env['ir.attachment'].sudo().with_context(
-                binary_field_real_user=env.user,
-            ).create([{
+            env['ir.attachment'].sudo().create([{
                     'name': self.name,
                     'res_model': self.model_name,
                     'res_field': self.name,

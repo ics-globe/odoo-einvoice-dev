@@ -47,8 +47,7 @@ class TestController(HttpCase):
 </svg>
         """
         # Need to bypass security check to write image with mimetype image/svg+xml
-        context = {'binary_field_real_user': self.env['res.users'].sudo().browse([1])}
-        attachment = self.env['ir.attachment'].sudo().with_context(context).create({
+        attachment = self.env['ir.attachment'].sudo().create({
             'name': 'test.svg',
             'mimetype': 'image/svg+xml',
             'datas': binascii.b2a_base64(svg, newline=False),
