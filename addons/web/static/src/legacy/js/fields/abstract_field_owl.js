@@ -542,6 +542,7 @@ odoo.define('web.AbstractFieldOwl', function (require) {
                 this.trigger('set-dirty', {dataPointID: this.dataPointId});
                 return Promise.reject({message: "Value set is not valid"});
             }
+            console.log('this._isSameValue(value)', this._isSameValue(value));
             if (!(options && options.forceChange) && this._isSameValue(value)) {
                 return Promise.resolve();
             }

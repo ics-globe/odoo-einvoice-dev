@@ -31,6 +31,13 @@ const KnowledgeArticleFormRenderer = FormRenderer.extend(KnowledgeTreePanelMixin
         this.breadcrumbs = params.breadcrumbs;
     },
 
+    destroy: function () {
+        if (this.timer) {
+            window.clearTimeout(this._onTimeout);
+        }
+        this._super.apply(this, arguments);
+    },
+
     /**
      * Initializes the drag-and-drop behavior of the tree listing all articles.
      * Once this function is called, the user will be able to move an article
@@ -318,6 +325,38 @@ const KnowledgeArticleFormRenderer = FormRenderer.extend(KnowledgeTreePanelMixin
     _onBtnMoveClick: function (event) {
         event.preventDefault();
         this.trigger_up('open_move_to_modal', {});
+    },
+
+    _onSaving: function () {
+        if (this.timer) {
+            window.clearTimeout(this._onTimeout);
+        }
+        this.$('.o_knowledge_saving').removeClass('d-none');
+        this.$('.o_knowledge_saved').addClass('d-none');
+        this.$('.o_knowledge_save_failed').addClass('d-none');
+    },
+
+    _onSaved: function () {
+        if (this.timer) {
+            window.clearInterval(this._onTimeout);
+        }
+        this.$('.o_knowledge_saving').addClass('d-none');
+        this.$('.o_knowledge_saved').removeClass('d-none');
+        this.$('.o_knowledge_save_failed').addClass('d-none');
+        this.timer = window.setTimeout(this._onTimeout, 3000);
+    },
+
+    _onSaveFailed: function () {
+        if (this.timer) {
+            window.clearInterval(this._onTimeout);
+        }
+        this.$('.o_knowledge_saving').addClass('d-none');
+        this.$('.o_knowledge_saved').addClass('d-none');
+        this.$('.o_knowledge_save_failed').removeClass('d-none');
+    },
+
+    _onTimeout: function () {
+        this.$('.o_knowledge_saved').addClass('d-none');
     },
 
     /**
