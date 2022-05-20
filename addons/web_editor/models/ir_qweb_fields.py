@@ -315,7 +315,11 @@ class DateTime(models.AbstractModel):
 
         # parse from string to datetime
         lg = self.env['res.lang']._lang_get(self.env.user.lang) or get_lang(self.env)
-        dt = datetime.strptime(value, '%s %s' % (lg.date_format, lg.time_format))
+        try:
+            datetime_format = '%s %s' % (lg.date_format, lg.time_format)
+            dt = datetime.strptime(value, datetime_format)
+        except ValueError:
+            raise ValidationError(_("The datetime %s does not match the format %s", value, datetime_format))
 
         # convert back from user's timezone to UTC
         tz_name = element.attrib.get('data-oe-original-tz') or self.env.context.get('tz') or self.env.user.tz
