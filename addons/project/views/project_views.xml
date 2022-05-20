@@ -1086,7 +1086,7 @@
                         </page>
                         <page name="sub_tasks_page" string="Sub-tasks" attrs="{'invisible': [('allow_subtasks', '=', False)]}">
                             <field name="child_ids" context="{'default_project_id': project_id if not parent_id or not display_project_id else display_project_id, 'default_user_ids': user_ids, 'default_parent_id': id, 'default_partner_id': partner_id}" widget="subtasks_one2many">
-                                <tree editable="bottom">
+                                <tree editable="bottom" decoration-muted="is_closed == True">
                                     <field name="legend_normal" invisible="1"/>
                                     <field name="legend_done" invisible="1"/>
                                     <field name="legend_blocked" invisible="1"/>
@@ -1109,7 +1109,7 @@
                         </page>
                         <page name="task_dependencies" string="Blocked By" attrs="{'invisible': [('allow_task_dependencies', '=', False)]}" groups="project.group_project_task_dependencies">
                             <field name="depend_on_ids" nolabel="1" context="{'default_project_id' : project_id}">
-                                <tree editable="bottom">
+                                <tree editable="bottom" decoration-muted="is_closed == True">
                                     <field name="is_closed" invisible="1" />
                                     <field name="name" />
                                     <field name="project_id" optional="hide" />
