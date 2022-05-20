@@ -12,20 +12,21 @@ const { Component } = owl;
 export class StateSelectionField extends Component {
     setup() {
         this.props.addCommand && this.initiateCommand();
-    }
-    get colorClass() {
-        if (this.currentValue === "blocked") {
-            return "o_status_red";
-        } else if (this.currentValue === "done") {
-            return "o_status_green";
-        }
-        return "";
+        this.excludedValues = [];
+        this.colorPrefix = "o_status_";
+        this.colors = {
+            blocked: "red",
+            done: "green",
+        };
     }
     get currentValue() {
         return this.props.value || this.props.options[0][0];
     }
     get label() {
         return this.props.options.find((o) => o[0] === this.currentValue)[1];
+    }
+    get availableOptions() {
+        return this.props.options.filter((o) => !this.excludedValues.includes(o[0]));
     }
 
     initiateCommand() {
@@ -60,6 +61,10 @@ export class StateSelectionField extends Component {
      */
     onChange(value) {
         this.props.update(value);
+    }
+
+    statusColor(value) {
+        return this.colors[value] ? this.colorPrefix + this.colors[value] : "";
     }
 }
 
