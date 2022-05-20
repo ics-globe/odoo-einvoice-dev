@@ -901,13 +901,13 @@ section, .oe_img_bg, [data-oe-shape-data] {
     [t-raw] {
         background-color: rgba(36, 154, 255, 0.16) !important;
     }
-    [t-esc]:empty::before {
+    [t-esc]::before {
         content: attr(t-esc);
     }
-    [t-raw]:empty::before {
+    [t-raw]::before {
         content: attr(t-raw);
     }
-    [t-out]:empty::before {
+    [t-out]::before {
         content: attr(t-out);
     }
     t[t-set] {

@@ -86,6 +86,7 @@ var FieldHtml = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
 
                 const t = document.createElement('T');
                 t.setAttribute('t-out', dynamicPlaceholder);
+                t.textContent = '\u200B';
                 this.wysiwyg.odooEditor.execCommand('insertHTML', t.outerHTML);
                 setSelection(...rightPos(t));
                 this.wysiwyg.odooEditor.editable.focus();
