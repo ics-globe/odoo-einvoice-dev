@@ -175,12 +175,12 @@
             <div class="col-8 pl-2">
                 <h6>
                     <a t-att-href="product.website_url"><t t-esc="combination_info['display_name']" /></a><br/>
-                    <t t-if="combination_info['price'] or not website.prevent_zero_price_sale">
+                    <div t-attf-class="{{'' if combination_info['price'] or not website.prevent_zero_price_sale else 'd-none'}}">
                         <del t-attf-class="text-danger mr8 {{'' if combination_info['has_discounted_price'] else 'd-none'}}" style="white-space: nowrap;" t-esc="combination_info['list_price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}" />
                         <span t-esc="combination_info['price']" t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                    </t>
-                    <t t-else="" t-esc="website.prevent_zero_price_sale_text"/>
-                    </h6>
+                    </div>
+                    <div t-attf-class="{{'d-none' if combination_info['price'] or not website.prevent_zero_price_sale else ''}}" t-esc="website.prevent_zero_price_sale_text"/>
+                </h6>
             </div>
             <div class="col-1 text-right">
                 <a href='#' class="o_remove" title="Remove" t-att-data-product_product_id="product.id">
