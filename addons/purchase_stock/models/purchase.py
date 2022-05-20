@@ -433,23 +433,6 @@ class PurchaseOrderLine(models.Model):
                 moves = line._create_stock_moves(picking)
                 moves._action_confirm()._action_assign()
 
-    def _get_stock_move_price_unit(self):
-        self.ensure_one()
-        order = self.order_id
-        price_unit = self.price_unit
-        price_unit_prec = self.env['decimal.precision'].precision_get('Product Price')
-        if self.taxes_id:
-            qty = self.product_qty or 1
-            price_unit = self.taxes_id.with_context(round=False).compute_all(
-                price_unit, currency=self.order_id.currency_id, quantity=qty, product=self.product_id, partner=self.order_id.partner_id
-            )['total_void']
-            price_unit = float_round(price_unit / qty, precision_digits=price_unit_prec)
-        if self.product_uom.id != self.product_id.uom_id.id:
-            price_unit *= self.product_uom.factor / self.product_id.uom_id.factor
-        if order.currency_id != order.company_id.currency_id:
-            price_unit = order.currency_id._convert(
-                price_unit, order.company_id.currency_id, self.company_id, self.date_order or fields.Date.today(), round=False)
-        return price_unit
 
     def _prepare_stock_moves(self, picking):
         """ Prepare the stock moves data for one order line. This function returns a list of
@@ -460,9 +443,7 @@ class PurchaseOrderLine(models.Model):
         if self.product_id.type not in ['product', 'consu']:
             return res
 
-        price_unit = self._get_stock_move_price_unit()
         qty = self._get_qty_procurement()
-
         move_dests = self.move_dest_ids
         if not move_dests:
             move_dests = self.move_ids.move_dest_ids.filtered(lambda m: m.state != 'cancel' and not m.location_dest_id.usage == 'supplier')
