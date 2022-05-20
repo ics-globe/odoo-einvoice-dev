@@ -108,6 +108,10 @@ const KnowledgeArticleFormRenderer = FormRenderer.extend(KnowledgeTreePanelMixin
                             $(child).data('category', data.newCategory);
                         });
                         $sortable.sortable('enable');
+                        let $info_box = $li.siblings('.o_knowledge_empty_info');
+                        if($info_box.length != 0) {
+                            $info_box.addClass('d-none');
+                        }
                     },
                     onReject: () => {
                         $sortable.sortable('cancel');
@@ -273,7 +277,7 @@ const KnowledgeArticleFormRenderer = FormRenderer.extend(KnowledgeTreePanelMixin
      */
     _setEmoji: function (id, unicode) {
         const emojis = this.$(`.o_article_emoji_dropdown[data-article-id="${id}"] > .o_article_emoji`);
-        emojis.text(unicode || '📄');
+        emojis.text(unicode || '');
     },
 
     /**

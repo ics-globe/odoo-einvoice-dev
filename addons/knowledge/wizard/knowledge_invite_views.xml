@@ -9,11 +9,11 @@
                 <field name="have_share_partners" invisible="1"/>
                 <div class="alert alert-warning mt-3" role="alert"
                      attrs="{'invisible': ['|', ('have_share_partners', '=', False), ('permission', '!=', 'write')]}">
-                    <i class="fa fa-w fa-warning"/> All the external users you selected will only have a read access.
+                    <i class="fa fa-w fa-warning"/> External users cannot write on Articles.
                 </div>
                 <div class="alert alert-info mt-3" role="alert"
                      attrs="{'invisible': ['|', ('have_share_partners', '=', False), ('permission', '!=', 'none')]}">
-                    <i class="fa fa-w fa-info-circle"/> All the external users you selected won't be added to the members.
+                    <i class="fa fa-w fa-info-circle"/> All external users you selected won't be added to the members.
                 </div>
                 <group>
                     <field name="permission"/>

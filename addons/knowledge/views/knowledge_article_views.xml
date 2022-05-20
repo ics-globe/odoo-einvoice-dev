@@ -170,11 +170,11 @@
                                                     <div class="o_knowledge_icon_cover_buttons text-primary bg-white d-print-none mt-2"
                                                          attrs="{'invisible': ['|', ('is_locked', '=', True), ('user_has_write_access', '=', False)]}">
                                                         <a type="button" role="button" attrs="{'invisible': [('icon', '!=', False)]}"
-                                                           class="btn btn-secondary btn-outline-secondary mr-2 pl-1 o_knowledge_add_icon">
+                                                           class="btn btn-secondary mr-2 pl-1 o_knowledge_add_icon">
                                                             <i class="fa fa-fw fa-smile-o" style="font-size: 1.5em;" title="Add icon"/> Add icon
                                                         </a>
                                                         <a type="button" role="button" attrs="{'invisible': [('cover', '!=', False)]}"
-                                                           class="btn btn-secondary btn-outline-secondary o_knowledge_add_cover">
+                                                           class="btn btn-secondary o_knowledge_add_cover">
                                                             <i class="fa fa-fw fa-picture-o" style="font-size: 1.5em;" title="Add cover"/> Add cover
                                                         </a>
                                                     </div>

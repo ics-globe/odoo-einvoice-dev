@@ -25,6 +25,7 @@
         visibility: hidden;
         opacity: 0;
         transition: visibility 0.4s, opacity 0.4s linear;
+        color: grey !important;
     }
     .o_knowledge_body:hover .o_knowledge_add_icon, .o_knowledge_body:hover .o_knowledge_add_cover {
         visibility: visible;
@@ -46,16 +47,16 @@
         min-height: 2rem;
     }
 
+    a.o_article_emoji:hover {
+        background-color: rgba(#000, .1);
+    }
+
     .o_knowledge_aside {
         width: var(--sidebar-size);
         transition: width 0.15s linear;
 
         .o_article_active, .o_article_emoji_active {
             background-color: $o-knowledge-bg--active;
-        }
-
-        .o_article_emoji:hover {
-            background-color: rgba(#000, .1);
         }
 
         ul {

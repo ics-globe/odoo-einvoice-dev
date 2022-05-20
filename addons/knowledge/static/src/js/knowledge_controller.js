@@ -320,7 +320,7 @@ const KnowledgeArticleFormController = FormController.extend({
         } else {
             let message, confirmation_message;
             if (data.newCategory === 'workspace') {
-                message = _t("Are you sure you want to move this to workspace? It will be accessible by everyone in the company.");
+                message = _t("Are you sure you want to move this article to the Workspace? It will be shared with all internal users.");
                 confirmation_message = _t("Move to Workspace");
             } else if (data.newCategory === 'private') {
                 message = _t("Are you sure you want to move this to private? Only you will be able to access it.");

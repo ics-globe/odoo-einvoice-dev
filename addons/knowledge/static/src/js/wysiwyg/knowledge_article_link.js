@@ -67,7 +67,7 @@ const KnowledgeArticleLinkModal = Dialog.extend({
                         model: 'knowledge.article',
                         method: 'search_read',
                         kwargs: {
-                            fields: ['id', 'display_name'],
+                            fields: ['id', 'display_name', 'root_article_id'],
                             domain: [['name', '=ilike', `%${term}%`]],
                         },
                     });
@@ -83,6 +83,7 @@ const KnowledgeArticleLinkModal = Dialog.extend({
                             return {
                                 id: record.id,
                                 display_name: record.display_name,
+                                subject: record.root_article_id,
                             };
                         })
                     };
@@ -103,9 +104,12 @@ const KnowledgeArticleLinkModal = Dialog.extend({
              * @param {Function} escapeMarkup
              */
             formatResult: (result, container, query, escapeMarkup) => {
-                const { display_name } = result;
+                const { display_name, subject } = result;
                 const markup = [];
                 window.Select2.util.markMatch(display_name, query.term, markup, escapeMarkup);
+                if (subject) {
+                    markup.push(`<span class="test-ellipsis text-muted small">  -  ${escapeMarkup(subject[1])}</span>`);
+                }
                 return markup.join('');
             },
         });
