@@ -88,6 +88,7 @@ registry
     .add('many2many', relational_fields.FieldMany2Many)
     .add('many2many_binary', relational_fields.FieldMany2ManyBinaryMultiFiles)
     .add('many2many_tags', relational_fields.FieldMany2ManyTags)
+    .add('many2many_tags_tax', relational_fields.FieldMany2ManyTagsTax)
     .add('many2many_tags_avatar', relational_fields.FieldMany2ManyTagsAvatar)
     .add('kanban.many2many_tags_avatar', relational_fields.KanbanMany2ManyTagsAvatar)
     .add('list.many2many_tags_avatar', relational_fields.ListMany2ManyTagsAvatar)

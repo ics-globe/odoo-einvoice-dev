@@ -8,6 +8,7 @@ from odoo.tools import frozendict
 
 from collections import defaultdict
 import math
+import re
 
 
 TYPE_TAX_USE = [
@@ -85,6 +86,7 @@ class AccountTax(models.Model):
         return self.env.ref('account.tax_group_taxes')
 
     name = fields.Char(string='Tax Name', required=True)
+    name_searchable = fields.Char(store=False, search='_search_name')
     type_tax_use = fields.Selection(TYPE_TAX_USE, string='Tax Type', required=True, default="sale",
         help="Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself, however it can still be used in a group. 'adjustment' is used to perform tax adjustment.")
     tax_scope = fields.Selection([('service', 'Services'), ('consu', 'Goods')], string="Tax Scope", help="Restrict the use of taxes to a type of product.")
@@ -174,6 +176,13 @@ class AccountTax(models.Model):
             ]
 
         return rslt
+
+    def _search_name(self, operator, value):
+        if operator not in ("ilike", "like") or not isinstance(value, str):
+            raise UserError(_("Search operation not supported"))
+        value = re.sub(r"\W+", "%", value)  # Keep only alphanum
+        value = '%'.join(list(value))  # Separate numbers from letters
+        return [('name', operator, value)]
 
     def _check_repartition_lines(self, lines):
         self.ensure_one()

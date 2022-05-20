@@ -1080,6 +1080,7 @@
         </div>
     </t>
 </t>
+<t t-name="FieldMany2ManyTagTax" t-extend="FieldMany2ManyTag"/>
 <t t-name="FieldMany2ManyTagAvatar" t-extend="FieldMany2ManyTag">
     <t t-jquery="t[t-set='_badge_text']" t-operation="before">
         <span><img t-attf-src="/web/image/#{avatarModel}/#{el.id}/#{avatarField}" t-att-data-id="el.id" class="rounded-circle o_m2m_avatar"/></span>

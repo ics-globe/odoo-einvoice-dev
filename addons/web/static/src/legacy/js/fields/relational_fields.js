@@ -131,7 +131,9 @@ var FieldMany2One = AbstractField.extend({
 
         // List of autocomplete sources
         this._autocompleteSources = [];
-        // Add default search method for M20 (name_search)
+        // Add default search method for M20 (name_search) and parse search value function
+        if ('parseSearchValueFunction' in options)
+            this._parse_search_value = options.parseSearchValueFunction
         this._addAutocompleteSource(this._search, {placeholder: _t('Loading...'), order: 1});
 
         // list of last autocomplete suggestions
@@ -606,6 +608,17 @@ var FieldMany2One = AbstractField.extend({
         this.m2o_value = this._formatValue(this.value);
     },
     /**
+     * Parse the value that has to be searched allowing more freedom
+     * By default, it returns the same value, but it can be overriden to have, for
+     * instance, the option "VAT 0% EU T" appear if the user search for "0EUT"
+     * @private
+     * @param {string} [searchValue=""]
+     * @param {string}
+     */
+    _parse_search_value: function (searchValue = ""){
+        return searchValue;
+    },
+    /**
      * Executes a 'name_search' and returns a list of formatted objects meant to
      * be displayed in the autocomplete widget dropdown. These items are either:
      * - a formatted version of a 'name_search' result
@@ -640,7 +653,7 @@ var FieldMany2One = AbstractField.extend({
             model: this.field.relation,
             method: "name_search",
             kwargs: {
-                name: value,
+                name: this._parse_search_value(value),
                 args: domain,
                 operator: "ilike",
                 limit: this.limit + 1,
@@ -2683,6 +2696,13 @@ var FieldMany2ManyTags = AbstractField.extend({
         });
     },
     /**
+     *
+     * @private
+     */
+     _parse_search_value: function(searchValue=""){
+        return searchValue;
+     },
+    /**
      * @private
      */
     _renderEdit: function () {
@@ -2697,6 +2717,7 @@ var FieldMany2ManyTags = AbstractField.extend({
             noCreate: !this.canCreate,
             viewType: this.viewType,
             attrs: this.attrs,
+            parseSearchValueFunction: this._parse_search_value,
         });
         // to prevent the M2O to take the value of the M2M
         this.many2one.value = false;
@@ -2790,6 +2811,25 @@ var FieldMany2ManyTags = AbstractField.extend({
     _onQuickCreate: function (event) {
         this._quickCreate(event.data.value);
     },
+});
+
+var FieldMany2ManyTagsTax = FieldMany2ManyTags.extend({
+    tag_template: 'FieldMany2ManyTagTax',
+    className: 'o_field_many2manytags tax',
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * @override
+     * @private
+     */
+     _parse_search_value: function(searchValue=""){
+        searchValue = searchValue.replace(/\W/g, '');  // Keep only alphanum
+        searchValue = Array.from(searchValue).join('%');
+        return searchValue;
+     },
 });
 
 var FieldMany2ManyTagsAvatar = FieldMany2ManyTags.extend({
@@ -3877,6 +3917,7 @@ return {
     FieldMany2ManyBinaryMultiFiles: FieldMany2ManyBinaryMultiFiles,
     FieldMany2ManyCheckBoxes: FieldMany2ManyCheckBoxes,
     FieldMany2ManyTags: FieldMany2ManyTags,
+    FieldMany2ManyTagsTax: FieldMany2ManyTagsTax,
     FieldMany2ManyTagsAvatar: FieldMany2ManyTagsAvatar,
     KanbanMany2ManyTagsAvatar: KanbanMany2ManyTagsAvatar,
     ListMany2ManyTagsAvatar: ListMany2ManyTagsAvatar,
