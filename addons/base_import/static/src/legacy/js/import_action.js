@@ -474,6 +474,13 @@ var DataImport = AbstractAction.extend({
         if (result.headers.length === 1) {
             messages.push({type: 'warning', message: _t("A single column was found in the file, this often means the file separator is incorrect")});
         }
+        if (result.lang_warn) {
+            messages.push({
+                type: 'warning',
+                message: _.str.sprintf(
+                    _t("The file you're trying to import seems to be in another language (%s)"), result.lang_warn)
+            });
+        }
 
         if (!_.isEmpty(messages)) {
             this.$('.oe_import_options').show();

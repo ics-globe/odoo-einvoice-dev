@@ -907,8 +907,12 @@ class Import(models.TransientModel):
             :param options: format-specific options.
                             CSV: {quoting, separator, headers}
             :type options: {str, str, str, bool}
-            :returns: ``{fields, matches, headers, preview} | {error, preview}``
-            :rtype: {dict(str: dict(...)), dict(int, list(str)), list(str), list(list(str))} | {str, str}
+            :returns: ``{fields, matches, headers, preview, lang_warn} | {error, preview}``
+            :rtype: {dict(str: dict(...)), dict(int, list(str)), list(str), list(list(str)), str} | {str, str}
+              - lang_warn: detected language of the input file when different from the current language and the match is
+              partial otherwise None (ex.: "French (BE) / Français (BE)"). Note that the detection can fail and in that
+              case this value is also None. The goal is to warn the user that the file imported is not in the right
+              language and so it is probably the reason why the matching is only partial.
         """
         self.ensure_one()
         fields_tree = self.get_fields_tree(self.res_model)
@@ -929,6 +933,7 @@ class Import(models.TransientModel):
 
             # Get matches: the ones already selected by the user or propose a new matching.
             matches = {}
+            lang_warn = None
             # If user checked to the advanced mode, we re-parse the file but we keep the mapping "as is".
             # No need to make another mapping proposal
             if options.get('keep_matches') and options.get('fields'):
@@ -937,6 +942,15 @@ class Import(models.TransientModel):
                         matches[index] = match.split('/')
             elif options.get('has_headers'):
                 matches = self._get_mapping_suggestions(headers, header_types, fields_tree)
+                if self._context.get("lang") and any(map(lambda v: v is None, matches.values())):
+                    guessed_languages = self.env['ir.translation']._guess_language_of_terms(
+                        terms=[header.strip() for header_full in headers for header in header_full.split('/')],
+                        types={'model'})
+                    if guessed_languages['best_candidate_term_ratio'] > 0.5 and \
+                            self._context.get("lang") != guessed_languages['best_candidate']:
+                        lang_best_candidate = self.env['res.lang']._lang_get(guessed_languages['best_candidate'])
+                        lang_warn = lang_best_candidate.display_name if lang_best_candidate else None
+
                 # remove header_name for matches keys as tuples are no supported in json.
                 # and remove distance from suggestion (keep only the field path) as not used at client side.
                 matches = {
@@ -987,6 +1001,7 @@ class Import(models.TransientModel):
             return {
                 'fields': fields_tree,
                 'matches': matches or False,
+                'lang_warn': lang_warn or False,
                 'headers': headers or False,
                 'header_types': list(header_types.values()) or False,
                 'preview': column_example,

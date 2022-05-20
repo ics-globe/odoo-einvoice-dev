@@ -917,3 +917,46 @@ class IrTranslation(models.Model):
             'multi_lang': len(self.env['res.lang'].sudo().get_installed()) > 1,
         }
         return hashlib.sha1(json.dumps(translation_cache, sort_keys=True).encode()).hexdigest()
+
+    @api.model
+    def _guess_language_of_terms(self, terms, types=None):
+        """ Guess the language of the terms based on the translations stored in the database.
+        Note that the search relies on some non indexed fields.
+        :param tuple(str) terms: terms used in the application for which we want to guess the language
+        :param set types: if set, limit the search to the given types (increase performance)
+        :return dict:
+            - best_candidate (str): the best language (code) candidate or None if none (ex.: fr_BE)
+            - best_candidate_term_ratio (float): ratio of term found in the database with the best_candidate language
+            - other_candidates (set(str)): other candidate (code) than the best one (ex.: {'en_US'})
+        """
+        params = dict(terms=tuple(terms), main_lang='en_US')
+        if types:
+            params['types'] = types if isinstance(types, tuple) else tuple(types)
+        restrict_to_types_clause = ' AND type IN %(types)s ' if types else ''
+        query = f""" SELECT value, lang
+                     FROM ir_translation
+                     WHERE value IN %(terms)s {restrict_to_types_clause}
+                     GROUP BY value, lang
+                     UNION
+                     SELECT DISTINCT src, %(main_lang)s lang
+                     FROM ir_translation
+                     WHERE src IN %(terms)s {restrict_to_types_clause}"""
+
+        candidates = set()
+        candidates_per_term = defaultdict(set)
+        self._cr.execute(query, params)
+        for res in self._cr.fetchall():
+            term, lang = res
+            candidates_per_term[term].add(lang)
+            candidates.add(lang)
+
+        if len(candidates) == 0:
+            return dict(best_candidate=None, best_candidate_term_ratio=0.0, other_candidates=set())
+        candidates_terms_matched = sorted([(candidate,
+                                            sum(map(lambda term_candidate: 1 if candidate in term_candidate else 0,
+                                                    candidates_per_term.values())))
+                                           for candidate in candidates], key=lambda v: -v[1])
+        best_candidate, best_candidate_n_matched_term = candidates_terms_matched[0]
+        return dict(best_candidate=best_candidate,
+                    best_candidate_term_ratio=best_candidate_n_matched_term/len(terms),
+                    other_candidates=candidates.difference({best_candidate}))
