@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { debounce } from "@web/core/utils/timing";
 import emojis from '@mail/js/emojis';
 import MailEmojisMixin from '@mail/js/emojis_mixin';
 import core from 'web.core';
@@ -17,7 +18,7 @@ var FieldEmojiCommon = {
      */
     init: function () {
         this._super.apply(this, arguments);
-        this._triggerOnchange = _.debounce(this._triggerOnchange, this.nodeOptions.keydown_debounce_delay);
+        this._triggerOnchange = debounce(this._triggerOnchange, this.nodeOptions.keydown_debounce_delay);
         this.emojis = emojis;
     },
 

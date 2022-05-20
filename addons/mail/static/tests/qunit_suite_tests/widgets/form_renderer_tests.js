@@ -1064,7 +1064,7 @@ QUnit.test('chatter does not flicker when the form view is re-rendered', async f
     );
 });
 
-QUnit.only('Debouce delay in char field', async function (assert) {
+QUnit.test('Debouce delay in char field', async function (assert) {
     assert.expect(3);
 
     const FieldChar = fieldRegistry.get("char");

@@ -1,5 +1,6 @@
 /** @odoo-module **/
 
+import { debounce } from "@web/core/utils/timing";
 import { FieldChar } from 'web.basic_fields';
 
 FieldChar.include({
@@ -15,7 +16,7 @@ FieldChar.include({
      */
     init: function () {
         this._super.apply(this, arguments);
-        this._triggerOnchange = _.debounce(this._triggerOnchange, this.nodeOptions.keydown_debounce_delay);
+        this._triggerOnchange = debounce(this._triggerOnchange, this.nodeOptions.keydown_debounce_delay);
     },
 
 
