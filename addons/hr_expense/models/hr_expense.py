@@ -154,7 +154,7 @@ class HrExpense(models.Model):
     @api.depends('quantity', 'unit_amount', 'tax_ids', 'currency_id')
     def _compute_amount(self):
         for expense in self:
-            if expense.unit_amount:
+            if expense.product_has_cost:
                 expense.untaxed_amount = expense.unit_amount * expense.quantity
                 taxes = expense.tax_ids.compute_all(expense.unit_amount, expense.currency_id, expense.quantity, expense.product_id, expense.employee_id.user_id.partner_id)
                 expense.total_amount = taxes.get('total_included')
@@ -286,6 +286,12 @@ class HrExpense(models.Model):
         )
         self.analytic_account_id = self.analytic_account_id or rec.analytic_id.id
         self.analytic_tag_ids = self.analytic_tag_ids or rec.analytic_tag_ids.ids
+
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        if not (self.product_id and self.product_has_cost):
+            # reset to zero to invite user to input the value
+            self.total_amount = 0
 
     @api.constrains('product_id', 'product_uom_id')
     def _check_product_uom_category(self):
