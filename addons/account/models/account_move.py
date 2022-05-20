@@ -1419,7 +1419,12 @@ class AccountMove(models.Model):
                 if move._payment_state_matters():
                     # === Invoices ===
 
-                    if not line.exclude_from_invoice_tab:
+                    if line.account_id.user_type_id.type in ('receivable', 'payable'):
+                        # Residual amount.
+                        total_to_pay += line.balance
+                        total_residual += line.amount_residual
+                        total_residual_currency += line.amount_residual_currency
+                    elif not line.exclude_from_invoice_tab:
                         # Untaxed amount.
                         total_untaxed += line.balance
                         total_untaxed_currency += line.amount_currency
@@ -1431,11 +1436,6 @@ class AccountMove(models.Model):
                         total_tax_currency += line.amount_currency
                         total += line.balance
                         total_currency += line.amount_currency
-                    elif line.account_id.user_type_id.type in ('receivable', 'payable'):
-                        # Residual amount.
-                        total_to_pay += line.balance
-                        total_residual += line.amount_residual
-                        total_residual_currency += line.amount_residual_currency
                 else:
                     # === Miscellaneous journal entry ===
                     if line.debit:
