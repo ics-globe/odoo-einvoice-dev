@@ -169,6 +169,7 @@ odoo.define('point_of_sale.PaymentScreen', function (require) {
                 this.env.pos.proxy.printer.open_cashbox();
             }
 
+            this.currentOrder.employee = this.env.pos.get_cashier();
             this.currentOrder.initialize_validation_date();
             this.currentOrder.finalized = true;
 
