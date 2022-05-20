@@ -1185,7 +1185,7 @@ def trans_load_data(cr, fileobj, fileformat, lang,
                     # the src is not compared and checked
                     new_value = list(model_dictionary[xmlid][field_name].values())[0]
                     new_value_column = field.convert_to_column(new_value, env[imd_model].with_context(lang=lang))
-                    towrite[id][field_name] = [Json({}), False, new_value_column.adapted] if not noupdate and overwrite else [new_value_column, False, {}]
+                    towrite[id][field_name] = [Json({}), new_value_column.adapted] if not noupdate and overwrite else [new_value_column, {}]
         cr.flush()
         # TODO CWG: invalidate some/all cache or update cache during import
         # TODO CWG: analyze each table

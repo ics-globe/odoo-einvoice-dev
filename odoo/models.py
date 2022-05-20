@@ -4097,14 +4097,8 @@ Fields:
             assert field.column_type
             if field.translate and val:
                 if isinstance(val, list):
-                    val_column, reset, noupdate_dict = val
+                    val_column, noupdate_dict = val
                     val_noupdate = Json(noupdate_dict)
-                    if reset:
-                        # Logically the new jsonb value should be val_noupdate || val_column.
-                        # But all existing use cases, val_noupdate is always empty here
-                        columns.append(f'"{name}" = jsonb_strip_nulls(%s)')
-                        params.append(val_column)
-                    else:
                         # Logically the new jsonb value should be following (emtpy: val is null or val->>'en_US' is null or '')
                         # val_noupdate || (val_old if val_old is empty else {}) || val_column
                         #
@@ -4132,12 +4126,12 @@ Fields:
                         #           noupdate = {}
                         #           val_column = {'fr_FR': 'French'} translation from the po file
                         
-                        columns.append(f""""{name}" = jsonb_strip_nulls(%s || CASE
-                            WHEN ("{name}"->>'en_US' is NULL) OR (LENGTH("{name}"->>'en_US')=0) THEN '{'{}'}'::jsonb
-                            ELSE "{name}"
-                        END || %s)""")
-                        params.append(val_noupdate)
-                        params.append(val_column)
+                    columns.append(f""""{name}" = jsonb_strip_nulls(%s || CASE
+                        WHEN ("{name}"->>'en_US' is NULL) OR (LENGTH("{name}"->>'en_US')=0) THEN '{'{}'}'::jsonb
+                        ELSE "{name}"
+                    END || %s)""")
+                    params.append(val_noupdate)
+                    params.append(val_column)
                         # else:
                         #     columns.append(f'"{name}" = COALESCE("{name}",' + ' \'{}\'::jsonb) || %s')
                         #     params.append(val)

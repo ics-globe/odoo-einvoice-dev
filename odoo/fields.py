@@ -1632,7 +1632,12 @@ class _String(Field):
         if not self.translate:
             return ret_value
         if not ret_value:
-            return Json({'en_US': ret_value})
+            # Note: get_installed is cached but will only return active languages and 'en_US' may not active =>
+            # Setting a field to empty will not reset value for inactive language translations (except 'en_US')
+            langs = record.env['res.lang'].get_installed()
+            ret_dict = {lang[0]: None for lang in langs}
+            ret_dict['en_US'] = ret_value
+            return Json(ret_dict)
         return Json({record.env.lang or 'en_US': ret_value})
 
     def get_trans_func(self, records):
@@ -1758,16 +1763,15 @@ class _String(Field):
                     towrite_record = towrite[record.id]
                     # if the field is never written or is written to an empty value
                     if not towrite_record.get(self.name) or column_value_dict.get('en_US', False) in [None, ""]:
-                        reset = column_value_dict.get('en_US', False) in [None, ""]
                         noupdate_en_US = column_value_dict.get(curr_lang, None)
-                        # [towrite_column_value, if reseted, noupdate_language_dict]
-                        towrite_record[self.name] = [column_value, reset, {'en_US': noupdate_en_US}]
+                        # [towrite_column_value, noupdate_language_dict]
+                        towrite_record[self.name] = [column_value, {'en_US': noupdate_en_US}]
                     else:
                         if curr_lang != 'en_US' and towrite_record[self.name][0].adapted.get('en_US', False) in [None, ""]:
                             # write back to towrite en_US using value for curr_lang
                             column_value_dict.update({'en_US': column_value_dict.get(curr_lang)})
                         towrite_record[self.name][0].adapted.update(column_value_dict)
-                    noupdate_languages = towrite[record.id][self.name][2]
+                    noupdate_languages = towrite[record.id][self.name][1]
                     if value and not noupdate_languages.get('en_US'):
                         noupdate_languages['en_US'] = column_value_dict.get(curr_lang)
             else:
