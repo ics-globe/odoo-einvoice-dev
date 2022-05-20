@@ -760,6 +760,7 @@
                         <field name="is_move_sent" invisible="1"/>
                         <field name="invoice_has_matching_suspense_amount" invisible="1"/>
                         <field name="has_reconciled_entries" invisible="1"/>
+                        <field name="external_sequences" invisible="1"/>
                         <field name="restrict_mode_hash_table" invisible="1"/>
                         <field name="country_code" invisible="1"/>
                         <field name="display_inactive_currency_warning" invisible="1"/>
@@ -771,15 +772,25 @@
                         <div class="oe_title">
                             <!-- Invoice draft header -->
                             <span class="o_form_label"><field name="move_type" attrs="{'invisible': [('move_type', '=', 'entry')]}" readonly="1" nolabel="1"/></span>
-                            <h1 attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('name', '!=', '/')]}">
-                                <span>Draft</span>
-                            </h1>
+<!--                            <h1 attrs="{'invisible': ['&amp;', ('external_sequences', '=', True), ('state', '=', 'draft')]}">-->
+<!--                                <span>Draft</span>-->
+<!--                            </h1>-->
 
                             <!-- Number -->
                             <span class="text-warning" attrs="{'invisible': [('show_name_warning', '=', False)]}">The current highest number is <field name="highest_name"/>. You might want to put a higher number here.</span>
-                            <h1 class="mt0" attrs="{'invisible':[('name', '=', '/'), ('posted_before', '=', False)]}">
-                                <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="JRNL/2016/00001"/>
-                            </h1>
+<!--                            <h1 class="mt0" attrs="{'invisible': ['!', '&amp;', ('external_sequences', '=', True), ('state', '=', 'draft')]}">-->
+<!--                                <field name="name" placeholder="Draft"/>-->
+<!--                            </h1>-->
+
+                            <t t-if="state == 'draft'">
+                                <h1 attrs="{'invisible': [('external_sequences', '=', True)]}">
+                                    <span>Draft</span>
+                                </h1>
+                                <t t-esc="name = ''"/>
+                                <h1 attrs="{'invisible': [('external_sequences', '=', False)]}">
+                                    <field name="name" placeholder="Draft"/>
+                                </h1>
+                            </t>
 
                         </div>
                         <group>

@@ -130,6 +130,7 @@
                                         <div class="text-muted" colspan="2">Keep empty for no control</div>
                                         <field name="type_control_ids" widget="many2many_tags"/>
                                         <field name="account_control_ids" widget="many2many_tags"/>
+                                        <field name="external_sequences"/>
                                         <field name="restrict_mode_hash_table" groups="account.group_account_readonly" attrs="{'invisible': [('type', 'in', ['bank', 'cash'])]}"/>
                                     </group>
                                     <!-- email alias -->

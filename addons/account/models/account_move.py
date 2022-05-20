@@ -239,6 +239,7 @@ class AccountMove(models.Model):
         readonly=True,
         help="Technical field used to open the linked bank statement from the edit button in a group by view,"
              " or via the smart button on journal entries.")
+    external_sequences = fields.Boolean(related='journal_id.external_sequences')
 
     # === Amount fields ===
     amount_untaxed = fields.Monetary(string='Untaxed Amount', store=True, readonly=True, tracking=True,
