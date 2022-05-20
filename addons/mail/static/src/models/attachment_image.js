@@ -37,6 +37,18 @@ registerModel({
             }
         },
         /**
+         * Called when clicking on download icon.
+         *
+         * @param {MouseEvent} ev
+         */
+        onClickDownload(ev) {
+            ev.stopPropagation();
+            if (!this.attachment) {
+                return;
+            }
+            this.attachment.download();
+        },
+        /**
          * @private
          * @returns {number}
          */

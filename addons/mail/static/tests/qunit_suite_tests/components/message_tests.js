@@ -699,6 +699,35 @@ QUnit.test('prevent attachment delete on non-authored message in channels', asyn
     );
 });
 
+QUnit.test('allow attachment image download', async function (assert) {
+    assert.expect(2);
+
+    const { createMessageComponent, messaging } = await start();
+    const message = messaging.models['Message'].create({
+        attachments: insertAndReplace({
+            filename: "BLAH.jpg",
+            id: 10,
+            name: "BLAH",
+            mimetype: 'image/jpeg',
+        }),
+        author: replace(messaging.currentPartner),
+        body: "<p>Test</p>",
+        id: 100,
+    });
+    await createMessageComponent(message);
+
+    assert.containsOnce(
+        document.body,
+        '.o_AttachmentImage',
+        "should have an attachment",
+    );
+    assert.containsOnce(
+        document.body,
+        '.o_AttachmentImage_actionDownload',
+        "should have download attachment button"
+    );
+});
+
 QUnit.test('subtype description should be displayed if it is different than body', async function (assert) {
     assert.expect(2);
 
