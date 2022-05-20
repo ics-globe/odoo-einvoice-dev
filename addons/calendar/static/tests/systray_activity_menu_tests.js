@@ -8,7 +8,7 @@ import { patchDate } from "@web/../tests/helpers/utils";
 
 QUnit.module('calendar', {}, function () {
 QUnit.module('ActivityMenu');
-
+// random diff
 QUnit.test('activity menu widget:today meetings', async function (assert) {
     assert.expect(6);
 
