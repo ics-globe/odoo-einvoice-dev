@@ -14,6 +14,7 @@ const KnowledgeArticleFormController = FormController.extend({
         'click .o_knowledge_add_icon': '_onAddRandomIcon',
         'click .o_knowledge_add_cover': '_onAddCover',
         'click #knowledge_search_bar': '_onSearch',
+        'click .o_breadcrumb_article_name': '_setArticleName',
         'change .o_breadcrumb_article_name': '_onRename',
         'click i.o_toggle_favorite': '_onToggleFavorite',
         'input .o_breadcrumb_article_name': '_adjustInputSize',
@@ -104,6 +105,29 @@ const KnowledgeArticleFormController = FormController.extend({
     _onRename: async function (event) {
         const id = await this._getId();
         await this._rename(id, event.currentTarget.value);
+    },
+
+    /**
+     * When the user clicks on the name of the article, checks if the article
+     * name hasn't been set yet. If it hasn't, it will look for a title in the
+     * body of the article and set it as the name of the article.
+     * @param {Event} event
+     */
+    _setArticleName: async function (event) {
+        const name = event.currentTarget.value;
+        if (name === _t('New Article')) {
+            const $h1 = this.$('.o_knowledge_editor').find('h1')[0];
+            if ($h1) {
+                event.currentTarget.value = $h1.innerText;
+                this.trigger_up('field_changed', {
+                    dataPointID: this.handle,
+                    changes: {
+                        'name': $h1.innerText,
+                    }
+                });
+                await this._rename(await this._getId(), $h1.innerText);
+            }
+        }
     },
 
     /**
