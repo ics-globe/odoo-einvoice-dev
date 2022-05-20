@@ -1236,6 +1236,7 @@ var SnippetsMenu = Widget.extend({
         this.loadingTimers = {};
         this.loadingElements = {};
         this._loadingEffectDisabled = false;
+        this._onClick = this._onClick.bind(this);
     },
     /**
      * @override
@@ -1309,7 +1310,6 @@ var SnippetsMenu = Widget.extend({
         }).insertAfter(this.$el);
 
         // Active snippet editor on click in the page
-        this._onClick = this._onClick.bind(this);
         this.$document.on('click.snippets_menu', '*', this._onClick);
         // Needed as bootstrap stop the propagation of click events for dropdowns
         this.$document.on('mouseup.snippets_menu', '.dropdown-toggle', this._onClick);
