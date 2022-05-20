@@ -994,7 +994,8 @@ class AccountMove(models.Model):
             if (
                 recompute_all_taxes
                 or any(line.recompute_tax_line for line in invoice.line_ids)
-                or invoice.line_ids.tax_ids.flatten_taxes_hierarchy()._origin > invoice.line_ids.tax_line_id._origin
+                or (invoice.line_ids.tax_ids.flatten_taxes_hierarchy().filtered(lambda tax: tax.amount > 0)._origin
+                     > invoice.line_ids.tax_line_id._origin)
             ):
                 invoice.line_ids.recompute_tax_line = False
                 invoice._recompute_tax_lines()
