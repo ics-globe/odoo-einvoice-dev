@@ -1883,10 +1883,12 @@ var SnippetsMenu = Widget.extend({
                     if (!previewMode) {
                         const wasShown = !!await editor.toggleOptions(false);
                         if (wasShown) {
+/*
                             this._updateRightPanelContent({
                                 content: [],
                                 tab: this.tabs.BLOCKS,
                             });
+*/
                         }
                     }
                 }
