@@ -1940,8 +1940,8 @@ QUnit.module('Views', {
 
         assert.strictEqual(list.$('table').width(), list.$('.o_list_view').width());
         const largeCells = list.$('.o_data_cell.large');
-        assert.strictEqual(largeCells[0].offsetWidth, largeCells[1].offsetWidth);
-        assert.strictEqual(largeCells[1].offsetWidth, largeCells[2].offsetWidth);
+        assert.ok(Math.abs(largeCells[0].offsetWidth - largeCells[1].offsetWidth) <= 1);
+        assert.ok(Math.abs(largeCells[1].offsetWidth - largeCells[2].offsetWidth) <= 1);
         assert.ok(list.$('.o_data_cell:not(.large)')[0].offsetWidth < largeCells[0].offsetWidth);
 
         list.destroy();
