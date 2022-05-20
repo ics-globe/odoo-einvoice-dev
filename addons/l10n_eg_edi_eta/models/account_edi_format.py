@@ -9,7 +9,7 @@ from werkzeug.urls import url_quote
 from base64 import b64encode
 
 from odoo import api, models, _
-from odoo.tools.float_utils import json_float_round
+from .utils import json_float_round
 
 _logger = logging.getLogger(__name__)
 
