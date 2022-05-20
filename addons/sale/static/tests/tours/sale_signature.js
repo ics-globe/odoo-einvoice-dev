@@ -46,6 +46,14 @@ tour.register('sale_signature', {
     {
         content: "check it's confirmed",
         trigger: '#quote_content:contains("Thank You")',
+        run: function () {
+            window.location.href = window.location.origin + '/web';
+        },  // Avoid race condition at the end of the tour by returning to the home page.
     },
+    {
+        content: "check the home page is loaded",
+        trigger: '.o_navbar',
+        run: function() {},
+    }
 ]);
 });

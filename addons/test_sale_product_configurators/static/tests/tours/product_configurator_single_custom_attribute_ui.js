@@ -55,6 +55,10 @@ tour.register('sale_product_configurator_single_custom_attribute_tour', {
 }, {
     trigger: '.configurator_container.tour_success_2',
     run: function () {
-        //check
+        window.location.href = window.location.origin + '/web';
     }
-}]);
+}, {
+    trigger: '.o_navbar',
+    run: function() {},  // Check the home page is loaded
+}
+]);
