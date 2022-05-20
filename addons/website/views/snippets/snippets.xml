@@ -155,6 +155,7 @@
                     </t>
                     <t id="event_speaker_bio_hook"/>
                     <t id="snippet_donation_button_hook"/>
+                    <t id="snippet_add_to_cart_button_hook"/>
                 </div>
             </div>
         </t>
@@ -176,6 +177,7 @@
     <xpath expr="//div[@id='snippet_content']//t[@t-snippet][last()]" position="after">
         <t id="newsletter_snippet" t-install="mass_mailing" string="Newsletter" t-thumbnail="/website/static/src/img/snippets_thumbs/s_newsletter_subscribe_form.svg"/>
         <t t-install="website_payment" string="Donation Button" t-thumbnail="/website/static/src/img/snippets_thumbs/s_donation_button.svg"/>
+        <t t-install="website_sale" string="Add to Cart Button" t-thumbnail="/website/static/src/img/snippets_thumbs/s_donation_button.svg"/>
     </xpath>
 </template>
 
