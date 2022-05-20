@@ -708,6 +708,7 @@ class TransactionCase(BaseCase):
     registry: Registry = None
     env: api.Environment = None
     cr: Cursor = None
+    rollback_sequences = False
 
     @classmethod
     def setUpClass(cls):
@@ -718,6 +719,19 @@ class TransactionCase(BaseCase):
 
         cls.cr = cls.registry.cursor()
         cls.addClassCleanup(cls.cr.close)
+        if cls.rollback_sequences:
+            cls.cr.execute("SELECT sequencename, last_value FROM pg_sequences")
+            skip_sequences = {'ir_profile_id_seq', 'ir_sequence_id_seq', 'bus_bus_id_seq'}
+            cls._starting_sequences = {sequence: last_value for sequence, last_value in cls.cr.fetchall() if sequence not in skip_sequences}
+
+            def reset_sequences():
+                cls.cr.execute("SELECT sequencename, last_value FROM pg_sequences")
+                sequences = {sequence: last_value for sequence, last_value in cls.cr.fetchall()}
+                for sequence, last_value in sequences.items():
+                    start_value = cls._starting_sequences.get(sequence, last_value)
+                    if start_value != last_value:
+                        cls.cr.execute('SELECT setval(%s, %s)', (sequence, start_value))
+            cls.addClassCleanup(reset_sequences)
 
         cls.env = api.Environment(cls.cr, odoo.SUPERUSER_ID, {})
 

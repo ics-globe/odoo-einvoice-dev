@@ -170,7 +170,7 @@ class TestACL(TransactionCaseWithUserDemo):
 
 
 class TestIrRule(TransactionCaseWithUserDemo):
-
+    rollback_sequences = True
     def test_ir_rule(self):
         model_res_partner = self.env.ref('base.model_res_partner')
         group_user = self.env.ref('base.group_user')
@@ -182,7 +182,7 @@ class TestIrRule(TransactionCaseWithUserDemo):
             'domain_force': False,
             'groups': [Command.set(group_user.ids)],
         })
-
+        print(rule1)
         # read as demo user the partners (one blank domain)
         partners_demo = self.env['res.partner'].with_user(self.user_demo)
         partners = partners_demo.search([])
