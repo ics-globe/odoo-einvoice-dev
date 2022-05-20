@@ -20,6 +20,7 @@
                 <ul class="o_tree o_tree_workspace m-0 px-0 py-2">
                     <t t-call="knowledge.articles_template">
                         <t t-set="articles" t-value="published_articles"/>
+                        <t t-set="portal_readonly_mode" t-value="True"/>
                     </t>
                 </ul>
             </section>
@@ -28,6 +29,7 @@
                 <ul class="o_tree o_tree_workspace m-0 px-0 py-2">
                     <t t-call="knowledge.articles_template">
                         <t t-set="articles" t-value="visible_articles"/>
+                        <t t-set="portal_readonly_mode" t-value="True"/>
                     </t>
                 </ul>
             </section>
