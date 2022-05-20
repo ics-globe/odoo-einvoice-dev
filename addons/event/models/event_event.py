@@ -92,8 +92,8 @@ class EventEvent(models.Model):
 
     def _default_description(self):
         # avoid template branding with rendering_bundle=True
-        return self.env['ir.ui.view'].with_context(rendering_bundle=True) \
-            ._render_template('event.event_default_descripton')
+        return self.env['ir.qweb'].with_context(rendering_bundle=True)\
+            ._render('event.event_default_descripton')
 
     def _default_event_mail_ids(self):
         return self.env['event.type']._default_event_mail_type_ids()
