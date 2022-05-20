@@ -788,6 +788,9 @@
                                                 <div role="menuitem">
                                                     <a name="action_view_tasks" type="object">Tasks</a>
                                                 </div>
+                                                <div role="menuitem">
+                                                    <a name="action_get_list_view" type="object">Milestones</a>
+                                                </div>
                                             </div>
                                             <div class="col-6 o_kanban_card_manage_section o_kanban_manage_reporting">
                                                 <div role="menuitem" class="o_kanban_card_manage_title" groups="project.group_project_user">
@@ -1386,12 +1389,13 @@
                     <field name="is_closed" invisible="1" />
                     <field name="allow_subtasks" invisible="1" />
                     <field name="sequence" invisible="1" readonly="1"/>
+                    <field name="allow_milestones" invisible="1"/>
                     <field name="priority" widget="priority" optional="show" nolabel="1"/>
                     <field name="id" optional="hide"/>
                     <field name="name" widget="name_with_subtask_count"/>
                     <field name="child_text" invisible="1"/>
                     <field name="project_id" widget="project_private_task" optional="show" readonly="1"/>
-                    <field name="milestone_id" groups="project.group_project_milestone"/>
+                    <field name="milestone_id" attrs="{'invisible': [('allow_milestones', '=', False)]}" groups="project.group_project_milestone"/>
                     <field name="partner_id" optional="hide"/>
                     <field name="parent_id" optional="hide" attrs="{'invisible': [('allow_subtasks', '=', False)]}" groups="base.group_no_one"/>
                     <field name="user_ids" optional="show" widget="many2many_avatar_user" domain="[('share', '=', False), ('active', '=', True)]"/>
