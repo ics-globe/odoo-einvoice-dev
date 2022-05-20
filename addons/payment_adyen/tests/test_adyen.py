@@ -77,6 +77,27 @@ class AdyenTest(AdyenCommon, PaymentHttpCommon):
                 "the source transaction."
         )
 
+    @mute_logger('odoo.addons.payment_adyen.models.payment_transaction')
+    def test_send_capture_request(self):
+        # TODO edm
+        pass
+
+    def test_send_capture_request_partial_creates_child_tx(self):
+        source_tx = self.create_transaction(flow='direct', state='authorized')
+        with patch(
+            'odoo.addons.payment_adyen.models.payment_acquirer.PaymentAcquirer._adyen_make_request',
+            return_value={'status': 'received', 'pspreference': 'dummy ref'},
+        ):
+            child_tx = source_tx._send_capture_request(amount_to_capture=10)
+        self.assertEqual(
+            child_tx.operation, 'child', msg="A partial capture should create a child transaction."
+        )
+
+    @mute_logger('odoo.addons.payment_adyen.models.payment_transaction')
+    def test_send_void_request(self):
+        # TODO edm
+        pass
+
     def test_get_tx_from_notification_data_returns_refund_tx(self):
         source_tx = self.create_transaction(
             'direct', state='done', acquirer_reference=self.original_reference
@@ -120,6 +141,22 @@ class AdyenTest(AdyenCommon, PaymentHttpCommon):
         )
         self.assertNotEqual(refund_tx, source_tx)
         self.assertEqual(refund_tx.source_transaction_id, source_tx)
+
+    def test_get_tx_from_notification_data_returns_child_tx_from_capture(self):
+        #  TODO edm
+        pass
+
+    def test_get_tx_from_notification_data_creates_child_tx_when_missing_from_capture(self):
+        #  TODO edm
+        pass
+
+    def test_get_tx_from_notification_data_returns_child_tx_from_cancel(self):
+        #  TODO edm
+        pass
+
+    def test_get_tx_from_notification_data_creates_child_tx_when_missing_from_cancel(self):
+        #  TODO edm
+        pass
 
     @mute_logger('odoo.addons.payment_adyen.models.payment_transaction')
     def test_tx_state_after_send_capture_request(self):

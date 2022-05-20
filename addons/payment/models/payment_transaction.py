@@ -785,14 +785,16 @@ class PaymentTransaction(models.Model):
         txs_to_process._log_received_message()
 
     def _update_source_transaction_state(self):
-        """ Update the source transaction's state when its full amount is processed in child tx.
+        """ Update the authorized source tx's state when its full amount is processed in child tx.
         """
         if self.operation == 'child':
             children_tx = self.source_transaction_id.child_transaction_ids.filtered(
                 lambda tx: tx.state in ['done', 'cancel'] and tx.operation == 'child'
             )  # TODO edm ask anv: the check on the operation here is useless, but I feel it's
             # better to keep it because of the refund operation and whatever might come in the futurz
-            processed_amount = sum(child_tx.amount for child_tx in children_tx)
+            processed_amount = round(
+                sum(child_tx.amount for child_tx in children_tx), self.currency_id.decimal_places
+            )
             if self.source_transaction_id.amount == processed_amount:
                 formatted_amount = format_amount(
                     self.env, self.source_transaction_id.amount, self.currency_id

@@ -90,3 +90,61 @@ class TestTransactions(PaymentCommon):
             [('payment_transaction_id', '=', tx.id)]
         )
         self.assertEqual(payment_count, 0, msg="validation transactions should not create payments")
+
+    def test_child_tx_state_change_to_done_triggers_source_tx_state_change(self):
+        self.acquirer.write({
+            'support_capture': 'partial',  # To create transaction in the 'authorized' state
+        })
+        source_tx = self.create_transaction(flow='direct', state='authorized')
+        child_tx_1 = source_tx._create_child_transaction(amount=100)
+        child_tx_1._set_done()
+        self.assertEqual(
+            source_tx.state,
+            'authorized',
+            msg="The whole amount of the source transaction has not been processed yet, it's state "
+                "should still be 'authorized'."
+        )
+        child_tx_2 = source_tx._create_child_transaction(amount=source_tx.amount-100)
+        child_tx_2._set_done()
+        self.assertEqual(
+            source_tx.state,
+            'done',
+            msg="The whole amount of the source transaction has been processed, it's state is now "
+                "'done'."
+        )
+
+    def test_child_tx_state_change_to_cancel_triggers_source_tx_state_change(self):
+        self.acquirer.write({
+            'support_capture': 'partial',  # To create transaction in the 'authorized' state
+        })
+        source_tx = self.create_transaction(flow='direct', state='authorized')
+        child_tx_1 = source_tx._create_child_transaction(amount=100)
+        child_tx_1._set_done()
+        child_tx_2 = source_tx._create_child_transaction(amount=source_tx.amount-100)
+        child_tx_2._set_canceled()
+        self.assertEqual(
+            source_tx.state,
+            'done',
+            msg="The whole amount of the source transaction has been processed, it's state is now "
+                "'done'."
+        )
+
+    def test_no_payment_for_source_tx_with_children(self):
+        self.acquirer.write({
+            'support_capture': 'partial',  # To create transaction in the 'authorized' state
+        })
+        source_tx = self.create_transaction(flow='direct', state='authorized')
+        child_tx_1 = source_tx._create_child_transaction(amount=100)
+        child_tx_1._set_done()
+        child_tx_2 = source_tx._create_child_transaction(amount=source_tx.amount - 100)
+        child_tx_2._set_canceled()
+        self.assertEqual(source_tx.state, 'done')
+        source_tx._reconcile_after_done()
+        payment_count = self.env['account.payment'].search_count(
+            [('payment_transaction_id', '=', source_tx.id)]
+        )
+        self.assertEqual(
+            payment_count,
+            0,
+            msg="source transactions with done or cancel children should not create payments"
+        )
