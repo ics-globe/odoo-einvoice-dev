@@ -6,7 +6,6 @@ import { getMessagingComponent } from '@mail/utils/messaging_component';
 import { nextTick } from '@mail/utils/utils';
 import { getAdvanceTime } from '@mail/../tests/helpers/time_control';
 import { getWebClientReady } from '@mail/../tests/helpers/webclient_setup';
-import { WidgetExtractor } from '@mail/../tests/helpers/widget_extractor';
 
 import { registry } from '@web/core/registry';
 import { registerCleanup } from "@web/../tests/helpers/cleanup";
@@ -648,7 +647,6 @@ async function start(param0 = {}) {
         pyEnv,
         target,
         webClient,
-        widget: WidgetExtractor.currentWidget,
     };
 }
 

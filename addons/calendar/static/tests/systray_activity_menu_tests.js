@@ -1,8 +1,10 @@
 /** @odoo-module **/
 
+import { makeActionServiceInterceptor } from '@mail/../tests/helpers/make_action_service_interceptor';
 import { start, startServer } from '@mail/../tests/helpers/test_utils';
 import ActivityMenu from '@mail/js/systray/systray_activity_menu';
 
+import { Items as legacySystrayItems } from 'web.SystrayMenu';
 import testUtils from 'web.test_utils';
 import { patchDate } from "@web/../tests/helpers/utils";
 
@@ -29,22 +31,24 @@ QUnit.test('activity menu widget:today meetings', async function (assert) {
             attendee_ids: [calendarAttendeeId1],
         },
     ]);
-    const { widget: activityMenu } = await start({
-        widget: ActivityMenu,
+    legacySystrayItems.push(ActivityMenu);
+    const actionServiceInterceptor = makeActionServiceInterceptor({
+        doAction(action) {
+            assert.strictEqual(action, "calendar.action_calendar_event", 'should open meeting calendar view in day mode');
+        },
+    });
+    const { target } = await start({
+        services: {
+            action: actionServiceInterceptor,
+        },
     });
 
-    assert.hasClass(activityMenu.$el, 'o_mail_systray_item', 'should be the instance of widget');
-
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-
-    testUtils.mock.intercept(activityMenu, 'do_action', function (event) {
-        assert.strictEqual(event.data.action, "calendar.action_calendar_event", 'should open meeting calendar view in day mode');
-    });
-    await testUtils.dom.click(activityMenu.$('.o_mail_preview'));
-
-    assert.ok(activityMenu.$('.o_meeting_filter'), "should be a meeting");
-    assert.containsN(activityMenu, '.o_meeting_filter', 2, 'there should be 2 meetings');
-    assert.hasClass(activityMenu.$('.o_meeting_filter').eq(0), 'o_meeting_bold', 'this meeting is yet to start');
-    assert.doesNotHaveClass(activityMenu.$('.o_meeting_filter').eq(1), 'o_meeting_bold', 'this meeting has been started');
+    assert.containsOnce(target, '.o_mail_systray_item', 'should contain an instance of widget');
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    await testUtils.dom.click(target.querySelector('.o_mail_preview'));
+    assert.ok(target.querySelector('.o_meeting_filter'), "should be a meeting");
+    assert.containsN(target, '.o_meeting_filter', 2, 'there should be 2 meetings');
+    assert.hasClass(target.querySelector('.o_meeting_filter'), 'o_meeting_bold', 'this meeting is yet to start');
+    assert.doesNotHaveClass(target.querySelectorAll('.o_meeting_filter')[1], 'o_meeting_bold', 'this meeting has been started');
 });
 });

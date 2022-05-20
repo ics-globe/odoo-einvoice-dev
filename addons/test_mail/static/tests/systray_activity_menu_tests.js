@@ -10,6 +10,7 @@ import {
 import { patchWithCleanup } from "@web/../tests/helpers/utils";
 
 import session from 'web.session';
+import { Items as legacySystrayItems } from 'web.SystrayMenu';
 import testUtils from 'web.test_utils';
 import { date_to_str } from 'web.time';
 
@@ -37,8 +38,8 @@ QUnit.module('systray_activity_menu_tests.js', {
 QUnit.test('activity menu widget: menu with no records', async function (assert) {
     assert.expect(1);
 
-    const { widget: activityMenu } = await start({
-        widget: ActivityMenu,
+    legacySystrayItems.push(ActivityMenu);
+    const { target } = await start({
         mockRPC: function (route, args) {
             if (args.method === 'systray_get_activities') {
                 return Promise.resolve([]);
@@ -46,7 +47,7 @@ QUnit.test('activity menu widget: menu with no records', async function (assert)
         },
     });
     await testUtils.nextTick();
-    assert.containsOnce(activityMenu, '.o_no_activity');
+    assert.containsOnce(target, '.o_no_activity');
 });
 
 QUnit.test('activity menu widget: activity menu with 2 models', async function (assert) {
@@ -57,16 +58,16 @@ QUnit.test('activity menu widget: activity menu with 2 models', async function (
             assert.deepEqual(action.context, context, "wrong context value");
         },
     });
-    const { widget: activityMenu } = await start({
+    legacySystrayItems.push(ActivityMenu);
+    const { target } = await start({
         services: { action: actionServiceInterceptor },
-        widget: ActivityMenu,
     });
     await testUtils.nextTick();
-    assert.hasClass(activityMenu.$el, 'o_mail_systray_item', 'should be the instance of widget');
+    assert.containsOnce(target, '.o_mail_systray_item', 'should contain an instance of widget');
     // the assertion below has not been replace because there are includes of ActivityMenu that modify the length.
-    assert.ok(activityMenu.$('.o_mail_preview').length);
-    assert.containsOnce(activityMenu.$el, '.o_notification_counter', "widget should have notification counter");
-    assert.strictEqual(parseInt(activityMenu.el.innerText), 5, "widget should have 5 notification counter");
+    assert.ok(target.querySelectorAll('.o_mail_preview').length);
+    assert.containsOnce(target, '.o_notification_counter', "widget should have notification counter");
+    assert.strictEqual(parseInt(target.innerText), 5, "widget should have 5 notification counter");
 
     var context = {};
     // case 1: click on "late"
@@ -74,32 +75,32 @@ QUnit.test('activity menu widget: activity menu with 2 models', async function (
         force_search_count: 1,
         search_default_activities_overdue: 1,
     };
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    assert.hasClass(activityMenu.$el, 'show', 'ActivityMenu should be open');
-    await testUtils.dom.click(activityMenu.$(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='overdue']"));
-    assert.doesNotHaveClass(activityMenu.$el, 'show', 'ActivityMenu should be closed');
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    assert.containsOnce(target, '.o_mail_systray_dropdown.show', 'ActivityMenu should be open');
+    await testUtils.dom.click(target.querySelector(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='overdue']"));
+    assert.containsNone(target, '.show', 'ActivityMenu should be closed');
     // case 2: click on "today"
     context = {
         force_search_count: 1,
         search_default_activities_today: 1,
     };
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    await testUtils.dom.click(activityMenu.$(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='today']"));
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    await testUtils.dom.click(target.querySelector(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='today']"));
     // case 3: click on "future"
     context = {
         force_search_count: 1,
         search_default_activities_upcoming_all: 1,
     };
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    await testUtils.dom.click(activityMenu.$(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='upcoming_all']"));
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    await testUtils.dom.click(target.querySelector(".o_activity_filter_button[data-model_name='mail.test.activity'][data-filter='upcoming_all']"));
     // case 4: click anywere else
     context = {
         force_search_count: 1,
         search_default_activities_overdue: 1,
         search_default_activities_today: 1,
     };
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    await testUtils.dom.click(activityMenu.$(".o_mail_systray_dropdown_items > div[data-model_name='mail.test.activity']"));
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    await testUtils.dom.click(target.querySelector(".o_mail_systray_dropdown_items > div[data-model_name='mail.test.activity']"));
 });
 
 QUnit.test('activity menu widget: activity view icon', async function (assert) {
@@ -117,36 +118,36 @@ QUnit.test('activity menu widget: activity view icon', async function (assert) {
             }
         },
     });
-    const { widget: activityMenu } = await start({
+    legacySystrayItems.push(ActivityMenu);
+    const { target } = await start({
         services: { action: actionServiceInterceptor },
-        widget: ActivityMenu,
     });
     await testUtils.nextTick();
-    assert.containsN(activityMenu, '.o_mail_activity_action', 2,
+    assert.containsN(target, '.o_mail_activity_action', 2,
                        "widget should have 2 activity view icons");
 
-    var $first = activityMenu.$('.o_mail_activity_action').eq(0);
-    var $second = activityMenu.$('.o_mail_activity_action').eq(1);
-    assert.strictEqual($first.data('model_name'), "res.partner",
+    var first = target.querySelector('.o_mail_activity_action');
+    var second = target.querySelectorAll('.o_mail_activity_action')[1];
+    assert.strictEqual(first.getAttribute('data-model_name'), "res.partner",
                        "first activity action should link to 'res.partner'");
-    assert.hasClass($first, 'fa-clock-o', "should display the activity action icon");
+    assert.hasClass(first, 'fa-clock-o', "should display the activity action icon");
 
-    assert.strictEqual($second.data('model_name'), "mail.test.activity",
+    assert.strictEqual(second.getAttribute('data-model_name'), "mail.test.activity",
                        "Second activity action should link to 'mail.test.activity'");
-    assert.hasClass($second, 'fa-clock-o', "should display the activity action icon");
+    assert.hasClass(second, 'fa-clock-o', "should display the activity action icon");
 
     // click on the "mail.test.activity" activity icon
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    assert.hasClass(activityMenu.$('.dropdown-menu'), 'show',
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    assert.hasClass(target.querySelector('.dropdown-menu'), 'show',
         "dropdown should be expanded");
 
-    await testUtils.dom.click(activityMenu.$(".o_mail_activity_action[data-model_name='mail.test.activity']"));
-    assert.doesNotHaveClass(activityMenu.$('.dropdown-menu'), 'show',
+    await testUtils.dom.click(target.querySelector(".o_mail_activity_action[data-model_name='mail.test.activity']"));
+    assert.doesNotHaveClass(target.querySelector('.dropdown-menu'), 'show',
         "dropdown should be collapsed");
 
     // click on the "res.partner" activity icon
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
-    await testUtils.dom.click(activityMenu.$(".o_mail_activity_action[data-model_name='res.partner']"));
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
+    await testUtils.dom.click(target.querySelector(".o_mail_activity_action[data-model_name='res.partner']"));
 
     assert.verifySteps([
         'do_action:mail.test.activity',
@@ -157,22 +158,21 @@ QUnit.test('activity menu widget: activity view icon', async function (assert) {
 QUnit.test('activity menu widget: close on messaging menu click', async function (assert) {
     assert.expect(2);
 
-    const { click, createMessagingMenuComponent, widget: activityMenu } = await start({
-        widget: ActivityMenu,
-    });
+    legacySystrayItems.push(ActivityMenu);
+    const { click, createMessagingMenuComponent, target } = await start();
     await createMessagingMenuComponent();
     await testUtils.nextTick();
 
-    await testUtils.dom.click(activityMenu.$('.dropdown-toggle'));
+    await testUtils.dom.click(target.querySelector('.dropdown-toggle[title="Activities"]'));
     assert.hasClass(
-        activityMenu.el.querySelector('.o_mail_systray_dropdown'),
+        target.querySelector('.o_mail_systray_dropdown'),
         'show',
         "activity menu should be shown after click on itself"
     );
 
     await click(`.o_MessagingMenu_toggler`);
     assert.doesNotHaveClass(
-        activityMenu.el.querySelector('.o_mail_systray_dropdown'),
+        target.querySelector('.o_mail_systray_dropdown'),
         'show',
         "activity menu should be hidden after click on messaging menu"
     );

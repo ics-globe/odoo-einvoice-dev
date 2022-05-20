@@ -9,7 +9,6 @@ import { messagingService } from '@mail/services/messaging_service';
 import { makeMessagingValuesProviderService } from '@mail/services/messaging_values_provider_service';
 import { wowlEnvProviderService } from '@mail/services/wowl_env_provider_service';
 import { getMessagingComponent } from '@mail/utils/messaging_component';
-import { WidgetExtractor } from '@mail/../tests/helpers/widget_extractor';
 
 import { registry } from '@web/core/registry';
 import { patchWithCleanup } from "@web/../tests/helpers/utils";
@@ -31,10 +30,8 @@ const SERVICES_PARAMETER_NAMES = new Set([
 
 /**
  * Add required components to the main component registry.
- *
- * @param {Widget|undefined} [widget] Will mount this widget if passed.
  */
- function setupMainComponentRegistry(widget) {
+ function setupMainComponentRegistry() {
     const mainComponentRegistry = registry.category('main_components');
     mainComponentRegistry.add('ChatWindowManager', {
         Component: getMessagingComponent('ChatWindowManager'),
@@ -43,14 +40,6 @@ const SERVICES_PARAMETER_NAMES = new Set([
         Component: getMessagingComponent('DialogManager'),
     });
     registry.category('actions').add('mail.action_discuss', DiscussContainer);
-    if (widget) {
-        mainComponentRegistry.add('WidgetWrapper', {
-            Component: WidgetExtractor,
-            props: {
-                Component: widget,
-            },
-        });
-    }
 }
 
 /**
@@ -147,12 +136,10 @@ function setupMessagingServiceRegistries({
  * @param {Promise} [param0.testSetupDoneDeferred] The Promise to whose revolution has to be
  * waited before starting the messaging service.
  * @param {EventBus} [param0.messagingBus] The event bus to be used by messaging.
- * @param {Widget|undefined} [param0.widget] Widget to be instanciated.
  * @returns {WebClient}
  */
  async function getWebClientReady(param0) {
-    setupMainComponentRegistry(param0.widget);
-
+    setupMainComponentRegistry();
     const servicesParameters = {};
     const param0Entries = Object.entries(param0);
     for (const [parameterName, value] of param0Entries) {
